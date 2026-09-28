@@ -14,6 +14,7 @@ import cjkFriendly from 'markdown-it-cjk-friendly';
 import yaml from 'js-yaml';
 import { numberEquations } from './equations';
 import { sanitizeRenderedHtml } from './sanitize-html';
+import { documentDirection } from './doc-direction';
 
 // NOTE: `@hedgedoc/markdown-it-task-lists` is installed but unusable here —
 // its compiled ESM entry does `import Token from 'markdown-it/lib/token.js'`
@@ -605,6 +606,28 @@ md.core.ruler.after('inline', 'github_callouts', (state) => {
       const next = inline.children[1];
       inline.children.splice(0, next && (next.type === 'softbreak' || next.type === 'hardbreak') ? 2 : 1);
     }
+  }
+});
+
+// Hebrew / Arabic: a mostly-RTL document renders right-to-left end to end,
+// English blocks included (see documentDirection). Only `rtl` is ever written:
+// an LTR render leaves blocks untouched, so a live-edit fragment rendered on
+// its own inherits the editor's whole-file direction instead of overriding it.
+// Code blocks stay LTR via the `pre` rule in main.css.
+const DIR_BLOCK_TYPES = new Set([
+  'paragraph_open',
+  'heading_open',
+  'blockquote_open',
+  'bullet_list_open',
+  'ordered_list_open',
+  'list_item_open',
+  'table_open',
+]);
+
+md.core.ruler.push('doc_dir', (state) => {
+  if (documentDirection(state.src) !== 'rtl') return;
+  for (const tok of state.tokens) {
+    if (DIR_BLOCK_TYPES.has(tok.type)) tok.attrSet('dir', 'rtl');
   }
 });
 

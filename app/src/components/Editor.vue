@@ -67,6 +67,7 @@ import { spellcheckTheme } from '../lib/cm-spellcheck-theme';
 import { usePandocExport } from '../composables/usePandocExport';
 import type { CitationEntry } from '../lib/citations';
 import { taskListExtension } from '../lib/cm-task-list';
+import { bidiExtension } from '../lib/cm-bidi';
 import { imeCompositionGuard } from '../lib/cm-ime-guard';
 import {
   sessionRestoreExtension,
@@ -2973,6 +2974,7 @@ function buildExtensions() {
   return [
     imeCompositionGuard(),
     history(),
+    bidiExtension(),
     ...(windowsImeSafeMode
       ? []
       : [

@@ -784,7 +784,7 @@ button:disabled {
    and the print overlay all pick them up. Label text comes from ::before so
    it never pollutes copy/paste of the body. */
 .md-callout {
-  border-left: 3px solid var(--border);
+  border-inline-start: 3px solid var(--border);
   border-radius: 6px;
   background: var(--bg-hover);
   padding: 10px 14px;
@@ -796,26 +796,26 @@ button:disabled {
   font-size: 0.9em;
   margin-bottom: 4px;
 }
-.md-callout--note { border-left-color: #316dca; }
+.md-callout--note { border-inline-start-color: #316dca; }
 .md-callout--note::before { content: 'ℹ️ Note'; color: #316dca; }
-.md-callout--tip { border-left-color: #347d39; }
+.md-callout--tip { border-inline-start-color: #347d39; }
 .md-callout--tip::before { content: '💡 Tip'; color: #347d39; }
-.md-callout--important { border-left-color: #8256d0; }
+.md-callout--important { border-inline-start-color: #8256d0; }
 .md-callout--important::before { content: '❗ Important'; color: #8256d0; }
-.md-callout--warning { border-left-color: #a8750a; }
+.md-callout--warning { border-inline-start-color: #a8750a; }
 .md-callout--warning::before { content: '⚠️ Warning'; color: #a8750a; }
-.md-callout--caution { border-left-color: #c93c37; }
+.md-callout--caution { border-inline-start-color: #c93c37; }
 .md-callout--caution::before { content: '🛑 Caution'; color: #c93c37; }
 
 .contains-task-list {
   list-style: none;
-  padding-left: 1.25rem;
+  padding-inline-start: 1.25rem;
 }
 .task-list-item {
   position: relative;
 }
 .task-list-item-checkbox {
-  margin-right: 0.45rem;
+  margin-inline-end: 0.45rem;
   transform: translateY(2px);
   cursor: default;
   accent-color: var(--accent);
@@ -832,7 +832,7 @@ button:disabled {
 }
 .md-toc .md-toc__list {
   margin: 0.25em 0 0;
-  padding-left: 1.4em;
+  padding-inline-start: 1.4em;
 }
 .md-toc > .md-toc__list {
   margin-top: 0;
@@ -905,7 +905,7 @@ mark {
   color: var(--text-muted);
 }
 .footnotes-list {
-  padding-left: 1.4rem;
+  padding-inline-start: 1.4rem;
 }
 .footnote-backref {
   text-decoration: none;
@@ -1162,4 +1162,12 @@ body.solomd-printing--dark {
 ::highlight(settings-search) {
   background-color: color-mix(in srgb, var(--accent) 38%, transparent);
   color: inherit;
+}
+
+/* Hebrew / Arabic: blocks carry dir="auto"; code and display math stay LTR
+   even when they sit inside an RTL list item or blockquote. */
+pre,
+.katex-display {
+  direction: ltr;
+  text-align: left;
 }

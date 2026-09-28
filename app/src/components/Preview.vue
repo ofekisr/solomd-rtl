@@ -862,14 +862,14 @@ defineExpose({ scrollToLine, openSearch });
   -webkit-user-select: none;
 }
 :where(.preview-content) blockquote {
-  border-left: 3px solid var(--accent);
+  border-inline-start: 3px solid var(--accent);
   margin: 1em 0;
   padding: 0.2em 1em;
   color: var(--text-muted);
 }
 :where(.preview-content) ul,
 :where(.preview-content) ol {
-  padding-left: 1.6em;
+  padding-inline-start: 1.6em;
 }
 :where(.preview-content) table {
   border-collapse: collapse;
@@ -1076,7 +1076,7 @@ defineExpose({ scrollToLine, openSearch });
   margin: 1em 0;
 }
 :where(.preview-content--reading) blockquote {
-  border-left: 3px solid var(--border);
+  border-inline-start: 3px solid var(--border);
   color: var(--text-muted);
   font-style: italic;
 }
