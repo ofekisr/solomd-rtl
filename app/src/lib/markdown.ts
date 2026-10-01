@@ -613,8 +613,9 @@ md.core.ruler.after('inline', 'github_callouts', (state) => {
 // English blocks included (see documentDirection). Only `rtl` is ever written:
 // an LTR render leaves blocks untouched, so a live-edit fragment rendered on
 // its own inherits the editor's whole-file direction instead of overriding it.
-// Code blocks stay LTR via the `pre` rule in main.css.
+// Fenced code stays LTR; indented blocks follow the document direction.
 const DIR_BLOCK_TYPES = new Set([
+  'code_block',
   'paragraph_open',
   'heading_open',
   'blockquote_open',

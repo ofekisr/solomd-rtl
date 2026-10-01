@@ -1171,3 +1171,9 @@ pre,
   direction: ltr;
   text-align: left;
 }
+
+/* Indented Markdown blocks follow the RTL document, including copy sections. */
+pre[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}

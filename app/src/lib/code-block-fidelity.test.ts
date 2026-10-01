@@ -16,6 +16,15 @@ import assert from 'node:assert/strict';
 
 import { renderMarkdown, preprocessMarkdown } from './markdown';
 
+test('indented blocks follow RTL document direction and preserve their text', () => {
+  const html = renderMarkdown('שלום עולם\n\n    טקסט מוזח\n');
+  assert.match(html, /<pre[^>]*dir="rtl"[^>]*><code>טקסט מוזח\n<\/code>/);
+});
+
+test('English indented blocks keep their default direction', () => {
+  assert.doesNotMatch(renderMarkdown('    const value = 1;\n'), /dir="rtl"/);
+});
+
 /** The text markdown-it put inside <code>, HTML-entities decoded. */
 function codeText(html: string): string {
   const m = /<code[^>]*>([\s\S]*?)<\/code>/.exec(html);
