@@ -27,3 +27,13 @@ test('Unknown and extensionless files remain plaintext', () => {
     assert.equal(inferFileLanguage(name), 'plaintext');
   }
 });
+
+test('Shell extensions and startup files select the shared Bash highlighter', () => {
+  for (const name of [
+    'script.sh', 'script.bash', 'script.zsh', 'script.shell', 'SCRIPT.SH',
+    '.bashrc', '.bash_profile', '.bash_login', '.bash_logout', '.profile',
+    '.zshrc', '.zshenv', '.zprofile', '.zlogin', '.zlogout', '/home/user/.zshrc',
+  ]) {
+    assert.equal(inferFileLanguage(name), 'bash', name);
+  }
+});

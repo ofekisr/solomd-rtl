@@ -16,6 +16,10 @@ import {
 
 const catalogueNames = () => FENCE_LANGUAGES.map((l) => l.name);
 
+test('each fence language appears only once', () => {
+  assert.equal(new Set(catalogueNames()).size, catalogueNames().length);
+});
+
 // ---- the catalogue ------------------------------------------------------
 
 test('every language the code editor highlights is offered', () => {

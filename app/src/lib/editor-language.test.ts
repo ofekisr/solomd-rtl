@@ -3,8 +3,28 @@ import { test } from 'node:test';
 import { Compartment, EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
+import { classHighlighter, highlightTree } from '@lezer/highlight';
 import { createLanguageExtension } from './editor-language';
 import { bidiExtension } from './cm-bidi';
+
+test('Shell source and each fence alias highlight keywords, strings and comments', () => {
+  const source = 'if true; then\n  echo "Hello" # greeting\nfi';
+  const cases = [
+    { doc: source, language: 'bash' },
+    ...['bash', 'sh', 'zsh', 'shell'].map((alias) => ({
+      doc: `\`\`\`${alias}\n${source}\n\`\`\``, language: 'markdown',
+    })),
+  ];
+  for (const { doc, language } of cases) {
+    const state = EditorState.create({ doc, extensions: createLanguageExtension(language) });
+    const classes: string[] = [];
+    highlightTree(syntaxTree(state), classHighlighter, (_from, _to, value) => classes.push(value));
+    const highlighted = classes.join(' ');
+    assert.match(highlighted, /tok-keyword/, doc);
+    assert.match(highlighted, /tok-string/, doc);
+    assert.match(highlighted, /tok-comment/, doc);
+  }
+});
 
 test('Python factory installs a whole-document parser', () => {
   const state = EditorState.create({

@@ -1071,6 +1071,17 @@ fn sniff_bom(bytes: &[u8]) -> Option<(&'static Encoding, usize)> {
 }
 
 fn detect_language(path: &str) -> String {
+    let name = Path::new(path)
+        .file_name()
+        .and_then(|s| s.to_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    if matches!(name.as_str(),
+        ".bashrc" | ".bash_profile" | ".bash_login" | ".bash_logout" | ".profile"
+        | ".zshrc" | ".zshenv" | ".zprofile" | ".zlogin" | ".zlogout"
+    ) {
+        return "bash".to_string();
+    }
     let ext = Path::new(path)
         .extension()
         .and_then(|s| s.to_str())
@@ -1091,6 +1102,7 @@ fn detect_language(path: &str) -> String {
         "c" | "cpp" | "cc" | "h" | "hpp" => "cpp".to_string(),
         "go" => "go".to_string(),
         "sql" => "sql".to_string(),
+        "sh" | "bash" | "zsh" | "shell" => "bash".to_string(),
         _ => "plaintext".to_string(),
     }
 }
@@ -1113,6 +1125,12 @@ mod file_language_tests {
             ("example.go", "go"), ("example.sql", "sql"),
             ("notes.full.md", "markdown"), ("README", "plaintext"),
             (".py", "plaintext"), ("example.unknown", "plaintext"),
+            ("script.sh", "bash"), ("SCRIPT.SH", "bash"),
+            ("script.bash", "bash"), ("script.zsh", "bash"), ("script.shell", "bash"),
+            (".bashrc", "bash"), (".bash_profile", "bash"), (".bash_login", "bash"),
+            (".bash_logout", "bash"), (".profile", "bash"), (".zshrc", "bash"),
+            (".zshenv", "bash"), (".zprofile", "bash"), (".zlogin", "bash"),
+            (".zlogout", "bash"), ("/home/user/.zshrc", "bash"),
         ];
         for (path, expected) in cases {
             assert_eq!(detect_language(path), expected, "{path}");

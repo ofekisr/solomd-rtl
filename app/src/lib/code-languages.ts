@@ -1,4 +1,4 @@
-import { LanguageDescription } from '@codemirror/language';
+import { LanguageDescription, LanguageSupport, StreamLanguage } from '@codemirror/language';
 import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
 import { rust } from '@codemirror/lang-rust';
@@ -11,6 +11,7 @@ import { go } from '@codemirror/lang-go';
 import { yaml } from '@codemirror/lang-yaml';
 import { sql } from '@codemirror/lang-sql';
 import { xml } from '@codemirror/lang-xml';
+import { shell } from '@codemirror/legacy-modes/mode/shell';
 
 /**
  * The languages the code editor can actually highlight.
@@ -37,4 +38,9 @@ export const codeLanguages = [
   LanguageDescription.of({ name: 'yaml', alias: ['yml'], support: yaml() }),
   LanguageDescription.of({ name: 'sql', support: sql() }),
   LanguageDescription.of({ name: 'xml', support: xml() }),
+  LanguageDescription.of({
+    name: 'bash',
+    alias: ['sh', 'zsh', 'shell'],
+    support: new LanguageSupport(StreamLanguage.define(shell)),
+  }),
 ];
