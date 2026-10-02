@@ -4,7 +4,7 @@
 # https://github.com/zhitongblog/solomd
 #
 # Usage:
-#   solomd open <title|path>     Open a markdown file in SoloMD
+#   solomd open <title|path>     Open a file or folder in SoloMD
 #   solomd new <title> [text]    Create a new markdown file and open it
 #   solomd list [folder]         List markdown files in a folder
 #   solomd search <query>        Search markdown files in CWD for a query
@@ -71,6 +71,10 @@ detect_solomd_bin() {
 resolve_path() {
     local input="$1"
     [[ -z "$input" ]] && return 1
+    if [[ -d "$input" ]]; then
+        (cd -- "$input" && pwd -P)
+        return 0
+    fi
     if [[ "$input" == /* ]]; then
         echo "$input"
         return 0
@@ -93,7 +97,7 @@ cmd_help() {
     printf "${BLUE}USAGE${NC}\n"
     printf "  solomd <command> [args]\n\n"
     printf "${BLUE}COMMANDS${NC}\n"
-    printf "  ${GREEN}%-22s${NC} %s\n" "open <title|path>" "Open file in SoloMD"
+    printf "  ${GREEN}%-22s${NC} %s\n" "open <title|path>" "Open file or folder in SoloMD"
     printf "  ${GREEN}%-22s${NC} %s\n" "new <title> [text]" "Create new note + open"
     printf "  ${GREEN}%-22s${NC} %s\n" "list [folder]" "List markdown files"
     printf "  ${GREEN}%-22s${NC} %s\n" "search <query>" "Search markdown for text"
@@ -113,8 +117,8 @@ cmd_open() {
     [[ -z "$target" ]] && { echo "Usage: solomd open <title|path>" >&2; exit 1; }
     local path
     path="$(resolve_path "$target")"
-    if [[ ! -f "$path" ]]; then
-        printf "${YELLOW}File not found:${NC} %s\n" "$path" >&2
+    if [[ ! -f "$path" && ! -d "$path" ]]; then
+        printf "${YELLOW}File or folder not found:${NC} %s\n" "$path" >&2
         exit 1
     fi
     local bin

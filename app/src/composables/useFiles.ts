@@ -261,6 +261,12 @@ export function useFiles() {
       }
     }
 
+    // Folder arguments reuse the picker flow before any file-specific routing.
+    if (!isAndroid() && !isIOS() && await invoke<boolean>('fs_dir_exists', { path })) {
+      openFolderPath(path);
+      return;
+    }
+
     // #98 — image files open in the fullscreen overlay viewer, never as a
     // tab and never in a new window (an overlay isn't document content, so
     // routing it through the markitdown converter just toasts an error).
@@ -592,6 +598,11 @@ export function useFiles() {
     return pickerStartDir(dir && dir !== active ? dir : null);
   }
 
+  function openFolderPath(path: string): void {
+    workspace.setFolder(path);
+    if (!settings.showFileTree) settings.toggleFileTree();
+  }
+
   async function openFolder() {
     // Open the OS folder picker rooted at the previously chosen workspace
     // so the user lands in a familiar tree, not at $HOME or wherever the
@@ -658,8 +669,7 @@ export function useFiles() {
       defaultPath: await pickerStartDir(),
     });
     if (!selected || typeof selected !== 'string') return;
-    workspace.setFolder(selected);
-    if (!settings.showFileTree) settings.toggleFileTree();
+    openFolderPath(selected);
   }
 
   // iOS save policy: ignore the in-place path (could be a security-scoped
