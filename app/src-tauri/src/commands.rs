@@ -1078,7 +1078,45 @@ fn detect_language(path: &str) -> String {
         .to_ascii_lowercase();
     match ext.as_str() {
         "md" | "markdown" | "mdown" | "mkd" => "markdown".to_string(),
+        "js" | "jsx" | "mjs" | "cjs" => "javascript".to_string(),
+        "ts" | "tsx" => "typescript".to_string(),
+        "py" => "python".to_string(),
+        "rs" => "rust".to_string(),
+        "html" | "htm" => "html".to_string(),
+        "css" => "css".to_string(),
+        "java" => "java".to_string(),
+        "json" => "json".to_string(),
+        "yaml" | "yml" => "yaml".to_string(),
+        "xml" => "xml".to_string(),
+        "c" | "cpp" | "cc" | "h" | "hpp" => "cpp".to_string(),
+        "go" => "go".to_string(),
+        "sql" => "sql".to_string(),
         _ => "plaintext".to_string(),
+    }
+}
+
+#[cfg(test)]
+mod file_language_tests {
+    use super::detect_language;
+
+    #[test]
+    fn routes_code_files_to_their_language() {
+        let cases = [
+            ("example.py", "python"), ("EXAMPLE.PY", "python"),
+            ("example.js", "javascript"), ("example.jsx", "javascript"),
+            ("example.mjs", "javascript"), ("example.cjs", "javascript"),
+            ("example.ts", "typescript"), ("example.tsx", "typescript"),
+            ("example.rs", "rust"), ("example.html", "html"), ("example.htm", "html"),
+            ("example.css", "css"), ("example.json", "json"), ("example.java", "java"),
+            ("example.yml", "yaml"), ("example.xml", "xml"),
+            ("example.cpp", "cpp"), ("example.h", "cpp"),
+            ("example.go", "go"), ("example.sql", "sql"),
+            ("notes.full.md", "markdown"), ("README", "plaintext"),
+            (".py", "plaintext"), ("example.unknown", "plaintext"),
+        ];
+        for (path, expected) in cases {
+            assert_eq!(detect_language(path), expected, "{path}");
+        }
     }
 }
 

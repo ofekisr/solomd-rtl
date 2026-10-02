@@ -1,91 +1,85 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, computed, nextTick } from 'vue';
-import { EditorState, Compartment } from '@codemirror/state';
-import { EditorView, keymap, lineNumbers, highlightActiveLine, drawSelection, rectangularSelection, crosshairCursor } from '@codemirror/view';
-import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
-import { searchKeymap, search, openSearchPanel, getSearchQuery, setSearchQuery } from '@codemirror/search';
-import { syntaxHighlighting, defaultHighlightStyle, indentOnInput, bracketMatching } from '@codemirror/language';
-import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
-import { cjkFriendlyEmphasis } from '../lib/cm-cjk-emphasis';
-import { initMermaid } from '../lib/mermaid-lazy';
+import {autocompletion} from '@codemirror/autocomplete';
+import {defaultKeymap, history, historyKeymap, indentWithTab} from '@codemirror/commands';
+import {
+  bracketMatching, defaultHighlightStyle, indentOnInput, syntaxHighlighting
+} from '@codemirror/language';
+import {getSearchQuery, openSearchPanel, search, searchKeymap, setSearchQuery} from '@codemirror/search';
+import {Compartment, EditorState} from '@codemirror/state';
+import {
+  crosshairCursor, drawSelection, EditorView, highlightActiveLine, keymap, lineNumbers, rectangularSelection
+} from '@codemirror/view';
+import {vim, Vim} from '@replit/codemirror-vim';
+import {
+  readText as readClipboardTextPlugin, writeText as writeClipboardTextPlugin
+} from '@tauri-apps/plugin-clipboard-manager';
+import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from 'vue';
+import {useFormatHints} from '../composables/useFormatHints';
+import {usePandocExport} from '../composables/usePandocExport';
+import {useI18n} from '../i18n';
+import {IS_APP_STORE_BUILD} from '../lib/app-build';
+import type {CitationEntry} from '../lib/citations';
+import {aiRewriteExtension} from '../lib/cm-ai-rewrite';
+import {bidiExtension} from '../lib/cm-bidi';
+import {citationCompleteSource, citationsExtension} from '../lib/cm-citations';
+import {dragAwareExtension} from '../lib/cm-drag-aware';
+import {fenceLanguageComplete, fenceLanguageExtension} from '../lib/cm-fence-completion';
+import {focusModeExtension, typewriterModeExtension} from '../lib/cm-focus-mode';
+import {
+  foldAllHeadings, foldHeadingsToLevel, headingFoldExtension, toggleHeadingFoldAtCursor, unfoldAllFolds,
+} from '../lib/cm-heading-fold';
+import {
+  handleTextareaImagePaste, imagePasteExtension, type ImagePasteOptions, imageTextFromPath,
+  insertImageFromPath as cmInsertImageFromPath
+} from '../lib/cm-image-paste';
+import {imeCompositionGuard} from '../lib/cm-ime-guard';
+import {extractImageRoot, liveBlocksExtension, liveBlocksTheme} from '../lib/cm-live-blocks';
+import {livePreviewExtension, richHighlightOnly} from '../lib/cm-live-preview';
+import {liveEditExtension, setLiveEditCopyLabel} from '../lib/cm-live-render';
+import {clearSession, readSession, sessionRestoreExtension,} from '../lib/cm-session-restore';
+import {slashCommandsExtension} from '../lib/cm-slash-commands';
+import {spellcheckExtension} from '../lib/cm-spellcheck';
+import {spellcheckTheme} from '../lib/cm-spellcheck-theme';
+import {stableClickSelection} from '../lib/cm-stable-click';
+import {tagAutocompleteExtension, tagComplete} from '../lib/cm-tag-autocomplete';
+import {taskListExtension} from '../lib/cm-task-list';
+import {wikilinkComplete, wikilinkExtension} from '../lib/cm-wikilink';
+import {attachCodeCopyButtons} from '../lib/code-copy';
 // The grammar imports and the `codeLanguages` list they feed now live in
 // `lib/code-languages.ts`: the ``` fence-language picker (#297) derives its
 // catalogue from that same list, so there is only one copy to keep in sync.
-import { codeLanguages } from '../lib/code-languages';
-import { fenceLanguageComplete, fenceLanguageExtension } from '../lib/cm-fence-completion';
-import { filterFenceLanguages, isInsideFenceBefore, matchFenceOpener } from '../lib/fence-languages';
-import { vim, Vim } from '@replit/codemirror-vim';
-import { cmThemeFor, mermaidThemeFor } from '../lib/themes';
-import { registerPlainSelectionGetter } from '../lib/plain-selection';
+import {createLanguageExtension} from '../lib/editor-language.ts';
+import {collectLabels, findMathSpanAt} from '../lib/equations';
+import {filterFenceLanguages, isInsideFenceBefore, matchFenceOpener} from '../lib/fence-languages';
+import {activeParagraphLines, lineAt} from '../lib/focus-paragraph';
+import {openFormulaEditor} from '../lib/formula-editor-bus';
+import {type FoldAnchor, foldedCharRanges, type HeadingSpan, remapFolds, scanHeadings,} from '../lib/heading-fold';
+import {installSvgImageFallbacks, rewriteImageUrls} from '../lib/image-resolve';
+import {type ImageUploadSettings, resolveUploader, uploadImage} from '../lib/image-upload';
+import {combosFor, toCodeMirrorKey} from '../lib/keybindings';
+import {computeListContinuation} from '../lib/list-continuation';
+import {extractImageRoot as extractMarkdownImageRoot, renderMarkdown} from '../lib/markdown';
+import {findTableSpan} from '../lib/markdown-table';
+import {applyFormat, FORMAT_KINDS, type FormatKind} from '../lib/md-format';
+import {encodeImageDestination, markdownImage} from '../lib/md-image-url';
+import {initMermaid} from '../lib/mermaid-lazy';
+import {registerPlainSelectionGetter} from '../lib/plain-selection';
+import {plantumlSvgUrl} from '../lib/plantuml';
+import {isAndroid, isIOS, isWindowsEditorRuntime, shouldUsePlainWindowsEditor} from '../lib/platform';
+import {expandSnippet, filterBlocks, SLASH_BLOCKS} from '../lib/slash-blocks';
+import {openTableEditor} from '../lib/table-editor-bus';
+import {type CaseMode, caseTargetRange, nextCaseInCycle, transformCase} from '../lib/text-case';
 import {
-  headingFoldExtension,
-  toggleHeadingFoldAtCursor,
-  foldAllHeadings,
-  unfoldAllFolds,
-  foldHeadingsToLevel,
-} from '../lib/cm-heading-fold';
-import { findTableSpan } from '../lib/markdown-table';
-import { findMathSpanAt, collectLabels } from '../lib/equations';
-import { openFormulaEditor } from '../lib/formula-editor-bus';
-import { openTableEditor } from '../lib/table-editor-bus';
-import {
-  scanHeadings,
-  foldedCharRanges,
-  remapFolds,
-  type FoldAnchor,
-  type HeadingSpan,
-} from '../lib/heading-fold';
-import { caretRowInfo, caretTopPx, caretPointPx, lastVisualRowStart, firstVisualRowEnd, measureLineHeights } from '../lib/textarea-metrics';
-import { activeParagraphLines, lineAt } from '../lib/focus-paragraph';
-import { transformCase, nextCaseInCycle, caseTargetRange, type CaseMode } from '../lib/text-case';
-import { applyFormat, FORMAT_KINDS, type FormatKind } from '../lib/md-format';
-import { useFormatHints } from '../composables/useFormatHints';
-import { useTabsStore } from '../stores/tabs';
-import { useSettingsStore, buildEditorFontStack } from '../stores/settings';
-import { useToastsStore } from '../stores/toasts';
-import type { Tab } from '../types';
-import { livePreviewExtension, richHighlightOnly } from '../lib/cm-live-preview';
-import { liveEditExtension, setLiveEditCopyLabel } from '../lib/cm-live-render';
-import { liveBlocksExtension, liveBlocksTheme, extractImageRoot } from '../lib/cm-live-blocks';
-import { findTldrawFences, replaceBoardSnapshot } from '../lib/tldraw-board';
-import { dragAwareExtension } from '../lib/cm-drag-aware';
-import { imagePasteExtension, insertImageFromPath as cmInsertImageFromPath, imageTextFromPath, handleTextareaImagePaste, type ImagePasteOptions } from '../lib/cm-image-paste';
-import { markdownImage, encodeImageDestination } from '../lib/md-image-url';
-import { resolveUploader, uploadImage, type ImageUploadSettings } from '../lib/image-upload';
-import { focusModeExtension, typewriterModeExtension } from '../lib/cm-focus-mode';
-import { wikilinkExtension, wikilinkComplete } from '../lib/cm-wikilink';
-import { tagAutocompleteExtension, tagComplete } from '../lib/cm-tag-autocomplete';
-import { citationsExtension, citationCompleteSource } from '../lib/cm-citations';
-import { autocompletion } from '@codemirror/autocomplete';
-import { aiRewriteExtension } from '../lib/cm-ai-rewrite';
-import { combosFor, toCodeMirrorKey } from '../lib/keybindings';
-import { IS_APP_STORE_BUILD } from '../lib/app-build';
-import { slashCommandsExtension } from '../lib/cm-slash-commands';
-import { useI18n } from '../i18n';
-import { spellcheckExtension } from '../lib/cm-spellcheck';
-import { spellcheckTheme } from '../lib/cm-spellcheck-theme';
-import { usePandocExport } from '../composables/usePandocExport';
-import type { CitationEntry } from '../lib/citations';
-import { taskListExtension } from '../lib/cm-task-list';
-import { bidiExtension } from '../lib/cm-bidi';
-import { imeCompositionGuard } from '../lib/cm-ime-guard';
-import {
-  sessionRestoreExtension,
-  readSession,
-  clearSession,
-} from '../lib/cm-session-restore';
-import { renderMarkdown, extractImageRoot as extractMarkdownImageRoot } from '../lib/markdown';
-import { attachCodeCopyButtons } from '../lib/code-copy';
-import { plantumlSvgUrl } from '../lib/plantuml';
-import { stableClickSelection } from '../lib/cm-stable-click';
-import { installSvgImageFallbacks, rewriteImageUrls } from '../lib/image-resolve';
-import { SLASH_BLOCKS, filterBlocks, expandSnippet } from '../lib/slash-blocks';
-import { useWorkspaceIndexStore } from '../stores/workspaceIndex';
-import { isWindowsEditorRuntime, shouldUsePlainWindowsEditor } from '../lib/platform';
-import { isAndroid, isIOS } from '../lib/platform';
-import EditorContextMenu, { type EditorMenuAction } from './EditorContextMenu.vue';
-import { readText as readClipboardTextPlugin, writeText as writeClipboardTextPlugin } from '@tauri-apps/plugin-clipboard-manager';
-import { computeListContinuation } from '../lib/list-continuation';
+  caretPointPx, caretRowInfo, caretTopPx, firstVisualRowEnd, lastVisualRowStart, measureLineHeights
+} from '../lib/textarea-metrics';
+import {cmThemeFor, mermaidThemeFor} from '../lib/themes';
+import {findTldrawFences, replaceBoardSnapshot} from '../lib/tldraw-board';
+import {buildEditorFontStack, useSettingsStore} from '../stores/settings';
+import {useTabsStore} from '../stores/tabs';
+import {useToastsStore} from '../stores/toasts';
+import {useWorkspaceIndexStore} from '../stores/workspaceIndex';
+import type {Tab} from '../types';
+import EditorContextMenu, {type EditorMenuAction} from './EditorContextMenu.vue';
 
 // Incremental find. CoreMirror's search panel only scrolls to a match when you
 // press Enter / click Next — typing in the field just repaints the highlights
@@ -192,6 +186,7 @@ let contentSyncTimer: ReturnType<typeof setTimeout> | null = null;
 
 const themeCompartment = new Compartment();
 const langCompartment = new Compartment();
+const directionCompartment = new Compartment();
 const wrapCompartment = new Compartment();
 const lineNumCompartment = new Compartment();
 const cursorCompartment = new Compartment();
@@ -2847,20 +2842,6 @@ function currentAiRewriteKey(): string {
   return combos.length ? toCodeMirrorKey(combos[0]) : 'F24';
 }
 
-function markdownExt() {
-  // Use `markdownLanguage` as the base so GFM features (including task
-  // list parsing with TaskMarker nodes) are enabled.
-  // `cjkFriendlyEmphasis` keeps live edit in step with the preview on
-  // `**限制：**硬链接`-shaped CJK bold (#262); without it the two panes
-  // disagree about the same document.
-  return markdown({
-    base: markdownLanguage,
-    codeLanguages,
-    addKeymap: true,
-    extensions: [cjkFriendlyEmphasis],
-  });
-}
-
 function spellCheckExt(on: boolean) {
   return EditorView.contentAttributes.of({ spellcheck: on ? 'true' : 'false' });
 }
@@ -2981,7 +2962,9 @@ function buildExtensions() {
   return [
     imeCompositionGuard(),
     history(),
-    bidiExtension(),
+    directionCompartment.of(bidiExtension(
+      props.tab.language === 'markdown' || props.tab.language === 'plaintext' ? undefined : 'ltr',
+    )),
     ...(windowsImeSafeMode
       ? []
       : [
@@ -3015,9 +2998,7 @@ function buildExtensions() {
     langCompartment.of(
       windowsImeSafeMode
         ? []
-        : props.tab.language === 'markdown'
-          ? [markdownExt()]
-          : [],
+        : createLanguageExtension(props.tab.language)
     ),
     richCompartment.of(
       windowsImeSafeMode ? [] : richExtensionsFor(props.tab),
@@ -3833,7 +3814,10 @@ watch(
   (l) => {
     view?.dispatch({
       effects: [
-        langCompartment.reconfigure(l === 'markdown' ? [markdownExt()] : []),
+        langCompartment.reconfigure(createLanguageExtension(l)),
+        directionCompartment.reconfigure(bidiExtension(
+          l === 'markdown' || l === 'plaintext' ? undefined : 'ltr',
+        )),
         richCompartment.reconfigure(richExtensionsFor(props.tab)),
       ],
     });

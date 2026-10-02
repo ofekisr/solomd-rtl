@@ -15,6 +15,7 @@
  */
 import { invoke } from '@tauri-apps/api/core';
 import type { FileReadResult, Language } from '../types';
+import { inferFileLanguage } from './file-language';
 
 export const SAF_PREFIX = 'saf:';
 
@@ -31,7 +32,7 @@ export function fromSafPath(p: string): string {
 const MD_EXTS = new Set(['md', 'markdown', 'mdown', 'mkd', 'markdn', 'mdtext', 'text']);
 function langFor(name: string): Language {
   const ext = (name.split('.').pop() || '').toLowerCase();
-  return MD_EXTS.has(ext) ? 'markdown' : 'plaintext';
+  return MD_EXTS.has(ext) ? 'markdown' : inferFileLanguage(name);
 }
 
 interface RawSafEntry {

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { inferFileLanguage } from '../lib/file-language';
 import type { Language, Tab } from '../types';
 import { useSettingsStore } from './settings';
 import { useTilesStore } from './tiles';
@@ -47,9 +48,7 @@ let nextId = 1;
 const newId = () => `tab-${Date.now()}-${nextId++}`;
 
 function inferLanguage(name: string): Language {
-  const lower = name.toLowerCase();
-  if (/\.(md|markdown|mdown|mkd)$/.test(lower)) return 'markdown';
-  return 'plaintext';
+  return inferFileLanguage(name);
 }
 
 interface PersistedState {

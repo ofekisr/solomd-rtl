@@ -8,10 +8,13 @@ import { documentDirection, type TextDirection } from './doc-direction';
 // Fenced code lines are pinned LTR; indented blocks follow the document.
 // `perLineTextDirection` makes CodeMirror honour
 // that per-line override for caret motion and selection drawing.
-const docDirection = StateField.define<TextDirection>({
-  create: (state) => documentDirection(state.doc.toString()),
-  update: (dir, tr) => (tr.docChanged ? documentDirection(tr.newDoc.toString()) : dir),
-});
+function directionField(forcedDirection?: TextDirection): StateField<TextDirection> {
+  return StateField.define<TextDirection>({
+    create: (state) => forcedDirection ?? documentDirection(state.doc.toString()),
+    update: (dir, tr) => forcedDirection
+      ?? (tr.docChanged ? documentDirection(tr.newDoc.toString()) : dir),
+  });
+}
 
 const CODE_NODE_NAMES = new Set(['FencedCode']);
 const ltrLine = Decoration.line({ attributes: { dir: 'ltr' } });
@@ -52,7 +55,8 @@ const codeLinesLtr = ViewPlugin.fromClass(
   { decorations: (plugin) => plugin.decorations },
 );
 
-export function bidiExtension(): Extension {
+export function bidiExtension(forcedDirection?: TextDirection): Extension {
+  const docDirection = directionField(forcedDirection);
   return [
     docDirection,
     // Keep the root direction for CodeMirror's flex layout (gutter placement).
