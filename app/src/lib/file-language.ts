@@ -3,7 +3,7 @@ import type { Language } from '../types';
 const languagesByExtension = new Map<string, Language>([
   ['md', 'markdown'], ['markdown', 'markdown'], ['mdown', 'markdown'], ['mkd', 'markdown'],
   ['js', 'javascript'], ['jsx', 'javascript'], ['mjs', 'javascript'], ['cjs', 'javascript'],
-  ['ts', 'typescript'], ['tsx', 'typescript'], ['py', 'python'], ['rs', 'rust'],
+  ['ts', 'typescript'], ['tsx', 'typescript'], ['py', 'python'], ['pyj', 'python'], ['rs', 'rust'],
   ['html', 'html'], ['htm', 'html'], ['css', 'css'], ['json', 'json'], ['java', 'java'],
   ['yaml', 'yaml'], ['yml', 'yaml'], ['xml', 'xml'],
   ['c', 'cpp'], ['cpp', 'cpp'], ['cc', 'cpp'], ['h', 'cpp'], ['hpp', 'cpp'],

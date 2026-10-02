@@ -1091,7 +1091,7 @@ fn detect_language(path: &str) -> String {
         "md" | "markdown" | "mdown" | "mkd" => "markdown".to_string(),
         "js" | "jsx" | "mjs" | "cjs" => "javascript".to_string(),
         "ts" | "tsx" => "typescript".to_string(),
-        "py" => "python".to_string(),
+        "py" | "pyj" => "python".to_string(),
         "rs" => "rust".to_string(),
         "html" | "htm" => "html".to_string(),
         "css" => "css".to_string(),
@@ -1115,6 +1115,7 @@ mod file_language_tests {
     fn routes_code_files_to_their_language() {
         let cases = [
             ("example.py", "python"), ("EXAMPLE.PY", "python"),
+            ("example.pyj", "python"), ("EXAMPLE.PYJ", "python"),
             ("example.js", "javascript"), ("example.jsx", "javascript"),
             ("example.mjs", "javascript"), ("example.cjs", "javascript"),
             ("example.ts", "typescript"), ("example.tsx", "typescript"),

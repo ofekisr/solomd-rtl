@@ -4,6 +4,8 @@ import { inferFileLanguage } from './file-language';
 
 test('Recognizes filenames and paths rather than bare language names', () => {
   assert.equal(inferFileLanguage('example.py'), 'python');
+  assert.equal(inferFileLanguage('example.pyj'), 'python');
+  assert.equal(inferFileLanguage('/workspace/EXAMPLE.PYJ'), 'python');
   assert.equal(inferFileLanguage('/workspace/scripts/EXAMPLE.PY'), 'python');
   assert.equal(inferFileLanguage('C:\\scripts\\example.py'), 'python');
   assert.equal(inferFileLanguage('notes.full.md'), 'markdown');
