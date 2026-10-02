@@ -2953,6 +2953,13 @@ const fontSizeTheme = (px: number, family: string) =>
     '.cm-activeLine': { backgroundColor: 'transparent' },
     '.cm-activeLineGutter': { backgroundColor: 'transparent', color: 'var(--accent)' },
     '.cm-cursor': { borderLeftColor: 'var(--accent)', borderLeftWidth: '2px' },
+    // CodeMirror's measured cursor layer can report the same x-coordinate for
+    // adjacent insertion points around trailing RTL spaces. Let the browser
+    // draw the native caret in RTL content so each typed space advances it.
+    '&[dir="rtl"] .cm-content': { caretColor: 'var(--accent) !important' },
+    '&[dir="rtl"] .cm-cursor': {
+      display: 'none',
+    },
     '.cm-selectionBackground, ::selection': { backgroundColor: 'rgba(255,159,64,0.25) !important' },
     // v4.3.0 issue #67: distinct current-match highlight for the Cmd+F search
     // panel. CM6 marks the active result with `.cm-searchMatch-selected` —

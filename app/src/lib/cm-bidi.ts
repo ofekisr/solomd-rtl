@@ -55,9 +55,22 @@ const codeLinesLtr = ViewPlugin.fromClass(
 export function bidiExtension(): Extension {
   return [
     docDirection,
-    EditorView.contentAttributes.compute([docDirection], (state) => ({ dir: state.field(docDirection) })),
+    // Keep the root direction for CodeMirror's flex layout (gutter placement).
+    EditorView.editorAttributes.compute([docDirection], (state) => ({
+      dir: state.field(docDirection),
+    })),
+    // Text direction belongs on the content so bidi cursor movement follows it.
+    EditorView.contentAttributes.compute([docDirection], (state) => ({
+      dir: state.field(docDirection),
+    })),
     EditorView.perLineTextDirection.of(true),
     codeLinesLtr,
-    EditorView.theme({ '.cm-line': { textAlign: 'start' } }),
+    EditorView.theme({
+      '.cm-line': { textAlign: 'start' },
+      '&[dir="rtl"] .cm-gutters-before': {
+        insetInlineStart: 'auto',
+        insetInlineEnd: '0',
+      },
+    }),
   ];
 }
