@@ -3,6 +3,8 @@ import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { initMermaid } from '../lib/mermaid-lazy';
 import { mermaidThemeFor } from '../lib/themes';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { documentDirection } from '../lib/doc-direction';
+import { isFullMdFile } from '../lib/markdown-block-badges';
 import { renderMarkdown, extractImageRoot } from '../lib/markdown';
 import { plantumlSvgUrl } from '../lib/plantuml';
 import { installSvgImageFallbacks, rewriteImageUrls } from '../lib/image-resolve';
@@ -151,7 +153,11 @@ const html = computed(() => {
   // #216 — and for the smart-quotes toggle (md singleton rule state).
   void settings.smartQuotes;
   const source = props.source || '';
-  return rewriteImageUrls(renderMarkdown(source), extractImageRoot(source), props.filePath);
+  return rewriteImageUrls(
+    renderMarkdown(source, { blockNumbers: isFullMdFile(props.filePath) }),
+    extractImageRoot(source),
+    props.filePath,
+  );
 });
 
 // v4.10 issue #163 — render ```plantuml fences through the configured
@@ -633,9 +639,14 @@ function onPreviewCopy(e: ClipboardEvent) {
   if (!sel || sel.isCollapsed || !e.clipboardData) return;
   const range = sel.getRangeAt(0);
   const frag = range.cloneContents();
-  if (!frag.querySelector('table')) return;
+  const hasNumberedSelection = isFullMdFile(props.filePath)
+    && host.value?.contains(range.commonAncestorContainer);
+  if (!hasNumberedSelection && !frag.querySelector('table, .full-md-block')) return;
   const wrap = document.createElement('div');
   wrap.appendChild(frag);
+  for (const block of Array.from(wrap.querySelectorAll('.full-md-block'))) {
+    block.replaceWith(...Array.from(block.childNodes));
+  }
   for (const table of Array.from(wrap.querySelectorAll('table'))) {
     table.setAttribute(
       'style',
@@ -669,8 +680,10 @@ defineExpose({ scrollToLine, openSearch });
     <article
       ref="host"
       class="preview-content"
+      :dir="isFullMdFile(props.filePath) ? documentDirection(props.source) : undefined"
       :class="{
         'preview-content--fit': settings.previewFitWidth,
+        'preview-content--full-md': isFullMdFile(props.filePath),
         'preview-content--reading': skin === 'reading',
         'cb-numbered-on': settings.codeBlockLineNumbers,
         'cb-wrap-on': settings.codeBlockWrap,
@@ -1172,5 +1185,29 @@ defineExpose({ scrollToLine, openSearch });
   opacity: 0.6;
   font-size: 11px;
   margin-left: 2px;
+}
+/* Logical positioning follows the preview direction, including RTL prose. */
+.preview-content.preview-content--full-md {
+  padding-inline-start: 4.5rem;
+}
+.preview-content .full-md-block {
+  position: relative;
+}
+.preview-content .full-md-block::before {
+  content: attr(data-block-number);
+  position: absolute;
+  inset-inline-end: calc(100% + 0.5rem);
+  inset-block-start: 0.25rem;
+  min-inline-size: 1.5rem;
+  padding: 0.1rem 0.3rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  line-height: 1.3;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
 }
 </style>

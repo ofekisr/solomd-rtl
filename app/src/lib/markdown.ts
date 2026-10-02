@@ -13,6 +13,7 @@ import mark from 'markdown-it-mark';
 import cjkFriendly from 'markdown-it-cjk-friendly';
 import yaml from 'js-yaml';
 import { numberEquations } from './equations';
+import { renderNumberedBlocks } from './markdown-block-badges';
 import { sanitizeRenderedHtml } from './sanitize-html';
 import { documentDirection } from './doc-direction';
 
@@ -207,9 +208,12 @@ const BLOCK_OPEN_TYPES = new Set([
 // no re-render needed.
 const defaultFenceRenderer = md.renderer.rules.fence;
 md.renderer.rules.fence = function (tokens, idx, options, env, self) {
-  const html = defaultFenceRenderer
+  const rendered = defaultFenceRenderer
     ? defaultFenceRenderer(tokens, idx, options, env, self)
     : self.renderToken(tokens, idx, options);
+  const html = env.solomdBlockNumbers
+    ? rendered.replace(/<pre(?=[\s>])/, '<pre dir="ltr"')
+    : rendered;
   // Skip mermaid — Preview.vue replaces these blocks with rendered SVGs.
   // Skip tldraw (F7) the same way — Preview.vue swaps the ```tldraw fence for
   // a static board SVG thumbnail (the language class survives so the
@@ -1079,11 +1083,11 @@ export function preprocessMarkdown(source: string): string {
 
 export function renderMarkdown(
   source: string,
-  options?: { breaks?: boolean; tocSource?: string },
+  options?: { breaks?: boolean; tocSource?: string; blockNumbers?: boolean },
 ): string {
   lastFrontMatterRaw = null;
   const normalized = preprocessMarkdown(source);
-  const env: Record<string, unknown> = {};
+  const env: Record<string, unknown> = { solomdBlockNumbers: options?.blockNumbers === true };
   if (options?.tocSource !== undefined) {
     env.solomdTocSource = preprocessMarkdown(options.tocSource);
   }
@@ -1091,7 +1095,10 @@ export function renderMarkdown(
   if (options?.breaks !== undefined) md.set({ breaks: options.breaks });
   let body = '';
   try {
-    body = md.render(normalized, env);
+    body = options?.blockNumbers
+      ? renderNumberedBlocks(md.parse(normalized, env),
+        (chunk) => md.renderer.render(chunk, md.options, env), documentDirection(normalized))
+      : md.render(normalized, env);
   } finally {
     if (options?.breaks !== undefined) md.set({ breaks: prevBreaks });
   }
