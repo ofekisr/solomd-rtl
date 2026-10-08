@@ -1,6 +1,7 @@
 pub mod app_build;
 pub mod commands;
 // Image-bed (图床) upload: PicGo / shell command / sm.ms / S3-compatible / GitHub.
+pub mod directive_completions;
 pub mod image_upload;
 pub mod search;
 pub mod workspace_index;
@@ -219,6 +220,8 @@ pub fn run() {
             spellcheck::spellcheck_load_user_dict,
             spellcheck::spellcheck_list_dicts,
             spellcheck::spellcheck_dicts_dir,
+            directive_completions::directive_completions_load,
+            directive_completions::directive_completions_open_folder,
             ai_proxy::ai_set_key,
             ai_proxy::ai_has_key,
             ai_proxy::ai_clear_key,
