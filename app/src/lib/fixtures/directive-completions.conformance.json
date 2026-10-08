@@ -1,0 +1,77 @@
+{
+  "manifest": {
+    "sourceFile": "fixture.json",
+    "schemaVersion": 1,
+    "grammar": {
+      "opening": "<!--",
+      "marker": "epub:",
+      "closing": "-->",
+      "pairSeparator": ",",
+      "keyValueSeparator": "="
+    },
+    "directives": [
+      {
+        "key": "skip",
+        "type": "boolean",
+        "values": ["true", "false"],
+        "default": "false"
+      },
+      {
+        "key": "toc",
+        "type": "boolean",
+        "values": ["true", "false"],
+        "default": "true"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "unclosed key after marker",
+      "text": "<!-- epub: sk",
+      "caret": 13,
+      "kind": "key",
+      "from": 11,
+      "to": 13,
+      "labels": ["skip"]
+    },
+    {
+      "name": "whitespace before marker",
+      "text": "<!--   epub: ",
+      "caret": 13,
+      "kind": "key",
+      "from": 13,
+      "to": 13,
+      "labels": ["skip", "toc"]
+    },
+    {
+      "name": "key after pair separator",
+      "text": "<!-- epub: skip=false, t",
+      "caret": 24,
+      "kind": "key",
+      "from": 23,
+      "to": 24,
+      "labels": ["toc"]
+    },
+    {
+      "name": "partial value",
+      "text": "<!--epub:toc=t",
+      "caret": 14,
+      "kind": "value",
+      "from": 13,
+      "to": 14,
+      "labels": ["true", "false"]
+    },
+    {
+      "name": "inside backtick fence",
+      "text": "```md\n<!-- epub: s\n```",
+      "caret": 18,
+      "kind": null
+    },
+    {
+      "name": "inside tilde fence",
+      "text": "~~~~\n<!-- epub: s\n~~~~",
+      "caret": 17,
+      "kind": null
+    }
+  ]
+}
