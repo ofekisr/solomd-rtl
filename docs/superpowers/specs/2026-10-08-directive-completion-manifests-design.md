@@ -53,6 +53,7 @@ interface DirectiveCompletionManifest {
 ```
 
 The loader requires `schemaVersion === 1`, non-empty grammar strings, a directives array, unique non-empty keys within a manifest, and string values for every declared field.
+The loader ignores unknown top-level, grammar, and directive fields so producers can add optional metadata without breaking SoloMD.
 The loader accepts unknown `type` values because SoloMD treats `type` as descriptive metadata.
 Value completion uses `values` whenever present, regardless of `type`, and places `default` first when it occurs in `values`.
 
@@ -93,11 +94,12 @@ Parsing and completion remain pure functions that receive manifests explicitly, 
 
 ## Shared parser and completion engine
 
-The pure TypeScript engine scans complete logical lines and tracks backtick and tilde fences.
-It recognizes a directive only when optional indentation is followed by the manifest's complete opening and marker sequence, and the line closes with the manifest's closing token.
+The pure TypeScript engine scans logical lines and tracks backtick and tilde fences.
+It allows any whitespace between the opening token and marker and after the marker, matching forms such as `<!--epub:`, `<!-- epub:`, and `<!--   epub: `.
+Full recognition requires the line to end with the manifest's closing token, but completion accepts an unclosed directive when the caret remains inside that line.
 Ordinary comments, markers after other comment text, and directive-looking text inside fenced code blocks do not match.
 
-For a caret inside a recognized directive line, the engine returns a shared result:
+For a caret inside a complete directive or an unclosed directive candidate, the engine returns a shared result:
 
 ```typescript
 interface DirectiveCompletionContext {
@@ -108,18 +110,19 @@ interface DirectiveCompletionContext {
 }
 ```
 
-Key options exclude keys already present on the current line.
-Value options come from the selected directive's `values`, with its default first.
+Key completion opens after the marker's following whitespace and after a pair separator plus optional whitespace; its options exclude keys already present on the current line.
+Value completion opens after a recognized key and the key-value separator; it replaces the partial value and orders the directive's `values` with its default first.
 Malformed pairs suppress value insertion instead of guessing.
 
 The engine generates two snippet families from each manifest:
 
 - `<marker-name>-<key>` inserts one directive with its default value when available.
-- `<marker-name>-directives` inserts every directive that has a default, followed by a blank line and `# Chapter Title`.
+- `<marker-name>-directives` inserts every directive that has a default, followed by a blank line.
 
 `marker-name` removes surrounding whitespace and trailing punctuation from the marker.
 Typing `<marker-name>-` as the only non-whitespace text on a line opens snippet completion and replaces that token when the user accepts an option.
 The completion option carries an explicit cursor offset, so both editor engines place the caret identically after insertion.
+SoloMD adds no document scaffold such as `# Chapter Title`; a producer may add a future optional manifest field for additional snippets without invalidating the current schema.
 
 ## Editor integration
 
@@ -150,7 +153,10 @@ One malformed file cannot disable other manifests or normal editor completion.
 
 Rust tests cover portable-aware path construction, sorted discovery, valid loading, unsupported schema versions, malformed JSON, invalid field types, size limits, duplicate handling, and partial success.
 
-TypeScript tests use synthetic manifests and cover arbitrary grammar tokens, key exclusion, manifest-derived values, default ordering, unknown types, multiple grammars, fence suppression, replacement ranges, generated snippets, and cursor offsets.
+TypeScript tests use synthetic manifests and cover arbitrary grammar tokens, opening-to-marker whitespace, unclosed comments, key triggers after markers and pair separators, key exclusion, manifest-derived values, default ordering, unknown fields and types, multiple grammars, fence suppression, replacement ranges, generated snippets, and cursor offsets.
+
+A language-neutral conformance fixture maps source lines and caret positions to expected parse and completion results.
+Rust validation tests and TypeScript parser tests consume the same fixture where their responsibilities overlap.
 
 CodeMirror adapter tests cover trigger boundaries and IME suppression.
 Native adapter tests prove that shared contexts produce the existing popup item shape and the same inserted text and cursor offset as CodeMirror.
@@ -158,11 +164,16 @@ Native adapter tests prove that shared contexts produce the existing popup item 
 The final verification runs the complete frontend test suite, `vue-tsc --noEmit`, the Vite build, and focused Rust tests.
 Manual verification opens the completions folder, installs the EPUB sample manifest, restarts SoloMD, and exercises key, value, and snippet completion in CodeMirror and the native textarea path.
 
-## Delivery sequence
+## Delivery sequence and estimates
 
-1. Add the Rust loader, open-folder command, and backend tests.
-2. Add the typed frontend registry and startup warning flow.
-3. Build the pure parser, completion engine, snippets, and tests with fixture manifests.
-4. Integrate CodeMirror and its adapter tests.
-5. Integrate both native textarea modes and their adapter tests.
-6. Add the Settings action, status, translations, and end-to-end verification.
+| Step | Work | Estimate | Release boundary |
+| --- | --- | ---: | --- |
+| 1 | Add the Rust loader, open-folder command, and backend tests. | 3–5 hours | Core |
+| 2 | Add the typed frontend registry and startup warning flow. | 2–3 hours | Core |
+| 3 | Build the pure parser, completion engine, snippets, and conformance tests. | 6–9 hours | Core |
+| 4 | Integrate CodeMirror and its adapter tests. | 4–6 hours | Core |
+| 5 | Integrate both native textarea modes and their adapter tests. | 5–8 hours | Core |
+| 6 | Add the Settings action, status, translations, and end-to-end verification. | 2–4 hours | Polish |
+
+Steps 1–5 form the completion engine and editor integration.
+Step 6 supplies the discoverable folder-management interface and may ship as a follow-up without changing the manifest or completion contracts.
