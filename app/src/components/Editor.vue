@@ -22,6 +22,7 @@ import type {CitationEntry} from '../lib/citations';
 import {aiRewriteExtension} from '../lib/cm-ai-rewrite';
 import {bidiExtension} from '../lib/cm-bidi';
 import {citationCompleteSource, citationsExtension} from '../lib/cm-citations';
+import {directiveCompletionExtension, directiveCompletionSource} from '../lib/cm-directive-completions';
 import {dragAwareExtension} from '../lib/cm-drag-aware';
 import {fenceLanguageComplete, fenceLanguageExtension} from '../lib/cm-fence-completion';
 import {focusModeExtension, typewriterModeExtension} from '../lib/cm-focus-mode';
@@ -3017,8 +3018,8 @@ function buildExtensions() {
           citationsExtension(() => cachedCitations),
           // #297 — opens itself on the third backtick of a fence opener.
           fenceLanguageExtension(),
-          // Single autocompletion config combining all 4 markdown sources
-          // (wikilinks `[[`, tags `#`, citations `@`, fence languages ```).
+          directiveCompletionExtension(),
+          // Single autocompletion config combining all markdown sources.
           // CM6 disallows multiple `autocompletion({ override })` extensions.
           autocompletion({
             override: [
@@ -3026,13 +3027,13 @@ function buildExtensions() {
               tagComplete,
               citationCompleteSource(() => cachedCitations),
               fenceLanguageComplete,
+              directiveCompletionSource,
             ],
             defaultKeymap: true,
             // Typing-triggered completion is the last remaining source of
             // IME-hostile churn here. Keep the sources available for explicit
             // invocation, but do not wake them up on every keystroke.
-            // (`fenceLanguageExtension` above triggers only the fence source,
-            // and only for the keystroke that opens a fence.)
+            // Targeted extensions above wake only their own completion syntax.
             activateOnTyping: false,
           }),
           ...(IS_APP_STORE_BUILD ? [] : [aiKeyCompartment.of(aiRewriteExtension(currentAiRewriteKey()))]),
