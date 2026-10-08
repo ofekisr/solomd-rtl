@@ -89,6 +89,13 @@ export function directiveCompletionExtension(): Extension {
       }
 
       const view = update.view;
+      const updateText = update.state.doc.toString();
+      const updateCaret = update.state.selection.main.head;
+      const shouldStart = shouldStartDirectiveCompletion(
+        updateText,
+        updateCaret,
+        directiveCompletionManifests(),
+      );
       requestAnimationFrame(() => {
         if (!view.dom.isConnected || view.composing) return;
         const text = view.state.doc.toString();
@@ -100,7 +107,7 @@ export function directiveCompletionExtension(): Extension {
           startCompletion(view);
           return;
         }
-        if (shouldStartDirectiveCompletion(text, caret, manifests)) {
+        if (shouldStart) {
           startCompletion(view);
         }
       });

@@ -19,6 +19,9 @@ mod workspace_index;
 #[path = "spellcheck.rs"]
 mod spellcheck;
 
+#[path = "directive_completions.rs"]
+mod directive_completions;
+
 // #102 — AI key storage abstraction; declared before ai_proxy which uses it.
 #[path = "ai_keystore.rs"]
 mod ai_keystore;
@@ -838,6 +841,8 @@ pub fn run_with(initial_file: Option<String>) {
             spellcheck::spellcheck_load_user_dict,
             spellcheck::spellcheck_list_dicts,
             spellcheck::spellcheck_dicts_dir,
+            directive_completions::directive_completions_load,
+            directive_completions::directive_completions_open_folder,
             ai_proxy::ai_set_key,
             ai_proxy::ai_has_key,
             ai_proxy::ai_clear_key,

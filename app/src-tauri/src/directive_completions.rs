@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_opener::OpenerExt;
 
-use crate::portable;
+use super::portable;
 
 const MAX_FILES: usize = 64;
 const MAX_FILE_BYTES: u64 = 1024 * 1024;
@@ -190,6 +190,9 @@ where
         return Err(format!("file exceeds {MAX_FILE_BYTES} bytes"));
     }
     let contents = read(path).map_err(|error| error.to_string())?;
+    if contents.len() as u64 > MAX_FILE_BYTES {
+        return Err(format!("file exceeds {MAX_FILE_BYTES} bytes"));
+    }
     let mut manifest: LoadedDirectiveCompletionManifest =
         serde_json::from_str(&contents).map_err(|error| error.to_string())?;
     manifest.source_file = source_file.to_owned();
@@ -355,6 +358,21 @@ mod tests {
         assert_eq!(result.manifests.len(), 1);
         assert_eq!(result.warnings.len(), 1);
         assert_eq!(result.warnings[0].source_file, "bad.json");
+    }
+
+    #[test]
+    fn rejects_a_file_that_grows_after_the_metadata_check() {
+        let dir = FixtureDir::new("growing-file");
+        dir.write("growing.json", VALID_MANIFEST);
+        let entries = discover_entries(&dir.0).unwrap();
+
+        let result = load_entries_with_reader("fixture".into(), entries, |_| {
+            Ok("x".repeat(MAX_FILE_BYTES as usize + 1))
+        });
+
+        assert!(result.manifests.is_empty());
+        assert_eq!(result.warnings.len(), 1);
+        assert!(result.warnings[0].reason.contains("exceeds"));
     }
 
     #[cfg(unix)]
