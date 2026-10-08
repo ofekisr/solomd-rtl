@@ -35,6 +35,11 @@ export interface DirectiveCompletionLoadResult {
   directory: string;
 }
 
+export interface DirectiveCompletionSettingsStatus {
+  loaded: number;
+  warningCount: number;
+}
+
 const EMPTY_RESULT = freezeLoadResult({
   directory: '',
   manifests: [],
@@ -55,6 +60,15 @@ export function directiveCompletionManifests(): readonly LoadedDirectiveCompleti
 
 export function directiveCompletionStatus(): Readonly<DirectiveCompletionLoadResult> {
   return installedResult;
+}
+
+export function completionSettingsStatus(
+  result: DirectiveCompletionLoadResult,
+): DirectiveCompletionSettingsStatus {
+  return {
+    loaded: result.manifests.length,
+    warningCount: result.warnings.length,
+  };
 }
 
 export async function loadDirectiveCompletions(): Promise<DirectiveCompletionLoadResult> {

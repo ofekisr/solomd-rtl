@@ -12,6 +12,10 @@ import { themeLabels } from '../lib/themes';
 import { useI18n } from '../i18n';
 import { quickCaptureError } from '../lib/quick-capture-status';
 import {
+  completionSettingsStatus,
+  directiveCompletionStatus,
+} from '../lib/directive-completion-registry';
+import {
   activeKeyActions,
   combosFor,
   conflictFor,
@@ -467,6 +471,19 @@ async function openDictsFolder() {
 void refreshSpellDicts();
 const tabs = useTabsStore();
 const toasts = useToastsStore();
+const directiveStatus = directiveCompletionStatus();
+const directiveStatusCounts = completionSettingsStatus(directiveStatus);
+const completionWarnings = directiveStatus.warnings;
+const completionStatusText = computed(() =>
+  t('settings.directiveCompletionLoaded', { count: directiveStatusCounts.loaded }),
+);
+async function openCompletionsFolder(): Promise<void> {
+  try {
+    await invoke<string>('directive_completions_open_folder');
+  } catch (error: unknown) {
+    toasts.error(t('settings.directiveCompletionOpenFailed', { error: String(error) }));
+  }
+}
 const workspace = useWorkspaceStore();
 const files = useFiles();
 const rag = useRagStore();
@@ -1192,6 +1209,30 @@ function onSelectPdfFont(v: string) {
              across GitHub / GitLab / Gitea). Pulled out of GithubSyncSettings
              so users hitting timeouts find it at the top of the Sync tab. -->
         <div v-if="gitBackend" data-cat="sync"><ProxySettings /></div>
+
+        <section data-cat="writing">
+          <h3 style="font-size: 13px; font-weight: 600; color: var(--text); margin: 18px 0 6px;">
+            {{ t('settings.directiveCompletions') }}
+          </h3>
+          <button type="button" class="link-button" @click="openCompletionsFolder">
+            {{ t('settings.openCompletionsFolder') }}
+          </button>
+          <p class="setting-hint">{{ completionStatusText }}</p>
+          <p class="setting-hint">{{ t('settings.directiveCompletionRestartHint') }}</p>
+          <details v-if="completionWarnings.length">
+            <summary>
+              {{ t('settings.directiveCompletionWarnings', { count: completionWarnings.length }) }}
+            </summary>
+            <ul>
+              <li
+                v-for="warning in completionWarnings"
+                :key="`${warning.sourceFile}:${warning.reason}`"
+              >
+                {{ warning.sourceFile }} — {{ warning.reason }}
+              </li>
+            </ul>
+          </details>
+        </section>
 
         <section data-cat="writing">
           <label>

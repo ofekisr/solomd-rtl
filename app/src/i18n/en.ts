@@ -371,6 +371,12 @@ export const en = {
     showBacklinks: 'Show Backlinks panel — show notes that link here (folder required)',
     showTagsPanel: 'Show Tags panel — index every #tag in the workspace',
     spellcheckEnabled: 'Spell-check (Hunspell) — opt-in. Adds ~3 MB on first run.',
+    directiveCompletions: 'Directive completions',
+    openCompletionsFolder: 'Open Completions Folder',
+    directiveCompletionLoaded: '{count} completion manifest files loaded.',
+    directiveCompletionRestartHint: 'Changes take effect after restarting SoloMD.',
+    directiveCompletionWarnings: '{count} manifest files could not be loaded',
+    directiveCompletionOpenFailed: 'Could not open the completions folder: {error}',
     bibliography: 'Bibliography (BibTeX / CSL-JSON)',
     bibliographyHint: 'Used for @citekey autocomplete and as Pandoc --bibliography on export.',
     pickBibliography: 'Pick .bib / .csl-json…',
@@ -1994,4 +2000,18 @@ export const en = {
 // `views` (v4.6 F5) is now a REQUIRED section: all 14 locales ship a full
 // translation (v4.6.1). The runtime `t()` lookup still falls back to English
 // for any individual key that a locale happens to miss.
-export type I18n = typeof en;
+type DirectiveCompletionFallbackKey =
+  | 'directiveCompletions'
+  | 'openCompletionsFolder'
+  | 'directiveCompletionLoaded'
+  | 'directiveCompletionRestartHint'
+  | 'directiveCompletionWarnings'
+  | 'directiveCompletionOpenFailed';
+
+type EnglishDictionary = typeof en;
+type EnglishSettings = EnglishDictionary['settings'];
+
+export type I18n = Omit<EnglishDictionary, 'settings'> & {
+  settings: Omit<EnglishSettings, DirectiveCompletionFallbackKey> &
+    Partial<Pick<EnglishSettings, DirectiveCompletionFallbackKey>>;
+};
