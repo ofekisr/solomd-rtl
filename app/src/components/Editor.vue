@@ -52,6 +52,7 @@ import {attachCodeCopyButtons} from '../lib/code-copy';
 import {createLanguageExtension} from '../lib/editor-language.ts';
 import {collectLabels, findMathSpanAt} from '../lib/equations';
 import {filterFenceLanguages, isInsideFenceBefore, matchFenceOpener} from '../lib/fence-languages';
+import {directiveCompletionManifests} from '../lib/directive-completion-registry';
 import {activeParagraphLines, lineAt} from '../lib/focus-paragraph';
 import {openFormulaEditor} from '../lib/formula-editor-bus';
 import {type FoldAnchor, foldedCharRanges, type HeadingSpan, remapFolds, scanHeadings,} from '../lib/heading-fold';
@@ -64,6 +65,7 @@ import {findTableSpan} from '../lib/markdown-table';
 import {applyFormat, FORMAT_KINDS, type FormatKind} from '../lib/md-format';
 import {encodeImageDestination, markdownImage} from '../lib/md-image-url';
 import {initMermaid} from '../lib/mermaid-lazy';
+import {nativeDirectiveCompletion} from '../lib/native-directive-completions';
 import {registerPlainSelectionGetter} from '../lib/plain-selection';
 import {plantumlSvgUrl} from '../lib/plantuml';
 import {isAndroid, isIOS, isWindowsEditorRuntime, shouldUsePlainWindowsEditor} from '../lib/platform';
@@ -1771,7 +1773,7 @@ function replacePlainAll() {
 }
 
 // ---- Plain editor: autocomplete popup (/ slash commands, [[ wikilinks,
-// # tags, @ citations, ``` fence languages). Triggers as you type; ↑/↓
+// # tags, @ citations, ``` fence languages, manifest directives). Triggers as you type; ↑/↓
 // navigate, Enter/Tab insert, Esc dismisses. Reuses the same data the
 // CodeMirror editor uses. ----
 type AcKind = 'slash' | 'wikilink' | 'tag' | 'citation' | 'fence';
@@ -1781,11 +1783,15 @@ const acItems = ref<AcItem[]>([]);
 const acIndex = ref(0);
 const acPos = ref<{ left: number; top: number }>({ left: 0, top: 0 });
 let acTriggerStart = -1;
+let acTriggerEnd = -1;
+let acUsesFixedRange = false;
 
 function closePlainAutocomplete() {
   acOpen.value = false;
   acItems.value = [];
   acTriggerStart = -1;
+  acTriggerEnd = -1;
+  acUsesFixedRange = false;
 }
 
 function baseNoteName(path: string): string {
@@ -1859,10 +1865,21 @@ function maybeOpenPlainAutocomplete(el: HTMLTextAreaElement) {
   if (plainComposing.value) return;
   const caret = el.selectionStart ?? 0;
   const before = el.value.slice(0, caret);
+  const directive = props.tab.language === 'markdown'
+    ? nativeDirectiveCompletion(el.value, caret, directiveCompletionManifests())
+    : null;
   let kind: AcKind | null = null;
+  let items: AcItem[] | null = null;
   let query = '';
   let m: RegExpMatchArray | null;
-  if ((m = before.match(/(?:^|\n)[ \t]*\/([^\s/]*)$/))) { kind = 'slash'; query = m[1]; acTriggerStart = caret - m[1].length - 1; }
+  acTriggerEnd = caret;
+  acUsesFixedRange = false;
+  if (directive) {
+    acTriggerStart = directive.from;
+    acTriggerEnd = directive.to;
+    acUsesFixedRange = true;
+    items = directive.items.map((item) => ({ ...item }));
+  } else if ((m = before.match(/(?:^|\n)[ \t]*\/([^\s/]*)$/))) { kind = 'slash'; query = m[1]; acTriggerStart = caret - m[1].length - 1; }
   else if ((m = before.match(/\[\[([^\]\n]*)$/))) { kind = 'wikilink'; query = m[1]; acTriggerStart = caret - m[1].length - 2; }
   else if ((m = before.match(/(?:^|[\s(])#([^\s#]*)$/))) { kind = 'tag'; query = m[1]; acTriggerStart = caret - m[1].length - 1; }
   else if ((m = before.match(/(?:^|[\s(])@([^\s@]*)$/))) { kind = 'citation'; query = m[1]; acTriggerStart = caret - m[1].length - 1; }
@@ -1878,10 +1895,10 @@ function maybeOpenPlainAutocomplete(el: HTMLTextAreaElement) {
       acTriggerStart = opener.queryStart;
     }
   }
-  if (!kind) { closePlainAutocomplete(); return; }
-  const items = buildAcItems(kind, query);
-  if (!items.length) { closePlainAutocomplete(); return; }
-  acItems.value = items;
+  if (!items && !kind) { closePlainAutocomplete(); return; }
+  const resolvedItems = items ?? buildAcItems(kind!, query);
+  if (!resolvedItems.length) { closePlainAutocomplete(); return; }
+  acItems.value = resolvedItems;
   acIndex.value = 0;
   acOpen.value = true;
   nextTick(() => {
@@ -1897,7 +1914,8 @@ function applyPlainAutocomplete(item: AcItem) {
     const flat = plainEditor.value;
     if (!flat || acTriggerStart < 0) { closePlainAutocomplete(); return; }
     const caret = flat.selectionStart ?? flat.value.length;
-    const value = flat.value.slice(0, acTriggerStart) + item.insert + flat.value.slice(caret);
+    const replacementEnd = acUsesFixedRange ? acTriggerEnd : caret;
+    const value = flat.value.slice(0, acTriggerStart) + item.insert + flat.value.slice(replacementEnd);
     const newCaret = acTriggerStart + item.cursorOffset;
     closePlainAutocomplete();
     recordPlainHistory();
@@ -1917,7 +1935,8 @@ function applyPlainAutocomplete(item: AcItem) {
   const index = plainActiveBlock.value;
   const caret = el.selectionStart ?? el.value.length;
   const start = acTriggerStart;
-  const value = el.value.slice(0, start) + item.insert + el.value.slice(caret);
+  const replacementEnd = acUsesFixedRange ? acTriggerEnd : caret;
+  const value = el.value.slice(0, start) + item.insert + el.value.slice(replacementEnd);
   const newCaret = start + item.cursorOffset;
   closePlainAutocomplete();
   updatePlainBlock(index, value, newCaret);
