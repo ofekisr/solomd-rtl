@@ -1,6 +1,12 @@
 import { createApp, defineAsyncComponent } from 'vue';
 import { createPinia } from 'pinia';
 import App from './App.vue';
+import {
+  installDirectiveCompletionLoadResult,
+  loadDirectiveCompletions,
+  type DirectiveCompletionLoadResult,
+} from './lib/directive-completion-registry';
+import { useToastsStore } from './stores/toasts';
 import './styles/cjk-font.css';
 import './styles/main.css';
 import './styles/hljs-theme.css';
@@ -22,6 +28,37 @@ const rootComponent = isSlideshow
   : isQuickCapture
     ? defineAsyncComponent(() => import('./components/QuickCapture.vue'))
     : App;
-const app = createApp(rootComponent);
-app.use(createPinia());
-app.mount('#app');
+
+async function bootstrap(): Promise<void> {
+  const pinia = createPinia();
+  const app = createApp(rootComponent);
+  app.use(pinia);
+
+  const result = await startupDirectiveCompletions();
+  installDirectiveCompletionLoadResult(result);
+  app.mount('#app');
+
+  if (result.warnings.length > 0) {
+    const count = result.warnings.length;
+    useToastsStore(pinia).warning(
+      `${count} directive completion manifest${count === 1 ? '' : 's'} could not be loaded.`,
+    );
+  }
+}
+
+async function startupDirectiveCompletions(): Promise<DirectiveCompletionLoadResult> {
+  if (isSlideshow || isQuickCapture) {
+    return { directory: '', manifests: [], warnings: [] };
+  }
+  try {
+    return await loadDirectiveCompletions();
+  } catch (error: unknown) {
+    return {
+      directory: '',
+      manifests: [],
+      warnings: [{ sourceFile: '<startup>', reason: String(error) }],
+    };
+  }
+}
+
+void bootstrap();
