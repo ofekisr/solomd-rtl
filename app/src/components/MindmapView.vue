@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import MindElixir from 'mind-elixir';
 import type { MindElixirData, MindElixirInstance } from 'mind-elixir';
 import 'mind-elixir/style.css';
@@ -16,6 +16,9 @@ import MindmapShortcutHelp from './MindmapShortcutHelp.vue';
 
 const SYNC_DEBOUNCE_MS = 300;
 const TOPIC_EDITOR_ID = 'input-box';
+const OPERATION_EVENT = 'operation';
+const EXPAND_EVENT = 'expandNode';
+const BEGIN_EDIT_OPERATION = 'beginEdit';
 
 const props = defineProps<{ tab: Tab }>();
 const tabs = useTabsStore();
@@ -46,7 +49,7 @@ function loadData(): MindElixirData | null {
 function syncNow(): void {
   if (syncTimer !== null) window.clearTimeout(syncTimer);
   syncTimer = null;
-  if (!mind) return;
+  if (!mind || parseError.value !== null) return;
   lastSynced = serializeMindmap(mind.getData());
   tabs.setContent(props.tab.id, lastSynced);
 }
@@ -70,7 +73,41 @@ function mount(): void {
     theme: themeFor(),
   });
   mind.init(data);
-  mind.bus.addListener('operation', scheduleSync);
+  mind.bus.addListener(OPERATION_EVENT, onOperation);
+  mind.bus.addListener(EXPAND_EVENT, scheduleSync);
+  syncAfterHistoryJumps(mind);
+}
+
+function onOperation(info: { name: string }): void {
+  if (info.name === BEGIN_EDIT_OPERATION) return;
+  scheduleSync();
+}
+
+function syncAfterHistoryJumps(instance: MindElixirInstance): void {
+  const { undo, redo } = instance;
+  instance.undo = () => { undo.call(instance); scheduleSync(); };
+  instance.redo = () => { redo.call(instance); scheduleSync(); };
+}
+
+function teardown(): void {
+  if (syncTimer !== null) window.clearTimeout(syncTimer);
+  syncTimer = null;
+  mind?.destroy();
+  mind = null;
+}
+
+async function applyExternalContent(): Promise<void> {
+  const data = loadData();
+  if (!data) {
+    teardown();
+    return;
+  }
+  if (mind) {
+    mind.refresh(data);
+    return;
+  }
+  await nextTick();
+  mount();
 }
 
 function toggleCurrentNode(): void {
@@ -115,10 +152,9 @@ function openAsText(): void {
 }
 
 watch(() => props.tab.content, (content) => {
-  if (content === lastSynced || !mind) return;
+  if (content === lastSynced) return;
   lastSynced = content;
-  const data = loadData();
-  if (data) mind.refresh(data);
+  void applyExternalContent();
 });
 
 watch(() => settings.theme, () => mind?.changeTheme(themeFor()));
@@ -131,8 +167,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('solomd:flush-content-sync', syncNow);
   if (syncTimer !== null) syncNow();
-  mind?.destroy();
-  mind = null;
+  teardown();
 });
 </script>
 
