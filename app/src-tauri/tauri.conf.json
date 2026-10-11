@@ -81,6 +81,15 @@
         "description": "SoloMD mind map",
         "role": "Editor",
         "mimeType": "application/x-solomd-mindmap"
+      },
+      {
+        "ext": [
+          "xmind"
+        ],
+        "name": "XMind Map",
+        "description": "XMind mind map (opens as an imported SoloMD mindmap)",
+        "role": "Viewer",
+        "mimeType": "application/vnd.xmind.workbook"
       }
     ],
     "windows": {

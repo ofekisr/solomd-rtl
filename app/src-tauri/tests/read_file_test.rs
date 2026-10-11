@@ -108,3 +108,11 @@ fn detect_mindmap_language() {
     let r = read_file(path).unwrap();
     assert_eq!(r.language, "mindmap");
 }
+
+#[test]
+fn detect_xmind_language() {
+    let path = "/tmp/solomd-lang.xmind".to_string();
+    fs::write(&path, "PK").unwrap();
+    let r = read_file(path).unwrap();
+    assert_eq!(r.language, "mindmap");
+}
