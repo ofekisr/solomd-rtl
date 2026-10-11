@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { initMermaid } from '../lib/mermaid-lazy';
-import { mermaidThemeFor } from '../lib/themes';
+import { mermaidThemeFor, themeFamily } from '../lib/themes';
+import { MINDMAP_OPEN_EVENT, type MindmapOpenDetail } from '../lib/mindmap-fence';
+import type { ReadOnlyMindmap } from '../lib/mindmap-readonly';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { documentDirection } from '../lib/doc-direction';
 import { isFullMdFile } from '../lib/markdown-block-badges';
@@ -297,6 +299,59 @@ async function processWhiteboards() {
 // on screen were drawn for the old theme and processMermaid skips them, so put
 // their source back as a fence first and let it render them again (#354).
 // A note with no diagrams still never loads the renderer.
+const mindmapMounts: ReadOnlyMindmap[] = [];
+
+function destroyMindmaps(): void {
+  for (const map of mindmapMounts.splice(0)) map.destroy();
+}
+
+function isDarkTheme(): boolean {
+  return themeFamily(settings.theme) === 'dark';
+}
+
+function openMindmapButton(detail: MindmapOpenDetail): HTMLButtonElement {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'mindmap-block__open';
+  button.textContent = t('mindmap.fenceOpenFull');
+  button.addEventListener('click', () => window.dispatchEvent(new CustomEvent(MINDMAP_OPEN_EVENT, { detail })));
+  return button;
+}
+
+async function renderMindmapBlock(pre: HTMLElement, body: string, index: number): Promise<void> {
+  const { mountReadOnlyMindmap } = await import('../lib/mindmap-readonly');
+  const wrap = document.createElement('div');
+  wrap.className = 'mindmap-block';
+  const canvas = document.createElement('div');
+  canvas.className = 'mindmap-block__canvas';
+  wrap.append(canvas);
+  pre.replaceWith(wrap);
+  const result = await mountReadOnlyMindmap(canvas, body, isDarkTheme());
+  if (!result.ok) {
+    wrap.classList.add('mindmap-block--broken');
+    wrap.textContent = `${t('mindmap.fenceParseError')}: ${result.error}`;
+    return;
+  }
+  mindmapMounts.push(result.map);
+  if (props.tabId) wrap.append(openMindmapButton({ tabId: props.tabId, index, body }));
+}
+
+async function processMindmaps(): Promise<void> {
+  if (!host.value) return;
+  destroyMindmaps();
+  const blocks = Array.from(host.value.querySelectorAll('pre > code.language-mindmap'));
+  for (const [index, block] of blocks.entries()) {
+    const pre = block.parentElement;
+    if (!pre || pre.dataset.rendered === '1') continue;
+    pre.dataset.rendered = '1';
+    await renderMindmapBlock(pre, block.textContent ?? '', index);
+  }
+}
+
+watch(() => settings.theme, () => {
+  for (const map of mindmapMounts) map.setDark(isDarkTheme());
+});
+
 watch(() => settings.theme, () => {
   if (host.value) {
     for (const wrap of Array.from(host.value.querySelectorAll<HTMLElement>('.mermaid-block[data-mermaid-source]'))) {
@@ -428,6 +483,7 @@ watch(html, async () => {
   processPlantuml();
   await processMermaid();
   await processWhiteboards();
+  await processMindmaps();
   attachImageOverlayHandlers();
   attachCodeCopyButtons();
 });
@@ -445,6 +501,7 @@ watch(
     processPlantuml();
     await processMermaid();
     await processWhiteboards();
+    await processMindmaps();
     attachImageOverlayHandlers();
     attachCodeCopyButtons();
   },
@@ -536,6 +593,7 @@ onMounted(async () => {
   processPlantuml();
   await processMermaid();
   await processWhiteboards();
+  await processMindmaps();
   attachImageOverlayHandlers();
   attachCodeCopyButtons();
   host.value?.addEventListener('click', handleLinkClick);
@@ -543,6 +601,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  destroyMindmaps();
   host.value?.removeEventListener('click', handleLinkClick);
   host.value?.removeEventListener('dblclick', onPreviewDblClick);
 });
@@ -944,6 +1003,11 @@ defineExpose({ scrollToLine, openSearch });
   background: rgba(214, 69, 69, 0.08);
   border-left: 3px solid var(--danger);
 }
+.mindmap-block { position: relative; margin: 1em 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.mindmap-block__canvas { width: 100%; }
+.mindmap-block__open { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; z-index: 2; }
+.mindmap-block--broken { padding: 12px; color: var(--text-muted, var(--text)); }
+.mindmap-block me-tpc { unicode-bidi: plaintext; text-align: start; }
 /* F7 — static whiteboard thumbnail in preview/reading/export. */
 :where(.preview-content) .whiteboard-block {
   display: flex;
