@@ -19,28 +19,48 @@ Every payload passes through `sanitizeMindmapData`.
 
 ## Status
 
-COMPLETE. 2026-10-12.
+COMPLETE. 12-10-26, version 4.14.11. Branch `feat/mindmap`, unpushed.
 
-**Commits (Task 1-6):**
-- 6205600 Task 1: fence scanner + codec (TDD, spike deviation noted)
-- 3be5d97, 725e642 Task 2: language registration (prior + this run)
-- 9a5b3d3, 0144e3d Task 3: preview integration
-- b753e9e Task 4: MindmapCanvas refactor
-- f645d4f Task 5: fullscreen editor
-- f59af68 Task 6: live widget
+| Task | Commits | Notes |
+|---|---|---|
+| 1 Fence scanner + codec | `0decaf2..6205600` | Spike-verified round-trip incl. sanitize |
+| 2 Language registration | `6205600..3be5d97` (`3be5d97`, `725e642`) | `725e642` added `fenceEmpty` against the pre-flight ruling; removed in the Task 3 fix |
+| 3 Preview read-only map | `3be5d97..0144e3d` (`9a5b3d3`, fix `0144e3d`) | Fix: overlapping-pass leak, unguarded mount, ResizeObserver fit, `fenceEmpty` removed |
+| 4 `MindmapCanvas` extraction | `0144e3d..b753e9e` | Pure move; `MindmapView` is a thin wrapper |
+| 5 Fullscreen fence editor | `b753e9e..f645d4f` | Guarded debounced writeback |
+| 6 Live widget | `f645d4f..c79de95` (`f59af68`, fix `c79de95`) | Fix: map leaked when widget destroyed before async mount resolved |
+| 7 Verification, docs, bump | `068691b` + docs correction commit | Version bump kept from `068691b` |
 
-**Open items (Phase 4):**
-- `Editor.vue` plain-mode block render (fences stay as code when language is plaintext)
-- Slash-command fence insert (if not already supported)
-- Export (download as .mmap or .xmind)
-- Copy plaintext
-- Jump to source (click in fullscreen reveals in source)
-- Read-only toggle
-- Styling palette UI
-- Fence syntax gates: `- => <id>` syntax (Phase 4 feature)
+**Tests:** 79/79 pass (fence-scan 7, mindmap-fence 11, mindmap-format 34, fence-languages 19, mindmap-direction 3, mindmap-keymap 5). `pnpm build` OK.
 
-**Deviations from brief:**
-- Task 1: regex `\r?` added to handle CRLF sources (tested, justified, minimal)
+**Browser check:** Hebrew fence grows leftward in Preview and live widget; fullscreen add-child writes back into the fence and survives reload. Security fence renders as text, 0 `javascript:` in `href`/`style` (Preview and live).
+
+### Deviations
+
+- `fence-scan`: `\r?` added to the regex so CRLF sources scan correctly.
+- Preview: "Open fullscreen" button instead of a whole-map click (drag pans; a click would open on pan).
+- Preview: `ResizeObserver` fit, because the container is 0-size at mount.
+- Overlay canvas carries a `:key` so each opened fence gets a fresh instance.
+- Ruling: `fenceEmpty` i18n key unused, dropped (YAGNI).
+- Ruling: Task 6 also touches `Editor.vue` (`getMindmapStrings` wiring); Step text wins over the Files header.
+- Ruling: no worktree; work stays on `feat/mindmap`.
+- Ruling: ResizeObserver fit promoted into the Task 3 fix round (plan's own 0-size fallback condition was hit; Task 6 reuses this mount).
+- Ruling: Task 6 (`f59af68`) was written out-of-band; reviewed as the candidate, not redone.
+- Ruling: `f645d4f`/`f59af68`/`068691b` carry "Sonnet 4.6" trailers; history left as-is (cosmetic).
+- Ruling: Task 7 (`068691b`) written out-of-band; version bump kept, docs corrected here.
+
+### Open items
+
+- `Editor.vue` plain-mode block render (fences stay as code there).
+- Slash-command insert.
+- Native Tauri check (Phases 1-3 verified in the web build only).
+- Deferred minors:
+  - CRLF source gets an LF body on writeback; fence-scan test gaps (tilde close, nesting, 4-space indent, CRLF open line, replace on no-fence source); `closes()` builds a RegExp per line; `(err as Error).message` assumes `Error`.
+  - `markdown.ts` appended comment exceeds the ~80-col wrap.
+  - Preview: two theme watchers; open button unstyled; inline height constant; `mountReadOnlyMindmap` does not destroy on init throw; observer callback `scaleFit`/`toCenter` uncaught.
+  - `MindmapCanvas`: codec prop swaps not reactive; `openAsText` mutates the tab prop (pre-existing).
+  - Overlay: silent drop when the owning tab closes while open; hand-written `CanvasHandle` type; window-level Esc may close stacked overlays.
+  - Live widget: failure path drops the open button; `cm-relayout` literal; widget `setDark` unused.
 
 ## Decisions (brainstorm 12-10-26)
 
