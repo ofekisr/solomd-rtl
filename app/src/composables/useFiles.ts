@@ -19,6 +19,7 @@ import { isSafPath, fromSafPath, safRead, safWrite, safLaunchPicker } from '../l
 import { baseNameOf, fileNameOf, claimImportName, joinInFolder } from '../lib/import-plan';
 import { newFileDirFor, treeSelection } from '../lib/new-file-target';
 import { MMAP_EXTENSION, MINDMAP_EXTENSIONS, isXmindPath, mmapPathFor } from '../lib/mindmap-format';
+import { XMIND_TOO_LARGE_ERROR, XMIND_CONTENT_TOO_LARGE_ERROR } from '../lib/xmind-limits';
 import { untitledFileName } from '../lib/file-language';
 
 // Save dialogs only — opening uses no filter so any file is selectable.
@@ -43,6 +44,9 @@ const SAVE_FILTERS = [
 ];
 
 const XMIND_SHEET_WARNING_MS = 8000;
+const XMIND_UNREADABLE_MESSAGE = 'not a readable XMind file';
+const XMIND_SIZE_ERRORS: readonly string[] = [XMIND_TOO_LARGE_ERROR, XMIND_CONTENT_TOO_LARGE_ERROR];
+const xmindImportsInFlight = new Set<string>();
 
 export function useFiles() {
   const tabs = useTabsStore();
@@ -402,28 +406,42 @@ export function useFiles() {
     );
   }
 
+  function reportXmindFailure(fileName: string, error: string): void {
+    const isSizeError = XMIND_SIZE_ERRORS.includes(error);
+    if (!isSizeError) console.error('xmind import failed', error);
+    toasts.error(`Failed to open ${fileName}: ${isSizeError ? error : XMIND_UNREADABLE_MESSAGE}`);
+  }
+
+  async function importXmindTab(path: string, fileName: string): Promise<void> {
+    const bytes = new Uint8Array(await invoke<number[]>('read_binary_file', { path }));
+    const { convertXmind } = await import('../lib/xmind-import');
+    const result = await convertXmind(bytes, fileName);
+    if (!result.ok) {
+      reportXmindFailure(fileName, result.error);
+      return;
+    }
+    const tab = tabs.newTab({ fileName: fileNameOf(mmapPathFor(path)), language: 'mindmap', importedFrom: path });
+    tabs.setContent(tab.id, result.text);
+    workspace.pushRecent(path);
+    announceXmindImport(fileName, result.extraSheetCount);
+  }
+
   async function openXmind(path: string): Promise<void> {
     const existing = tabs.tabs.find((t) => t.importedFrom === path);
     if (existing) {
       tabs.activate(existing.id);
       return;
     }
+    if (xmindImportsInFlight.has(path)) return;
+    xmindImportsInFlight.add(path);
     const fileName = fileNameOf(path);
     try {
-      const bytes = new Uint8Array(await invoke<number[]>('read_binary_file', { path }));
-      const { convertXmind } = await import('../lib/xmind-import');
-      const result = await convertXmind(bytes, fileName);
-      if (!result.ok) {
-        toasts.error(`Failed to open ${fileName}: ${result.error}`);
-        return;
-      }
-      const tab = tabs.newTab({ fileName: fileNameOf(mmapPathFor(path)), language: 'mindmap', importedFrom: path });
-      tabs.setContent(tab.id, result.text);
-      workspace.pushRecent(path);
-      announceXmindImport(fileName, result.extraSheetCount);
+      await importXmindTab(path, fileName);
     } catch (e) {
       console.error('xmind import failed', e);
-      toasts.error(`Failed to open ${fileName}: ${e}`);
+      toasts.error(`Failed to open ${fileName}: ${XMIND_UNREADABLE_MESSAGE}`);
+    } finally {
+      xmindImportsInFlight.delete(path);
     }
   }
 
@@ -751,6 +769,12 @@ export function useFiles() {
     }
   }
 
+  function refuseXmindWrite(path: string): boolean {
+    if (!isXmindPath(path)) return false;
+    toasts.error(`SoloMD does not write .xmind files — save as .${MMAP_EXTENSION}`);
+    return true;
+  }
+
   async function saveTab(tab: Tab, opts: { silent?: boolean } = {}): Promise<boolean> {
     // #222 — the CodeMirror editor syncs doc→tab.content on a 350ms debounce.
     // A save issued inside that window (vim `:w`/`:wq`, a fast Ctrl+S) would
@@ -767,6 +791,7 @@ export function useFiles() {
     } else if (!path) {
       return saveTabAs(tab);
     }
+    if (refuseXmindWrite(path)) return false;
     try {
       // Restore the file's original line endings on write — we
       // normalize CRLF→LF on open so CodeMirror behaves, but the user
@@ -846,11 +871,8 @@ export function useFiles() {
         filters: SAVE_FILTERS,
       });
       if (!path) return false;
-      if (isXmindPath(path)) {
-        toasts.error(`SoloMD does not write .xmind files — save as .${MMAP_EXTENSION}`);
-        return false;
-      }
     }
+    if (refuseXmindWrite(path)) return false;
     try {
       const payload =
         tab.lineEnding === 'crlf' ? tab.content.replace(/\n/g, '\r\n') : tab.content;

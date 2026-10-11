@@ -9,6 +9,17 @@ const FORMAT_VERSION = 1;
 const JSON_INDENT = 2;
 const ROOT_ID = 'root';
 const DEFAULT_ROOT_TOPIC = 'Untitled';
+const ALLOWED_STYLE_KEYS: readonly string[] = [
+  'color',
+  'background',
+  'fontSize',
+  'fontWeight',
+  'fontFamily',
+  'textDecoration',
+  'width',
+  'border',
+];
+const UNSAFE_CSS_VALUE_PATTERN = /url\(|image-set\(|expression\(|@import|javascript:/i;
 const SAFE_LINK_PATTERN = /^(https?:|mailto:)/i;
 const SAFE_IMAGE_URL_PATTERN = /^https?:/i;
 const ANGLE_BRACKET_PATTERN = /[<>]/g;
@@ -110,11 +121,25 @@ function isSafeImage(image: unknown): boolean {
   return SAFE_IMAGE_URL_PATTERN.test(image.url) && isPositiveNumber(image.width) && isPositiveNumber(image.height);
 }
 
+function sanitizeStyle(style: unknown): NodeObj['style'] | undefined {
+  if (!isRecord(style)) return undefined;
+  const safe: Record<string, string> = {};
+  for (const [key, value] of Object.entries(style)) {
+    if (!ALLOWED_STYLE_KEYS.includes(key)) continue;
+    if (typeof value !== 'string' || UNSAFE_CSS_VALUE_PATTERN.test(value)) continue;
+    safe[key] = value;
+  }
+  return Object.keys(safe).length > 0 ? safe : undefined;
+}
+
 function sanitizeNode(node: NodeObj): NodeObj {
   const copy: NodeObj = { ...node };
   delete copy.dangerouslySetInnerHTML;
   if (copy.hyperLink !== undefined && !SAFE_LINK_PATTERN.test(copy.hyperLink)) delete copy.hyperLink;
   if (copy.image !== undefined && !isSafeImage(copy.image)) delete copy.image;
+  const style = sanitizeStyle(copy.style);
+  if (style) copy.style = style;
+  else delete copy.style;
   const tags = sanitizeTags(copy.tags);
   if (tags) copy.tags = tags;
   else delete copy.tags;

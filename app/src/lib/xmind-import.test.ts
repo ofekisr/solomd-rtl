@@ -3,6 +3,12 @@ import { test } from 'node:test';
 import JSZip from 'jszip';
 import { parseMindmap } from './mindmap-format.ts';
 import { convertXmind } from './xmind-import.ts';
+import {
+  MAX_XMIND_BYTES,
+  MAX_XMIND_CONTENT_BYTES,
+  XMIND_CONTENT_TOO_LARGE_ERROR,
+  XMIND_TOO_LARGE_ERROR,
+} from './xmind-limits.ts';
 
 async function zipOf(files: Record<string, string>): Promise<Uint8Array> {
   const zip = new JSZip();
@@ -103,4 +109,34 @@ test('malformed files return an error instead of throwing', async () => {
     const result = await convertXmind(bytes, 'bad.xmind');
     assert.equal(result.ok, false);
   }
+});
+
+test('hostile style values are stripped on import', async () => {
+  const sheets = [
+    {
+      id: 's',
+      class: 'sheet',
+      title: 'S',
+      rootTopic: topic('r', 'Root', {
+        style: { properties: { 'svg:fill': 'url(https://evil.example/t.png)', 'fo:color': '#ff0000' } },
+      }),
+    },
+  ];
+  const { data } = await importOk(await zipOf({ 'content.json': JSON.stringify(sheets) }));
+  assert.equal(data.nodeData.style?.background, undefined);
+  assert.equal(data.nodeData.style?.color, '#ff0000');
+});
+
+test('input over the size cap is rejected before parsing', async () => {
+  const result = await convertXmind(new Uint8Array(MAX_XMIND_BYTES + 1), 'big.xmind');
+  assert.deepEqual(result, { ok: false, error: XMIND_TOO_LARGE_ERROR });
+});
+
+test('a zip whose content expands past the cap is rejected', async () => {
+  const padding = ' '.repeat(MAX_XMIND_CONTENT_BYTES + 1);
+  const zip = new JSZip();
+  zip.file('content.json', `[]${padding}`);
+  const bytes = await zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE' });
+  const result = await convertXmind(bytes, 'bomb.xmind');
+  assert.deepEqual(result, { ok: false, error: XMIND_CONTENT_TOO_LARGE_ERROR });
 });

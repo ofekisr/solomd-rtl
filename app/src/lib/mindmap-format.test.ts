@@ -278,3 +278,34 @@ test('nested children are sanitized too', () => {
   const node = sanitizeNodeObj({ id: 'r', topic: 'r', children: [{ id: 'c', topic: 'c', icons: [1] }] });
   assert.deepEqual(node?.children?.[0].icons, []);
 });
+
+function styledNode(style: unknown) {
+  return parseOk(envelopeWith({ nodeData: { id: 'r', topic: 'R', style, children: [] } })).nodeData.style;
+}
+
+test('style values with url() are dropped', () => {
+  const style = styledNode({ background: 'url(https://evil.example/t.png)', color: '#ff0000' });
+  assert.equal(style?.background, undefined);
+  assert.equal(style?.color, '#ff0000');
+});
+
+test('style keys outside the allowlist are dropped', () => {
+  const style = styledNode({ position: 'fixed', color: '#00ff00' });
+  assert.deepEqual(style, { color: '#00ff00' });
+});
+
+test('non-string style values are dropped', () => {
+  assert.deepEqual(styledNode({ color: 5, background: '#ff0000' }), { background: '#ff0000' });
+});
+
+test('safe style values are kept', () => {
+  assert.deepEqual(styledNode({ color: '#ff0000', background: '#ff0000' }), {
+    color: '#ff0000',
+    background: '#ff0000',
+  });
+});
+
+test('a style that is not an object, or is empty after filtering, is removed', () => {
+  assert.equal(styledNode('color: red'), undefined);
+  assert.equal(styledNode({ position: 'fixed' }), undefined);
+});

@@ -86,9 +86,10 @@
         "ext": [
           "xmind"
         ],
-        "name": "XMind Map",
+        "name": "SoloMD XMind Import",
         "description": "XMind mind map (opens as an imported SoloMD mindmap)",
         "role": "Viewer",
+        "rank": "Alternate",
         "mimeType": "application/vnd.xmind.workbook"
       }
     ],
