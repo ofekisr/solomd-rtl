@@ -31,7 +31,7 @@ Phase order after Phase 1 may change when a package makes a later phase cheap.
 | 1 | `.mmap` file support | Open, edit, save `.mmap` as an XMind-like map |
 | 2 | XMind | Open `.xmind`; save back to `.xmind` if `export-xmind` works, else Save As `.mmap` |
 | 3 | Markdown render | ```` ```mindmap ```` fences render in preview and write edits back |
-| 4 | Map UI | Export, copy plaintext, map→markdown, jump to source, read-only toggle, gates |
+| 4 | Map UI | Export, copy plaintext, map→markdown, jump to source, read-only toggle, gates, palette commands |
 | 5 | Convert md→mindmap | Structural and AI conversion of a selection, section, document, or folder |
 
 ## Phase 1 — `.mmap` file support
@@ -51,8 +51,8 @@ Phase order after Phase 1 may change when a package makes a later phase cheap.
 ### View
 
 - `PaneContent.vue` renders `MindmapView.vue` instead of Editor and Preview when `tab.language === 'mindmap'`.
-- `MindmapView.vue` mounts Mind Elixir with `editable`, `contextMenu`, `keypress`, `toolBar`, and `direction: SIDE`.
-- Theme follows `settings.theme`. RTL documents use Mind Elixir's RTL-safe defaults; no custom layout.
+- `MindmapView.vue` mounts Mind Elixir with `editable`, `contextMenu`, `keypress`, and `toolBar`; layout direction follows [Hebrew / RTL](#hebrew--rtl).
+- Theme follows `settings.theme`; files store document fields only (`nodeData`, `arrows`, `summaries`, `direction`), never theme.
 - Mind Elixir `operation` events debounce into `tab.content = serializeMindmap(getData())`.
 - The tab stays a string tab, so dirty state, `saveTab`, AutoGit, and recent files work unchanged.
 - External content changes (reload, revert) call `refresh()`; changes originating from the view do not.
@@ -88,9 +88,8 @@ Mind Elixir's built-in keymap is kept as-is (`keypress: true`). The table mirror
 
 Expand all / collapse all are covered by the Mod+K chord, so no separate SoloMD actions exist for them.
 
-SoloMD adds its own actions to `lib/keybindings.ts` (category `mindmap`), so they are rebindable, listed in Settings, and run from the command palette.
+SoloMD adds its own actions to `lib/keybindings.ts` (category `mindmap`), so they are rebindable and listed in Settings. Command-palette entries for them arrive in Phase 4 (Map UI).
 They fire only while a `MindmapView` has focus; while it does, they shadow global chords on the same keys (no effect elsewhere). Settings rejects mindmap rebinds onto built-in keys above.
-
 
 | Action id | Default | Phase |
 |---|---|---|
@@ -132,6 +131,7 @@ Export, gates, conversion, fences, `.xmind`.
 - Copy as plaintext; map→markdown headings document.
 - Jump to source: nodes created from markdown keep the source path and line; clicking opens it.
 - Read-only toggle.
+- Command palette lists every `mindmap.*` action.
 - Gates (same map only):
   - A gate is a leaf that stores a target node id; its label reads the target's topic live.
   - `before.addChild` and drag/paste guards keep gates childless. A gate cannot target another gate.
