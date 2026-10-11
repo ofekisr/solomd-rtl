@@ -19,7 +19,28 @@ Every payload passes through `sanitizeMindmapData`.
 
 ## Status
 
-Not started.
+COMPLETE. 2026-10-12.
+
+**Commits (Task 1-6):**
+- 6205600 Task 1: fence scanner + codec (TDD, spike deviation noted)
+- 3be5d97, 725e642 Task 2: language registration (prior + this run)
+- 9a5b3d3, 0144e3d Task 3: preview integration
+- b753e9e Task 4: MindmapCanvas refactor
+- f645d4f Task 5: fullscreen editor
+- f59af68 Task 6: live widget
+
+**Open items (Phase 4):**
+- `Editor.vue` plain-mode block render (fences stay as code when language is plaintext)
+- Slash-command fence insert (if not already supported)
+- Export (download as .mmap or .xmind)
+- Copy plaintext
+- Jump to source (click in fullscreen reveals in source)
+- Read-only toggle
+- Styling palette UI
+- Fence syntax gates: `- => <id>` syntax (Phase 4 feature)
+
+**Deviations from brief:**
+- Task 1: regex `\r?` added to handle CRLF sources (tested, justified, minimal)
 
 ## Decisions (brainstorm 12-10-26)
 

@@ -8,7 +8,7 @@ Approved in conversation on 11-10-26. Branch: `feat/mindmap`.
 |---|---|
 | 1 `.mmap` file support | ✅ Done 11-10-26 (`4.14.9`) — plan `docs/superpowers/plans/2026-10-11-mindmap-phase1-mmap.md` |
 | 2 XMind | ✅ Done 11-10-26 (`4.14.10`) — plan `docs/superpowers/plans/2026-10-11-mindmap-phase2-xmind.md` |
-| 3 Markdown render | Pending |
+| 3 Markdown render | ✅ Done 12-10-26 (`4.14.11`) — plan `docs/superpowers/plans/2026-10-11-mindmap-phase3-fence.md` |
 | 4 Map UI | Pending |
 | 5 Convert md→mindmap | Pending |
 
@@ -129,12 +129,48 @@ Export, gates, conversion, fences, `.xmind`.
 
 ## Phase 3 — Markdown render
 
-- Fence language `mindmap`; body is the Mind Elixir plaintext outline (`- ` items, 2-space indent, first item is root).
-- Registration follows the `tldraw` fence: `SPECIAL_FENCES`, the `markdown.ts` fence skip list, a `processMindmaps()` pass in `Preview.vue` at its three call sites, and a live-edit widget in `cm-live-render.ts`.
-- Preview renders a read-only interactive map. Clicking opens a fullscreen editor (`solomd:mindmap-open`).
-- Edits rewrite that fence's body with `mindElixirToPlaintext`, matched to the source by document order, as `findTldrawFences` does.
-- Fences keep text, hierarchy, ids, summaries, and arrows. Colors and layout belong in `.mmap` files.
-- Evaluate `remark-mindmap` / `rehype-mind-elixir` first; adopt only if they fit SoloMD's markdown-it pipeline.
+**Completed 12-10-26 (v4.14.11). All 79 targeted lib tests pass.**
+
+### Infrastructure (Task 1)
+
+- `lib/fence-scan.ts`: CommonMark-compliant scanner returning every fenced block with start/end offsets, info string, and dedented body.
+- `lib/mindmap-fence.ts`: codec wrapping `plaintextConverter`, `findMindmapFences()`, and guarded `replaceMindmapFence()` (document-order + body guard).
+- `lib/mindmap-format.ts`: extended with `MindmapCodec` interface and `mmapCodec(fileName)`.
+
+### Language Registration (Task 2)
+
+- `SPECIAL_FENCES` in `lib/fence-languages.ts` includes `mindmap`; `markdown.ts` fence skip list updated so the fence body is not wrapped in a code block.
+
+### Preview Read-Only Map (Task 3)
+
+- `lib/mindmap-readonly.ts`: mounts a read-only Mind Elixir instance on a DOM element; supports live theme switching and `destroy()`.
+- `Preview.vue`: `processMindmaps()` at its three call sites; theme watch; teardown on unmount. Each fence block has an "Open fullscreen" button.
+
+### MindmapCanvas Extraction (Task 4)
+
+- `MindmapCanvas.vue`: codec-driven canvas extracted from `MindmapView.vue`; driven by `content` + `codec` props; emits `update:content` on edit (debounced 300 ms).
+- `MindmapView.vue` is now a thin tab wrapper around `MindmapCanvas`.
+
+### Fullscreen Fence Editor (Task 5)
+
+- `MindmapFenceOverlay.vue`: fullscreen editor for one fence; guarded debounced writeback via `replaceMindmapFence` with a toast on abort.
+- Mounted in `App.vue`; opened via `solomd:mindmap-open` event carrying the fence index and body.
+- Ids meaning `[^ref]` anchors: node ids are regenerated on every parse; only `[^ref]` refs survive `plaintextConverter` round-trips, keeping cross-references stable across edits.
+
+### Live CodeMirror Widget (Task 6)
+
+- `cm-live-blocks.ts`: `MindmapWidget` renders an interactive preview inline in the editor; cursor entering the fence shows source, cursor leaving collapses to the map.
+
+### Decisions
+
+| Topic | Decision |
+|---|---|
+| Plugin fit | Neither `remark-mindmap` 0.2.0 nor `rehype-mind-elixir` 1.0.0-beta.1 adopted (wrong pipeline, wrong core version) |
+| Core used | `mind-elixir/plaintextConverter` 5.15.1 |
+| Fence to editor match | Document order plus body guard: index match first, then unique-body fallback, then abort |
+| Write timing | Debounced 300 ms (`SYNC_DEBOUNCE_MS`) |
+| Ids meaning | `[^ref]` anchors stable across plaintext round-trips; node ids are transient |
+| Preview open | "Open fullscreen" button, not a whole-map click (drag pans, a plain click would open on pan) |
 
 ## Phase 4 — Map UI
 
