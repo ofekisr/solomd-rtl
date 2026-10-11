@@ -58,6 +58,7 @@
     "markdown-it-front-matter": "^0.2.4",
     "markdown-it-mark": "^4.0.0",
     "mermaid": "^11.14.0",
+    "mind-elixir": "5.15.1",
     "opencc-js": "^1.0.5",
     "pinia": "^3.0.4",
     "pinyin-pro": "^3.28.0",

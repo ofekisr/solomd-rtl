@@ -152,6 +152,9 @@ importers:
       mermaid:
         specifier: ^11.14.0
         version: 11.14.0
+      mind-elixir:
+        specifier: 5.15.1
+        version: 5.15.1
       opencc-js:
         specifier: ^1.0.5
         version: 1.0.5
@@ -2373,6 +2376,9 @@ packages:
 
   mermaid@11.14.0:
     resolution: {integrity: sha512-GSGloRsBs+JINmmhl0JDwjpuezCsHB4WGI4NASHxL3fHo3o/BRXTxhDLKnln8/Q0lRFRyDdEjmk1/d5Sn1Xz8g==}
+
+  mind-elixir@5.15.1:
+    resolution: {integrity: sha512-Lm/IfNC3jnxqcchKsjkaX/arXDvgPvpPT+BLfTH2Kl1taO9+RPtv/jrCevn1LqPzHoWL2Yl4QeP/xFpjZuZFHw==}
 
   minimalistic-assert@1.0.1:
     resolution: {integrity: sha512-UtJcAD4yEaGtjPezWuO9wC4nwUnVH/8/Im3yEHQP4b67cXlD/Qr9hdITCU1xDbSEXg2XKNaP8jsReV7vQd00/A==}
@@ -5151,6 +5157,8 @@ snapshots:
       stylis: 4.3.6
       ts-dedent: 2.2.0
       uuid: 11.1.0
+
+  mind-elixir@5.15.1: {}
 
   minimalistic-assert@1.0.1: {}
 
