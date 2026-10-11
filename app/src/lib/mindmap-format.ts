@@ -20,6 +20,7 @@ const ALLOWED_STYLE_KEYS: readonly string[] = [
   'border',
 ];
 const UNSAFE_CSS_VALUE_PATTERN = /url\(|image-set\(|expression\(|@import|javascript:/i;
+const CSS_ESCAPE_PATTERN = /[\\\u0000-\u001f\u007f]/;
 const SAFE_LINK_PATTERN = /^(https?:|mailto:)/i;
 const SAFE_IMAGE_URL_PATTERN = /^https?:/i;
 const ANGLE_BRACKET_PATTERN = /[<>]/g;
@@ -121,12 +122,16 @@ function isSafeImage(image: unknown): boolean {
   return SAFE_IMAGE_URL_PATTERN.test(image.url) && isPositiveNumber(image.width) && isPositiveNumber(image.height);
 }
 
+function isUnsafeCssValue(value: string): boolean {
+  return UNSAFE_CSS_VALUE_PATTERN.test(value) || CSS_ESCAPE_PATTERN.test(value);
+}
+
 function sanitizeStyle(style: unknown): NodeObj['style'] | undefined {
   if (!isRecord(style)) return undefined;
   const safe: Record<string, string> = {};
   for (const [key, value] of Object.entries(style)) {
     if (!ALLOWED_STYLE_KEYS.includes(key)) continue;
-    if (typeof value !== 'string' || UNSAFE_CSS_VALUE_PATTERN.test(value)) continue;
+    if (typeof value !== 'string' || isUnsafeCssValue(value)) continue;
     safe[key] = value;
   }
   return Object.keys(safe).length > 0 ? safe : undefined;

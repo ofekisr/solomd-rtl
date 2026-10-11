@@ -298,6 +298,19 @@ test('non-string style values are dropped', () => {
   assert.deepEqual(styledNode({ color: 5, background: '#ff0000' }), { background: '#ff0000' });
 });
 
+test('style values with CSS escapes are dropped', () => {
+  const node = sanitizeNodeObj({
+    id: 'a',
+    topic: 't',
+    style: { background: '\\75 rl(https://evil.example/t.png)', color: 'u\\72l(x)' },
+  });
+  assert.equal(node?.style, undefined);
+});
+
+test('style values with CSS escapes are dropped while safe values stay', () => {
+  assert.deepEqual(styledNode({ background: 'u\\72l(x)', color: '#ff0000' }), { color: '#ff0000' });
+});
+
 test('safe style values are kept', () => {
   assert.deepEqual(styledNode({ color: '#ff0000', background: '#ff0000' }), {
     color: '#ff0000',
