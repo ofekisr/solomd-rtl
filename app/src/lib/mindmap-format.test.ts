@@ -195,3 +195,32 @@ test('sanitizeNodeObj strips HTML and unsafe links at every depth', () => {
   assert.equal('dangerouslySetInnerHTML' in (child ?? {}), false);
   assert.equal(child?.hyperLink, 'https://ok.example');
 });
+
+test('loaded data drops the persisted theme', () => {
+  const data = parseOk(
+    envelopeWith({ nodeData: { id: 'r', topic: 'R' }, theme: { name: 'Dark', palette: [], cssVar: {} } }),
+  );
+  assert.equal('theme' in data, false);
+});
+
+test('serialized data holds document fields only', () => {
+  const data = {
+    nodeData: { id: 'r', topic: 'R' },
+    arrows: [],
+    summaries: [],
+    direction: 2,
+    theme: { name: 'Dark', palette: [], cssVar: {} },
+    compact: true,
+    meta: { x: 1 },
+    extra: 'nope',
+  } as unknown as MindElixirData;
+  const json = JSON.parse(serializeMindmap(data));
+  assert.deepEqual(Object.keys(json.data).sort(), ['arrows', 'direction', 'nodeData', 'summaries']);
+});
+
+test('direction is kept only when it is a known layout value', () => {
+  const directionFor = (direction: unknown): unknown =>
+    parseOk(envelopeWith({ nodeData: { id: 'r', topic: 'R' }, direction })).direction;
+  for (const valid of [0, 1, 2, 3]) assert.equal(directionFor(valid), valid);
+  for (const invalid of [4, -1, 1.5, '1', null, 'side']) assert.equal(directionFor(invalid), undefined, String(invalid));
+});

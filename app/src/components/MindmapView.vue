@@ -20,6 +20,8 @@ const OPERATION_EVENT = 'operation';
 const EXPAND_EVENT = 'expandNode';
 const BEGIN_EDIT_OPERATION = 'beginEdit';
 const CHORD_PREFIX_COMBO = 'Mod+K';
+const TOGGLE_NODE_ACTION = 'mindmap.toggleNode';
+const INTERACTIVE_SELECTOR = 'button, input, select, textarea, a[href], [contenteditable="true"], [role="button"], [role="menuitem"]';
 
 const props = defineProps<{ tab: Tab }>();
 const tabs = useTabsStore();
@@ -128,6 +130,10 @@ function sanitizeCopiedNodes(instance: MindElixirInstance): void {
   };
 }
 
+function flushPendingSync(): void {
+  if (syncTimer !== null) syncNow();
+}
+
 function teardown(): void {
   stopCentering();
   if (syncTimer !== null) window.clearTimeout(syncTimer);
@@ -144,6 +150,7 @@ async function applyExternalContent(): Promise<void> {
   }
   if (mind) {
     mind.refresh(data);
+    mind.clearHistory?.();
     return;
   }
   await nextTick();
@@ -164,7 +171,7 @@ function selectRoot(): void {
 }
 
 const actions: Record<string, () => void> = {
-  'mindmap.toggleNode': toggleCurrentNode,
+  [TOGGLE_NODE_ACTION]: toggleCurrentNode,
   'mindmap.fit': () => mind?.scaleFit(),
   'mindmap.focusRoot': selectRoot,
   'mindmap.shortcutHelp': () => { isHelpOpen.value = true; },
@@ -174,18 +181,28 @@ function isEditingTopic(e: KeyboardEvent): boolean {
   return e.target instanceof HTMLElement && e.target.id === TOPIC_EDITOR_ID;
 }
 
+function isOnMapControl(e: KeyboardEvent): boolean {
+  const target = e.target;
+  if (!(target instanceof HTMLElement) || target === mind?.container) return false;
+  return target.closest(INTERACTIVE_SELECTOR) !== null;
+}
+
+function canRunOn(actionId: string, e: KeyboardEvent): boolean {
+  return actionId !== TOGGLE_NODE_ACTION || e.target === mind?.container;
+}
+
 function onKeydown(e: KeyboardEvent): void {
   const combo = eventToCombo(e);
-  if (!combo || isEditingTopic(e)) return;
+  if (!combo || isEditingTopic(e) || isOnMapControl(e)) return;
   const isChordFollowUp = wasChordPrefixPressed;
   wasChordPrefixPressed = combo === CHORD_PREFIX_COMBO;
   if (isChordFollowUp) scheduleSync();
   const actionId = resolveBindings(settings.keybindings, 'mindmap').get(combo);
-  const run = actionId ? actions[actionId] : undefined;
+  const run = actionId && canRunOn(actionId, e) ? actions[actionId] : undefined;
   if (run) {
     e.preventDefault();
     e.stopPropagation();
-    run();
+    if (!e.repeat) run();
     return;
   }
   if (MINDMAP_BUILTIN_COMBOS.has(combo)) e.stopPropagation();
@@ -205,12 +222,12 @@ watch(() => settings.theme, () => mind?.changeTheme(themeFor()));
 
 onMounted(() => {
   mount();
-  window.addEventListener('solomd:flush-content-sync', syncNow);
+  window.addEventListener('solomd:flush-content-sync', flushPendingSync);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('solomd:flush-content-sync', syncNow);
-  if (syncTimer !== null) syncNow();
+  window.removeEventListener('solomd:flush-content-sync', flushPendingSync);
+  flushPendingSync();
   teardown();
 });
 </script>

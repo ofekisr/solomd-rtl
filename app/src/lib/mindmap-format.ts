@@ -10,6 +10,7 @@ const ROOT_ID = 'root';
 const DEFAULT_ROOT_TOPIC = 'Untitled';
 const SAFE_LINK_PATTERN = /^(https?:|mailto:)/i;
 const ANGLE_BRACKET_PATTERN = /[<>]/g;
+const LAYOUT_DIRECTIONS: readonly unknown[] = [0, 1, 2, 3];
 
 interface MindmapEnvelope {
   format: typeof FORMAT_ID;
@@ -42,8 +43,13 @@ export function createEmptyMindmap(rootTopic: string): MindElixirData {
   return { nodeData: { id: ROOT_ID, topic: rootTopic, children: [] } };
 }
 
+function documentFields(data: MindElixirData): MindElixirData {
+  const { nodeData, arrows, summaries, direction } = data;
+  return { nodeData, arrows, summaries, direction };
+}
+
 export function serializeMindmap(data: MindElixirData): string {
-  const envelope: MindmapEnvelope = { format: FORMAT_ID, version: FORMAT_VERSION, data };
+  const envelope: MindmapEnvelope = { format: FORMAT_ID, version: FORMAT_VERSION, data: documentFields(data) };
   return `${JSON.stringify(envelope, null, JSON_INDENT)}\n`;
 }
 
@@ -102,13 +108,20 @@ function optionalField<K extends string, V>(key: K, value: V | undefined): Parti
   return value === undefined ? {} : ({ [key]: value } as Record<K, V>);
 }
 
+type LayoutDirection = NonNullable<MindElixirData['direction']>;
+
+function validDirection(direction: unknown): LayoutDirection | undefined {
+  return LAYOUT_DIRECTIONS.includes(direction) ? (direction as LayoutDirection) : undefined;
+}
+
 export function sanitizeMindmapData(data: MindElixirData): MindElixirData {
-  const { arrows, summaries, ...rest } = data;
+  const { arrows, summaries, direction, theme: _theme, ...rest } = data;
   return {
     ...rest,
     nodeData: sanitizeNode(data.nodeData),
     ...optionalField('arrows', sanitizeLabeledList<ArrowList>(arrows)),
     ...optionalField('summaries', sanitizeLabeledList<SummaryList>(summaries)),
+    ...optionalField('direction', validDirection(direction)),
   };
 }
 
