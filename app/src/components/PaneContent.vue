@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, defineAsyncComponent } from 'vue';
 import Editor from './Editor.vue';
 import Preview from './Preview.vue';
 import { useSettingsStore } from '../stores/settings';
@@ -23,8 +23,12 @@ const tiles = useTilesStore();
 const editorRef = ref<InstanceType<typeof Editor> | null>(null);
 const previewRef = ref<InstanceType<typeof Preview> | null>(null);
 
+const MindmapView = defineAsyncComponent(() => import('./MindmapView.vue'));
+
+const isMindmap = computed(() => props.tab?.language === 'mindmap');
+
 const showEditor = computed(
-  () => props.tab?.language !== 'markdown' || settings.viewMode !== 'preview'
+  () => !isMindmap.value && (props.tab?.language !== 'markdown' || settings.viewMode !== 'preview')
 );
 // `liveEdit` mode is editor-only: the inline-rendered markdown IS the
 // preview, so we don't show the separate Preview pane next to it.
@@ -442,6 +446,9 @@ function onPreviewSearchEvent(e: Event) {
       'pane-content--distinct': settings.distinctSplitPanes && showEditor && showPreview,
     }"
   >
+    <div class="pane pane--mindmap" v-if="isMindmap && tab">
+      <MindmapView :key="tab.id" :tab="tab" />
+    </div>
     <div class="pane pane--editor" v-if="showEditor && tab">
       <Editor
         :key="editorImplementationKey"
