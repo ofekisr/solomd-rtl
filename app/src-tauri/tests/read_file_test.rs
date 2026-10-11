@@ -100,3 +100,11 @@ fn detect_language_from_extension() {
     let r3 = read_file(path3).unwrap();
     assert_eq!(r3.language, "plaintext");
 }
+
+#[test]
+fn detect_mindmap_language() {
+    let path = "/tmp/solomd-lang.mmap".to_string();
+    fs::write(&path, "{}").unwrap();
+    let r = read_file(path).unwrap();
+    assert_eq!(r.language, "mindmap");
+}

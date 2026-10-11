@@ -1,4 +1,4 @@
-export type Language = 'markdown' | 'python' | 'javascript' | 'typescript' | 'rust' | 'html' | 'css' | 'json' | 'cpp' | 'go' | 'sql' | 'java' | 'yaml' | 'xml' | 'bash' | 'plaintext';
+export type Language = 'markdown' | 'mindmap' | 'python' | 'javascript' | 'typescript' | 'rust' | 'html' | 'css' | 'json' | 'cpp' | 'go' | 'sql' | 'java' | 'yaml' | 'xml' | 'bash' | 'plaintext';
 // `liveEdit` (v2.3) renders markdown formatting inline inside the editor —
 // Typora / Obsidian Live Preview style. The editor IS the only pane in
 // this mode; there is no separate preview column.

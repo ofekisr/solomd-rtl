@@ -75,7 +75,7 @@ fn main() {
                     .map(|e| {
                         matches!(
                             e.to_ascii_lowercase().as_str(),
-                            "md" | "markdown" | "mdown" | "mkd" | "txt"
+                            "md" | "markdown" | "mdown" | "mkd" | "txt" | "mmap"
                         )
                     })
                     .unwrap_or(false)

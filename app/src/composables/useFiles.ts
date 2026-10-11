@@ -18,6 +18,8 @@ import type { FileReadResult, Tab } from '../types';
 import { isSafPath, fromSafPath, safRead, safWrite, safLaunchPicker } from '../lib/saf-fs';
 import { baseNameOf, fileNameOf, claimImportName, joinInFolder } from '../lib/import-plan';
 import { newFileDirFor, treeSelection } from '../lib/new-file-target';
+import { MMAP_EXTENSION } from '../lib/mindmap-format';
+import { untitledFileName } from '../lib/file-language';
 
 // Save dialogs only — opening uses no filter so any file is selectable.
 // (rfd treats `'*'` literally as the extension `*`, not as wildcard, so we
@@ -36,6 +38,7 @@ export function deriveNameFromHeading(tab: Pick<Tab, 'filePath' | 'fileName' | '
 
 const SAVE_FILTERS = [
   { name: 'Markdown', extensions: ['md', 'markdown', 'mdown', 'mkd'] },
+  { name: 'Mindmap', extensions: [MMAP_EXTENSION] },
   { name: 'Plain Text', extensions: ['txt'] },
 ];
 
@@ -681,7 +684,7 @@ export function useFiles() {
     const fname =
       deriveNameFromHeading(tab) ||
       tab.fileName ||
-      (tab.language === 'markdown' ? 'Untitled.md' : 'Untitled.txt');
+      untitledFileName(tab.language);
     const dir = await documentDir();
     return await join(dir, fname);
   }
@@ -779,7 +782,7 @@ export function useFiles() {
     const defaultName =
       deriveNameFromHeading(tab) ||
       tab.fileName ||
-      (tab.language === 'markdown' ? 'Untitled.md' : 'Untitled.txt');
+      untitledFileName(tab.language);
     let path: string | null;
     if (isIOS()) {
       // iOS: no Save-As picker UI that round-trips to Rust safely. Write

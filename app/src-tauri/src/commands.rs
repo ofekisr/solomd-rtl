@@ -1089,6 +1089,7 @@ fn detect_language(path: &str) -> String {
         .to_ascii_lowercase();
     match ext.as_str() {
         "md" | "markdown" | "mdown" | "mkd" => "markdown".to_string(),
+        "mmap" => "mindmap".to_string(),
         "js" | "jsx" | "mjs" | "cjs" => "javascript".to_string(),
         "ts" | "tsx" => "typescript".to_string(),
         "py" | "pyj" => "python".to_string(),

@@ -72,6 +72,15 @@
         "description": "Plain text document",
         "role": "Editor",
         "mimeType": "text/plain"
+      },
+      {
+        "ext": [
+          "mmap"
+        ],
+        "name": "SoloMD Mindmap",
+        "description": "SoloMD mind map",
+        "role": "Editor",
+        "mimeType": "application/json"
       }
     ],
     "windows": {
