@@ -10,6 +10,26 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-11-mindmap-design.md` (Phase 1 section).
 
+## Status
+
+**Complete — 11-10-26.** Branch `feat/mindmap` (not merged), released as `4.14.9`. All 5 tasks reviewed clean; final whole-branch review fixes re-reviewed clean.
+
+| Task | Commits | Notes |
+|---|---|---|
+| 1 Format module | `892e43d`, `9eb838a`, `9e8c76e` | 2 security fix rounds: strip `dangerouslySetInnerHTML`, unsafe `hyperLink`, HTML in arrow/summary labels |
+| 2 Routing | `8269bb3` | `.mmap` in TS, Rust `detect_language`, `main.rs`, Tauri association |
+| 3 Shortcuts | `29cd086`, `04c25dc` | Scoped keymap; Settings rejects rebinds onto Mind Elixir built-ins |
+| 4 MindmapView | `b24fdc0`, `3c02b68` | + Hebrew/RTL (`mindmap-direction.ts`); parse-error recovery; undo/redo, collapse sync |
+| 5 Verification | `997bd24`, `d32e3dc` | Browser-verified; centering on mount, Mod+K chord sync, Esc closes help |
+| Final review | `3eb1dfc`, `1243b2f`, `1252a83` | Paste XSS sanitized; view state (`theme`) kept out of files; flush only pending syncs; Space repeat guard |
+
+Deviations from this plan's text: MindElixir direction from `layoutDirectionFor` (not fixed `SIDE`); `expandAll`/`collapseAll` replaced by Mind Elixir's Mod+K chords; `.mmap` MIME is `application/x-solomd-mindmap`; mindmap palette commands deferred to Phase 4.
+
+Known open items (parked):
+- Malformed `icons`/`tags` in a file can crash rendering (DoS, no data loss) — harden in Phase 2.
+- Native Tauri window check (real Save to disk, file association) not yet run by a human.
+- 12 pre-existing `src/lib/*.test.ts` failures (extensionless imports) and the Rust `.rs` assertion in `detect_language_from_extension` predate this branch.
+
 ## Global Constraints
 
 - Package manager: `pnpm` inside `app/`. Lockfile `app/pnpm-lock.yaml` must be committed with dependency changes.
@@ -65,7 +85,7 @@
   - `serializeMindmap(data: MindElixirData): string`
   - `parseMindmap(text: string, fallbackTopic: string): MindmapParseResult` where `MindmapParseResult = { ok: true; data: MindElixirData; isEmpty: boolean } | { ok: false; error: string }`
 
-- [ ] **Step 1: Install the dependency**
+- [x] **Step 1: Install the dependency**
 
 ```bash
 cd app && pnpm add mind-elixir@5.15.1 --save-exact
@@ -73,7 +93,7 @@ cd app && pnpm add mind-elixir@5.15.1 --save-exact
 
 Expected: `package.json` has `"mind-elixir": "5.15.1"`.
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 `app/src/lib/mindmap-format.test.ts`:
 
@@ -147,12 +167,12 @@ test('invalid input returns a typed error instead of throwing', () => {
 });
 ```
 
-- [ ] **Step 3: Run tests to verify they fail**
+- [x] **Step 3: Run tests to verify they fail**
 
 Run: `cd app && node --test --experimental-strip-types src/lib/mindmap-format.test.ts`
 Expected: FAIL — `Cannot find module './mindmap-format.ts'`.
 
-- [ ] **Step 4: Implement**
+- [x] **Step 4: Implement**
 
 `app/src/lib/mindmap-format.ts`:
 
@@ -237,12 +257,12 @@ export function parseMindmap(text: string, fallbackTopic: string): MindmapParseR
 }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `cd app && node --test --experimental-strip-types src/lib/mindmap-format.test.ts`
 Expected: 6/6 pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /Users/ofeki/repos/solomd-rtl
@@ -271,7 +291,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Consumes: `MINDMAP_EXTENSIONS`, `MMAP_EXTENSION` from Task 1.
 - Produces: `Language` includes `'mindmap'`; `untitledFileName(language: Language): string`; Rust `read_file` returns `language: "mindmap"` for `.mmap`.
 
-- [ ] **Step 1: Write the failing TS test** (append to `app/src/lib/file-language.test.ts`; change its import to `'./file-language.ts'` and add `untitledFileName`)
+- [x] **Step 1: Write the failing TS test** (append to `app/src/lib/file-language.test.ts`; change its import to `'./file-language.ts'` and add `untitledFileName`)
 
 ```ts
 import { inferFileLanguage, untitledFileName } from './file-language.ts';
@@ -289,7 +309,7 @@ test('untitled names follow the language', () => {
 });
 ```
 
-- [ ] **Step 2: Write the failing Rust test** (append to `app/src-tauri/tests/read_file_test.rs`)
+- [x] **Step 2: Write the failing Rust test** (append to `app/src-tauri/tests/read_file_test.rs`)
 
 ```rust
 #[test]
@@ -301,7 +321,7 @@ fn detect_mindmap_language() {
 }
 ```
 
-- [ ] **Step 3: Run both to verify they fail**
+- [x] **Step 3: Run both to verify they fail**
 
 Run: `cd app && node --test --experimental-strip-types src/lib/file-language.test.ts`
 Expected: FAIL (`untitledFileName` not exported / `'plaintext' !== 'mindmap'`).
@@ -309,7 +329,7 @@ Expected: FAIL (`untitledFileName` not exported / `'plaintext' !== 'mindmap'`).
 Run: `cd app/src-tauri && cargo test --test read_file_test detect_mindmap_language`
 Expected: FAIL (`left: "plaintext"`, `right: "mindmap"`).
 
-- [ ] **Step 4: Implement TS side**
+- [x] **Step 4: Implement TS side**
 
 `app/src/types.ts` — add `'mindmap'` to the union:
 
@@ -361,7 +381,7 @@ Replace both `(tab.language === 'markdown' ? 'Untitled.md' : 'Untitled.txt')` oc
 'mmap': '🧠',
 ```
 
-- [ ] **Step 5: Implement Rust and Tauri side**
+- [x] **Step 5: Implement Rust and Tauri side**
 
 `app/src-tauri/src/commands.rs` in `detect_language`'s `match ext.as_str()` — add after the markdown arm:
 
@@ -387,7 +407,7 @@ Replace both `(tab.language === 'markdown' ? 'Untitled.md' : 'Untitled.txt')` oc
 }
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `cd app && node --test --experimental-strip-types src/lib/file-language.test.ts src/lib/mindmap-format.test.ts`
 Expected: all pass.
@@ -398,7 +418,7 @@ Expected: `detect_mindmap_language` passes; only the known `.rs` assertion in `d
 Run: `cd app && pnpm build`
 Expected: exit 0. If `vue-tsc` reports a `Record<Language, …>` missing `mindmap`, add a `mindmap` entry at that site (use the `plaintext` value).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd /Users/ofeki/repos/solomd-rtl
@@ -430,7 +450,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   - Action ids: `mindmap.toggleNode` (`Space`), `mindmap.fit` (`Mod+Alt+0`), `mindmap.focusRoot` (`Home`), `mindmap.shortcutHelp` (`Shift+Slash`)
   - `MINDMAP_BUILTIN_KEYS: readonly MindmapBuiltinKey[]` with `{ combo: KeyCombo; label: string }`, and `MINDMAP_BUILTIN_COMBOS: ReadonlySet<KeyCombo>`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `app/src/lib/keybindings.test.ts` (extend its import list with `resolveBindings, conflictFor, eventToCombo`):
 
@@ -496,12 +516,12 @@ test('core editing keys are covered', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run: `cd app && node --test --experimental-strip-types src/lib/keybindings.test.ts src/lib/mindmap-keymap.test.ts`
 Expected: FAIL (mindmap ids absent, `Space` not produced, `mindmap-keymap.ts` missing).
 
-- [ ] **Step 3: Implement scope in `keybindings.ts`**
+- [x] **Step 3: Implement scope in `keybindings.ts`**
 
 Type changes:
 
@@ -576,7 +596,7 @@ export function conflictFor(
 }
 ```
 
-- [ ] **Step 4: Create `app/src/lib/mindmap-keymap.ts`**
+- [x] **Step 4: Create `app/src/lib/mindmap-keymap.ts`**
 
 Combos below are exactly what Mind Elixir 5.15.1's keypress plugin handles (verified in `dist/MindElixir.js`).
 
@@ -627,7 +647,7 @@ export const MINDMAP_BUILTIN_COMBOS: ReadonlySet<KeyCombo> = new Set(
 
 Note: `Delete`/`Backspace` and the two "Move node up/down" pairs are separate combos, so the set size equals the table length.
 
-- [ ] **Step 5: Show the category in Settings and Help, add strings**
+- [x] **Step 5: Show the category in Settings and Help, add strings**
 
 `app/src/components/SettingsPanel.vue` (~line 106):
 
@@ -660,7 +680,7 @@ And a new top-level `mindmap` namespace (next to `whiteboard`):
   },
 ```
 
-- [ ] **Step 6: Run tests and type check**
+- [x] **Step 6: Run tests and type check**
 
 Run: `cd app && node --test --experimental-strip-types src/lib/keybindings.test.ts src/lib/mindmap-keymap.test.ts`
 Expected: all pass, including the pre-existing keybindings tests.
@@ -668,7 +688,7 @@ Expected: all pass, including the pre-existing keybindings tests.
 Run: `cd app && pnpm build`
 Expected: exit 0.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd /Users/ofeki/repos/solomd-rtl
@@ -693,7 +713,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Hebrew / RTL requirements (spec "Hebrew / RTL"):** stored `data.direction` wins; otherwise RTL-dominant maps (by `documentDirection` over all topics) open `LEFT` (0), others `SIDE` (2). Topics and the edit box use `unicode-bidi: plaintext; text-align: start`.
 
-- [ ] **Step 0: RTL layout helper (TDD)**
+- [x] **Step 0: RTL layout helper (TDD)**
 
 `app/src/lib/mindmap-direction.test.ts`:
 
@@ -747,7 +767,7 @@ export function layoutDirectionFor(data: MindElixirData): MindmapLayout {
 
 If `doc-direction.ts` cannot be loaded by node tests, check its imports; it has none today. Run the test again → PASS. Commit with the Task 4 commit at the end (stage both files).
 
-- [ ] **Step 1: Create `MindmapShortcutHelp.vue`**
+- [x] **Step 1: Create `MindmapShortcutHelp.vue`**
 
 ```vue
 <script setup lang="ts">
@@ -803,7 +823,7 @@ dd { margin: 0; }
 
 If `isMacOS` is not exported from `lib/platform.ts`, use the same helper `SettingsPanel.vue` imports for `macKeys`.
 
-- [ ] **Step 2: Create `MindmapView.vue`**
+- [x] **Step 2: Create `MindmapView.vue`**
 
 ```vue
 <script setup lang="ts">
@@ -970,7 +990,7 @@ Notes for the implementer:
 - If `vue-tsc` rejects `MindElixir.E`, `selectNode`, `expandNode`, or `destroy` signatures, check `node_modules/mind-elixir/dist/types/index.d.ts` and adapt the call, not the behavior.
 - The parse-error branch keeps the raw file untouched; "Open as text" switches the tab to the plain editor.
 
-- [ ] **Step 3: Swap the pane in `PaneContent.vue`**
+- [x] **Step 3: Swap the pane in `PaneContent.vue`**
 
 Script additions:
 
@@ -996,12 +1016,12 @@ Template — add as the first child of `.pane-content`:
 
 `showPreview` already requires `language === 'markdown'`, so it needs no change.
 
-- [ ] **Step 4: Type check and build**
+- [x] **Step 4: Type check and build**
 
 Run: `cd app && pnpm build`
 Expected: exit 0; Vite output lists a separate chunk containing `MindmapView`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /Users/ofeki/repos/solomd-rtl
@@ -1018,7 +1038,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 **Files:**
 - Modify: `docs/superpowers/specs/2026-10-11-mindmap-design.md` (keyboard shortcuts section)
 
-- [ ] **Step 1: Run every affected test**
+- [x] **Step 1: Run every affected test**
 
 ```bash
 cd app && node --test --experimental-strip-types src/lib/mindmap-format.test.ts src/lib/mindmap-keymap.test.ts src/lib/keybindings.test.ts src/lib/file-language.test.ts
@@ -1032,7 +1052,7 @@ cd app/src-tauri && cargo test --test read_file_test
 
 Expected: `detect_mindmap_language` passes; no failures besides the known `.rs` assertion.
 
-- [ ] **Step 2: Desktop check in the Tauri dev build**
+- [x] **Step 2: Desktop check in the Tauri dev build**
 
 ```bash
 cd app && pnpm tauri dev
@@ -1050,7 +1070,7 @@ Verify each item and record pass/fail:
 8. Put `{bad` into a `.mmap` → error panel; "Open as text" shows the raw text.
 9. Opening `.md` files still shows Editor/Preview exactly as before.
 
-- [ ] **Step 3: Sync the spec's shortcut tables with what shipped**
+- [x] **Step 3: Sync the spec's shortcut tables with what shipped**
 
 In the spec's "Keyboard shortcuts" section:
 - Replace the built-in table with the rows from `MINDMAP_BUILTIN_KEYS` (adds Mod+K chords, Alt+Arrow moves, Mod+Arrow layouts, Mod+Y).
@@ -1058,7 +1078,7 @@ In the spec's "Keyboard shortcuts" section:
 - Set `mindmap.fit` to `Mod+Alt+0` and `mindmap.shortcutHelp` to `Shift+Slash` (`?`).
 - Record that scoped shortcuts shadow global chords only while a mindmap has focus.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /Users/ofeki/repos/solomd-rtl

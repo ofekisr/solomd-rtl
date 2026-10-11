@@ -4,6 +4,14 @@
 
 Approved in conversation on 11-10-26. Branch: `feat/mindmap`.
 
+| Phase | State |
+|---|---|
+| 1 `.mmap` file support | ✅ Done 11-10-26 (`4.14.9`) — plan `docs/superpowers/plans/2026-10-11-mindmap-phase1-mmap.md` |
+| 2 XMind | Next |
+| 3 Markdown render | Pending |
+| 4 Map UI | Pending |
+| 5 Convert md→mindmap | Pending |
+
 ## Purpose
 
 SoloMD becomes an "md-to-mindmap" app, in the spirit of `ebook-to-mindmap`, and replaces the XMind desktop app.
