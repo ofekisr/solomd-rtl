@@ -102,7 +102,7 @@ const macKeys = isMacOS();
 const keyQuery = ref('');
 const keyGroups = computed(() => {
   const hits = filterKeyActions(activeKeyActions(), keyQuery.value, actionLabel, settings.keybindings, macKeys);
-  return (['file', 'edit', 'view', 'navigate', 'tools'] as const)
+  return (['file', 'edit', 'view', 'navigate', 'tools', 'mindmap'] as const)
     .map((key) => ({ key, items: hits.filter((a) => a.category === key) }))
     .filter((g) => g.items.length > 0);
 });

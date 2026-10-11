@@ -20,12 +20,14 @@
 
 export type KeyCombo = string;
 
+export type KeyScope = 'global' | 'mindmap';
+
 export interface KeyActionDef {
   /** Stable id — matches the command registry's id where one exists. */
   id: string;
   /** Name shown in Settings. English, like the command palette's titles. */
   label: string;
-  category: 'file' | 'edit' | 'view' | 'navigate' | 'tools';
+  category: 'file' | 'edit' | 'view' | 'navigate' | 'tools' | 'mindmap';
   /**
    * Defaults, in priority order. A few actions ship two chords — ⌘N and ⌘T
    * both make a note, F1 and ⌘/ both open help — because both are muscle
@@ -37,6 +39,12 @@ export interface KeyActionDef {
    * case for everything except `file.exit` — see its entry.
    */
   platforms?: ('mac' | 'windows' | 'linux')[];
+  /** Where the chord is live. Omitted means everywhere (the window dispatcher). */
+  scope?: KeyScope;
+}
+
+function scopeOf(action: KeyActionDef): KeyScope {
+  return action.scope ?? 'global';
 }
 
 /** Which platform's key table to build. Overridable so tests can pin one. */
@@ -166,6 +174,12 @@ export const KEY_ACTIONS: KeyActionDef[] = [
   { id: 'daily.openToday', label: "Open Today's Daily Note", category: 'tools', defaults: ['Mod+D'] },
   { id: 'inbox.toggle', label: 'Toggle Inbox Flag / Organize', category: 'tools', defaults: ['Mod+E'] },
   { id: 'pomodoro.startLast', label: 'Start Writing Session (Zen)', category: 'tools', defaults: ['Mod+Shift+Z'] },
+
+  // ---- Mindmap (live only while a mindmap view has focus) ----
+  { id: 'mindmap.toggleNode', label: 'Mindmap: Collapse / Expand Node', category: 'mindmap', scope: 'mindmap', defaults: ['Space'] },
+  { id: 'mindmap.fit', label: 'Mindmap: Fit to Window', category: 'mindmap', scope: 'mindmap', defaults: ['Mod+Alt+0'] },
+  { id: 'mindmap.focusRoot', label: 'Mindmap: Select Root', category: 'mindmap', scope: 'mindmap', defaults: ['Home'] },
+  { id: 'mindmap.shortcutHelp', label: 'Mindmap: Keyboard Shortcuts', category: 'mindmap', scope: 'mindmap', defaults: ['Shift+Slash'] },
 ];
 
 /** Keys whose `event.key` is punctuation — spelled by code for stability. */
@@ -216,6 +230,8 @@ export function eventToCombo(e: KeyboardEvent): KeyCombo | null {
     key = e.code;
   } else if (/^F\d{1,2}$/.test(raw)) {
     key = raw;
+  } else if (raw === ' ') {
+    key = 'Space';
   } else if (raw.length === 1) {
     key = raw.toUpperCase();
   } else {
@@ -265,9 +281,11 @@ export function formatCombo(combo: KeyCombo, isMac: boolean): string {
  */
 export function resolveBindings(
   overrides: Record<string, string | null | undefined> = {},
+  scope: KeyScope = 'global',
 ): Map<KeyCombo, string> {
   const map = new Map<KeyCombo, string>();
   for (const action of activeKeyActions()) {
+    if (scopeOf(action) !== scope) continue;
     const override = overrides[action.id];
     if (override === null) continue;
     const combos = override ? [normalizeCombo(override)] : action.defaults.map(normalizeCombo);
@@ -461,15 +479,18 @@ export function filterKeyActions(
   });
 }
 
-/** Which other action already owns this chord, if any. */
+/** Which other action in the same scope already owns this chord, if any. */
 export function conflictFor(
   combo: KeyCombo,
   actionId: string,
   overrides: Record<string, string | null | undefined> = {},
 ): string | null {
   const target = normalizeCombo(combo);
-  for (const action of activeKeyActions()) {
-    if (action.id === actionId) continue;
+  const actions = activeKeyActions();
+  const owner = actions.find((a) => a.id === actionId);
+  const scope = owner ? scopeOf(owner) : 'global';
+  for (const action of actions) {
+    if (action.id === actionId || scopeOf(action) !== scope) continue;
     if (combosFor(action.id, overrides).includes(target)) return action.id;
   }
   return null;

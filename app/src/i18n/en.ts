@@ -287,6 +287,7 @@ export const en = {
     keysCatView: 'View',
     keysCatNavigate: 'Navigate',
     keysCatTools: 'Tools',
+    keysCatMindmap: 'Mindmap',
     keysChange: 'Change',
     keysCancel: 'Cancel',
     keysUnbind: 'Unbind',
@@ -1350,6 +1351,14 @@ export const en = {
       frontmatter: '--- yaml ---',
     },
   },
+  mindmap: {
+    parseError: 'This mindmap file could not be read.',
+    openAsText: 'Open as text',
+    shortcutsTitle: 'Mindmap shortcuts',
+    builtinSection: 'Editing',
+    customSection: 'SoloMD (rebindable in Settings)',
+    close: 'Close',
+  },
   whiteboard: {
     // F7 — Markdown-backed tldraw whiteboards.
     loading: 'Loading whiteboard…',
@@ -2006,12 +2015,14 @@ type DirectiveCompletionFallbackKey =
   | 'directiveCompletionLoaded'
   | 'directiveCompletionRestartHint'
   | 'directiveCompletionWarnings'
-  | 'directiveCompletionOpenFailed';
+  | 'directiveCompletionOpenFailed'
+  | 'keysCatMindmap';
 
 type EnglishDictionary = typeof en;
 type EnglishSettings = EnglishDictionary['settings'];
 
-export type I18n = Omit<EnglishDictionary, 'settings'> & {
+export type I18n = Omit<EnglishDictionary, 'settings' | 'mindmap'> & {
   settings: Omit<EnglishSettings, DirectiveCompletionFallbackKey> &
     Partial<Pick<EnglishSettings, DirectiveCompletionFallbackKey>>;
+  mindmap?: EnglishDictionary['mindmap'];
 };

@@ -42,7 +42,7 @@ function actionName(a: KeyActionDef): string {
   const translated = t(key);
   return translated && translated !== key ? translated : a.label;
 }
-const CATEGORY_ORDER: KeyActionDef['category'][] = ['file', 'edit', 'view', 'navigate', 'tools'];
+const CATEGORY_ORDER: KeyActionDef['category'][] = ['file', 'edit', 'view', 'navigate', 'tools', 'mindmap'];
 const liveGroups = computed(() => {
   const hits = filterKeyActions(activeKeyActions(), query.value, actionName, kbSettings.keybindings, macChord);
   return CATEGORY_ORDER.map((cat) => ({
