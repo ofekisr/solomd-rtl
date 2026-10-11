@@ -295,10 +295,6 @@ async function processWhiteboards() {
   }
 }
 
-// The theme is applied by processMermaid on each render pass. Diagrams already
-// on screen were drawn for the old theme and processMermaid skips them, so put
-// their source back as a fence first and let it render them again (#354).
-// A note with no diagrams still never loads the renderer.
 const mindmapMounts: ReadOnlyMindmap[] = [];
 
 function destroyMindmaps(): void {
@@ -318,33 +314,50 @@ function openMindmapButton(detail: MindmapOpenDetail): HTMLButtonElement {
   return button;
 }
 
-async function renderMindmapBlock(pre: HTMLElement, body: string, index: number): Promise<void> {
-  const { mountReadOnlyMindmap } = await import('../lib/mindmap-readonly');
+let mindmapPass = 0;
+
+function showMindmapError(wrap: HTMLElement, message: string): void {
+  wrap.classList.add('mindmap-block--broken');
+  wrap.textContent = `${t('mindmap.fenceParseError')}: ${message}`;
+}
+
+async function mountMindmapInto(wrap: HTMLElement, canvas: HTMLElement, body: string): Promise<ReadOnlyMindmap | null> {
+  try {
+    const { mountReadOnlyMindmap } = await import('../lib/mindmap-readonly');
+    const result = await mountReadOnlyMindmap(canvas, body, isDarkTheme());
+    if (result.ok) return result.map;
+    showMindmapError(wrap, result.error);
+  } catch (error) {
+    showMindmapError(wrap, error instanceof Error ? error.message : String(error));
+  }
+  return null;
+}
+
+async function renderMindmapBlock(pre: HTMLElement, body: string, index: number, pass: number): Promise<void> {
   const wrap = document.createElement('div');
   wrap.className = 'mindmap-block';
   const canvas = document.createElement('div');
   canvas.className = 'mindmap-block__canvas';
   wrap.append(canvas);
   pre.replaceWith(wrap);
-  const result = await mountReadOnlyMindmap(canvas, body, isDarkTheme());
-  if (!result.ok) {
-    wrap.classList.add('mindmap-block--broken');
-    wrap.textContent = `${t('mindmap.fenceParseError')}: ${result.error}`;
-    return;
-  }
-  mindmapMounts.push(result.map);
+  const map = await mountMindmapInto(wrap, canvas, body);
+  if (!map) return;
+  if (pass !== mindmapPass || !canvas.isConnected) return map.destroy();
+  mindmapMounts.push(map);
   if (props.tabId) wrap.append(openMindmapButton({ tabId: props.tabId, index, body }));
 }
 
 async function processMindmaps(): Promise<void> {
   if (!host.value) return;
+  const pass = ++mindmapPass;
   destroyMindmaps();
   const blocks = Array.from(host.value.querySelectorAll('pre > code.language-mindmap'));
   for (const [index, block] of blocks.entries()) {
+    if (pass !== mindmapPass) return;
     const pre = block.parentElement;
     if (!pre || pre.dataset.rendered === '1') continue;
     pre.dataset.rendered = '1';
-    await renderMindmapBlock(pre, block.textContent ?? '', index);
+    await renderMindmapBlock(pre, block.textContent ?? '', index, pass);
   }
 }
 
@@ -352,6 +365,10 @@ watch(() => settings.theme, () => {
   for (const map of mindmapMounts) map.setDark(isDarkTheme());
 });
 
+// The theme is applied by processMermaid on each render pass. Diagrams already
+// on screen were drawn for the old theme and processMermaid skips them, so put
+// their source back as a fence first and let it render them again (#354).
+// A note with no diagrams still never loads the renderer.
 watch(() => settings.theme, () => {
   if (host.value) {
     for (const wrap of Array.from(host.value.querySelectorAll<HTMLElement>('.mermaid-block[data-mermaid-source]'))) {
@@ -601,6 +618,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  mindmapPass++;
   destroyMindmaps();
   host.value?.removeEventListener('click', handleLinkClick);
   host.value?.removeEventListener('dblclick', onPreviewDblClick);
