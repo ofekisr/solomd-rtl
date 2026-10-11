@@ -1,7 +1,8 @@
 import type { MindElixirData, NodeObj } from 'mind-elixir';
 
 export const MMAP_EXTENSION = 'mmap';
-export const MINDMAP_EXTENSIONS: readonly string[] = [MMAP_EXTENSION];
+export const XMIND_EXTENSION = 'xmind';
+export const MINDMAP_EXTENSIONS: readonly string[] = [MMAP_EXTENSION, XMIND_EXTENSION];
 
 const FORMAT_ID = 'solomd-mindmap';
 const FORMAT_VERSION = 1;
@@ -11,6 +12,7 @@ const DEFAULT_ROOT_TOPIC = 'Untitled';
 const SAFE_LINK_PATTERN = /^(https?:|mailto:)/i;
 const SAFE_IMAGE_URL_PATTERN = /^https?:/i;
 const ANGLE_BRACKET_PATTERN = /[<>]/g;
+const TRAILING_EXTENSION_PATTERN = /\.[^.\\/]+$/;
 const LAYOUT_DIRECTIONS: readonly unknown[] = [0, 1, 2, 3];
 
 interface MindmapEnvelope {
@@ -31,6 +33,14 @@ function extensionOf(path: string): string {
 
 export function isMindmapPath(path: string): boolean {
   return MINDMAP_EXTENSIONS.includes(extensionOf(path));
+}
+
+export function isXmindPath(path: string): boolean {
+  return extensionOf(path) === XMIND_EXTENSION;
+}
+
+export function mmapPathFor(sourcePath: string): string {
+  return `${sourcePath.replace(TRAILING_EXTENSION_PATTERN, '')}.${MMAP_EXTENSION}`;
 }
 
 export function rootTopicFromFileName(fileName: string): string {

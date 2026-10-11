@@ -5,6 +5,8 @@ import {
   MINDMAP_EXTENSIONS,
   createEmptyMindmap,
   isMindmapPath,
+  isXmindPath,
+  mmapPathFor,
   parseMindmap,
   rootTopicFromFileName,
   sanitizeMindmapData,
@@ -12,12 +14,25 @@ import {
   serializeMindmap,
 } from './mindmap-format.ts';
 
-test('Phase 1 recognizes only .mmap', () => {
-  assert.deepEqual([...MINDMAP_EXTENSIONS], ['mmap']);
+test('mindmap extensions are .mmap and .xmind', () => {
+  assert.deepEqual([...MINDMAP_EXTENSIONS], ['mmap', 'xmind']);
   assert.equal(isMindmapPath('/notes/Plan.MMAP'), true);
   assert.equal(isMindmapPath('C:\\maps\\plan.mmap'), true);
+  assert.equal(isMindmapPath('/maps/Old.XMind'), true);
   assert.equal(isMindmapPath('/notes/plan.md'), false);
   assert.equal(isMindmapPath('mmap'), false);
+});
+
+test('isXmindPath matches only .xmind', () => {
+  assert.equal(isXmindPath('/maps/Old.XMIND'), true);
+  assert.equal(isXmindPath('/maps/plan.mmap'), false);
+  assert.equal(isXmindPath('xmind'), false);
+});
+
+test('mmapPathFor swaps the extension and keeps the folder', () => {
+  assert.equal(mmapPathFor('/Users/me/maps/ledger v1.3.xmind'), '/Users/me/maps/ledger v1.3.mmap');
+  assert.equal(mmapPathFor('C:\\maps\\מפה.xmind'), 'C:\\maps\\מפה.mmap');
+  assert.equal(mmapPathFor('/maps.d/noext'), '/maps.d/noext.mmap');
 });
 
 test('root topic comes from the file name without extension', () => {

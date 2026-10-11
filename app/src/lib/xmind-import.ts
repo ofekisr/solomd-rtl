@@ -31,7 +31,7 @@ function toMindmapText(data: MindElixirData): XmindImportResult {
 }
 
 async function readSheets(bytes: Uint8Array, fileName: string): Promise<XmindSheet[]> {
-  const sheets: unknown = await importXMindFile(new File([bytes], fileName));
+  const sheets: unknown = await importXMindFile(new File([bytes.slice().buffer], fileName));
   if (!Array.isArray(sheets) || sheets.length === 0) throw new Error(NO_SHEETS_ERROR);
   return sheets as XmindSheet[];
 }

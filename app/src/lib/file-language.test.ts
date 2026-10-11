@@ -43,6 +43,7 @@ test('Shell extensions and startup files select the shared Bash highlighter', ()
 test('mindmap files route to the mindmap language', () => {
   assert.equal(inferFileLanguage('/maps/Plan.mmap'), 'mindmap');
   assert.equal(inferFileLanguage('C:\\maps\\PLAN.MMAP'), 'mindmap');
+  assert.equal(inferFileLanguage('/maps/Old.xmind'), 'mindmap');
 });
 
 test('untitled names follow the language', () => {

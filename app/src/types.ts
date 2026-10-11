@@ -34,6 +34,9 @@ export interface Tab {
   // without edits because content drifts from savedContent).
   lineEnding?: 'lf' | 'crlf';
   showOutline?: boolean;
+  /** Source path of an imported file (e.g. `.xmind`). The tab has no
+   *  `filePath`, so saving always goes through Save As. */
+  importedFrom?: string;
 }
 
 export interface FileReadResult {

@@ -18,7 +18,7 @@ import type { FileReadResult, Tab } from '../types';
 import { isSafPath, fromSafPath, safRead, safWrite, safLaunchPicker } from '../lib/saf-fs';
 import { baseNameOf, fileNameOf, claimImportName, joinInFolder } from '../lib/import-plan';
 import { newFileDirFor, treeSelection } from '../lib/new-file-target';
-import { MMAP_EXTENSION } from '../lib/mindmap-format';
+import { MMAP_EXTENSION, MINDMAP_EXTENSIONS, isXmindPath, mmapPathFor } from '../lib/mindmap-format';
 import { untitledFileName } from '../lib/file-language';
 
 // Save dialogs only — opening uses no filter so any file is selectable.
@@ -41,6 +41,8 @@ const SAVE_FILTERS = [
   { name: 'Mindmap', extensions: [MMAP_EXTENSION] },
   { name: 'Plain Text', extensions: ['txt'] },
 ];
+
+const XMIND_SHEET_WARNING_MS = 8000;
 
 export function useFiles() {
   const tabs = useTabsStore();
@@ -126,6 +128,7 @@ export function useFiles() {
     'vue', 'svelte', 'astro', 'py', 'rb', 'php', 'go', 'rs', 'java', 'kt',
     'swift', 'c', 'h', 'cpp', 'hpp', 'cc', 'cs', 'sh', 'bash', 'zsh', 'fish',
     'pl', 'lua', 'r', 'sql', 'graphql', 'proto', 'gradle', 'properties',
+    ...MINDMAP_EXTENSIONS,
   ]);
 
   function overlayStrings(): OverlayStrings {
@@ -292,6 +295,10 @@ export function useFiles() {
 
     const ext = (path.split('.').pop() || '').toLowerCase();
 
+    if (isXmindPath(path)) {
+      return openXmind(path);
+    }
+
     // If it's a convertible format, convert to Markdown first.
     if (CONVERT_BUILTIN.has(ext) || CONVERT_CLI.has(ext)) {
       return openAndConvert(path, ext);
@@ -384,6 +391,40 @@ export function useFiles() {
       };
     }
     return openPath(path, opts);
+  }
+
+  function announceXmindImport(fileName: string, extraSheetCount: number): void {
+    toasts.success(`Imported ${fileName} — saving creates a .${MMAP_EXTENSION} file`);
+    if (extraSheetCount <= 0) return;
+    toasts.warning(
+      `${fileName}: only the first sheet was imported (${extraSheetCount} more not imported)`,
+      XMIND_SHEET_WARNING_MS,
+    );
+  }
+
+  async function openXmind(path: string): Promise<void> {
+    const existing = tabs.tabs.find((t) => t.importedFrom === path);
+    if (existing) {
+      tabs.activate(existing.id);
+      return;
+    }
+    const fileName = fileNameOf(path);
+    try {
+      const bytes = new Uint8Array(await invoke<number[]>('read_binary_file', { path }));
+      const { convertXmind } = await import('../lib/xmind-import');
+      const result = await convertXmind(bytes, fileName);
+      if (!result.ok) {
+        toasts.error(`Failed to open ${fileName}: ${result.error}`);
+        return;
+      }
+      const tab = tabs.newTab({ fileName: fileNameOf(mmapPathFor(path)), language: 'mindmap', importedFrom: path });
+      tabs.setContent(tab.id, result.text);
+      workspace.pushRecent(path);
+      announceXmindImport(fileName, result.extraSheetCount);
+    } catch (e) {
+      console.error('xmind import failed', e);
+      toasts.error(`Failed to open ${fileName}: ${e}`);
+    }
   }
 
   async function openAndConvert(path: string, ext: string) {
@@ -794,15 +835,21 @@ export function useFiles() {
       // is actually looking at — the Explorer's selection (a folder, or the
       // folder of the selected file), else the open document's folder —
       // instead of wherever the OS save dialog remembered last. An existing
-      // file keeps its own path, which is what "Save As" means.
-      const dir = tab.filePath
+      // file keeps its own path, which is what "Save As" means. Imported tabs
+      // default to the sibling `.mmap` of their source.
+      const importedPath = tab.importedFrom ? mmapPathFor(tab.importedFrom) : undefined;
+      const dir = tab.filePath || importedPath
         ? null
         : await pickerStartDir(newFileDirFor(treeSelection(), tabs.activeTab?.filePath));
       path = await saveDialog({
-        defaultPath: tab.filePath ?? (dir ? joinInFolder(dir, defaultName) : defaultName),
+        defaultPath: tab.filePath ?? importedPath ?? (dir ? joinInFolder(dir, defaultName) : defaultName),
         filters: SAVE_FILTERS,
       });
       if (!path) return false;
+      if (isXmindPath(path)) {
+        toasts.error(`SoloMD does not write .xmind files — save as .${MMAP_EXTENSION}`);
+        return false;
+      }
     }
     try {
       const payload =

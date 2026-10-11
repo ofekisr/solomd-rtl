@@ -1896,7 +1896,7 @@ export const FileTreeNode = defineComponent({
         'ppt': '📙', 'pptx': '📙', 'key': '📙',
         'xls': '📊', 'xlsx': '📊', 'csv': '📊', 'tsv': '📊',
         'canvas': '🗺', 'bib': '📚',
-        'mmap': '🧠',
+        'mmap': '🧠', 'xmind': '🧠',
         // Images
         'jpg': '🖼', 'jpeg': '🖼', 'png': '🖼', 'gif': '🖼',
         'webp': '🖼', 'svg': '🖼', 'ico': '🖼', 'bmp': '🖼', 'avif': '🖼',
