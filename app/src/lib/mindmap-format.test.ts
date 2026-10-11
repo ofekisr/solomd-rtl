@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import type { MindElixirData } from 'mind-elixir';
 import {
   MINDMAP_EXTENSIONS,
   createEmptyMindmap,
   isMindmapPath,
   parseMindmap,
   rootTopicFromFileName,
+  sanitizeMindmapData,
   serializeMindmap,
 } from './mindmap-format.ts';
 
@@ -64,4 +66,70 @@ test('invalid input returns a typed error instead of throwing', () => {
     assert.equal(parsed.ok, false, text);
     if (!parsed.ok) assert.ok(parsed.error.length > 0);
   }
+});
+
+function envelopeWith(data: unknown): string {
+  return JSON.stringify({ format: 'solomd-mindmap', version: 1, data });
+}
+
+function parseOk(text: string): MindElixirData {
+  const parsed = parseMindmap(text, 'X');
+  if (!parsed.ok) throw new Error(parsed.error);
+  return parsed.data;
+}
+
+test('loaded nodes lose dangerouslySetInnerHTML at every depth', () => {
+  const payload = '<img src=x onerror=alert(1)>';
+  const data = parseOk(
+    envelopeWith({
+      nodeData: {
+        id: 'r',
+        topic: 'R',
+        dangerouslySetInnerHTML: payload,
+        children: [
+          {
+            id: 'a',
+            topic: 'A',
+            children: [{ id: 'b', topic: 'B', dangerouslySetInnerHTML: payload, children: [] }],
+          },
+        ],
+      },
+    }),
+  );
+  assert.equal(data.nodeData.dangerouslySetInnerHTML, undefined);
+  const nested = data.nodeData.children?.[0].children?.[0];
+  assert.equal(nested?.topic, 'B');
+  assert.equal('dangerouslySetInnerHTML' in (nested ?? {}), false);
+});
+
+test('hyperLink keeps only http, https and mailto targets', () => {
+  const linkFor = (hyperLink: string): string | undefined =>
+    parseOk(envelopeWith({ nodeData: { id: 'r', topic: 'R', hyperLink } })).nodeData.hyperLink;
+  assert.equal(linkFor('javascript:alert(1)'), undefined);
+  assert.equal(linkFor('JaVaScRiPt:alert(1)'), undefined);
+  assert.equal(linkFor('https://example.com'), 'https://example.com');
+  assert.equal(linkFor('mailto:a@b.c'), 'mailto:a@b.c');
+});
+
+test('arrow and summary labels lose angle brackets', () => {
+  const data = parseOk(
+    envelopeWith({
+      nodeData: { id: 'r', topic: 'R' },
+      arrows: [{ id: 'x', label: '<img onerror=x>go', from: 'r', to: 'r' }],
+      summaries: [{ id: 's', label: '<b>sum</b>', parent: 'r', start: 0, end: 0 }],
+    }),
+  );
+  assert.equal(data.arrows?.[0].label, 'img onerror=xgo');
+  assert.equal(data.summaries?.[0].label, 'bsum/b');
+});
+
+test('sanitizing is idempotent across a save and load cycle', () => {
+  const once = parseOk(
+    envelopeWith({
+      nodeData: { id: 'r', topic: 'R', hyperLink: 'javascript:x', dangerouslySetInnerHTML: '<i>' },
+      arrows: [{ id: 'x', label: '<a>', from: 'r', to: 'r' }],
+    }),
+  );
+  assert.deepEqual(sanitizeMindmapData(once), once);
+  assert.deepEqual(parseOk(serializeMindmap(once)), once);
 });

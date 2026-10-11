@@ -8,6 +8,8 @@ const FORMAT_VERSION = 1;
 const JSON_INDENT = 2;
 const ROOT_ID = 'root';
 const DEFAULT_ROOT_TOPIC = 'Untitled';
+const SAFE_LINK_PATTERN = /^(https?:|mailto:)/i;
+const ANGLE_BRACKET_PATTERN = /[<>]/g;
 
 interface MindmapEnvelope {
   format: typeof FORMAT_ID;
@@ -64,6 +66,31 @@ function validateEnvelope(value: unknown): string | null {
   return null;
 }
 
+function sanitizeNode(node: NodeObj): NodeObj {
+  const copy: NodeObj = { ...node };
+  delete copy.dangerouslySetInnerHTML;
+  if (copy.hyperLink !== undefined && !SAFE_LINK_PATTERN.test(copy.hyperLink)) delete copy.hyperLink;
+  if (copy.children) copy.children = copy.children.map(sanitizeNode);
+  return copy;
+}
+
+function stripAngleBrackets(label: string): string {
+  return label.replace(ANGLE_BRACKET_PATTERN, '');
+}
+
+function sanitizeLabels<T extends { label?: unknown }>(items: T[]): T[] {
+  return items.map((item) =>
+    typeof item.label === 'string' ? { ...item, label: stripAngleBrackets(item.label) } : item,
+  );
+}
+
+export function sanitizeMindmapData(data: MindElixirData): MindElixirData {
+  const sanitized: MindElixirData = { ...data, nodeData: sanitizeNode(data.nodeData) };
+  if (Array.isArray(data.arrows)) sanitized.arrows = sanitizeLabels(data.arrows);
+  if (Array.isArray(data.summaries)) sanitized.summaries = sanitizeLabels(data.summaries);
+  return sanitized;
+}
+
 export function parseMindmap(text: string, fallbackTopic: string): MindmapParseResult {
   if (text.trim() === '') return { ok: true, data: createEmptyMindmap(fallbackTopic), isEmpty: true };
   let json: unknown;
@@ -74,5 +101,5 @@ export function parseMindmap(text: string, fallbackTopic: string): MindmapParseR
   }
   const error = validateEnvelope(json);
   if (error) return { ok: false, error };
-  return { ok: true, data: (json as MindmapEnvelope).data, isEmpty: false };
+  return { ok: true, data: sanitizeMindmapData((json as MindmapEnvelope).data), isEmpty: false };
 }
