@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import MindElixir from 'mind-elixir';
-import type { MindElixirData, MindElixirInstance } from 'mind-elixir';
+import type { MindElixirData, MindElixirInstance, NodeObj, Topic } from 'mind-elixir';
 import 'mind-elixir/style.css';
 import type { Tab } from '../types';
 import { useTabsStore } from '../stores/tabs';
 import { useSettingsStore } from '../stores/settings';
 import { useI18n } from '../i18n';
-import { parseMindmap, rootTopicFromFileName, serializeMindmap } from '../lib/mindmap-format';
+import { parseMindmap, rootTopicFromFileName, sanitizeNodeObj, serializeMindmap } from '../lib/mindmap-format';
 import { eventToCombo, resolveBindings } from '../lib/keybindings';
 import { MINDMAP_BUILTIN_COMBOS } from '../lib/mindmap-keymap';
 import { layoutDirectionFor } from '../lib/mindmap-direction';
@@ -101,6 +101,7 @@ function mount(): void {
   mind.bus.addListener(OPERATION_EVENT, onOperation);
   mind.bus.addListener(EXPAND_EVENT, scheduleSync);
   syncAfterHistoryJumps(mind);
+  sanitizeCopiedNodes(mind);
 }
 
 function onOperation(info: { name: string }): void {
@@ -112,6 +113,19 @@ function syncAfterHistoryJumps(instance: MindElixirInstance): void {
   const { undo, redo } = instance;
   instance.undo = () => { undo.call(instance); scheduleSync(); };
   instance.redo = () => { redo.call(instance); scheduleSync(); };
+}
+
+function sanitizedTopic(tpc: Topic): Topic | null {
+  const nodeObj: NodeObj | null = sanitizeNodeObj(tpc.nodeObj);
+  return nodeObj ? ({ nodeObj } as Topic) : null;
+}
+
+function sanitizeCopiedNodes(instance: MindElixirInstance): void {
+  const { copyNodes } = instance;
+  instance.copyNodes = (tpcs, to) => {
+    const safe = tpcs.map(sanitizedTopic).filter((tpc): tpc is Topic => tpc !== null);
+    return copyNodes.call(instance, safe, to);
+  };
 }
 
 function teardown(): void {

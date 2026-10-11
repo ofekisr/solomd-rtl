@@ -8,6 +8,7 @@ import {
   parseMindmap,
   rootTopicFromFileName,
   sanitizeMindmapData,
+  sanitizeNodeObj,
   serializeMindmap,
 } from './mindmap-format.ts';
 
@@ -171,4 +172,26 @@ test('non-object entries in arrow lists do not crash the parser', () => {
   assert.equal(parsed.ok, true);
   if (!parsed.ok) return;
   assert.deepEqual(parsed.data.arrows, []);
+});
+
+test('sanitizeNodeObj rejects values that are not node objects', () => {
+  const cases: unknown[] = [null, 7, 'x', [], { topic: 'no id' }, { id: 'a', topic: 'A', children: [{ id: 'b' }] }];
+  for (const value of cases) assert.equal(sanitizeNodeObj(value), null, JSON.stringify(value));
+});
+
+test('sanitizeNodeObj strips HTML and unsafe links at every depth', () => {
+  const clean = sanitizeNodeObj({
+    id: 'a',
+    topic: 'A',
+    dangerouslySetInnerHTML: '<img src=x onerror=alert(1)>',
+    hyperLink: 'javascript:alert(1)',
+    children: [{ id: 'b', topic: 'B', dangerouslySetInnerHTML: '<i>', hyperLink: 'https://ok.example' }],
+  });
+  assert.ok(clean);
+  assert.equal('dangerouslySetInnerHTML' in clean, false);
+  assert.equal('hyperLink' in clean, false);
+  const child = clean.children?.[0];
+  assert.equal(child?.topic, 'B');
+  assert.equal('dangerouslySetInnerHTML' in (child ?? {}), false);
+  assert.equal(child?.hyperLink, 'https://ok.example');
 });

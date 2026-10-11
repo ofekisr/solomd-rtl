@@ -74,6 +74,10 @@ function sanitizeNode(node: NodeObj): NodeObj {
   return copy;
 }
 
+export function sanitizeNodeObj(value: unknown): NodeObj | null {
+  return isNodeObj(value) ? sanitizeNode(value) : null;
+}
+
 function stripAngleBrackets(label: string): string {
   return label.replace(ANGLE_BRACKET_PATTERN, '');
 }
