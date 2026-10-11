@@ -1359,6 +1359,10 @@ export const en = {
     builtinSection: 'Editing',
     customSection: 'SoloMD (rebindable in Settings)',
     close: 'Close',
+    fenceOpenFull: 'Open fullscreen',
+    fenceEditorTitle: 'Mind map',
+    fenceParseError: 'Mind map could not be read',
+    fenceStale: 'The mind map block changed in the note; edits are no longer saved. Close and reopen it.',
   },
   whiteboard: {
     // F7 — Markdown-backed tldraw whiteboards.

@@ -56,9 +56,13 @@ test('the preview-only rows are languages highlight.js really resolves', () => {
 
 test('the SoloMD-specific fences come first, before anything is typed', () => {
   assert.deepEqual(
-    filterFenceLanguages('').slice(0, 3).map((l) => l.name),
-    ['mermaid', 'tldraw', 'plantuml'],
+    filterFenceLanguages('').slice(0, 4).map((l) => l.name),
+    ['mermaid', 'tldraw', 'mindmap', 'plantuml'],
   );
+});
+
+test('mind map keywords find the mindmap fence', () => {
+  assert.equal(filterFenceLanguages('mind')[0]?.name, 'mindmap');
 });
 
 test('an empty query leaves the catalogue in its own order', () => {

@@ -217,11 +217,11 @@ md.renderer.rules.fence = function (tokens, idx, options, env, self) {
   // Skip mermaid — Preview.vue replaces these blocks with rendered SVGs.
   // Skip tldraw (F7) the same way — Preview.vue swaps the ```tldraw fence for
   // a static board SVG thumbnail (the language class survives so the
-  // post-processor can find it).
+  // post-processor can find it). Skip mindmap the same way — Preview.vue mounts a read-only map.
   const tok = tokens[idx];
   const info = (tok.info || '').trim().toLowerCase();
   const lang = info.split(/\s+/)[0];
-  if (lang === 'mermaid' || lang === 'tldraw') return html;
+  if (lang === 'mermaid' || lang === 'tldraw' || lang === 'mindmap') return html;
   // Inject .cb-line wrappers on each line. We do this on the rendered HTML
   // because the highlight has already produced <span class="hljs-..."> spans
   // that may straddle multiple lines (a few hljs grammars emit multi-line
