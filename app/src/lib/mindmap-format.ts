@@ -9,6 +9,7 @@ const JSON_INDENT = 2;
 const ROOT_ID = 'root';
 const DEFAULT_ROOT_TOPIC = 'Untitled';
 const SAFE_LINK_PATTERN = /^(https?:|mailto:)/i;
+const SAFE_IMAGE_URL_PATTERN = /^https?:/i;
 const ANGLE_BRACKET_PATTERN = /[<>]/g;
 const LAYOUT_DIRECTIONS: readonly unknown[] = [0, 1, 2, 3];
 
@@ -72,10 +73,44 @@ function validateEnvelope(value: unknown): string | null {
   return null;
 }
 
+type TagEntry = NonNullable<NodeObj['tags']>[number];
+
+function sanitizeTag(tag: unknown): TagEntry | null {
+  if (typeof tag === 'string') return tag;
+  if (isRecord(tag) && typeof tag.text === 'string') return { text: tag.text };
+  return null;
+}
+
+function sanitizeTags(tags: unknown): TagEntry[] | undefined {
+  if (!Array.isArray(tags)) return undefined;
+  return tags.map(sanitizeTag).filter((tag): tag is TagEntry => tag !== null);
+}
+
+function sanitizeIcons(icons: unknown): string[] | undefined {
+  if (!Array.isArray(icons)) return undefined;
+  return icons.filter((icon): icon is string => typeof icon === 'string');
+}
+
+function isPositiveNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0;
+}
+
+function isSafeImage(image: unknown): boolean {
+  if (!isRecord(image) || typeof image.url !== 'string') return false;
+  return SAFE_IMAGE_URL_PATTERN.test(image.url) && isPositiveNumber(image.width) && isPositiveNumber(image.height);
+}
+
 function sanitizeNode(node: NodeObj): NodeObj {
   const copy: NodeObj = { ...node };
   delete copy.dangerouslySetInnerHTML;
   if (copy.hyperLink !== undefined && !SAFE_LINK_PATTERN.test(copy.hyperLink)) delete copy.hyperLink;
+  if (copy.image !== undefined && !isSafeImage(copy.image)) delete copy.image;
+  const tags = sanitizeTags(copy.tags);
+  if (tags) copy.tags = tags;
+  else delete copy.tags;
+  const icons = sanitizeIcons(copy.icons);
+  if (icons) copy.icons = icons;
+  else delete copy.icons;
   if (copy.children) copy.children = copy.children.map(sanitizeNode);
   return copy;
 }

@@ -224,3 +224,42 @@ test('direction is kept only when it is a known layout value', () => {
   for (const valid of [0, 1, 2, 3]) assert.equal(directionFor(valid), valid);
   for (const invalid of [4, -1, 1.5, '1', null, 'side']) assert.equal(directionFor(invalid), undefined, String(invalid));
 });
+
+test('icons keep only string entries', () => {
+  const node = sanitizeNodeObj({ id: 'a', topic: 't', icons: ['⭐', 5, { x: 1 }, '✅'] });
+  assert.deepEqual(node?.icons, ['⭐', '✅']);
+});
+
+test('non-array icons and tags are removed', () => {
+  const node = sanitizeNodeObj({ id: 'a', topic: 't', icons: 'nope', tags: { text: 'x' } });
+  assert.equal(node?.icons, undefined);
+  assert.equal(node?.tags, undefined);
+});
+
+test('tags keep strings and text objects, dropping style and className', () => {
+  const node = sanitizeNodeObj({
+    id: 'a',
+    topic: 't',
+    tags: ['תווית', { text: 'ok', className: 'evil', style: { background: 'url(x)' } }, { text: 3 }, null],
+  });
+  assert.deepEqual(node?.tags, ['תווית', { text: 'ok' }]);
+});
+
+test('image is kept only for http(s) urls with positive size', () => {
+  const ok = { url: 'https://example.com/a.png', width: 10, height: 20 };
+  assert.deepEqual(sanitizeNodeObj({ id: 'a', topic: 't', image: ok })?.image, ok);
+  for (const image of [
+    { url: 'xap:resources/a.png', width: 10, height: 10 },
+    { url: 'javascript:alert(1)', width: 10, height: 10 },
+    { url: 'https://example.com/a.png', width: 0, height: 10 },
+    { url: 'https://example.com/a.png' },
+    'https://example.com/a.png',
+  ]) {
+    assert.equal(sanitizeNodeObj({ id: 'a', topic: 't', image })?.image, undefined);
+  }
+});
+
+test('nested children are sanitized too', () => {
+  const node = sanitizeNodeObj({ id: 'r', topic: 'r', children: [{ id: 'c', topic: 'c', icons: [1] }] });
+  assert.deepEqual(node?.children?.[0].icons, []);
+});
