@@ -68,7 +68,7 @@ Phase order after Phase 1 may change when a package makes a later phase cheap.
 
 ### Keyboard shortcuts
 
-Mind Elixir's built-in keymap is kept as-is (`keypress: true`) and verified against the installed version during Phase 1:
+Mind Elixir's built-in keymap is kept as-is (`keypress: true`). The table mirrors `MINDMAP_BUILTIN_KEYS` in `lib/mindmap-keymap.ts`:
 
 | Key | Action |
 |---|---|
@@ -77,23 +77,27 @@ Mind Elixir's built-in keymap is kept as-is (`keypress: true`) and verified agai
 | Mod+Enter | Insert parent |
 | F2 or double-click | Edit topic |
 | Delete / Backspace | Remove node |
-| Arrow keys | Move selection |
-| PageUp / PageDown | Move node up / down among siblings |
-| Mod+C / Mod+V | Copy / paste subtree |
-| Mod+Z / Mod+Shift+Z | Undo / redo |
-| Mod+= / Mod+- / Mod+0 | Zoom in / out / reset |
+| Arrow keys | Select previous / next / left / right |
+| Alt+ArrowUp / Alt+ArrowDown, PageUp / PageDown | Move node up / down among siblings |
+| Mod+ArrowLeft / Mod+ArrowRight / Mod+ArrowUp | Layout: all left / all right / both sides |
 | F1 | Center map |
+| Mod+= / Mod+- / Mod+0 | Zoom in / out / reset |
+| Mod+K, then 0 / = / 1–9 | Collapse all / expand all / expand to level |
+| Mod+Z / Mod+Shift+Z / Mod+Y | Undo / redo / redo |
+| Mod+C / Mod+X / Mod+V | Copy / cut / paste subtree |
+
+Expand all / collapse all are covered by the Mod+K chord, so no separate SoloMD actions exist for them.
 
 SoloMD adds its own actions to `lib/keybindings.ts` (category `mindmap`), so they are rebindable, listed in Settings, and run from the command palette.
-They fire only while a `MindmapView` has focus:
+They fire only while a `MindmapView` has focus; while it does, they shadow global chords on the same keys (no effect elsewhere). Settings rejects mindmap rebinds onto built-in keys above.
+
 
 | Action id | Default | Phase |
 |---|---|---|
 | `mindmap.toggleNode` | Space | 1 |
-| `mindmap.expandAll` / `mindmap.collapseAll` | Mod+Alt+] / Mod+Alt+[ | 1 |
-| `mindmap.fit` | Mod+Shift+0 | 1 |
+| `mindmap.fit` | Mod+Alt+0 | 1 |
 | `mindmap.focusRoot` | Home | 1 |
-| `mindmap.shortcutHelp` | ? | 1 |
+| `mindmap.shortcutHelp` | Shift+Slash (`?`) | 1 |
 | `mindmap.toggleReadOnly` | Mod+Shift+R | 4 |
 | `mindmap.copyPlaintext` | Mod+Shift+C | 4 |
 | `mindmap.export` | Mod+Shift+E | 4 |
