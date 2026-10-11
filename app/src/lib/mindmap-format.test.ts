@@ -133,3 +133,42 @@ test('sanitizing is idempotent across a save and load cycle', () => {
   assert.deepEqual(sanitizeMindmapData(once), once);
   assert.deepEqual(parseOk(serializeMindmap(once)), once);
 });
+
+test('non-string arrow and summary labels are dropped', () => {
+  const data = parseOk(
+    envelopeWith({
+      nodeData: { id: 'r', topic: 'R' },
+      arrows: [
+        { id: 'a', label: ['<img src=x onerror=alert(1)>'], from: 'r', to: 'r' },
+        { id: 'b', label: { x: '<img>' }, from: 'r', to: 'r' },
+      ],
+      summaries: [{ id: 's', label: 42, parent: 'r', start: 0, end: 0 }],
+    }),
+  );
+  assert.equal(data.arrows?.length, 2);
+  assert.equal('label' in (data.arrows?.[0] ?? {}), false);
+  assert.equal('label' in (data.arrows?.[1] ?? {}), false);
+  assert.equal('label' in (data.summaries?.[0] ?? {}), false);
+});
+
+test('arrows that are not an array are dropped', () => {
+  const data = parseOk(
+    envelopeWith({ nodeData: { id: 'r', topic: 'R' }, arrows: { id: 'x', label: '<b>' } }),
+  );
+  assert.equal(data.arrows, undefined);
+});
+
+test('summaries that are not an array are dropped', () => {
+  const data = parseOk(envelopeWith({ nodeData: { id: 'r', topic: 'R' }, summaries: '<img>' }));
+  assert.equal(data.summaries, undefined);
+});
+
+test('non-object entries in arrow lists do not crash the parser', () => {
+  const parsed = parseMindmap(
+    envelopeWith({ nodeData: { id: 'r', topic: 'R' }, arrows: [null, 7, 'x'] }),
+    'X',
+  );
+  assert.equal(parsed.ok, true);
+  if (!parsed.ok) return;
+  assert.deepEqual(parsed.data.arrows, []);
+});

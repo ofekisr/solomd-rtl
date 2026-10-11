@@ -78,17 +78,34 @@ function stripAngleBrackets(label: string): string {
   return label.replace(ANGLE_BRACKET_PATTERN, '');
 }
 
-function sanitizeLabels<T extends { label?: unknown }>(items: T[]): T[] {
-  return items.map((item) =>
-    typeof item.label === 'string' ? { ...item, label: stripAngleBrackets(item.label) } : item,
-  );
+type LabeledItem = Record<string, unknown>;
+type ArrowList = NonNullable<MindElixirData['arrows']>;
+type SummaryList = NonNullable<MindElixirData['summaries']>;
+
+function sanitizeLabeledItem(item: LabeledItem): LabeledItem {
+  const copy: LabeledItem = { ...item };
+  if (typeof copy.label === 'string') copy.label = stripAngleBrackets(copy.label);
+  else delete copy.label;
+  return copy;
+}
+
+function sanitizeLabeledList<T extends unknown[]>(list: unknown): T | undefined {
+  if (!Array.isArray(list)) return undefined;
+  return list.filter(isRecord).map(sanitizeLabeledItem) as T;
+}
+
+function optionalField<K extends string, V>(key: K, value: V | undefined): Partial<Record<K, V>> {
+  return value === undefined ? {} : ({ [key]: value } as Record<K, V>);
 }
 
 export function sanitizeMindmapData(data: MindElixirData): MindElixirData {
-  const sanitized: MindElixirData = { ...data, nodeData: sanitizeNode(data.nodeData) };
-  if (Array.isArray(data.arrows)) sanitized.arrows = sanitizeLabels(data.arrows);
-  if (Array.isArray(data.summaries)) sanitized.summaries = sanitizeLabels(data.summaries);
-  return sanitized;
+  const { arrows, summaries, ...rest } = data;
+  return {
+    ...rest,
+    nodeData: sanitizeNode(data.nodeData),
+    ...optionalField('arrows', sanitizeLabeledList<ArrowList>(arrows)),
+    ...optionalField('summaries', sanitizeLabeledList<SummaryList>(summaries)),
+  };
 }
 
 export function parseMindmap(text: string, fallbackTopic: string): MindmapParseResult {
