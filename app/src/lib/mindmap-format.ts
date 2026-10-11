@@ -212,3 +212,13 @@ export function parseMindmap(text: string, fallbackTopic: string): MindmapParseR
   if (error) return { ok: false, error };
   return { ok: true, data: sanitizeMindmapData((json as MindmapEnvelope).data), isEmpty: false };
 }
+
+export interface MindmapCodec {
+  parse(text: string): MindmapParseResult;
+  serialize(data: MindElixirData): string;
+}
+
+export function mmapCodec(fileName: string): MindmapCodec {
+  const fallbackTopic = rootTopicFromFileName(fileName);
+  return { parse: (text) => parseMindmap(text, fallbackTopic), serialize: serializeMindmap };
+}

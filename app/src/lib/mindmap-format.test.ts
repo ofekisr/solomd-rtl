@@ -6,6 +6,7 @@ import {
   createEmptyMindmap,
   isMindmapPath,
   isXmindPath,
+  mmapCodec,
   mmapPathFor,
   parseMindmap,
   rootTopicFromFileName,
@@ -321,4 +322,13 @@ test('safe style values are kept', () => {
 test('a style that is not an object, or is empty after filtering, is removed', () => {
   assert.equal(styledNode('color: red'), undefined);
   assert.equal(styledNode({ position: 'fixed' }), undefined);
+});
+
+test('mmapCodec round-trips through parse and serialize', () => {
+  const codec = mmapCodec('plan.mmap');
+  const parsed = codec.parse('');
+  assert.ok(parsed.ok);
+  if (!parsed.ok) return;
+  assert.equal(parsed.data.nodeData.topic, 'plan');
+  assert.ok(codec.parse(codec.serialize(parsed.data)).ok);
 });
