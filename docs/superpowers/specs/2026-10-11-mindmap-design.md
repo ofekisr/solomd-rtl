@@ -134,7 +134,7 @@ Export, gates, conversion, fences, `.xmind`.
 ### Infrastructure (Task 1)
 
 - `lib/fence-scan.ts`: CommonMark-compliant scanner returning every fenced block with start/end offsets, info string, and dedented body.
-- `lib/mindmap-fence.ts`: codec wrapping `plaintextConverter`, `findMindmapFences()`, and guarded `replaceMindmapFence()` (document-order + body guard).
+- `lib/mindmap-fence.ts`: codec wrapping `plaintextConverter`, `findMindmapFences()`, and guarded `replaceMindmapFence()` (source line + body guard).
 - `lib/mindmap-format.ts`: extended with `MindmapCodec` interface and `mmapCodec(fileName)`.
 
 ### Language Registration (Task 2)
@@ -167,7 +167,7 @@ Export, gates, conversion, fences, `.xmind`.
 |---|---|
 | Plugin fit | Neither `remark-mindmap` 0.2.0 nor `rehype-mind-elixir` 1.0.0-beta.1 adopted (wrong pipeline, wrong core version) |
 | Core used | `mind-elixir/plaintextConverter` 5.15.1 |
-| Fence to editor match | Document order plus body guard: index match first, then unique-body fallback, then abort |
+| Fence to editor match | Opening-fence source line plus body guard: same line and body first, then unique-body fallback, then abort. Preview, live widget and writeback share one scanner (`findMindmapFences`); fences it does not find (blockquotes, 4+ space indent) render view-only |
 | Write timing | Debounced 300 ms (`SYNC_DEBOUNCE_MS`) |
 | Ids meaning | `[^ref]` anchors stable across plaintext round-trips; node ids are transient |
 | Preview open | "Open fullscreen" button, not a whole-map click (drag pans, a plain click would open on pan) |

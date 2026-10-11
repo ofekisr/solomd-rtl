@@ -29,9 +29,10 @@ COMPLETE. 12-10-26, version 4.14.11. Branch `feat/mindmap`, unpushed.
 | 4 `MindmapCanvas` extraction | `0144e3d..b753e9e` | Pure move; `MindmapView` is a thin wrapper |
 | 5 Fullscreen fence editor | `b753e9e..f645d4f` | Guarded debounced writeback |
 | 6 Live widget | `f645d4f..c79de95` (`f59af68`, fix `c79de95`) | Fix: map leaked when widget destroyed before async mount resolved |
-| 7 Verification, docs, bump | `068691b` + docs correction commit | Version bump kept from `068691b` |
+| 7 Verification, docs, bump | `068691b`, `4922959` | Version bump kept from `068691b` |
+| Final review (Opus) | `80fca61` | Fence identity by source line (wrong-fence write with equal bodies), live widget body dedent, DOM-keyed widget teardown, CM mount try/catch |
 
-**Tests:** 79/79 pass (fence-scan 7, mindmap-fence 11, mindmap-format 34, fence-languages 19, mindmap-direction 3, mindmap-keymap 5). `pnpm build` OK.
+**Tests:** 79/79 pass at `4922959`; `80fca61` adds 7 fence tests (fence-scan + mindmap-fence 26/26) (fence-scan 7, mindmap-fence 11, mindmap-format 34, fence-languages 19, mindmap-direction 3, mindmap-keymap 5). `pnpm build` OK.
 
 **Browser check:** Hebrew fence grows leftward in Preview and live widget; fullscreen add-child writes back into the fence and survives reload. Security fence renders as text, 0 `javascript:` in `href`/`style` (Preview and live).
 
@@ -48,6 +49,7 @@ COMPLETE. 12-10-26, version 4.14.11. Branch `feat/mindmap`, unpushed.
 - Ruling: Task 6 (`f59af68`) was written out-of-band; reviewed as the candidate, not redone.
 - Ruling: `f645d4f`/`f59af68`/`068691b` carry "Sonnet 4.6" trailers; history left as-is (cosmetic).
 - Ruling: Task 7 (`068691b`) written out-of-band; version bump kept, docs corrected here.
+- Ruling (final review): fence identity = opening-fence source line + body (supersedes document-order index); live widget sources fences from `findMindmapFences`.
 
 ### Open items
 
