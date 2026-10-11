@@ -689,7 +689,63 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Interfaces:**
 - Consumes: `parseMindmap`, `serializeMindmap`, `rootTopicFromFileName` (Task 1); `resolveBindings`, `combosFor`, `formatCombo`, `eventToCombo`, `activeKeyActions` (Task 3); `MINDMAP_BUILTIN_KEYS`, `MINDMAP_BUILTIN_COMBOS` (Task 3); `themeFamily` from `lib/themes.ts`; `useTabsStore().setContent(id, content)`; window event `solomd:flush-content-sync`.
-- Produces: `<MindmapView :tab="tab" />` component.
+- Produces: `<MindmapView :tab="tab" />` component; `layoutDirectionFor(data: MindElixirData): 0 | 1 | 2 | 3` in `app/src/lib/mindmap-direction.ts`.
+
+**Hebrew / RTL requirements (spec "Hebrew / RTL"):** stored `data.direction` wins; otherwise RTL-dominant maps (by `documentDirection` over all topics) open `LEFT` (0), others `SIDE` (2). Topics and the edit box use `unicode-bidi: plaintext; text-align: start`.
+
+- [ ] **Step 0: RTL layout helper (TDD)**
+
+`app/src/lib/mindmap-direction.test.ts`:
+
+```ts
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { layoutDirectionFor, MINDMAP_LAYOUT } from './mindmap-direction.ts';
+import { createEmptyMindmap } from './mindmap-format.ts';
+
+test('a stored direction always wins', () => {
+  const data = { ...createEmptyMindmap('תוכנית'), direction: MINDMAP_LAYOUT.RIGHT };
+  assert.equal(layoutDirectionFor(data), MINDMAP_LAYOUT.RIGHT);
+});
+
+test('hebrew-dominant maps without a stored direction grow leftward', () => {
+  const data = createEmptyMindmap('תוכנית עבודה');
+  data.nodeData.children = [{ id: 'a', topic: 'משימה ראשונה API', children: [] }];
+  assert.equal(layoutDirectionFor(data), MINDMAP_LAYOUT.LEFT);
+});
+
+test('latin-dominant maps default to both sides', () => {
+  const data = createEmptyMindmap('Project plan');
+  data.nodeData.children = [{ id: 'a', topic: 'שלב one two three', children: [] }];
+  assert.equal(layoutDirectionFor(data), MINDMAP_LAYOUT.SIDE);
+});
+```
+
+Run: `cd app && node --test --experimental-strip-types src/lib/mindmap-direction.test.ts` → FAIL (module missing).
+
+`app/src/lib/mindmap-direction.ts`:
+
+```ts
+import type { MindElixirData, NodeObj } from 'mind-elixir';
+import { documentDirection } from './doc-direction.ts';
+
+export const MINDMAP_LAYOUT = { LEFT: 0, RIGHT: 1, SIDE: 2, DOWN: 3 } as const;
+type MindmapLayout = (typeof MINDMAP_LAYOUT)[keyof typeof MINDMAP_LAYOUT];
+
+function collectTopics(node: NodeObj, out: string[]): string[] {
+  out.push(node.topic);
+  for (const child of node.children ?? []) collectTopics(child, out);
+  return out;
+}
+
+export function layoutDirectionFor(data: MindElixirData): MindmapLayout {
+  if (data.direction !== undefined) return data.direction;
+  const text = collectTopics(data.nodeData, []).join('\n');
+  return documentDirection(text) === 'rtl' ? MINDMAP_LAYOUT.LEFT : MINDMAP_LAYOUT.SIDE;
+}
+```
+
+If `doc-direction.ts` cannot be loaded by node tests, check its imports; it has none today. Run the test again → PASS. Commit with the Task 4 commit at the end (stage both files).
 
 - [ ] **Step 1: Create `MindmapShortcutHelp.vue`**
 

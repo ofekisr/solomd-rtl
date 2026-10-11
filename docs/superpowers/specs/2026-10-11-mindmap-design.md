@@ -58,6 +58,14 @@ Phase order after Phase 1 may change when a package makes a later phase cheap.
 - External content changes (reload, revert) call `refresh()`; changes originating from the view do not.
 - A parse failure shows an error panel with "Open as text" instead of the map.
 
+### Hebrew / RTL
+
+- Every topic renders with `unicode-bidi: plaintext; text-align: start`, so Hebrew, Arabic, and mixed Hebrew-English topics read correctly per node; the topic edit box behaves the same.
+- Map direction reuses `documentDirection()` (`lib/doc-direction.ts`) over all topic texts.
+- Layout: a map's stored `direction` always wins. A map without one (new or empty file) opens `LEFT` (branches grow leftward) when RTL-dominant, `SIDE` otherwise; a Hebrew file name makes a new map RTL.
+- Arrow keys stay spatial (Left moves left on screen), matching XMind.
+- Phase 3 fences and Phase 5 conversion reuse the same view, so they inherit this behavior.
+
 ### Keyboard shortcuts
 
 Mind Elixir's built-in keymap is kept as-is (`keypress: true`) and verified against the installed version during Phase 1:
