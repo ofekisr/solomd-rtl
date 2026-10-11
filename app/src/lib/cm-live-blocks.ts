@@ -506,6 +506,7 @@ const MINDMAP_FALLBACK_STRINGS = { openFull: 'Open fullscreen', parseError: 'Min
 
 class MindmapWidget extends WidgetType {
   private map: ReadOnlyMindmap | null = null;
+  private isDestroyed = false;
 
   constructor(
     private readonly body: string,
@@ -551,6 +552,10 @@ class MindmapWidget extends WidgetType {
 
   private async mount(wrap: HTMLElement, canvas: HTMLElement): Promise<void> {
     const result = await mountReadOnlyMindmap(canvas, this.body, this.isDark);
+    if (this.isDestroyed) {
+      if (result.ok) result.map.destroy();
+      return;
+    }
     if (result.ok) {
       this.map = result.map;
       window.dispatchEvent(new CustomEvent('solomd:cm-relayout'));
@@ -561,6 +566,7 @@ class MindmapWidget extends WidgetType {
   }
 
   destroy(): void {
+    this.isDestroyed = true;
     this.map?.destroy();
     this.map = null;
   }
