@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { normalizeCombo, resolveBindings } from './keybindings.ts';
-import { MINDMAP_BUILTIN_COMBOS, MINDMAP_BUILTIN_KEYS } from './mindmap-keymap.ts';
+import { MINDMAP_BUILTIN_COMBOS, MINDMAP_BUILTIN_KEYS, builtinLabelFor } from './mindmap-keymap.ts';
 
 test('every built-in combo is already normalized', () => {
   for (const { combo } of MINDMAP_BUILTIN_KEYS) assert.equal(normalizeCombo(combo), combo);
@@ -21,4 +21,9 @@ test('core editing keys are covered', () => {
   for (const combo of ['Tab', 'Enter', 'F2', 'Delete', 'Mod+Z', 'Mod+K']) {
     assert.ok(MINDMAP_BUILTIN_COMBOS.has(combo), combo);
   }
+});
+
+test('builtinLabelFor names a built-in combo', () => {
+  assert.equal(builtinLabelFor('Mod+Z'), 'Undo');
+  assert.equal(builtinLabelFor('Mod+Alt+0'), undefined);
 });

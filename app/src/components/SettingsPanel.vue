@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted, nextTick } from 'vue';
 import { shortcutLabel } from '../lib/keybindings';
+import { builtinLabelFor } from '../lib/mindmap-keymap';
 import { invoke } from '@tauri-apps/api/core';
 import { useSettingsStore } from '../stores/settings';
 import { useTabsStore } from '../stores/tabs';
@@ -19,6 +20,7 @@ import {
   activeKeyActions,
   combosFor,
   conflictFor,
+  MINDMAP_BUILTIN_OWNER,
   eventToCombo,
   formatCombo,
   interceptedBindings,
@@ -191,7 +193,9 @@ function onRecordKey(e: KeyboardEvent): void {
     const other = activeKeyActions().find((a) => a.id === clash);
     recordError.value = t('settings.keysConflict', {
       combo: formatCombo(combo, macKeys),
-      action: other ? actionLabel(other) : clash,
+      action: clash === MINDMAP_BUILTIN_OWNER
+        ? t('settings.keysMindmapBuiltin', { label: builtinLabelFor(combo) ?? combo })
+        : other ? actionLabel(other) : clash,
     });
     return; // stay armed so the next chord replaces this attempt
   }

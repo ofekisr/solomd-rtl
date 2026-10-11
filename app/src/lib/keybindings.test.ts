@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  interceptedBindings, HOTKEY_INTERCEPTIONS, activeKeyActions, resolveBindings, conflictFor, eventToCombo,
+  interceptedBindings, HOTKEY_INTERCEPTIONS, activeKeyActions, resolveBindings, conflictFor, eventToCombo, MINDMAP_BUILTIN_OWNER,
 } from './keybindings.ts';
 
 test('the AMD/IME clashes are only reported on Windows', () => {
@@ -86,4 +86,10 @@ test('space bar and question mark produce bindable combos', () => {
   assert.equal(eventToCombo(keyEvent({ key: ' ', code: 'Space' })), 'Space');
   assert.equal(eventToCombo(keyEvent({ key: '?', code: 'Slash', shiftKey: true })), 'Shift+Slash');
   assert.equal(eventToCombo(keyEvent({ key: 'º', code: 'Digit0', altKey: true, metaKey: true })), 'Mod+Alt+0');
+});
+
+test('mindmap rebinds that hit a Mind Elixir built-in are conflicts', () => {
+  assert.equal(conflictFor('Tab', 'mindmap.fit', {}), MINDMAP_BUILTIN_OWNER);
+  assert.equal(conflictFor('Mod+Z', 'mindmap.toggleNode', {}), MINDMAP_BUILTIN_OWNER);
+  assert.notEqual(conflictFor('Tab', 'file.new', {}), MINDMAP_BUILTIN_OWNER);
 });

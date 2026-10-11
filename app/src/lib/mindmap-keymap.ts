@@ -40,3 +40,7 @@ export const MINDMAP_BUILTIN_KEYS: readonly MindmapBuiltinKey[] = [
 export const MINDMAP_BUILTIN_COMBOS: ReadonlySet<KeyCombo> = new Set(
   MINDMAP_BUILTIN_KEYS.map((k) => k.combo),
 );
+
+export function builtinLabelFor(combo: KeyCombo): string | undefined {
+  return MINDMAP_BUILTIN_KEYS.find((k) => k.combo === combo)?.label;
+}

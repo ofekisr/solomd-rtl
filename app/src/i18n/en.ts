@@ -288,6 +288,7 @@ export const en = {
     keysCatNavigate: 'Navigate',
     keysCatTools: 'Tools',
     keysCatMindmap: 'Mindmap',
+    keysMindmapBuiltin: 'Mind Elixir built-in: {label}',
     keysChange: 'Change',
     keysCancel: 'Cancel',
     keysUnbind: 'Unbind',
@@ -2016,7 +2017,8 @@ type DirectiveCompletionFallbackKey =
   | 'directiveCompletionRestartHint'
   | 'directiveCompletionWarnings'
   | 'directiveCompletionOpenFailed'
-  | 'keysCatMindmap';
+  | 'keysCatMindmap'
+  | 'keysMindmapBuiltin';
 
 type EnglishDictionary = typeof en;
 type EnglishSettings = EnglishDictionary['settings'];

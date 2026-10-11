@@ -18,6 +18,8 @@
  * folding them into a global table would change when they fire.
  */
 
+import { MINDMAP_BUILTIN_COMBOS } from './mindmap-keymap.ts';
+
 export type KeyCombo = string;
 
 export type KeyScope = 'global' | 'mindmap';
@@ -479,6 +481,9 @@ export function filterKeyActions(
   });
 }
 
+/** Sentinel `conflictFor` returns when a mindmap rebind hits a Mind Elixir key. */
+export const MINDMAP_BUILTIN_OWNER = 'mindmap.builtin';
+
 /** Which other action in the same scope already owns this chord, if any. */
 export function conflictFor(
   combo: KeyCombo,
@@ -489,6 +494,7 @@ export function conflictFor(
   const actions = activeKeyActions();
   const owner = actions.find((a) => a.id === actionId);
   const scope = owner ? scopeOf(owner) : 'global';
+  if (scope === 'mindmap' && MINDMAP_BUILTIN_COMBOS.has(target)) return MINDMAP_BUILTIN_OWNER;
   for (const action of actions) {
     if (action.id === actionId || scopeOf(action) !== scope) continue;
     if (combosFor(action.id, overrides).includes(target)) return action.id;
