@@ -1,6 +1,6 @@
 # Mindmap Phase 2 — `.xmind` Import Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Existing `.xmind` files open in SoloMD as editable mindmaps; saving writes a sibling `.mmap` and never touches the `.xmind`.
 
@@ -12,7 +12,23 @@
 
 ## Status
 
-**Not started.**
+**Complete — 11-10-26.** Branch `feat/mindmap` (not merged), released as `4.14.10`. All 5 tasks reviewed clean; final review fixes re-reviewed clean.
+
+| Task | Commits | Notes |
+|---|---|---|
+| 1 Sanitizer | `437b2ee` | `icons`/`tags`/`image` validated |
+| 2 Converter | `b22443f` | `xmind-import.ts`, Zen + legacy XML |
+| 3 Open / Save As | `5574c2b` | Path-less tab + `importedFrom`; sibling `.mmap`; lazy chunk |
+| 4 Native | `e10fa11` | Rust `detect_language`, CLI filter, association (Viewer) |
+| 5 Verification | (this docs commit) | Browser-verified: RTL render, tags, folded state, notes kept |
+| Final review | `fe0cb91`, `f6894a6` | Double-click race; `node.style` allowlist + CSS-escape rejection; size caps; shared `.xmind` write guard; friendly errors; `.xmind` association: macOS rank Alternate, none on Windows |
+
+Deviations: constants/errors in `xmind-limits.ts`; Mind Elixir shows no note indicator (note data kept); `File` built from `bytes.slice().buffer` for TS ≥ 5.7.
+
+Known open items:
+- Native Tauri check for Phase 1 + 2 still owed: open each `/Users/ofeki/works/tools-ledger/*.xmind` via Finder, save, confirm the `.xmind` is unchanged and a sibling `.mmap` is created.
+- Size cap is applied after `read_binary_file` loads the bytes; the zip header's declared size can be understated. A Rust size-checked read would close this.
+- Deferred minors: node id/arrow/summary geometry validation (shared with Phase 1), import-xmind `console.log` + inlined deps, no reveal-in-tree on import, large imported maps persisted to localStorage, i18n of toasts.
 
 ## Spike findings (11-10-26, throwaway code, not committed)
 
@@ -71,7 +87,7 @@
 - Consumes: existing `isRecord`, `SAFE_LINK_PATTERN`, `sanitizeNodeObj(value: unknown): NodeObj | null`.
 - Produces: no new exports. `sanitizeNode` (and therefore `sanitizeNodeObj`, `sanitizeMindmapData`, `parseMindmap`) now normalizes `icons`, `tags`, `image`.
 
-- [ ] **Step 1: Write the failing tests** — append to `app/src/lib/mindmap-format.test.ts`:
+- [x] **Step 1: Write the failing tests** — append to `app/src/lib/mindmap-format.test.ts`:
 
 ```ts
 test('icons keep only string entries', () => {
@@ -114,12 +130,12 @@ test('nested children are sanitized too', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `cd app && node --test --experimental-strip-types src/lib/mindmap-format.test.ts`
 Expected: the 5 new tests FAIL (values pass through unchanged); existing tests PASS.
 
-- [ ] **Step 3: Implement** — in `app/src/lib/mindmap-format.ts`, add after `SAFE_LINK_PATTERN`:
+- [x] **Step 3: Implement** — in `app/src/lib/mindmap-format.ts`, add after `SAFE_LINK_PATTERN`:
 
 ```ts
 const SAFE_IMAGE_URL_PATTERN = /^https?:/i;
@@ -175,12 +191,12 @@ function sanitizeNode(node: NodeObj): NodeObj {
 }
 ```
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Run: `cd app && node --test --experimental-strip-types src/lib/mindmap-format.test.ts`
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/lib/mindmap-format.ts app/src/lib/mindmap-format.test.ts
@@ -209,7 +225,7 @@ export function convertXmind(bytes: Uint8Array, fileName: string): Promise<Xmind
 
 `text` is a complete `.mmap` file (the Phase 1 envelope). It goes straight into `tab.content`.
 
-- [ ] **Step 1: Add dependencies**
+- [x] **Step 1: Add dependencies**
 
 ```bash
 cd app && pnpm add --save-exact @mind-elixir/import-xmind@1.0.8 && pnpm add --save-exact -D jszip@3.10.1
@@ -217,7 +233,7 @@ cd app && pnpm add --save-exact @mind-elixir/import-xmind@1.0.8 && pnpm add --sa
 
 Expected: `package.json` has `"@mind-elixir/import-xmind": "1.0.8"` in `dependencies` and `"jszip": "3.10.1"` in `devDependencies`. No peer warnings for `mind-elixir` (import-xmind has no peer dependency on it).
 
-- [ ] **Step 2: Write the failing tests** — create `app/src/lib/xmind-import.test.ts`:
+- [x] **Step 2: Write the failing tests** — create `app/src/lib/xmind-import.test.ts`:
 
 ```ts
 import assert from 'node:assert/strict';
@@ -328,12 +344,12 @@ test('malformed files return an error instead of throwing', async () => {
 });
 ```
 
-- [ ] **Step 3: Run to verify failure**
+- [x] **Step 3: Run to verify failure**
 
 Run: `cd app && node --test --experimental-strip-types src/lib/xmind-import.test.ts`
 Expected: FAIL — `Cannot find module './xmind-import.ts'`.
 
-- [ ] **Step 4: Implement** — create `app/src/lib/xmind-import.ts`:
+- [x] **Step 4: Implement** — create `app/src/lib/xmind-import.ts`:
 
 ```ts
 import { convertXmindToMindElixir, importXMindFile } from '@mind-elixir/import-xmind';
@@ -389,12 +405,12 @@ Notes for the implementer:
 - `importXMindFile` calls `console.log` / `console.error` on every file it loads (library behavior). Leave it.
 - If `vue-tsc` rejects `new File([bytes], …)` (`Uint8Array<ArrayBufferLike>` vs `BlobPart`), pass `bytes.slice().buffer` instead. Do not cast to `any`.
 
-- [ ] **Step 5: Run to verify pass**
+- [x] **Step 5: Run to verify pass**
 
 Run: `cd app && node --test --experimental-strip-types src/lib/xmind-import.test.ts src/lib/mindmap-format.test.ts`
 Expected: all PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/package.json app/pnpm-lock.yaml app/src/lib/xmind-import.ts app/src/lib/xmind-import.test.ts
@@ -421,7 +437,7 @@ git commit -m "feat(mindmap): convert .xmind files into sanitized .mmap document
   - `Tab.importedFrom?: string` — absolute path of the source `.xmind`. Set only on path-less tabs.
   - `tabs.newTab(opts?: { fileName?: string; language?: Language; importedFrom?: string })`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 In `app/src/lib/mindmap-format.test.ts`, add `isXmindPath` and `mmapPathFor` to the import list. Replace the test `'Phase 1 recognizes only .mmap'` with:
 
@@ -454,12 +470,12 @@ In `app/src/lib/file-language.test.ts`, add to the test at line 43:
   assert.equal(inferFileLanguage('/maps/Old.xmind'), 'mindmap');
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `cd app && node --test --experimental-strip-types src/lib/mindmap-format.test.ts src/lib/file-language.test.ts`
 Expected: FAIL — `isXmindPath` / `mmapPathFor` not exported; `.xmind` infers `plaintext`.
 
-- [ ] **Step 3: Implement the helpers** in `app/src/lib/mindmap-format.ts`:
+- [x] **Step 3: Implement the helpers** in `app/src/lib/mindmap-format.ts`:
 
 ```ts
 export const MMAP_EXTENSION = 'mmap';
@@ -483,7 +499,7 @@ export function mmapPathFor(sourcePath: string): string {
 
 Run Step 2's command again. Expected: PASS.
 
-- [ ] **Step 4: Tab field + store**
+- [x] **Step 4: Tab field + store**
 
 `app/src/types.ts`, inside `interface Tab` after `showOutline?: boolean;`:
 
@@ -505,7 +521,7 @@ and inside the `tab` literal, after `showOutline: …,`:
         ...(opts?.importedFrom ? { importedFrom: opts.importedFrom } : {}),
 ```
 
-- [ ] **Step 5: `useFiles.ts` — open**
+- [x] **Step 5: `useFiles.ts` — open**
 
 Change the mindmap import line to:
 
@@ -563,7 +579,7 @@ In `openPath`, directly before `// If it's a convertible format, convert to Mark
 
 If `openXmind` grows past ~20 lines once formatted, extract the two toasts into `announceXmindImport(fileName: string, extraSheetCount: number): void`.
 
-- [ ] **Step 6: `useFiles.ts` — Save As default + `.xmind` guard**
+- [x] **Step 6: `useFiles.ts` — Save As default + `.xmind` guard**
 
 In `saveTabAs`, replace the `dir` computation and `saveDialog` call with:
 
@@ -585,18 +601,18 @@ In `saveTabAs`, replace the `dir` computation and `saveDialog` call with:
 
 Keep the existing comment block above `dir` and extend it with one line: imported tabs default to the sibling `.mmap` of their source.
 
-- [ ] **Step 7: File tree icon** — `app/src/components/FileTree.vue`, change `'mmap': '🧠',` to:
+- [x] **Step 7: File tree icon** — `app/src/components/FileTree.vue`, change `'mmap': '🧠',` to:
 
 ```ts
         'mmap': '🧠', 'xmind': '🧠',
 ```
 
-- [ ] **Step 8: Verify**
+- [x] **Step 8: Verify**
 
 Run: `cd app && node --test --experimental-strip-types src/lib/mindmap-format.test.ts src/lib/file-language.test.ts src/lib/xmind-import.test.ts && pnpm build`
 Expected: tests PASS; `vue-tsc` clean; `vite build` emits a separate chunk containing `import-xmind`.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add app/src/lib/mindmap-format.ts app/src/lib/mindmap-format.test.ts app/src/lib/file-language.test.ts app/src/types.ts app/src/stores/tabs.ts app/src/composables/useFiles.ts app/src/components/FileTree.vue
@@ -617,7 +633,7 @@ git commit -m "feat(mindmap): open .xmind as an imported map that saves as .mmap
 - Consumes: nothing new.
 - Produces: `detect_language("x.xmind") == "mindmap"`. CLI and Finder "Open With" pass `.xmind` paths to the frontend, which routes them through `openXmind` (Task 3).
 
-- [ ] **Step 1: Write the failing test** — append to `app/src-tauri/tests/read_file_test.rs`:
+- [x] **Step 1: Write the failing test** — append to `app/src-tauri/tests/read_file_test.rs`:
 
 ```rust
 #[test]
@@ -629,12 +645,12 @@ fn detect_xmind_language() {
 }
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `cd app/src-tauri && cargo test --test read_file_test detect_xmind_language`
 Expected: FAIL — `left: "plaintext"`, `right: "mindmap"`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `commands.rs:1092`:
 
@@ -664,12 +680,12 @@ Expected: FAIL — `left: "plaintext"`, `right: "mindmap"`.
 
 `role: "Viewer"` is deliberate: SoloMD reads `.xmind` but never writes it.
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Run: `cd app/src-tauri && cargo test --test read_file_test`
 Expected: `detect_xmind_language` and `detect_mindmap_language` PASS. The pre-existing `.rs` assertion failure, if hit, is out of scope.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src-tauri/src/commands.rs app/src-tauri/src/main.rs app/src-tauri/tauri.conf.json app/src-tauri/tests/read_file_test.rs
@@ -689,7 +705,7 @@ git commit -m "feat(mindmap): route .xmind through native open and file associat
 - Consumes: everything above.
 - Produces: verified feature, updated docs, Phase 3 handoff prompt.
 
-- [ ] **Step 1: Browser check (Vite web, no Tauri)**
+- [x] **Step 1: Browser check (Vite web, no Tauri)**
 
 Start `solomd-web` from `.claude/launch.json` (port 1420). `read_binary_file` is not available in the web build, so drive the converter directly from the page console:
 
@@ -714,19 +730,19 @@ Verify with `read_page` + a screenshot:
 - The tab is dirty, and its title is `demo.mmap`.
 - No console errors from SoloMD code. Library `console.log` output is expected.
 
-- [ ] **Step 2: Full check**
+- [x] **Step 2: Full check**
 
 Run: `cd app && node --test --experimental-strip-types src/lib/mindmap-format.test.ts src/lib/xmind-import.test.ts src/lib/file-language.test.ts src/lib/mindmap-direction.test.ts src/lib/mindmap-keymap.test.ts src/lib/keybindings.test.ts && pnpm build`
 Expected: all PASS, build clean.
 
-- [ ] **Step 3: Docs**
+- [x] **Step 3: Docs**
 - Spec phase table: mark Phase 2 done (`4.14.10`).
 - Spec Phase 2 section: replace the conditional export bullet with: "`@mind-elixir/export-xmind` was rejected (lossy, peer range core 2–3). Saving an imported `.xmind` tab opens Save As at the sibling `.mmap`; `.xmind` targets are refused."
 - This plan's Status: completion date, commits per task, deviations, open items. Open items include the native Tauri check for Phase 1 and Phase 2: open each of `/Users/ofeki/works/tools-ledger/*.xmind` via Finder, save, and confirm the `.xmind` is unchanged.
 
-- [ ] **Step 4: Version bump** — `4.14.9` → `4.14.10` in all 4 files. For `Cargo.lock`, edit only the `version` line under `name = "solomd"`.
+- [x] **Step 4: Version bump** — `4.14.9` → `4.14.10` in all 4 files. For `Cargo.lock`, edit only the `version` line under `name = "solomd"`.
 
-- [ ] **Step 5: Commit (two commits, matching Phase 1)**
+- [x] **Step 5: Commit (two commits, matching Phase 1)**
 
 ```bash
 git add docs/superpowers
@@ -735,4 +751,4 @@ git add app/package.json app/src-tauri/Cargo.toml app/src-tauri/Cargo.lock app/s
 git commit -m "chore(release): bump version to 4.14.10"
 ```
 
-- [ ] **Step 6: Phase 3 handoff prompt** — write it in chat. It follows the shape of the Phase 2 prompt: context, what Phases 1–2 built, Phase 3 scope from the spec (Markdown `mindmap` fence), constraints, process.
+- [x] **Step 6: Phase 3 handoff prompt** — write it in chat. It follows the shape of the Phase 2 prompt: context, what Phases 1–2 built, Phase 3 scope from the spec (Markdown `mindmap` fence), constraints, process.

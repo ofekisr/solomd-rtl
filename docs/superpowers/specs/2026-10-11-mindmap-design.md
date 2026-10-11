@@ -7,7 +7,7 @@ Approved in conversation on 11-10-26. Branch: `feat/mindmap`.
 | Phase | State |
 |---|---|
 | 1 `.mmap` file support | ✅ Done 11-10-26 (`4.14.9`) — plan `docs/superpowers/plans/2026-10-11-mindmap-phase1-mmap.md` |
-| 2 XMind | Next |
+| 2 XMind | ✅ Done 11-10-26 (`4.14.10`) — plan `docs/superpowers/plans/2026-10-11-mindmap-phase2-xmind.md` |
 | 3 Markdown render | Pending |
 | 4 Map UI | Pending |
 | 5 Convert md→mindmap | Pending |
@@ -28,16 +28,17 @@ Phase order after Phase 1 may change when a package makes a later phase cheap.
 | Package | Version | Use |
 |---|---|---|
 | `mind-elixir` | `5.15.1` (stable 5.x; `latest` tag is a 6.0 prerelease) | Core editor, `plaintextConverter` |
-| `@mind-elixir/import-xmind` | `1.0.8` | Read `.xmind` (Zen JSON and legacy XML) |
+| `@mind-elixir/import-xmind` | `1.0.8` | Read `.xmind` (Zen JSON and legacy XML); adopted in Phase 2 |
+| `jszip` | `3.10.1` | Zip-size guard for `.xmind` (Phase 2) |
 | `@mind-elixir/export-mindmap` | match core 5.x | Image, HTML, JSON, Markdown export |
-| `@mind-elixir/export-xmind` | `2.0.1` | Write `.xmind`; evaluated in Phase 2 (peer range is core 2–3, last published 2023) |
+| `@mind-elixir/export-xmind` | `2.0.1` | Rejected in Phase 2: lossy round-trip, peer range core 2–3 (last published 2023) |
 
 ## Phases
 
 | # | Phase | Outcome |
 |---|---|---|
 | 1 | `.mmap` file support | Open, edit, save `.mmap` as an XMind-like map |
-| 2 | XMind | Open `.xmind`; save back to `.xmind` if `export-xmind` works, else Save As `.mmap` |
+| 2 | XMind | Open `.xmind` as an imported map; saves go to a sibling `.mmap` (Save As), `.xmind` is never written |
 | 3 | Markdown render | ```` ```mindmap ```` fences render in preview and write edits back |
 | 4 | Map UI | Export, copy plaintext, map→markdown, jump to source, read-only toggle, gates, palette commands |
 | 5 | Convert md→mindmap | Structural and AI conversion of a selection, section, document, or folder |
@@ -121,7 +122,9 @@ Export, gates, conversion, fences, `.xmind`.
 ## Phase 2 — XMind
 
 - `.xmind` is read with `read_binary_file` and `@mind-elixir/import-xmind`.
-- If `@mind-elixir/export-xmind` round-trips with core 5.x, `.xmind` saves in place. Otherwise saving an `.xmind` tab opens Save As with a sibling `.mmap` path, and the original is never overwritten.
+- `@mind-elixir/export-xmind` was rejected (lossy round-trip, peer range core 2–3). Saving an imported `.xmind` tab opens Save As at the sibling `.mmap`; `.xmind` write targets are refused.
+- Only the first sheet is imported (warning toast names the rest); markers and floating topics are dropped.
+- Inputs are capped (50 MB file, 20 MB declared content) and node `style` is allowlisted.
 - The tab tracks its source format so save chooses the right writer.
 
 ## Phase 3 — Markdown render
