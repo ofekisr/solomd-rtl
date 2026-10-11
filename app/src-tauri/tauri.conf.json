@@ -80,7 +80,7 @@
         "name": "SoloMD Mindmap",
         "description": "SoloMD mind map",
         "role": "Editor",
-        "mimeType": "application/json"
+        "mimeType": "application/x-solomd-mindmap"
       }
     ],
     "windows": {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onBeforeUnmount, onMounted } from 'vue';
 import { useI18n } from '../i18n';
 import { useSettingsStore } from '../stores/settings';
 import { activeKeyActions, combosFor, formatCombo } from '../lib/keybindings';
@@ -22,6 +22,16 @@ const customRows = computed(() =>
       label: a.label.replace(/^Mindmap: /, ''),
     })),
 );
+
+function closeOnEscape(e: KeyboardEvent): void {
+  if (e.key !== 'Escape') return;
+  e.preventDefault();
+  e.stopPropagation();
+  emit('close');
+}
+
+onMounted(() => window.addEventListener('keydown', closeOnEscape, true));
+onBeforeUnmount(() => window.removeEventListener('keydown', closeOnEscape, true));
 </script>
 
 <template>

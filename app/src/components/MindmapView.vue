@@ -19,6 +19,7 @@ const TOPIC_EDITOR_ID = 'input-box';
 const OPERATION_EVENT = 'operation';
 const EXPAND_EVENT = 'expandNode';
 const BEGIN_EDIT_OPERATION = 'beginEdit';
+const CHORD_PREFIX_COMBO = 'Mod+K';
 
 const props = defineProps<{ tab: Tab }>();
 const tabs = useTabsStore();
@@ -31,6 +32,9 @@ const isHelpOpen = ref(false);
 let mind: MindElixirInstance | null = null;
 let lastSynced = props.tab.content;
 let syncTimer: number | null = null;
+let pristineSerialized: string | null = null;
+let centerObserver: ResizeObserver | null = null;
+let wasChordPrefixPressed = false;
 
 function themeFor(): typeof MindElixir.THEME {
   return themeFamily(settings.theme) === 'dark' ? MindElixir.DARK_THEME : MindElixir.THEME;
@@ -50,8 +54,27 @@ function syncNow(): void {
   if (syncTimer !== null) window.clearTimeout(syncTimer);
   syncTimer = null;
   if (!mind || parseError.value !== null) return;
-  lastSynced = serializeMindmap(mind.getData());
+  const serialized = serializeMindmap(mind.getData());
+  if (serialized === pristineSerialized && props.tab.content === '') return;
+  lastSynced = serialized;
   tabs.setContent(props.tab.id, lastSynced);
+}
+
+function stopCentering(): void {
+  centerObserver?.disconnect();
+  centerObserver = null;
+}
+
+function centerOnceLaidOut(): void {
+  stopCentering();
+  if (!host.value) return;
+  centerObserver = new ResizeObserver((entries) => {
+    const box = entries[0]?.contentRect;
+    if (!box || box.width === 0 || box.height === 0) return;
+    stopCentering();
+    mind?.toCenter();
+  });
+  centerObserver.observe(host.value);
 }
 
 function scheduleSync(): void {
@@ -73,6 +96,8 @@ function mount(): void {
     theme: themeFor(),
   });
   mind.init(data);
+  pristineSerialized = props.tab.content === '' ? serializeMindmap(mind.getData()) : null;
+  centerOnceLaidOut();
   mind.bus.addListener(OPERATION_EVENT, onOperation);
   mind.bus.addListener(EXPAND_EVENT, scheduleSync);
   syncAfterHistoryJumps(mind);
@@ -90,6 +115,7 @@ function syncAfterHistoryJumps(instance: MindElixirInstance): void {
 }
 
 function teardown(): void {
+  stopCentering();
   if (syncTimer !== null) window.clearTimeout(syncTimer);
   syncTimer = null;
   mind?.destroy();
@@ -107,6 +133,7 @@ async function applyExternalContent(): Promise<void> {
     return;
   }
   await nextTick();
+  if (mind) return;
   mount();
 }
 
@@ -136,6 +163,9 @@ function isEditingTopic(e: KeyboardEvent): boolean {
 function onKeydown(e: KeyboardEvent): void {
   const combo = eventToCombo(e);
   if (!combo || isEditingTopic(e)) return;
+  const isChordFollowUp = wasChordPrefixPressed;
+  wasChordPrefixPressed = combo === CHORD_PREFIX_COMBO;
+  if (isChordFollowUp) scheduleSync();
   const actionId = resolveBindings(settings.keybindings, 'mindmap').get(combo);
   const run = actionId ? actions[actionId] : undefined;
   if (run) {
