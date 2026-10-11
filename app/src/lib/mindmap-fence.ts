@@ -10,10 +10,10 @@ export const MINDMAP_OPEN_EVENT = 'solomd:mindmap-open';
 const NEWLINE = '\n';
 const CRLF_PATTERN = /\r\n?/g;
 
-export interface MindmapFenceTarget { index: number; body: string }
+export interface MindmapFenceTarget { line: number; body: string }
 export interface MindmapOpenDetail extends MindmapFenceTarget { tabId: string }
-export interface MindmapFence extends FencedBlock { index: number }
-export type FenceReplaceResult = { ok: true; source: string } | { ok: false };
+export type MindmapFence = FencedBlock;
+export type FenceReplaceResult = { ok: true; source: string; line: number } | { ok: false };
 
 export function isMindmapFenceInfo(info: string): boolean {
   const [language = ''] = info.trim().split(/\s+/u);
@@ -21,9 +21,7 @@ export function isMindmapFenceInfo(info: string): boolean {
 }
 
 export function findMindmapFences(source: string): MindmapFence[] {
-  return scanFencedBlocks(source)
-    .filter((block) => isMindmapFenceInfo(block.info))
-    .map((block, index) => ({ ...block, index }));
+  return scanFencedBlocks(source).filter((block) => isMindmapFenceInfo(block.info));
 }
 
 export function normalizeFenceBody(body: string): string {
@@ -49,9 +47,9 @@ export const mindmapFenceCodec: MindmapCodec = { parse: parseMindmapFence, seria
 
 function locate(fences: MindmapFence[], target: MindmapFenceTarget): MindmapFence | null {
   const wanted = normalizeFenceBody(target.body);
-  const atIndex = fences[target.index];
-  if (atIndex && normalizeFenceBody(atIndex.body) === wanted) return atIndex;
   const matches = fences.filter((f) => normalizeFenceBody(f.body) === wanted);
+  const atLine = matches.find((f) => f.line === target.line);
+  if (atLine) return atLine;
   return matches.length === 1 ? matches[0] : null;
 }
 
@@ -64,5 +62,5 @@ export function replaceMindmapFence(source: string, target: MindmapFenceTarget, 
   if (!fence) return { ok: false };
   const text = indentBody(normalizeFenceBody(nextBody), fence.indent);
   const replacement = text === '' ? '' : text + NEWLINE;
-  return { ok: true, source: source.slice(0, fence.bodyFrom) + replacement + source.slice(fence.bodyTo) };
+  return { ok: true, source: source.slice(0, fence.bodyFrom) + replacement + source.slice(fence.bodyTo), line: fence.line };
 }

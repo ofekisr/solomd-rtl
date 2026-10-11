@@ -5,6 +5,7 @@ const NEWLINE = '\n';
 export interface FencedBlock {
   info: string;
   indent: string;
+  line: number;
   from: number;
   to: number;
   bodyFrom: number;
@@ -58,7 +59,7 @@ export function scanFencedBlocks(source: string): FencedBlock[] {
     const close = findClose(lines, i + 1, open.run);
     if (close < 0) return blocks;
     const body = lines.slice(i + 1, close).map((l) => dedent(l, open.indent)).join(NEWLINE);
-    blocks.push({ info: open.info, indent: open.indent, from: starts[i], to: starts[close] + lines[close].length, bodyFrom: starts[i + 1], bodyTo: starts[close], body });
+    blocks.push({ info: open.info, indent: open.indent, line: i, from: starts[i], to: starts[close] + lines[close].length, bodyFrom: starts[i + 1], bodyTo: starts[close], body });
     i = close;
   }
   return blocks;

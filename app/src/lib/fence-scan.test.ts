@@ -42,3 +42,29 @@ test('unclosed fence is not returned', () => {
 test('backtick info containing a backtick is not a fence', () => {
   assert.deepEqual(scanFencedBlocks('```a`b\nx\n```\n').length, 0);
 });
+
+test('line is the 0-based line of the opening fence', () => {
+  const blocks = scanFencedBlocks('# T\n\n```mindmap\n- R\n```\n\n~~~js\nx\n~~~\n');
+  assert.deepEqual(blocks.map((b) => b.line), [2, 6]);
+});
+
+test('a 4-space-indented line does not open a fence', () => {
+  assert.deepEqual(scanFencedBlocks('    ```mindmap\n    - R\n    ```\n'), []);
+});
+
+test('blockquote fences are not top-level fences', () => {
+  const blocks = scanFencedBlocks('```mindmap\n```\n\n> ```mindmap\n> ```\n\n```mindmap\n```\n');
+  assert.deepEqual(blocks.map((b) => b.line), [0, 6]);
+});
+
+test('a fence nested inside a longer fence is not split out', () => {
+  const blocks = scanFencedBlocks('````md\n```mindmap\n- R\n```\n````\n');
+  assert.equal(blocks.length, 1);
+  assert.equal(blocks[0].info, 'md');
+  assert.equal(blocks[0].body, '```mindmap\n- R\n```');
+});
+
+test('a tilde fence closes only on tildes', () => {
+  const [b] = scanFencedBlocks('~~~mindmap\n- R\n```\n~~~\n');
+  assert.equal(b.body, '- R\n```');
+});

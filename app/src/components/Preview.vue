@@ -2,7 +2,7 @@
 import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { initMermaid } from '../lib/mermaid-lazy';
 import { mermaidThemeFor, themeFamily } from '../lib/themes';
-import { MINDMAP_OPEN_EVENT, type MindmapOpenDetail } from '../lib/mindmap-fence';
+import { findMindmapFences, MINDMAP_OPEN_EVENT, type MindmapOpenDetail } from '../lib/mindmap-fence';
 import type { ReadOnlyMindmap } from '../lib/mindmap-readonly';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { documentDirection } from '../lib/doc-direction';
@@ -333,7 +333,7 @@ async function mountMindmapInto(wrap: HTMLElement, canvas: HTMLElement, body: st
   return null;
 }
 
-async function renderMindmapBlock(pre: HTMLElement, body: string, index: number, pass: number): Promise<void> {
+async function renderMindmapBlock(pre: HTMLElement, body: string, line: number | null, pass: number): Promise<void> {
   const wrap = document.createElement('div');
   wrap.className = 'mindmap-block';
   const canvas = document.createElement('div');
@@ -344,7 +344,15 @@ async function renderMindmapBlock(pre: HTMLElement, body: string, index: number,
   if (!map) return;
   if (pass !== mindmapPass || !canvas.isConnected) return map.destroy();
   mindmapMounts.push(map);
-  if (props.tabId) wrap.append(openMindmapButton({ tabId: props.tabId, index, body }));
+  if (props.tabId && line !== null) wrap.append(openMindmapButton({ tabId: props.tabId, line, body }));
+}
+
+const SOURCE_LINE_ATTR = 'data-source-line';
+
+function editableFenceLine(code: Element, editableLines: Set<number>): number | null {
+  const oneBased = Number(code.getAttribute(SOURCE_LINE_ATTR));
+  if (!Number.isInteger(oneBased) || oneBased < 1) return null;
+  return editableLines.has(oneBased - 1) ? oneBased - 1 : null;
 }
 
 async function processMindmaps(): Promise<void> {
@@ -352,12 +360,13 @@ async function processMindmaps(): Promise<void> {
   const pass = ++mindmapPass;
   destroyMindmaps();
   const blocks = Array.from(host.value.querySelectorAll('pre > code.language-mindmap'));
-  for (const [index, block] of blocks.entries()) {
+  const editableLines = new Set(findMindmapFences(props.source).map((fence) => fence.line));
+  for (const block of blocks) {
     if (pass !== mindmapPass) return;
     const pre = block.parentElement;
     if (!pre || pre.dataset.rendered === '1') continue;
     pre.dataset.rendered = '1';
-    await renderMindmapBlock(pre, block.textContent ?? '', index, pass);
+    await renderMindmapBlock(pre, block.textContent ?? '', editableFenceLine(block, editableLines), pass);
   }
 }
 

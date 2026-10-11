@@ -13,9 +13,9 @@ test('info matcher is case-insensitive and ignores attributes', () => {
   assert.ok(!isMindmapFenceInfo('mindmapx'));
 });
 
-test('finds only mindmap fences, indexed in document order', () => {
+test('finds only mindmap fences with their opening lines', () => {
   const fences = findMindmapFences(DOC);
-  assert.deepEqual(fences.map((f) => f.index), [0, 1]);
+  assert.deepEqual(fences.map((f) => f.line), [2, 18]);
   assert.equal(fences[1].body, '- Second');
 });
 
@@ -46,38 +46,58 @@ test('oversized body is rejected', () => {
   assert.equal(parsed.ok, false);
 });
 
-test('replace writes the fence at the index when its body still matches', () => {
-  const result = replaceMindmapFence(DOC, { index: 1, body: '- Second' }, '- Second\n  - child');
+test('replace writes the fence at the target line and returns its line', () => {
+  const result = replaceMindmapFence(DOC, { line: 18, body: '- Second' }, '- Second\n  - child');
   assert.ok(result.ok);
   if (!result.ok) return;
+  assert.equal(result.line, 18);
   assert.equal(findMindmapFences(result.source)[1].body, '- Second\n  - child');
   assert.equal(findMindmapFences(result.source)[0].body, OUTLINE);
 });
 
-test('replace falls back to the unique body match when the index shifted', () => {
+test('replace falls back to the unique body match when the line shifted', () => {
   const shifted = `\`\`\`mindmap\n- New first\n\`\`\`\n${DOC}`;
-  const result = replaceMindmapFence(shifted, { index: 1, body: '- Second' }, '- Changed');
+  const result = replaceMindmapFence(shifted, { line: 18, body: '- Second' }, '- Changed');
   assert.ok(result.ok);
   if (!result.ok) return;
+  assert.equal(result.line, 21);
   assert.deepEqual(findMindmapFences(result.source).map((f) => f.body), ['- New first', OUTLINE, '- Changed']);
 });
 
 test('replace aborts when the body is gone or ambiguous', () => {
-  assert.equal(replaceMindmapFence(DOC, { index: 0, body: '- Missing' }, '- X').ok, false);
+  assert.equal(replaceMindmapFence(DOC, { line: 2, body: '- Missing' }, '- X').ok, false);
   const twin = `${DOC}\n\`\`\`mindmap\n- Second\n\`\`\`\n`;
-  assert.equal(replaceMindmapFence(twin, { index: 5, body: '- Second' }, '- X').ok, false);
+  assert.equal(replaceMindmapFence(twin, { line: 5, body: '- Second' }, '- X').ok, false);
+});
+
+const QUOTED = '```mindmap\n```\n\n> ```mindmap\n> ```\n\n```mindmap\n```\n';
+
+test('a blockquote fence is not a mindmap fence', () => {
+  assert.deepEqual(findMindmapFences(QUOTED).map((f) => f.line), [0, 6]);
+});
+
+test('replace by the top-level line writes only that fence', () => {
+  const result = replaceMindmapFence(QUOTED, { line: 6, body: '' }, '- R');
+  assert.ok(result.ok);
+  if (result.ok) assert.equal(result.source, '```mindmap\n```\n\n> ```mindmap\n> ```\n\n```mindmap\n- R\n```\n');
+});
+
+test('a missing target line with an ambiguous body fails', () => {
+  assert.equal(replaceMindmapFence(QUOTED, { line: 3, body: '' }, '- R').ok, false);
 });
 
 test('replace re-indents the body of an indented fence and fills an empty one', () => {
-  const indented = '- item\n\n  ```mindmap\n  - R\n  ```\n';
-  const result = replaceMindmapFence(indented, { index: 0, body: '- R' }, '- R\n  - A');
+  const indented = '- item\n\n  ```mindmap\n  - R\n    - A\n  ```\n';
+  const [fence] = findMindmapFences(indented);
+  assert.equal(fence.body, '- R\n  - A');
+  const result = replaceMindmapFence(indented, { line: 2, body: fence.body }, '- R\n  - A\n  - B');
   assert.ok(result.ok);
-  if (result.ok) assert.equal(result.source, '- item\n\n  ```mindmap\n  - R\n    - A\n  ```\n');
-  const empty = replaceMindmapFence('```mindmap\n```\n', { index: 0, body: '' }, '- R');
+  if (result.ok) assert.equal(result.source, '- item\n\n  ```mindmap\n  - R\n    - A\n    - B\n  ```\n');
+  const empty = replaceMindmapFence('```mindmap\n```\n', { line: 0, body: '' }, '- R');
   assert.ok(empty.ok && empty.source === '```mindmap\n- R\n```\n');
 });
 
 test('body comparison ignores CRLF and trailing whitespace', () => {
   const crlf = '```mindmap\r\n- R  \r\n```\r\n';
-  assert.ok(replaceMindmapFence(crlf, { index: 0, body: '- R\n' }, '- S').ok);
+  assert.ok(replaceMindmapFence(crlf, { line: 0, body: '- R\n' }, '- S').ok);
 });

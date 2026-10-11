@@ -18,7 +18,7 @@
  * handles inline marker hiding.
  */
 
-import { RangeSetBuilder, StateField, StateEffect, Prec, EditorSelection, Transaction, EditorState } from '@codemirror/state';
+import { RangeSetBuilder, StateField, StateEffect, Prec, EditorSelection, Transaction, EditorState, type Text } from '@codemirror/state';
 import { keymap } from '@codemirror/view';
 import { isDragging, isDragEndTransaction } from './cm-drag-aware';
 import { frozenFieldDuringComposition, isImeSafeFlushTransaction } from './cm-ime-guard';
@@ -54,8 +54,8 @@ import {
   TLDRAW_DEFAULT_HEIGHT,
   type BoardThemeTokens,
 } from './tldraw-board';
-import { mountReadOnlyMindmap, type ReadOnlyMindmap } from './mindmap-readonly';
-import { isMindmapFenceInfo, MINDMAP_OPEN_EVENT, type MindmapOpenDetail } from './mindmap-fence';
+import { mountReadOnlyMindmap, type ReadOnlyMindmap, type ReadOnlyMountResult } from './mindmap-readonly';
+import { findMindmapFences, MINDMAP_OPEN_EVENT, type MindmapFence, type MindmapOpenDetail } from './mindmap-fence';
 
 // v4.3.0 issue #57a — live-render math + Mermaid blocks in the editor.
 // Mermaid is async; we render lazily into a counter-keyed cache so the
@@ -502,15 +502,23 @@ class PlantumlWidget extends WidgetType {
 }
 
 
-const MINDMAP_FALLBACK_STRINGS = { openFull: 'Open fullscreen', parseError: 'Mind map could not be read' };
+interface MindmapStrings { openFull: string; parseError: string }
+interface MindmapMountState { isDestroyed: boolean; map: ReadOnlyMindmap | null }
+
+const MINDMAP_FALLBACK_STRINGS: MindmapStrings = { openFull: 'Open fullscreen', parseError: 'Mind map could not be read' };
+const CM_RELAYOUT_EVENT = 'solomd:cm-relayout';
+const mindmapTeardowns = new WeakMap<HTMLElement, () => void>();
+
+function teardownMindmap(state: MindmapMountState): void {
+  state.isDestroyed = true;
+  state.map?.destroy();
+  state.map = null;
+}
 
 class MindmapWidget extends WidgetType {
-  private map: ReadOnlyMindmap | null = null;
-  private isDestroyed = false;
-
   constructor(
     private readonly body: string,
-    private readonly index: number,
+    private readonly line: number,
     private readonly isDark: boolean,
     private readonly opts: BlockOptions,
   ) {
@@ -518,7 +526,7 @@ class MindmapWidget extends WidgetType {
   }
 
   eq(other: MindmapWidget): boolean {
-    return other.body === this.body && other.index === this.index && other.isDark === this.isDark;
+    return other.body === this.body && other.line === this.line && other.isDark === this.isDark;
   }
 
   toDOM(): HTMLElement {
@@ -526,11 +534,13 @@ class MindmapWidget extends WidgetType {
     wrap.className = 'cm-live-block cm-live-block--mindmap';
     const canvas = document.createElement('div');
     wrap.append(canvas, this.openButton());
-    void this.mount(wrap, canvas);
+    const state: MindmapMountState = { isDestroyed: false, map: null };
+    mindmapTeardowns.set(wrap, () => teardownMindmap(state));
+    void this.mount(wrap, canvas, state);
     return wrap;
   }
 
-  private strings() {
+  private strings(): MindmapStrings {
     return this.opts.getMindmapStrings?.() ?? MINDMAP_FALLBACK_STRINGS;
   }
 
@@ -546,34 +556,79 @@ class MindmapWidget extends WidgetType {
   private open(): void {
     const tabId = this.opts.getTabId?.();
     if (!tabId) return;
-    const detail: MindmapOpenDetail = { tabId, index: this.index, body: this.body };
+    const detail: MindmapOpenDetail = { tabId, line: this.line, body: this.body };
     window.dispatchEvent(new CustomEvent(MINDMAP_OPEN_EVENT, { detail }));
   }
 
-  private async mount(wrap: HTMLElement, canvas: HTMLElement): Promise<void> {
-    const result = await mountReadOnlyMindmap(canvas, this.body, this.isDark);
-    if (this.isDestroyed) {
+  private async load(canvas: HTMLElement): Promise<ReadOnlyMountResult> {
+    try {
+      return await mountReadOnlyMindmap(canvas, this.body, this.isDark);
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : String(error) };
+    }
+  }
+
+  private async mount(wrap: HTMLElement, canvas: HTMLElement, state: MindmapMountState): Promise<void> {
+    const result = await this.load(canvas);
+    if (state.isDestroyed) {
       if (result.ok) result.map.destroy();
       return;
     }
     if (result.ok) {
-      this.map = result.map;
-      window.dispatchEvent(new CustomEvent('solomd:cm-relayout'));
+      state.map = result.map;
+      window.dispatchEvent(new CustomEvent(CM_RELAYOUT_EVENT));
       return;
     }
     wrap.classList.add('cm-live-block--broken');
     wrap.textContent = `${this.strings().parseError}: ${result.error}`;
   }
 
-  destroy(): void {
-    this.isDestroyed = true;
-    this.map?.destroy();
-    this.map = null;
+  destroy(dom: HTMLElement): void {
+    mindmapTeardowns.get(dom)?.();
+    mindmapTeardowns.delete(dom);
   }
 
   ignoreEvent(): boolean {
     return true;
   }
+}
+
+interface MindmapBuildContext {
+  doc: Text;
+  cursorLine: number;
+  cursorLineEnd: number;
+  keepSource: boolean;
+  opts: BlockOptions;
+}
+
+const mindmapFenceCache = new WeakMap<Text, Map<number, MindmapFence>>();
+
+function mindmapFencesByCmLine(doc: Text): Map<number, MindmapFence> {
+  const cached = mindmapFenceCache.get(doc);
+  if (cached) return cached;
+  const byLine = new Map(findMindmapFences(doc.toString()).map((fence) => [fence.line + 1, fence] as const));
+  mindmapFenceCache.set(doc, byLine);
+  return byLine;
+}
+
+function isLineWithin(line: number, from: number, to: number): boolean {
+  return line >= from && line <= to;
+}
+
+function addMindmapDecoration(builder: RangeSetBuilder<Decoration>, fence: MindmapFence, ctx: MindmapBuildContext): number {
+  const startLine = fence.line + 1;
+  const endLine = ctx.doc.lineAt(fence.to).number;
+  const isRevealed = ctx.keepSource
+    || isLineWithin(ctx.cursorLine, startLine, endLine)
+    || isLineWithin(ctx.cursorLineEnd, startLine, endLine);
+  if (!isRevealed) {
+    const isDark = ctx.opts.getMermaidTheme?.() === 'dark';
+    builder.add(ctx.doc.line(startLine).from, ctx.doc.line(endLine).to, Decoration.replace({
+      widget: new MindmapWidget(fence.body, fence.line, isDark, ctx.opts),
+      block: true,
+    }));
+  }
+  return endLine + 1;
 }
 
 // v4.6 F7 — ```tldraw fenced whiteboard. Unlike mermaid (which collapses only
@@ -805,9 +860,15 @@ function buildBlockDecorations(state: EditorState, opts: BlockOptions): Decorati
           { length: lastLine },
           (_, index) => doc.line(index + 1).text,
         );
+        const mindmapFences = mindmapFencesByCmLine(doc);
+        const mindmapContext: MindmapBuildContext = { doc, cursorLine, cursorLineEnd, keepSource, opts };
         let i = 1;
-        let mindmapIndex = 0;
         while (i <= lastLine) {
+          const mindmapFence = mindmapFences.get(i);
+          if (mindmapFence) {
+            i = addMindmapDecoration(builder, mindmapFence, mindmapContext);
+            continue;
+          }
           const line = doc.line(i);
 
           // Raw block HTML (`<div>…</div>`, `<details>`, HTML tables, etc.).
@@ -977,29 +1038,6 @@ function buildBlockDecorations(state: EditorState, opts: BlockOptions): Decorati
                   block: true,
                 }),
               );
-              i = endI + 1;
-              continue;
-            }
-          }
-
-          const mindmapOpen = /^\s{0,3}(`{3,}|~{3,})\s*(\S*)/.exec(line.text);
-          if (mindmapOpen && isMindmapFenceInfo(mindmapOpen[2])) {
-            const run = mindmapOpen[1];
-            const closeRe = new RegExp(`^\\s{0,3}\\${run[0]}{${run.length},}\\s*$`);
-            let endI = i + 1;
-            while (endI <= lastLine && !closeRe.test(doc.line(endI).text)) endI += 1;
-            if (endI <= lastLine) {
-              const index = mindmapIndex++;
-              const cursorInside = keepSource || (cursorLine >= i && cursorLine <= endI);
-              const cursorInsideEnd = cursorLineEnd >= i && cursorLineEnd <= endI;
-              if (!cursorInside && !cursorInsideEnd) {
-                const body = doc.sliceString(doc.line(i + 1).from, doc.line(endI).from).replace(/\n$/, '');
-                const isDark = opts.getMermaidTheme?.() === 'dark';
-                builder.add(doc.line(i).from, doc.line(endI).to, Decoration.replace({
-                  widget: new MindmapWidget(body, index, isDark, opts),
-                  block: true,
-                }));
-              }
               i = endI + 1;
               continue;
             }

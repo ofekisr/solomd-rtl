@@ -19,6 +19,7 @@ const tabs = useTabsStore();
 const toasts = useToastsStore();
 const target = ref<MindmapOpenDetail | null>(null);
 const isStale = ref(false);
+const openCount = ref(0);
 const canvas = ref<CanvasHandle | null>(null);
 
 function onOpen(e: Event): void {
@@ -26,6 +27,7 @@ function onOpen(e: Event): void {
   if (!detail) return;
   close();
   isStale.value = false;
+  openCount.value += 1;
   target.value = { ...detail };
 }
 
@@ -40,7 +42,7 @@ function onUpdate(nextBody: string): void {
   if (!current || !tab || isStale.value) return;
   const result = replaceMindmapFence(tab.content ?? '', current, nextBody);
   if (!result.ok) return markStale();
-  target.value = { ...current, body: nextBody };
+  target.value = { ...current, line: result.line, body: nextBody };
   if (result.source !== tab.content) tabs.setContent(current.tabId, result.source);
 }
 
@@ -77,7 +79,7 @@ onBeforeUnmount(() => {
     <div class="mm-overlay__surface">
       <MindmapCanvas
         ref="canvas"
-        :key="`${target.tabId}:${target.index}`"
+        :key="openCount"
         :content="target.body"
         :codec="mindmapFenceCodec"
         @update:content="onUpdate"
