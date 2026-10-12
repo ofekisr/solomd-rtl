@@ -48,6 +48,7 @@ import GithubSyncSettings from './GithubSyncSettings.vue';
 import CloudFolderBanner from './CloudFolderBanner.vue';
 import ProxySettings from './ProxySettings.vue';
 import ThemeMarketplace from './ThemeMarketplace.vue';
+import MindmapMapFields from './MindmapMapFields.vue';
 import { isIOS, isMobile, hasGitBackend, isWindowsEditorRuntime } from '../lib/platform';
 import { loadCustomTheme } from '../lib/custom-theme';
 import { openPath } from '@tauri-apps/plugin-opener';
@@ -1236,6 +1237,11 @@ function onSelectPdfFont(v: string) {
               </li>
             </ul>
           </details>
+        </section>
+
+        <section data-cat="writing">
+          <h4>{{ t('mindmap.settingsDefaults') }}</h4>
+          <MindmapMapFields :value="settings.mindmapDefaults" @set="settings.setMindmapDefaults($event)" @clear="settings.clearMindmapDefault($event)" />
         </section>
 
         <section data-cat="writing">

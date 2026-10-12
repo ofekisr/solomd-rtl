@@ -42,6 +42,7 @@ const emit = defineEmits<{
   'open-as-text': [];
   'jump-to-source': [source: MindmapSource];
   selection: [nodes: NodeObj[]];
+  ready: [];
 }>();
 const settings = useSettingsStore();
 const toasts = useToastsStore();
@@ -132,6 +133,7 @@ function mount(): void {
   syncAfterHistoryJumps(mind);
   sanitizeCopiedNodes(mind);
   activate();
+  emit('ready');
 }
 
 function emitSelection(): void {
@@ -191,6 +193,7 @@ async function applyExternalContent(): Promise<void> {
     if (wasGraphView && !isReadOnly.value) mind.enableEdit();
     gates.syncLabels();
     mind.clearHistory?.();
+    emit('ready');
     return;
   }
   await nextTick();
@@ -360,7 +363,11 @@ watch(() => props.content, (content) => {
   void applyExternalContent();
 });
 
-watch(() => settings.theme, () => mind?.changeTheme(themeFor()));
+watch(() => settings.theme, () => {
+  if (!mind) return;
+  mind.changeTheme(themeFor());
+  emit('ready');
+});
 
 onMounted(() => {
   mount();

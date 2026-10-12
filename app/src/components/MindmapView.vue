@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { MindElixirInstance, NodeObj } from 'mind-elixir';
 import type { Topic } from 'mind-elixir';
 import type { Tab } from '../types';
@@ -20,6 +20,9 @@ import { buildNodePatch, type NodeField } from '../lib/mindmap-node-style';
 import MindmapCanvas from './MindmapCanvas.vue';
 import MindmapSidePanel from './MindmapSidePanel.vue';
 import MindmapNodeFields from './MindmapNodeFields.vue';
+import MindmapMapFields from './MindmapMapFields.vue';
+import { resolveMapDisplay, type MapDisplay } from '../lib/mindmap-display';
+import { applyMapDisplay, captureBranchGenerators, type BranchGenerators } from '../composables/useMindmapDisplay';
 import Editor from './Editor.vue';
 import Preview from './Preview.vue';
 
@@ -97,6 +100,42 @@ function findLiveElement(mind: MindElixirInstance, id: string): Topic | null {
   }
 }
 
+const displayOverride = ref<MapDisplay>({});
+let branchGenerators: BranchGenerators | null = null;
+let generatorsOwner: MindElixirInstance | null = null;
+
+function applyDisplay(): void {
+  const mind = canvas.value?.getMind();
+  if (!mind) return;
+  if (generatorsOwner !== mind) {
+    branchGenerators = captureBranchGenerators(mind);
+    generatorsOwner = mind;
+  }
+  if (!branchGenerators) return;
+  applyMapDisplay(mind, resolveMapDisplay(displayOverride.value, settings.mindmapDefaults), branchGenerators);
+}
+
+function onCanvasReady(): void {
+  displayOverride.value = canvas.value?.getDisplayOverride() ?? {};
+  applyDisplay();
+}
+
+function setOverride(patch: MapDisplay): void {
+  displayOverride.value = { ...displayOverride.value, ...patch };
+  canvas.value?.setDisplayOverride(displayOverride.value);
+  applyDisplay();
+}
+
+function clearOverride(key: keyof MapDisplay): void {
+  const next = { ...displayOverride.value };
+  delete next[key];
+  displayOverride.value = next;
+  canvas.value?.setDisplayOverride(next);
+  applyDisplay();
+}
+
+watch(() => settings.mindmapDefaults, applyDisplay, { deep: true });
+
 function runViewAction(actionId: string): boolean {
   if (actionId === TOGGLE_PANEL_ACTION) {
     settings.toggleMindmapPanel();
@@ -165,6 +204,7 @@ defineExpose({ setMode, canvas, mode });
         @selection="(nodes) => (selected = nodes.map((n) => ({ ...n })))"
         @open-as-text="setMode('source')"
         @jump-to-source="onJump"
+        @ready="onCanvasReady"
       />
       <div v-else-if="mode === 'source'" class="mindmap-shell__source">
         <div v-if="sourceError" class="mindmap-shell__error" role="alert">{{ sourceError }}</div>
@@ -175,6 +215,9 @@ defineExpose({ setMode, canvas, mode });
         <template #node>
           <p v-if="!isPanelEditable" class="mindmap-shell__hint">{{ t('mindmap.panelReadOnly') }}</p>
           <MindmapNodeFields v-if="singleNode" :node="singleNode" :disabled="!isPanelEditable" @patch="applyNodePatch" />
+        </template>
+        <template #map>
+          <MindmapMapFields :value="displayOverride" :inherited="settings.mindmapDefaults" :disabled="!isPanelEditable" @set="setOverride" @clear="clearOverride" />
         </template>
       </MindmapSidePanel>
     </div>
