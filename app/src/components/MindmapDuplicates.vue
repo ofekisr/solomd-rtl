@@ -26,7 +26,7 @@ const { t } = useI18n();
 </template>
 
 <style scoped>
-.mindmap-dups { position: absolute; inset-block-start: 40px; inset-inline-end: 16px; max-height: 60%; overflow: auto; padding: 12px 16px; border-radius: 8px; background: var(--bg-primary, #fff); box-shadow: 0 4px 16px rgb(0 0 0 / 0.2); z-index: 10; unicode-bidi: plaintext; }
+.mindmap-dups { position: absolute; inset-block-start: 40px; inset-inline-end: 16px; max-height: 60%; overflow: auto; padding: 12px 16px; border-radius: 8px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); box-shadow: var(--sh-pop); z-index: 10; unicode-bidi: plaintext; }
 .mindmap-dups header { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
 .mindmap-dups li { display: flex; gap: 8px; align-items: center; padding-block: 4px; }
 </style>

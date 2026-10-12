@@ -3,7 +3,7 @@ import type { FileReadResult } from '../types';
 import { MAX_FILE_CHARS, sortFolderFiles, type FolderFile } from '../lib/mindmap-folder';
 
 interface DirEntry { name: string; path: string; is_dir: boolean }
-interface ListResult { files: FolderFile[]; oversized: string[] }
+interface ListResult { files: FolderFile[]; oversized: string[]; truncated: boolean }
 
 const MAX_FILES = 500;
 const HIDDEN_PREFIX = '.';
@@ -17,12 +17,13 @@ function isIgnored(entry: DirEntry): boolean {
   return entry.name.startsWith(HIDDEN_PREFIX) || entry.name === IGNORED_DIR;
 }
 
-async function collectCandidates(folder: string): Promise<Candidate[]> {
+async function collectCandidates(folder: string): Promise<{ found: Candidate[]; truncated: boolean }> {
   const found: Candidate[] = [];
+  let truncated = false;
   const walk = async (dir: string, prefix: string): Promise<void> => {
     const entries = await invoke<DirEntry[]>('list_dir', { path: dir });
     for (const entry of entries) {
-      if (found.length >= MAX_FILES) return;
+      if (found.length >= MAX_FILES) { truncated = true; return; }
       if (isIgnored(entry)) continue;
       const relPath = `${prefix}${entry.name}`;
       if (entry.is_dir) await walk(entry.path, `${relPath}${PATH_SEPARATOR}`);
@@ -30,7 +31,7 @@ async function collectCandidates(folder: string): Promise<Candidate[]> {
     }
   };
   await walk(folder, '');
-  return found;
+  return { found, truncated };
 }
 
 async function readCandidate(candidate: Candidate): Promise<FolderFile | null> {
@@ -44,7 +45,7 @@ async function readCandidate(candidate: Candidate): Promise<FolderFile | null> {
 }
 
 async function listMarkdownFiles(folder: string): Promise<ListResult> {
-  const candidates = await collectCandidates(folder);
+  const { found: candidates, truncated } = await collectCandidates(folder);
   const files: FolderFile[] = [];
   const oversized: string[] = [];
   for (const candidate of candidates) {
@@ -52,7 +53,7 @@ async function listMarkdownFiles(folder: string): Promise<ListResult> {
     if (file) files.push(file);
     else oversized.push(candidate.relPath);
   }
-  return { files: sortFolderFiles(files), oversized };
+  return { files: sortFolderFiles(files), oversized, truncated };
 }
 
 export function useMindmapFolderFiles(): { listMarkdownFiles(folder: string): Promise<ListResult> } {

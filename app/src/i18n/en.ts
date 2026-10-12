@@ -1376,6 +1376,8 @@ export const en = {
     folderConvert: 'Convert',
     folderCancel: 'Cancel',
     folderReadFailed: 'Could not read the folder',
+    folderConvertFailed: 'Could not convert the folder',
+    folderTruncated: 'Only the first 500 files are listed',
     duplicatesTitle: 'Duplicate nodes',
     duplicatesEmpty: 'No duplicates found',
     mergeIntoGate: 'Merge into gate',
