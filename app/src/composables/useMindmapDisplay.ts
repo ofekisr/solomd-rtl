@@ -28,8 +28,8 @@ function applyText(mind: MindElixirInstance, display: ResolvedMapDisplay): void 
 }
 
 export function applyMapDisplay(mind: MindElixirInstance, display: ResolvedMapDisplay, original: BranchGenerators): void {
+  if (mind.compact !== display.compact) mind.changeCompact(display.compact);
   applyBranchStyle(mind, display, original);
   applyText(mind, display);
-  mind.changeCompact(display.compact);
   mind.linkDiv();
 }
