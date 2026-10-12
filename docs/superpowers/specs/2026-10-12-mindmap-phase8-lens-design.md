@@ -3,6 +3,7 @@
 ## Status
 
 Approved in conversation on 12-10-26. Branch: `feat/mindmap-phase8`. Base: `main` at `4.16.0`.
+Done 12-10-26 (`4.16.1`) — plan `docs/superpowers/plans/2026-10-12-mindmap-phase8-lens.md`
 Parent design: `docs/superpowers/specs/2026-10-11-mindmap-design.md`. Previous: Phase 7 (`2026-10-12-mindmap-phase7-views-panel-design.md`). Unscheduled work: `2026-10-12-mindmap-follow-ups.md`.
 
 ## Purpose
@@ -127,6 +128,27 @@ Bug on `main`: Mind Elixir's paste listener (`MindElixir.js` container `paste` h
 - `sanitizeCopiedNodes` wrapper in `MindmapCanvas.vue`: no-op while `isEditBlocked()` or graph view.
 - `scheduleSync`: also skip while the read-only toggle is on.
 - Test: browser — read-only on, copy a node, select another, Cmd+V → no new node, file not dirty; same with `locked`. Read-only off → paste still works.
+
+## Decisions during planning
+
+| Spec says | Plan does | Why |
+|---|---|---|
+| Data · Split: invalid JSON keeps the last valid map | It also locks the map (read-only, no sync) while the JSON is invalid | A map edit would otherwise serialize over the user's unfinished JSON |
+| Theme picker: select with a swatch strip per option | Radio group of buttons, each with a label and an 8-swatch strip | Native `<option>` cannot render swatches |
+| Fit and Root sit beside the zoom controls | Appended into the package's `.mind-elixir-toolbar.rb` element | Gets the same position and styling with no duplicate positioning code |
+| "N duplicates" | N = number of duplicate groups | Matches what the dialog lists |
+| (silent) | The fit-width toolbar button stays Markdown-only | It only affects Markdown preview width |
+| (silent) | Phase 7's `applyText` removed `--color`/`--main-color` when no text color was set. It now leaves them alone. | `changeTheme` already resets both to the preset. Removing them would erase the preset's text colors. |
+
+### Execution decisions
+
+| Topic | Decision | Why |
+|---|---|---|
+| `Object.hasOwn` | Replaced by a `hasOwnProperty` helper | tsconfig `lib` is ES2020 |
+| Locked canvas | Blocks every mutation path (merge, gates, undo/redo, paste, cut) and drops pending syncs when it engages | A locked map must not change or overwrite the JSON |
+| Settings → Mindmap | Section has a hint line | Settings search finds "map" / "theme" |
+| Canvas controls | Stop key propagation for every key | Tab / Delete on focused Fit/Root must not reach the map |
+| Toolbar states | Read-only toggle and JSON lock are separate states | Different causes, different recovery |
 
 ## Testing
 

@@ -85,3 +85,16 @@ Prep: a workspace folder with `plan.xmind` (2+ sheets if you have one), a Markdo
 - [ ] Convert Section / Selection; Insert Map Fence from Section / Selection
 - [ ] Convert Folder dialog: readable, Escape closes, duplicates dialog works
 - [ ] Jump to source from a converted node opens the right file and line
+
+## 11. Lens, themes, settings (Phase 8)
+
+- [ ] Lens x view cells (Data / Map / Doc against Edit, Split, Live edit, Preview, Reading) in the packaged app
+- [ ] Reading on a wide map; Escape leaves it
+- [ ] Themes in light and dark
+- [ ] Settings → Mindmap
+- [ ] Export split button through the native save dialogs
+- [ ] Fit / Root controls and the duplicates chip
+- [ ] Cmd+V on a read-only map adds nothing
+- [ ] Cmd+X on a read-only map removes nothing
+- [ ] Tab / Delete on focused Fit/Root controls do not change the map
+- [ ] Data · Split with JSON invalid from the start
