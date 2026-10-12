@@ -9,7 +9,7 @@ Approved in conversation on 11-10-26. Branch: `feat/mindmap`.
 | 1 `.mmap` file support | ✅ Done 11-10-26 (`4.14.9`) — plan `docs/superpowers/plans/2026-10-11-mindmap-phase1-mmap.md` |
 | 2 XMind | ✅ Done 11-10-26 (`4.14.10`) — plan `docs/superpowers/plans/2026-10-11-mindmap-phase2-xmind.md` |
 | 3 Markdown render | ✅ Done 12-10-26 (`4.14.11`) — plan `docs/superpowers/plans/2026-10-11-mindmap-phase3-fence.md` |
-| 4 Map UI | Pending |
+| 4 Map UI | ✅ Done 12-10-26 (`4.14.12`) — plan `docs/superpowers/plans/2026-10-11-mindmap-phase4-map-ui.md` |
 | 5 Convert md→mindmap | Pending |
 
 ## Purpose
@@ -30,7 +30,7 @@ Phase order after Phase 1 may change when a package makes a later phase cheap.
 | `mind-elixir` | `5.15.1` (stable 5.x; `latest` tag is a 6.0 prerelease) | Core editor, `plaintextConverter` |
 | `@mind-elixir/import-xmind` | `1.0.8` | Read `.xmind` (Zen JSON and legacy XML); adopted in Phase 2 |
 | `jszip` | `3.10.1` | Zip-size guard for `.xmind` (Phase 2) |
-| `@mind-elixir/export-mindmap` | match core 5.x | Image, HTML, JSON, Markdown export |
+| `@mind-elixir/export-mindmap` | `0.1.11` | PNG, HTML (escaped), JSON, Markdown; SVG via core `exportSvg` + DOMPurify |
 | `@mind-elixir/export-xmind` | `2.0.1` | Rejected in Phase 2: lossy round-trip, peer range core 2–3 (last published 2023) |
 
 ## Phases
@@ -187,6 +187,16 @@ Export, gates, conversion, fences, `.xmind`.
   - Fence syntax: `- => <id>`, converted by a wrapper around `plaintextConverter`.
   - Duplicate finder hashes subtrees; "Merge into gate" unions children into the kept copy and replaces the duplicate with a gate.
   - Graph view draws gate arrows; export as Mermaid `graph LR` and JSON adjacency.
+
+### Decisions
+
+| Topic | Decision |
+|---|---|
+| Gate storage | `node.metadata.gate` (`getData()` preserves `metadata`); merged into `metadata`, never replacing `refId` |
+| HTML export | Package inlines `JSON.stringify(data)` unescaped; `buildHtmlExport` re-escapes that substring (`<`, `>`, `&`, U+2028/2029) |
+| SVG export | Core `exportSvg` through DOMPurify (`foreignobject` integration point): labels survive, scripts never |
+| Palette | Commands reach the focused map through the `mindmap-active` registry; palette-only actions use `defaults: []` |
+| Merge | Merge into gate is not undoable; undo history is cleared after it |
 
 ## Phase 5 — Convert md→mindmap
 

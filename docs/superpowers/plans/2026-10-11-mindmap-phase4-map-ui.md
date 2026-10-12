@@ -16,7 +16,63 @@
 
 ## Status
 
-Not started.
+COMPLETE. 12-10-26, version 4.14.12. Branch `feat/mindmap`, unpushed.
+
+| Task | Commits | Notes |
+|---|---|---|
+| 1 Text export core | `86fd55d..db14af7` | Plan; HTML data re-escaped |
+| 2 PNG/SVG builders + Tauri writer | `6a64f26..76be3aa` | `6a64f26` escaped U+2028/2029 in plan text; SVG via DOMPurify |
+| 3 Map to headings | `76be3aa..fcbdd3f` | |
+| 4 Palette commands, export/copy actions, read-only | `fcbdd3f..afaa027` | `mindmap-active` registry |
+| 5 Jump to source | `afaa027..a058a2d` | |
+| 6 Gate model | `a058a2d..6c7951b` | |
+| 7 Gate controller, follow/back | `6c7951b..59654e9` (`e85bcf9`, fix `59654e9`) | Fix: capture-phase key dispatch |
+| 8 `- => ref` fence syntax | `59654e9..3798843` | |
+| 9 Duplicate finder + merge | `3798843..51e1ffe` (`f7f8371`, fix `51e1ffe`) | Fix: retarget gates, unambiguous canonical |
+| 10 Graph view + Mermaid/JSON adjacency | `51e1ffe..0e0c8ed` (`56fee05`, fix `0e0c8ed`) | Fix: re-enable editing after graph view |
+| Final review (Opus, `86fd55d..0e0c8ed`) | `4ff126d` | C1 orphaned gates, I1 undo/redo labels, I2 merge content loss, I3 canonical size, 3 cheap minors |
+| 11 Verification, docs, bump | this commit | |
+
+**Tests:** 137/137 pass across the sweep (`node --test --experimental-strip-types src/lib/mindmap-*.test.ts src/lib/fence-scan.test.ts src/lib/fence-languages.test.ts`): mindmap-active 4, mindmap-direction 3, mindmap-duplicates 9, mindmap-export 9, mindmap-fence 15, mindmap-format 34, mindmap-gate-plaintext 5, mindmap-gates 9, mindmap-graph 5, mindmap-headings 4, mindmap-keymap 5, mindmap-source 4, fence-scan 12, fence-languages 19. `pnpm build` OK (chunk-size warning only).
+
+**Browser check (web, controller-run per task):** 12 palette commands run; read-only badge blocks Tab and toggles back; headings doc created; Jump to Source lands on `    - B1`; gate insert, follow (expands collapsed target, no stray node), Alt+Left back, live rename, delete shows missing target, Repair and Remove persist; fence gate widget and editor writeback keep `[^a1]` and `- => a1`; Find Duplicates lists `Tasks x 2`, Merge turns the duplicate into a gate and persists; graph view draws a dashed gate arrow with no leak into content or exports; Mermaid export text OK; after the fix wave rename, undo, redo re-label the gate (Alef, Alpha, Alef). Exports end in no toast in web (see Open items).
+
+**Desktop (Tauri) check:** PENDING. Not runnable in this session; nothing below claims it passed.
+
+### Deviations
+
+- Ruling 1: Task 1 html test asserts the embedded data (`dangerouslySetInnerHTML` is undefined), not a substring: the bundled runtime contains `onerror`.
+- Ruling 2: `useMindmapExport` does not import `isImageFormat` (`noUnusedLocals`); the lib keeps the export.
+- Ruling 3: `useMindmapCanvasActions` may exceed 20 lines (inner functions are at most 10); length findings are Minor.
+- `mindmap.toggleReadOnly` and `mindmap.jumpToSource` default to `[]`: Mod+Alt+R is the AMD preset `view.toggleReading`, Mod+Alt+J is the compat preset for `proofread.cjk`. Palette-only.
+- Ruling: palette entries are pushed after the App Store filter instead of spread (spread broke contextual typing). Behavior-equivalent today: no filter matches `mindmap.*`. A future App Store filter could hide or show them unexpectedly.
+- Gate follow/back keys dispatch in the capture phase: core Enter and ArrowLeft handlers ran first and added a stray sibling. The bubble handler keeps the built-in-combo stop.
+- `Before`/`Arrow` types are derived from core signatures (not hand-written).
+- `withoutGateArrows`, read-only in graph view and merge-blocked in graph view: extras judged necessary to stop gate arrows leaking into saved content.
+- Ruling: duplicate union keeps topic-plus-structure twins dropped, but the canonical form is JSON-encoded and compared as strings (not 32-bit hashes). `subtreeHash` is `fnv1a(canonical)`, kept for the spec.
+- Ruling (reverses the above in part): canonical also compares content fields (note, link, image, tags, refId), so twins with different content stay visible. Canonical is built as nested arrays and stringified once (was exponential in depth).
+- Ruling: gates or arrows pointing into a dropped twin subtree are pruned or become broken, not redirected. Gates targeting the merged duplicate itself are retargeted to the kept node.
+- Ruling: merge clears undo history (`clearHistory`); merge is not undoable. Undo/redo wrappers re-sync gate labels.
+- Refresh (duplicate dialog) is not undoable.
+- Ruling: final review runs before Task 11, scope `86fd55d..HEAD`, so docs record the post-fix state.
+- Ruling: fix wave also took cheap minors: `missingRef` validated against `[\w-]+`, `pickWritePath` moved inside `try`, gate-arrow strip test.
+- Source-line mapping limitation: a topic that starts with `}` or `> ` serializes as a summary or arrow line, so its fence source line is not mapped.
+- Ruling: no worktree; desktop check recorded as pending, not passed.
+
+### Open items
+
+- Desktop (Tauri) check PENDING: export PNG, SVG, HTML, JSON, Markdown, Mermaid, adjacency through the native save dialog; open each file (Hebrew labels in PNG/SVG, HTML read-only, JSON parses); copy as plaintext into a note. In web, exports show no toast because `pickWritePath` rejects outside Tauri.
+- Parked, Phase 5 hardening: restrict `metadata.source.path`; validate orphaned-gate fallback `gate.target` against `[\w-]+` (a crafted `.mmap` could inject a newline into copy-as-plaintext).
+- Missing tests: `mindmap-gate-controller` unit tests (needs a `MindElixirInstance` fake); regression test for capture-phase key dispatch; `HTML_MARKER_MISSING` branch; JSON/HTML exports strip gate-arrow ids.
+- Check: SVG export as standalone file and as XHTML (DOMPurify output, `foreignObject` content namespace).
+- Deferred minors:
+  - Export: `MINDMAP_EXPORT_SPECS` mutable record; `Array.from(bytes)` for large PNG IPC; HTML export relies on package `JSON.stringify` byte identity (fails closed).
+  - Headings/text: empty topic gives `# ` trailing space; `LINE_BREAKS` misses lone `\r` and U+2028; `BLANK_LINE` name; `mermaidLabel` does not escape `#` or backtick.
+  - Canvas/palette: `activate()` on every mount (remount after external update steals the active slot in split view); `toggleReadOnly` mid topic edit calls `disableEdit` (core behavior unverified).
+  - Jump: `jumpTo` dispatches goto even if `openPath` failed or spawned an aux window; overlay `void jumpTo` unhandled rejection and runs when stale; pathless `MindmapView` source goes to the hidden editor (unreachable until Phase 5).
+  - Gates: `structuredClone` throws on Vue proxies (callers pass plain data); `findNode` O(n) per gate; `repairGate` read-only wrong toast, not limited to broken gates, bypasses undo; follow pushes history before select succeeds; menu labels fixed at setup; move/copy refusals silent; `syncLabels` drops multi-select; `ensureRef` fallback can collide with an existing refId; duplicate refIds last-wins; literal `=> x` topic becomes a gate (spec-consistent); `retargetGates` metadata cast and stale `missingRef`; gate inside a keep subtree may target its ancestor.
+  - Duplicates dialog: merge buttons share one accessible name; Escape needs focus, no `aria-modal`; `ids[0]` ancestor is a silent no-op; keep-as-gate not rejected (unreachable); stale `duplicateGroups` after external refresh; `unicode-bidi` on the whole dialog.
+  - Graph: `withoutGateArrows` drops user arrows with a `gate-arrow-` id prefix (impractical).
 
 ## Global Constraints
 
