@@ -1363,6 +1363,7 @@ export const en = {
     viewMap: 'Map',
     viewSource: 'Source',
     viewOutline: 'Outline',
+    outlineLocked: 'Editing Markdown → map is not available yet',
     sourceInvalid: 'Fix the JSON before leaving Source view',
     openedExistingMmap: 'Opened existing {name} (imported earlier)',
     toolbarUndo: 'Undo',

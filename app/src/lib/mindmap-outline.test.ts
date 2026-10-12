@@ -1,0 +1,23 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { mmapCodec } from './mindmap-format.ts';
+import { outlineLines, outlineMarkdownOf } from './mindmap-outline.ts';
+
+const codec = mmapCodec('plan.mmap');
+const DATA = { nodeData: { id: 'root', topic: 'Root', children: [{ id: 'a', topic: 'שלום' }, { id: 'b', topic: 'Child' }] } };
+
+test('outlineMarkdownOf renders topics as headings', () => {
+  const md = outlineMarkdownOf(codec.parse(codec.serialize(DATA)));
+  assert.match(md, /Root/);
+  assert.match(md, /שלום/);
+  assert.match(md, /Child/);
+  assert.ok(md.indexOf('Root') < md.indexOf('Child'));
+});
+
+test('outlineMarkdownOf returns empty text for unparsable input', () => {
+  assert.equal(outlineMarkdownOf(codec.parse('{ not json')), '');
+});
+
+test('outlineLines splits on newlines', () => {
+  assert.deepEqual(outlineLines('# A\n\n## B'), ['# A', '', '## B']);
+});

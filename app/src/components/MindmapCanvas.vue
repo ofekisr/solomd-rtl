@@ -34,8 +34,8 @@ const TOGGLE_NODE_ACTION = 'mindmap.toggleNode';
 const INTERACTIVE_SELECTOR = 'button, input, select, textarea, a[href], [contenteditable="true"], [role="button"], [role="menuitem"]';
 
 const props = withDefaults(
-  defineProps<{ content: string; codec: MindmapCodec; exportName?: string; fenceLine?: number; registerActive?: boolean }>(),
-  { exportName: 'mindmap', registerActive: true },
+  defineProps<{ content: string; codec: MindmapCodec; exportName?: string; fenceLine?: number; registerActive?: boolean; locked?: boolean }>(),
+  { exportName: 'mindmap', registerActive: true, locked: false },
 );
 const emit = defineEmits<{
   'update:content': [text: string];
@@ -76,10 +76,14 @@ function loadData(): MindElixirData | null {
   return parsed.data;
 }
 
+function canEdit(): boolean {
+  return !isReadOnly.value && !props.locked;
+}
+
 function syncNow(): void {
   if (syncTimer !== null) window.clearTimeout(syncTimer);
   syncTimer = null;
-  if (!mind || isGraphView.value || parseError.value !== null) return;
+  if (!mind || props.locked || isGraphView.value || parseError.value !== null) return;
   const serialized = props.codec.serialize(mind.getData(), displayOverride);
   if (serialized === pristineSerialized && props.content === '') return;
   lastSynced = serialized;
@@ -114,7 +118,7 @@ function mount(): void {
   mind = new MindElixir({
     el: host.value,
     direction: layoutDirectionFor(data),
-    editable: !isReadOnly.value,
+    editable: canEdit(),
     contextMenu: { extend: [...gates.menu, { name: t('mindmap.jumpToSourceMenu'), onclick: jumpToSource }] },
     before: gates.guards,
     toolBar: true,
@@ -190,7 +194,7 @@ async function applyExternalContent(): Promise<void> {
     const wasGraphView = isGraphView.value;
     resetGraphView();
     mind.refresh(data);
-    if (wasGraphView && !isReadOnly.value) mind.enableEdit();
+    if (wasGraphView && canEdit()) mind.enableEdit();
     gates.syncLabels();
     mind.clearHistory?.();
     emit('ready');
@@ -218,7 +222,7 @@ function leaveGraphView(instance: MindElixirInstance): void {
   if (graphBaseline) instance.refresh(graphBaseline);
   resetGraphView();
   gates.syncLabels();
-  if (!isReadOnly.value) instance.enableEdit();
+  if (canEdit()) instance.enableEdit();
 }
 
 function toggleGraphView(): void {
@@ -361,6 +365,12 @@ watch(() => props.content, (content) => {
   if (content === lastSynced) return;
   lastSynced = content;
   void applyExternalContent();
+});
+
+watch(() => props.locked, (isLocked) => {
+  if (!mind || isGraphView.value) return;
+  if (isLocked) mind.disableEdit();
+  else if (canEdit()) mind.enableEdit();
 });
 
 watch(() => settings.theme, () => {
