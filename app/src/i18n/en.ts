@@ -1369,6 +1369,7 @@ export const en = {
     exportDone: 'Mind map exported',
     exportFailed: 'Mind map export failed',
     readOnlyBadge: 'Read-only',
+    graphViewBadge: 'Graph view',
     noActiveMap: 'Click a mind map first',
     copiedPlaintext: 'Mind map copied as plaintext',
     noSource: 'This node has no source location',

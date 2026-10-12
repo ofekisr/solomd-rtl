@@ -51,3 +51,9 @@ test('file names and format kinds', () => {
   assert.equal(isImageFormat('svg'), true);
   assert.equal(isImageFormat('json'), false);
 });
+
+test('graph text formats', () => {
+  assert.equal(exportFileName('plan', 'adjacency'), 'plan.graph.json');
+  assert.ok(buildTextExport(data('A'), 'mermaid').startsWith('graph LR\n'));
+  assert.equal(JSON.parse(buildTextExport(data('A'), 'adjacency')).nodes.length, 4);
+});

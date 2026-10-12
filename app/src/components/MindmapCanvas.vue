@@ -20,6 +20,7 @@ import MindmapShortcutHelp from './MindmapShortcutHelp.vue';
 import MindmapDuplicates from './MindmapDuplicates.vue';
 import { findDuplicateGroups, mergeIntoGate, type DuplicateGroup } from '../lib/mindmap-duplicates';
 import { findNode } from '../lib/mindmap-gates';
+import { withGateArrows } from '../lib/mindmap-graph';
 
 const SYNC_DEBOUNCE_MS = 300;
 const TOPIC_EDITOR_ID = 'input-box';
@@ -40,6 +41,8 @@ const host = ref<HTMLElement | null>(null);
 const parseError = ref<string | null>(null);
 const isHelpOpen = ref(false);
 const isReadOnly = ref(false);
+const isGraphView = ref(false);
+let graphBaseline: MindElixirData | null = null;
 let mind: MindElixirInstance | null = null;
 let lastSynced = props.content;
 let syncTimer: number | null = null;
@@ -64,7 +67,7 @@ function loadData(): MindElixirData | null {
 function syncNow(): void {
   if (syncTimer !== null) window.clearTimeout(syncTimer);
   syncTimer = null;
-  if (!mind || parseError.value !== null) return;
+  if (!mind || isGraphView.value || parseError.value !== null) return;
   const serialized = props.codec.serialize(mind.getData());
   if (serialized === pristineSerialized && props.content === '') return;
   lastSynced = serialized;
@@ -152,6 +155,7 @@ function teardown(): void {
   stopCentering();
   if (syncTimer !== null) window.clearTimeout(syncTimer);
   syncTimer = null;
+  resetGraphView();
   mind?.destroy();
   mind = null;
 }
@@ -163,6 +167,7 @@ async function applyExternalContent(): Promise<void> {
     return;
   }
   if (mind) {
+    resetGraphView();
     mind.refresh(data);
     gates.syncLabels();
     mind.clearHistory?.();
@@ -171,6 +176,32 @@ async function applyExternalContent(): Promise<void> {
   await nextTick();
   if (mind) return;
   mount();
+}
+
+function resetGraphView(): void {
+  isGraphView.value = false;
+  graphBaseline = null;
+}
+
+function enterGraphView(instance: MindElixirInstance): void {
+  flushPendingSync();
+  graphBaseline = instance.getData();
+  instance.disableEdit();
+  instance.refresh(withGateArrows(graphBaseline));
+  isGraphView.value = true;
+}
+
+function leaveGraphView(instance: MindElixirInstance): void {
+  if (graphBaseline) instance.refresh(graphBaseline);
+  resetGraphView();
+  gates.syncLabels();
+  if (!isReadOnly.value) instance.enableEdit();
+}
+
+function toggleGraphView(): void {
+  if (!mind) return;
+  if (isGraphView.value) leaveGraphView(mind);
+  else enterGraphView(mind);
 }
 
 function toggleCurrentNode(): void {
@@ -203,7 +234,7 @@ function jumpToSource(): void {
   emit('jump-to-source', source);
 }
 
-const canvasActions = useMindmapCanvasActions({ getMind: () => mind, exportName: () => props.exportName, isReadOnly });
+const canvasActions = useMindmapCanvasActions({ getMind: () => mind, exportName: () => props.exportName, isReadOnly, isGraphView });
 
 const GATE_MENU_LABEL_KEYS: Record<GateMenuAction, string> = {
   'mindmap.markGateTarget': 'mindmap.gateMarkTarget',
@@ -221,7 +252,7 @@ function gateMenuLabels(): Record<GateMenuAction, string> {
 
 const gates = createGateController({
   getMind: () => mind,
-  isReadOnly: () => isReadOnly.value,
+  isReadOnly: () => isReadOnly.value || isGraphView.value,
   brokenLabel: () => t('mindmap.gateBroken'),
   notify: (key: GateNotice) => toasts.info(t(`mindmap.${key}`)),
   onChange: scheduleSync,
@@ -238,7 +269,7 @@ function topicOf(id: string): string {
 }
 
 function mergeDuplicate(keepId: string, dupId: string): void {
-  if (!mind || isReadOnly.value) return;
+  if (!mind || isReadOnly.value || isGraphView.value) return;
   const merged = mergeIntoGate(mind.getData(), keepId, dupId);
   if (!merged) return;
   mind.refresh(merged);
@@ -254,6 +285,7 @@ const actions: Record<string, () => void> = {
   'mindmap.shortcutHelp': () => { isHelpOpen.value = true; },
   'mindmap.jumpToSource': jumpToSource,
   'mindmap.findDuplicates': findDuplicates,
+  'mindmap.toggleGraphView': toggleGraphView,
   ...canvasActions,
   ...gates.actions,
 };
@@ -341,6 +373,7 @@ defineExpose({ flush: flushPendingSync });
     </div>
     <div v-else ref="host" class="mindmap-view__canvas" />
     <span v-if="isReadOnly" class="mindmap-view__badge">{{ t('mindmap.readOnlyBadge') }}</span>
+    <span v-if="isGraphView" class="mindmap-view__badge mindmap-view__badge--graph">{{ t('mindmap.graphViewBadge') }}</span>
     <MindmapDuplicates v-if="duplicateGroups" :groups="duplicateGroups" :topic-of="topicOf" @merge="mergeDuplicate" @close="duplicateGroups = null" />
     <MindmapShortcutHelp v-if="isHelpOpen" @close="isHelpOpen = false" />
   </div>
@@ -350,6 +383,7 @@ defineExpose({ flush: flushPendingSync });
 .mindmap-view { position: relative; width: 100%; height: 100%; }
 .mindmap-view__canvas { width: 100%; height: 100%; }
 .mindmap-view__badge { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--bg-secondary, #eee); opacity: 0.85; pointer-events: none; }
+.mindmap-view__badge--graph { inset-inline-end: 96px; }
 .mindmap-view__error { padding: 24px; }
 .mindmap-view__error pre { white-space: pre-wrap; opacity: 0.8; }
 .mindmap-view__canvas :deep(me-tpc),
