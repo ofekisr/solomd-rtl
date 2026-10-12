@@ -16,7 +16,8 @@ import { clearActiveMindmap, setActiveMindmap, type MindmapCanvasApi, type Mindm
 import { eventToCombo, resolveBindings } from '../lib/keybindings';
 import { useMindmapJump } from '../composables/useMindmapJump';
 import type { MindmapSource } from '../lib/mindmap-source';
-import MindmapToolbar from './MindmapToolbar.vue';
+import MindmapRail, { type RailState } from './MindmapRail.vue';
+import { MINDMAP_LAYOUT } from '../lib/mindmap-direction';
 import { buildNodePatch, type NodeField } from '../lib/mindmap-node-style';
 import MindmapCanvas from './MindmapCanvas.vue';
 import MindmapSidePanel from './MindmapSidePanel.vue';
@@ -60,6 +61,7 @@ function partOrder(part: CellPart): number {
 
 const isSplit = computed(() => parts.value.length > 1);
 const isPanelVisible = computed(() => has('map') && settings.mindmapPanelOpen);
+const hasCanvas = computed(() => has('map') && canvas.value?.hasMap !== false);
 const parseSource = ref(props.tab.content);
 let parseTimer: number | null = null;
 
@@ -83,6 +85,16 @@ const liveJsonError = computed<string | null>(() => {
   return parsedContent.value.error;
 });
 const isMapLocked = computed(() => liveJsonError.value !== null);
+const railState = computed<RailState>(() => ({
+  lens: lens.value,
+  hasCanvas: hasCanvas.value,
+  direction: canvas.value?.direction ?? MINDMAP_LAYOUT.SIDE,
+  isPanelOpen: settings.mindmapPanelOpen,
+  isReadOnly: canvas.value?.isReadOnly ?? false,
+  isGraphView: canvas.value?.isGraphView ?? false,
+  isLocked: isMapLocked.value,
+  isFocused: canvas.value?.isFocused ?? false,
+}));
 const isPanelEditable = computed(() => !(canvas.value?.isReadOnly || canvas.value?.isGraphView || isMapLocked.value) && canvas.value?.hasMap === true);
 const LIVE_EDIT_VIEW: ViewMode = 'liveEdit';
 const snippets = ref<Snippet[]>([]);
@@ -266,18 +278,8 @@ defineExpose({ setLens, canvas, lens });
 
 <template>
   <div class="mindmap-shell" @keydown.capture="onViewKey" @focusin="activate" @pointerdown="activate">
-    <MindmapToolbar
-      :lens="lens"
-      :has-map="has('map')"
-      :is-panel-open="settings.mindmapPanelOpen"
-      :is-read-only="canvas?.isReadOnly ?? false"
-      :is-locked="isMapLocked"
-      :is-graph-view="canvas?.isGraphView ?? false"
-      @set-lens="setLens"
-      @run="(id) => handle.run(id)"
-      @toggle-panel="settings.toggleMindmapPanel()"
-    />
     <div class="mindmap-shell__body">
+      <MindmapRail v-if="!hasCanvas" :state="railState" @set-lens="setLens" @run="(id) => handle.run(id)" @toggle-panel="settings.toggleMindmapPanel()" />
       <div class="mindmap-shell__cell" :class="{ 'mindmap-shell__cell--split': isSplit }">
         <div v-if="has('json')" class="mindmap-shell__source" :style="{ order: partOrder('json') }">
           <div v-if="jsonError" class="mindmap-shell__error" role="alert">{{ jsonError }}</div>
@@ -298,7 +300,11 @@ defineExpose({ setLens, canvas, lens });
             @open-as-text="openAsText"
             @jump-to-source="onJump"
             @ready="onCanvasReady"
-          />
+          >
+            <template #rail>
+              <MindmapRail :state="railState" @set-lens="setLens" @run="(id) => handle.run(id)" @toggle-panel="settings.toggleMindmapPanel()" />
+            </template>
+          </MindmapCanvas>
           <MindmapSnippets v-if="canvas?.hasMap !== false" :snippets="snippets" :editable="canEditSnippets" @change="setSnippets" />
         </div>
         <template v-if="has('outlineText')">
