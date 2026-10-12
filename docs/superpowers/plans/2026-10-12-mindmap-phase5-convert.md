@@ -1,4 +1,4 @@
-# Mindmap Phase 5a — Structural md→mindmap Conversion Implementation Plan
+# Mindmap Phase 5 — Structural md→mindmap Conversion Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -8,12 +8,12 @@
 
 **Tech Stack:** Vue 3, Pinia, TypeScript, CodeMirror 6, Tauri 2, `mind-elixir` 5.15.1, `node:test`.
 
-**Spec:** `docs/superpowers/specs/2026-10-11-mindmap-design.md` — sections "Phase 5", "Split", "5a structural rules", "5a folder conversion", "5a output and commands", "5a carry-overs from Phase 4". Handoff: `docs/superpowers/plans/2026-10-11-mindmap-phase5-handoff.md`.
+**Spec:** `docs/superpowers/specs/2026-10-11-mindmap-design.md` — section "Phase 5" (Structural rules, Folder conversion, Output and commands, Carry-overs from Phase 4). Handoff: `docs/superpowers/plans/2026-10-11-mindmap-phase5-handoff.md`.
 
 ## Global Constraints
 
 - Branch `feat/mindmap`; no worktree; never push.
-- pnpm in `app/`, exact version pins, commit `app/pnpm-lock.yaml` with any dependency change. 5a adds no dependency.
+- pnpm in `app/`, exact version pins, commit `app/pnpm-lock.yaml` with any dependency change. Phase 5 adds no dependency.
 - TypeScript: no `any`, no zod, constants for every literal value, functions ≤ ~20 lines, early returns, no comments except non-obvious "why".
 - `src/lib` imports between lib files use the `.ts` extension (node test runner requirement).
 - Unit tests: `cd app && node --test --experimental-strip-types src/lib/<file>.test.ts`.
@@ -66,7 +66,7 @@
   ```
   `line` is 1-based and offset by `firstLine - 1` (default `firstLine = 1`).
 
-Rules (spec "5a structural rules"):
+Rules (spec "Structural rules"):
 - Front matter: only when line 1 (of the scanned source) is `---`; skip through the next `---` or `...` line.
 - Code fence: `^ {0,3}(`{3,}|~{3,})`; inside it, skip until a line `^ {0,3}(X{n,})\s*$` with the same char and length ≥ opener.
 - HTML comment: a line whose trimmed start is `<!--` skips through the line containing `-->` (same line allowed).
@@ -998,18 +998,18 @@ git commit -m "test(mindmap): gate controller and capture-phase key dispatch"
 ### Task 8: Verification, docs, bump
 
 **Files:**
-- Modify: this plan (Status), `docs/superpowers/specs/2026-10-11-mindmap-design.md` (Status row 5a), `app/package.json`, `app/src-tauri/Cargo.toml`, `app/src-tauri/tauri.conf.json`, `app/src-tauri/Cargo.lock` (`solomd` entry only)
+- Modify: this plan (Status), `docs/superpowers/specs/2026-10-11-mindmap-design.md` (Status row 5), `app/package.json`, `app/src-tauri/Cargo.toml`, `app/src-tauri/tauri.conf.json`, `app/src-tauri/Cargo.lock` (`solomd` entry only)
 
 - [ ] **Step 1:** Full sweep: `cd app && node --test --experimental-strip-types src/lib/mindmap-*.test.ts src/lib/fence-scan.test.ts src/lib/fence-languages.test.ts`; record per-file counts.
 - [ ] **Step 2:** `cd app && pnpm build` → OK.
 - [ ] **Step 3:** Browser check of Tasks 5-6 paths once more after the final review fixes.
 - [ ] **Step 4:** Desktop (Tauri) check if runnable: Phases 1-4 pending list (Phase 4 Status, Open items) plus folder conversion on a real folder with Hebrew files, an `epub: skip=true` file, and a subfolder; Jump to Source from a folder map. If not runnable, record PENDING; claim nothing.
-- [ ] **Step 5:** Bump `4.14.12` → `4.14.13` in the four files; update spec Status row 5a to `✅ Done <DD-MM-YY> (4.14.13) — plan docs/superpowers/plans/2026-10-12-mindmap-phase5a-convert.md`; fill this plan's Status (tasks/commits table, tests, browser, desktop, Deviations, Open items) shaped like Phase 4's.
+- [ ] **Step 5:** Bump `4.14.12` → `4.14.13` in the four files; update spec Status row 5 to `✅ Done <DD-MM-YY> (4.14.13) — plan docs/superpowers/plans/2026-10-12-mindmap-phase5-convert.md`; fill this plan's Status (tasks/commits table, tests, browser, desktop, Deviations, Open items) shaped like Phase 4's.
 - [ ] **Step 6: Commit**
 
 ```bash
 git add -A docs app/package.json app/src-tauri/Cargo.toml app/src-tauri/tauri.conf.json app/src-tauri/Cargo.lock
-git commit -m "chore(release): mindmap phase 5a docs and bump version to 4.14.13"
+git commit -m "chore(release): mindmap phase 5 docs and bump version to 4.14.13"
 ```
 
 ---
@@ -1059,17 +1059,18 @@ COMPLETE. 12-10-26, version 4.14.13. Branch `feat/mindmap`, unpushed.
 ### Open items
 
 - Desktop (Tauri) check PENDING (list above).
-- Notes are stored but not shown in the canvas (Mind Elixir core has no note UI): 5b or follow-up.
+- Notes are stored but not shown in the canvas (Mind Elixir core has no note UI): Phase 6 or follow-up.
 - Fence output drops notes.
 - Root drift: source paths are relative to the workspace root at conversion time; a map converted after the root drifted keeps the drifted-root paths.
 - Plain Windows editor converts the whole document only.
 - Pre-existing, out of scope: Cmd+Shift+K also runs CodeMirror `deleteLine`; separate task suggested.
 - Parked: folder dialog `pendingLargeCount` not reset on folder change (stale "Convert anyway" skips re-confirm); `convertDone` toast says "Mind map inserted" for `.mmap` output; an indented code block with a bare fence and no closer hides the rest of the file (intended trade-off); `fileTitle` converts each file twice; front matter edge at selection line 1; `fenceRanges` ignore front matter.
+- Fixed in the final fix wave (no longer open): indented fences under list items, `ensureRef` ref check, `getLineSelection` doc-comment placement, `isTruncated` reset, interpolated caps in `en.ts`.
 - Deferred minors:
-  - Scanner (T1): fences under list items indented 4+ (partly addressed by any-indent fences); backtick in a backtick info string accepted; lone `-`/`*`/`#` line becomes text; `__init__` becomes `init` in `plainInline`; test gaps (CRLF, `...` closer, unterminated front matter, single-line comment, `~~~` vs backticks, table in quote, `1)`, nested quotes).
+  - Scanner (T1): backtick in a backtick info string accepted; lone `-`/`*`/`#` line becomes text; `__init__` becomes `init` in `plainInline`; test gaps (CRLF, `...` closer, unterminated front matter, single-line comment, `~~~` vs backticks, table in quote, `1)`, nested quotes).
   - Tree builder (T2): `sectionRange` lastLine counts the trailing empty line at EOF; `addText` calls `headingTop()` twice, `canContinue` partly redundant; no test for heading-stack popping beyond one level.
   - Merge (T3): grouping tests miss group/ungrouped/same-group and adjacent different groups; redundant `openGroup?.children` narrowing.
-  - Source/jump (T4): double toast when `openPath` fails then tab mismatch; strict path compare false negatives (case-insensitive FS, symlinks); symlink escape not caught lexically; `ensureRef` mutates `refId` on the clone before the `REF_PATTERN` check.
-  - Commands (T5): `getLineSelection` sits under `getViewLine`'s doc comment (`Editor.vue`); `resolveRange` guards untested; `insertBlockAfterLine` LF-only on CRLF docs; `MINDMAP_CONVERT_ACTIONS` ids typed `string`.
-  - Folder dialog (T6): Escape not stopped and no focus trap; sequential reads without progress; `load()` catch does not reset `isTruncated`; "500" hardcoded in `en.ts` vs `MAX_FILES`.
+  - Source/jump (T4): double toast when `openPath` fails then tab mismatch; strict path compare false negatives (case-insensitive FS, symlinks); symlink escape not caught lexically.
+  - Commands (T5): `resolveRange` guards untested; `insertBlockAfterLine` LF-only on CRLF docs; `MINDMAP_CONVERT_ACTIONS` ids typed `string`.
+  - Folder dialog (T6): Escape not stopped and no focus trap; sequential reads without progress.
   - Key dispatch (T7): `buildHarness` ~24 lines; test 3 not mutation-checked; no tests for chord follow-up or ignored-target path.

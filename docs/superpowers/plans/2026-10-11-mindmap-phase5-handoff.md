@@ -1,6 +1,6 @@
 # Mindmap Phase 5 — Convert md→mindmap: Handoff
 
-> **Status (12-10-26):** 5a (structural convert) is done in `4.14.13`; plan `docs/superpowers/plans/2026-10-12-mindmap-phase5a-convert.md`. Next: 5b (AI, provenance, Regenerate) as `4.14.14`. The Phase 4 carry-overs listed below are done, except the desktop (Tauri) check, which is still PENDING.
+> **Status (12-10-26):** Superseded. The structural half shipped as Phase 5 (`4.14.13`, plan `docs/superpowers/plans/2026-10-12-mindmap-phase5-convert.md`). The AI half is now Phase 6: start from `docs/superpowers/plans/2026-10-12-mindmap-phase6-handoff.md`. The Phase 4 carry-overs below are done, except the desktop (Tauri) check.
 
 Self-contained continuation prompt for a fresh session. Read the spec first: `docs/superpowers/specs/2026-10-11-mindmap-design.md` (Phase 5 section, Guiding rule).
 

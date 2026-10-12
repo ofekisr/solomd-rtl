@@ -10,8 +10,8 @@ Approved in conversation on 11-10-26. Branch: `feat/mindmap`.
 | 2 XMind | ✅ Done 11-10-26 (`4.14.10`) — plan `docs/superpowers/plans/2026-10-11-mindmap-phase2-xmind.md` |
 | 3 Markdown render | ✅ Done 12-10-26 (`4.14.11`) — plan `docs/superpowers/plans/2026-10-11-mindmap-phase3-fence.md` |
 | 4 Map UI | ✅ Done 12-10-26 (`4.14.12`) — plan `docs/superpowers/plans/2026-10-11-mindmap-phase4-map-ui.md` |
-| 5a Convert md→mindmap, structural | ✅ Done 12-10-26 (`4.14.13`) — plan `docs/superpowers/plans/2026-10-12-mindmap-phase5a-convert.md` |
-| 5b Convert md→mindmap, AI | Pending (`4.14.14`) |
+| 5 Convert md→mindmap (structural) | ✅ Done 12-10-26 (`4.14.13`) — plan `docs/superpowers/plans/2026-10-12-mindmap-phase5-convert.md` |
+| 6 Convert md→mindmap (AI) | Ready to start (`4.14.14`) — handoff `docs/superpowers/plans/2026-10-12-mindmap-phase6-handoff.md` |
 
 ## Purpose
 
@@ -42,7 +42,8 @@ Phase order after Phase 1 may change when a package makes a later phase cheap.
 | 2 | XMind | Open `.xmind` as an imported map; saves go to a sibling `.mmap` (Save As), `.xmind` is never written |
 | 3 | Markdown render | ```` ```mindmap ```` fences render in preview and write edits back |
 | 4 | Map UI | Export, copy plaintext, map→markdown, jump to source, read-only toggle, gates, palette commands |
-| 5 | Convert md→mindmap | Structural and AI conversion of a selection, section, document, or folder |
+| 5 | Convert md→mindmap (structural) | Offline conversion of a selection, section, document, or folder to a `.mmap` or fence |
+| 6 | Convert md→mindmap (AI) | AI conversion with streaming render, provenance, and Regenerate |
 
 ## Phase 1 — `.mmap` file support
 
@@ -199,74 +200,73 @@ Export, gates, conversion, fences, `.xmind`.
 | Palette | Commands reach the focused map through the `mindmap-active` registry; palette-only actions use `defaults: []` |
 | Merge | Merge into gate is not undoable; undo history is cleared after it |
 
-## Phase 5 — Convert md→mindmap
+## Phase 5 — Convert md→mindmap (structural)
+
+Offline, instant conversion of a selection, section, document, or folder. Headings become branches, lists become leaves.
 
 | ebook-to-mindmap | SoloMD |
 |---|---|
 | Book | Folder of `.md` files |
 | Chapter | `.md` file or heading section |
-| TOC | `extractOutline()` |
-| AI provider | Existing `ai-providers.ts`, keychain keys, streaming `ai_rewrite` |
+| TOC | Heading structure (scanner in `lib/mindmap-md-scan.ts`) |
 
-- Structural conversion: headings become branches, lists become leaves; offline and instant.
-- AI conversion: reuse the ebook-to-mindmap plaintext prompt (summaries `}:N`, arrows, quotes node); stream with a 500 ms partial render.
-- Scope: selection, section, document, folder. Folder maps merge per-file maps under one root, prefixing ids per file and keeping arrows.
-- Folder options: chapter picker, whole-word skip keywords, grouping files into one unit.
-- Output: a new `.mmap` or an inserted fence. The `.mmap` stores a source hash plus model, prompt, and language; a mismatch offers Regenerate.
-- Commands registered in `useCommands.ts` with i18n keys under `cmd.*`.
-
-### Split (decided 12-10-26)
-
-| Sub-phase | Scope | Version |
-|---|---|---|
-| 5a Structural | Structural conversion of all four scopes, folder merge, `.mmap`/fence output, Phase 4 carry-overs | `4.14.13` |
-| 5b AI | AI conversion, streaming partial render, provenance (source hash, model, prompt, language), Regenerate | `4.14.14` |
-
-### 5a structural rules
+### Structural rules
 
 Markdown conventions follow `epub-builder` (`~/scripts/epub-builder/docs/writing-guide.md`).
 
 | Input | Map result |
 |---|---|
-| Code fence (backtick or tilde; closes on a same-char marker at least as long) | Skipped; nothing inside is parsed |
-| Front matter, HTML comments, `<!-- epub: … -->` directives, `:::` fenced-div marker lines, tables | Skipped (fenced-div content is parsed normally) |
-| Heading `^ {0,3}#{1,6}\s+…` | Branch under the nearest open heading of lower level; trailing `{…}` attribute block stripped from the topic |
+| Code fence (backtick or tilde, any indent; closes on a same-char marker at least as long) | Skipped; nothing inside is parsed |
+| Front matter (document start only), HTML comments, `<!-- epub: … -->` directives, `:::` fenced-div marker lines, tables | Skipped (fenced-div content is parsed normally) |
+| Heading `^ {0,3}#{1,6}\s+…` | Branch under the nearest open heading of lower level; trailing `{…}` attribute block stripped; attribute-only headings dropped |
 | List item (`-`, `*`, `+`, `1.`, `1)`) | Node under the current heading or parent item; nesting by indent |
 | Task item `[ ]` / `[x]` | Topic prefixed `☐ ` / `☑ ` |
-| Paragraph, blockquote, `[text]{.subheading}`, list continuation text | Appended to the owning node's `note` (plain text, blank-line separated) |
-| Document root | The sole H1 when the document has exactly one (its children lift up); else the file stem |
-| Section root | The heading at the cursor, with its subtree |
-| Selection root | The topic `Selection`, replaced by the heading when the selection holds a single top-level heading (same lift rule as the document root) |
+| Paragraph, blockquote, `[text]{.subheading}`, list continuation text | Appended to the owning node's `note` (plain text, blank-line separated); indented continuation goes to the nearest shallower open item |
+| Inline markup | Links, images, `**`, `__`, `~~`, backticks and footnote refs `[^n]` stripped; leading `>`, `=>`, `}…` removed so fence output stays plain nodes |
+| Root | A sole top-level heading (any level, no text before it) is lifted to root; else the file stem (document, section) or `Selection` |
 
 - Every node gets `metadata.source = { path?, line }`; `path` is workspace-relative and omitted when no workspace is open or the file is unsaved.
-- Node ids match `[\w-]+`: `n<k>` per conversion; folder merge prefixes `f<NN>-` per file and rewrites arrow `from`/`to`, summary `parent`, and `metadata.gate.target` (generic, reused by 5b).
+- Node ids match `[\w-]+`: `n<k>` per conversion; folder merge prefixes `f<NN>-` per file, groups get `g<NN>`, and arrow `from`/`to`, summary `parent`, `metadata.refId` and `metadata.gate.target` are rewritten (generic, reused by Phase 6).
 
-### 5a folder conversion
+### Folder conversion
 
-- Files: `.md` under the chosen folder (default: workspace root), recursive, ordered lexically by relative path.
-- Dialog: per-file checkbox (chapter picker); whole-word, case-insensitive skip keywords matched against file stem and H1; files with `<!-- epub: skip=true -->` start unchecked; "Group by subfolder" puts each subfolder's files under one unit node.
-- Per-file node: the file's sole H1, else its stem. Root: the folder name.
-- Limits: files over 2 MB are skipped with a note; over 5000 nodes the dialog warns before converting.
+- Files: `.md` / `.markdown` under the chosen folder (default: workspace root), recursive, ordered lexically by relative path; dot-folders and `node_modules` skipped; first 500 files.
+- Dialog: per-file checkbox (chapter picker); whole-word, case-insensitive skip keywords matched against file stem and title; files with `<!-- epub: skip=true -->` start unchecked; "Group by subfolder" puts each subfolder's files under one unit node.
+- Per-file node and dialog title: the same lift rule as a document. Root: the folder name.
+- Limits: files over 2 MiB (bytes) are skipped with a note; over 5000 nodes the dialog asks for an inline confirm.
 
-### 5a output and commands
+### Output and commands
 
 | Action | Default | Output |
 |---|---|---|
 | `mindmap.convertDocument` | Mod+Alt+Shift+M (Mod+Shift+M is `fmt.code`, Mod+Alt+M is `editor.formulaEditor`) | New unsaved `.mmap` tab, `fileName` from `mmapPathFor` |
 | `mindmap.convertSection`, `mindmap.convertSelection` | none | New unsaved `.mmap` tab |
-| `mindmap.insertFenceFromSection`, `mindmap.insertFenceFromSelection` | none | ```` ```mindmap ```` fence inserted after the section / selection |
+| `mindmap.insertFenceFromSection`, `mindmap.insertFenceFromSelection` | none | ```` ```mindmap ```` fence inserted after the section / selection (moved past an open code fence) |
 | `mindmap.convertFolder` | none | Folder dialog, then a new unsaved `.mmap` tab |
 
 - Actions use `category: 'tools'`, global scope: they act on markdown tabs, and `category: 'mindmap'` would route them through the active-map registry.
-- Fence output carries no `metadata.source`; jump uses the existing fence line mapping.
+- The editor flushes its pending content before a conversion reads it.
+- Fence output carries no `metadata.source` or notes; jump uses the existing fence line mapping.
 - Every converted map passes through `sanitizeMindmapData` before it reaches a tab or fence.
 
-### 5a carry-overs from Phase 4
+### Carry-overs from Phase 4
 
-- `readNodeSource` rejects absolute paths, drive letters, backslashes, and `..` segments; `jumpTo` resolves the path against the workspace root.
-- `jumpTo` dispatches goto only after `openPath` succeeds in the focused pane; a pathless source in `MindmapView` shows a toast instead of targeting a hidden editor.
-- Orphaned-gate fallback `gate.target` validated against `[\w-]+`.
-- Tests: gate controller (with a `MindElixirInstance` fake), capture-phase key dispatch.
+- `readNodeSource` rejects absolute paths, drive letters, schemes, backslashes, and `.`/`..` segments; `jumpTo` resolves the path against the workspace root, opens only `.md`/`.markdown`, does not reveal in the file tree, and dispatches goto only when the opened tab matches.
+- A pathless source in `MindmapView` shows a toast instead of targeting a hidden editor.
+- Orphaned-gate fallback and gate refs validated against `[\w-]+`.
+- Tests: gate controller (with a `MindElixirInstance` fake), capture-phase key dispatch (`lib/mindmap-key-dispatch.ts`).
+
+## Phase 6 — Convert md→mindmap (AI)
+
+| ebook-to-mindmap | SoloMD |
+|---|---|
+| AI provider | Existing `ai-providers.ts`, keychain keys, streaming `ai_rewrite` |
+
+- AI conversion: reuse the ebook-to-mindmap plaintext prompt (summaries `}:N`, arrows, quotes node); stream with a 500 ms partial render.
+- Same scopes, folder merge, and outputs as Phase 5; reuses its scanner, merge (`prefixMindmapIds`, `mergeMindmaps`), folder dialog, and commands pattern.
+- Provenance: the `.mmap` stores a source hash plus model, prompt, and language; a mismatch offers Regenerate.
+- Commands registered in `useCommands.ts` with i18n keys under `cmd.*`.
+- Open decisions are listed in the Phase 6 handoff.
 
 ### Not adopted from ebook-to-mindmap
 
