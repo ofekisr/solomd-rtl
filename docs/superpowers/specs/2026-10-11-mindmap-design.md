@@ -10,7 +10,8 @@ Approved in conversation on 11-10-26. Branch: `feat/mindmap`.
 | 2 XMind | ✅ Done 11-10-26 (`4.14.10`) — plan `docs/superpowers/plans/2026-10-11-mindmap-phase2-xmind.md` |
 | 3 Markdown render | ✅ Done 12-10-26 (`4.14.11`) — plan `docs/superpowers/plans/2026-10-11-mindmap-phase3-fence.md` |
 | 4 Map UI | ✅ Done 12-10-26 (`4.14.12`) — plan `docs/superpowers/plans/2026-10-11-mindmap-phase4-map-ui.md` |
-| 5 Convert md→mindmap | Pending |
+| 5a Convert md→mindmap, structural | Pending (`4.14.13`) |
+| 5b Convert md→mindmap, AI | Pending (`4.14.14`) |
 
 ## Purpose
 
@@ -213,6 +214,59 @@ Export, gates, conversion, fences, `.xmind`.
 - Folder options: chapter picker, whole-word skip keywords, grouping files into one unit.
 - Output: a new `.mmap` or an inserted fence. The `.mmap` stores a source hash plus model, prompt, and language; a mismatch offers Regenerate.
 - Commands registered in `useCommands.ts` with i18n keys under `cmd.*`.
+
+### Split (decided 12-10-26)
+
+| Sub-phase | Scope | Version |
+|---|---|---|
+| 5a Structural | Structural conversion of all four scopes, folder merge, `.mmap`/fence output, Phase 4 carry-overs | `4.14.13` |
+| 5b AI | AI conversion, streaming partial render, provenance (source hash, model, prompt, language), Regenerate | `4.14.14` |
+
+### 5a structural rules
+
+Markdown conventions follow `epub-builder` (`~/scripts/epub-builder/docs/writing-guide.md`).
+
+| Input | Map result |
+|---|---|
+| Code fence (backtick or tilde; closes on a same-char marker at least as long) | Skipped; nothing inside is parsed |
+| Front matter, HTML comments, `<!-- epub: … -->` directives, `:::` fenced-div marker lines, tables | Skipped (fenced-div content is parsed normally) |
+| Heading `^ {0,3}#{1,6}\s+…` | Branch under the nearest open heading of lower level; trailing `{…}` attribute block stripped from the topic |
+| List item (`-`, `*`, `+`, `1.`, `1)`) | Node under the current heading or parent item; nesting by indent |
+| Task item `[ ]` / `[x]` | Topic prefixed `☐ ` / `☑ ` |
+| Paragraph, blockquote, `[text]{.subheading}`, list continuation text | Appended to the owning node's `note` (plain text, blank-line separated) |
+| Document root | The sole H1 when the document has exactly one (its children lift up); else the file stem |
+| Section root | The heading at the cursor, with its subtree |
+| Selection root | First heading in the selection, else the topic `Selection` |
+
+- Every node gets `metadata.source = { path?, line }`; `path` is workspace-relative and omitted when no workspace is open or the file is unsaved.
+- Node ids match `[\w-]+`: `n<k>` per conversion; folder merge prefixes `f<NN>-` per file and rewrites arrow `from`/`to`, summary `parent`, and `metadata.gate.target` (generic, reused by 5b).
+
+### 5a folder conversion
+
+- Files: `.md` under the chosen folder (default: workspace root), recursive, ordered lexically by relative path.
+- Dialog: per-file checkbox (chapter picker); whole-word, case-insensitive skip keywords matched against file stem and H1; files with `<!-- epub: skip=true -->` start unchecked; "Group by subfolder" puts each subfolder's files under one unit node.
+- Per-file node: the file's sole H1, else its stem. Root: the folder name.
+- Limits: files over 2 MB are skipped with a note; over 5000 nodes the dialog warns before converting.
+
+### 5a output and commands
+
+| Action | Default | Output |
+|---|---|---|
+| `mindmap.convertDocument` | Mod+Alt+Shift+M (Mod+Shift+M is `fmt.code`, Mod+Alt+M is `editor.formulaEditor`) | New unsaved `.mmap` tab, `fileName` from `mmapPathFor` |
+| `mindmap.convertSection`, `mindmap.convertSelection` | none | New unsaved `.mmap` tab |
+| `mindmap.insertFenceFromSection`, `mindmap.insertFenceFromSelection` | none | ```` ```mindmap ```` fence inserted after the section / selection |
+| `mindmap.convertFolder` | none | Folder dialog, then a new unsaved `.mmap` tab |
+
+- Actions use `category: 'tools'`, global scope: they act on markdown tabs, and `category: 'mindmap'` would route them through the active-map registry.
+- Fence output carries no `metadata.source`; jump uses the existing fence line mapping.
+- Every converted map passes through `sanitizeMindmapData` before it reaches a tab or fence.
+
+### 5a carry-overs from Phase 4
+
+- `readNodeSource` rejects absolute paths, drive letters, backslashes, and `..` segments; `jumpTo` resolves the path against the workspace root.
+- `jumpTo` dispatches goto only after `openPath` succeeds in the focused pane; a pathless source in `MindmapView` shows a toast instead of targeting a hidden editor.
+- Orphaned-gate fallback `gate.target` validated against `[\w-]+`.
+- Tests: gate controller (with a `MindElixirInstance` fake), capture-phase key dispatch.
 
 ### Not adopted from ebook-to-mindmap
 
