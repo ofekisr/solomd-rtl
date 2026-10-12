@@ -167,8 +167,10 @@ async function applyExternalContent(): Promise<void> {
     return;
   }
   if (mind) {
+    const wasGraphView = isGraphView.value;
     resetGraphView();
     mind.refresh(data);
+    if (wasGraphView && !isReadOnly.value) mind.enableEdit();
     gates.syncLabels();
     mind.clearHistory?.();
     return;
