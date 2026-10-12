@@ -274,6 +274,7 @@ defineExpose({ setLens, canvas, lens });
             :export-name="exportName"
             :register-active="false"
             :locked="isMapLocked"
+            :focus-key="tab.id"
             @update:content="onUpdate"
             @selection="(nodes) => (selected = nodes.map((n) => ({ ...n })))"
             @open-as-text="openAsText"

@@ -1357,6 +1357,8 @@ export const en = {
     canvasFit: 'Fit to window',
     canvasRoot: 'Go to root',
     duplicatesChip: '{count} duplicates',
+    focusStripLabel: 'Map path',
+    focusWholeMap: 'Show whole map',
     snippetsTitle: 'Snippets',
     snippetsEmpty: 'No snippets yet',
     snippetsCollapse: 'Hide snippets',

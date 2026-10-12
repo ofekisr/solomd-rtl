@@ -24,6 +24,8 @@ import MindmapDuplicates from './MindmapDuplicates.vue';
 import { findDuplicateGroups, mergeIntoGate, type DuplicateGroup } from '../lib/mindmap-duplicates';
 import { findNode } from '../lib/mindmap-gates';
 import { withGateArrows } from '../lib/mindmap-graph';
+import { buildFreezeStrip, getTabFocus, pathTo, setTabFocus, type FreezeStrip } from '../lib/mindmap-focus';
+import MindmapFreezeStrip from './MindmapFreezeStrip.vue';
 
 const SYNC_DEBOUNCE_MS = 300;
 const TOPIC_EDITOR_ID = 'input-box';
@@ -36,7 +38,7 @@ const TOGGLE_NODE_ACTION = 'mindmap.toggleNode';
 const INTERACTIVE_SELECTOR = 'button, input, select, textarea, a[href], [contenteditable="true"], [role="button"], [role="menuitem"]';
 
 const props = withDefaults(
-  defineProps<{ content: string; codec: MindmapCodec; exportName?: string; fenceLine?: number; registerActive?: boolean; locked?: boolean }>(),
+  defineProps<{ content: string; codec: MindmapCodec; exportName?: string; fenceLine?: number; registerActive?: boolean; locked?: boolean; focusKey?: string }>(),
   { exportName: 'mindmap', registerActive: true, locked: false },
 );
 const emit = defineEmits<{
@@ -55,6 +57,9 @@ const parseError = ref<string | null>(null);
 const isHelpOpen = ref(false);
 const isReadOnly = ref(false);
 const isGraphView = ref(false);
+const focusId = ref<string | null>(props.focusKey ? getTabFocus(props.focusKey) : null);
+const strip = ref<FreezeStrip | null>(null);
+let isApplyingFocus = false;
 let graphBaseline: MindElixirData | null = null;
 let mind: MindElixirInstance | null = null;
 let displayOverride: MapDisplay = {};
@@ -125,7 +130,7 @@ let duplicateTimer: number | null = null;
 
 function countDuplicates(): void {
   duplicateTimer = null;
-  duplicateCount.value = mind ? findDuplicateGroups(mind.nodeData).length : 0;
+  duplicateCount.value = mind ? findDuplicateGroups(fullRoot(mind)).length : 0;
 }
 
 function scheduleDuplicateCount(): void {
@@ -169,6 +174,8 @@ function mount(): void {
   syncAfterHistoryJumps(mind);
   sanitizeCopiedNodes(mind);
   guardRemovedNodes(mind);
+  wrapFocus(mind);
+  reapplyFocus();
   activate();
   emit('ready');
 }
@@ -182,6 +189,8 @@ function onOperation(info: { name: string }): void {
   gates.syncLabels();
   scheduleSync();
   scheduleDuplicateCount();
+  if (focusId.value !== null && mind && !pathTo(fullRoot(mind), focusId.value)) focusById(null);
+  else refreshStrip();
   emitSelection();
 }
 
@@ -194,6 +203,7 @@ function syncAfterHistoryJumps(instance: MindElixirInstance): void {
     scheduleSync();
     scheduleDuplicateCount();
     emitSelection();
+    refreshStrip();
   };
   instance.redo = () => {
     if (props.locked) return;
@@ -202,7 +212,77 @@ function syncAfterHistoryJumps(instance: MindElixirInstance): void {
     scheduleSync();
     scheduleDuplicateCount();
     emitSelection();
+    refreshStrip();
   };
+}
+
+function fullRoot(instance: MindElixirInstance): NodeObj {
+  return instance.getData().nodeData;
+}
+
+function rememberFocus(id: string | null): void {
+  focusId.value = id;
+  if (props.focusKey) setTabFocus(props.focusKey, id);
+}
+
+function refreshStrip(): void {
+  strip.value = mind && props.focusKey ? buildFreezeStrip(fullRoot(mind), focusId.value) : null;
+}
+
+function wrapFocus(instance: MindElixirInstance): void {
+  const { focusNode, cancelFocus } = instance;
+  instance.focusNode = (tpc) => {
+    focusNode.call(instance, tpc);
+    if (!isApplyingFocus) rememberFocus(tpc.nodeObj.id);
+    refreshStrip();
+  };
+  instance.cancelFocus = () => {
+    cancelFocus.call(instance);
+    if (!isApplyingFocus) rememberFocus(null);
+    refreshStrip();
+  };
+}
+
+function findLiveTopic(instance: MindElixirInstance, id: string): Topic | null {
+  try {
+    return instance.findEle(id) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function focusById(id: string | null): void {
+  if (!mind) return;
+  if (mind.isFocusMode) mind.cancelFocus();
+  if (id === null || id === mind.nodeData.id) {
+    rememberFocus(null);
+    refreshStrip();
+    return;
+  }
+  const el = findLiveTopic(mind, id);
+  if (el) mind.focusNode(el);
+}
+
+function reapplyFocus(): void {
+  if (!mind) return;
+  const id = focusId.value;
+  if (id === null || !pathTo(fullRoot(mind), id)) {
+    rememberFocus(null);
+    refreshStrip();
+    return;
+  }
+  isApplyingFocus = true;
+  const el = findLiveTopic(mind, id);
+  if (el) mind.focusNode(el);
+  isApplyingFocus = false;
+  refreshStrip();
+}
+
+function leaveFocusQuietly(): void {
+  if (!mind?.isFocusMode) return;
+  isApplyingFocus = true;
+  mind.cancelFocus();
+  isApplyingFocus = false;
 }
 
 function sanitizedTopic(tpc: Topic): Topic | null {
@@ -240,6 +320,7 @@ function teardown(): void {
   duplicateTimer = null;
   resetGraphView();
   duplicateCount.value = 0;
+  strip.value = null;
   mind?.destroy();
   mind = null;
 }
@@ -253,9 +334,11 @@ async function applyExternalContent(): Promise<void> {
   if (mind) {
     const wasGraphView = isGraphView.value;
     resetGraphView();
+    leaveFocusQuietly();
     mind.refresh(data);
     if (wasGraphView && canEdit()) mind.enableEdit();
     gates.syncLabels();
+    reapplyFocus();
     countDuplicates();
     mind.clearHistory?.();
     emit('ready');
@@ -272,6 +355,7 @@ function resetGraphView(): void {
 }
 
 function enterGraphView(instance: MindElixirInstance): void {
+  leaveFocusQuietly();
   flushPendingSync();
   graphBaseline = instance.getData();
   instance.disableEdit();
@@ -284,6 +368,7 @@ function leaveGraphView(instance: MindElixirInstance): void {
   resetGraphView();
   gates.syncLabels();
   if (canEdit()) instance.enableEdit();
+  reapplyFocus();
 }
 
 function toggleGraphView(): void {
@@ -349,7 +434,7 @@ const gates = createGateController({
 const duplicateGroups = ref<DuplicateGroup[] | null>(null);
 
 function findDuplicates(): void {
-  if (mind) duplicateGroups.value = findDuplicateGroups(mind.nodeData);
+  if (mind) duplicateGroups.value = findDuplicateGroups(fullRoot(mind));
 }
 
 function topicOf(id: string): string {
@@ -360,9 +445,11 @@ function mergeDuplicate(keepId: string, dupId: string): void {
   if (!mind || isEditBlocked() || isGraphView.value) return;
   const merged = mergeIntoGate(mind.getData(), keepId, dupId);
   if (!merged) return;
+  leaveFocusQuietly();
   mind.refresh(merged);
   mind.clearHistory?.();
   gates.syncLabels();
+  reapplyFocus();
   scheduleSync();
   findDuplicates();
   countDuplicates();
@@ -377,7 +464,7 @@ const actions: Record<string, () => void> = {
   'mindmap.findDuplicates': findDuplicates,
   'mindmap.toggleGraphView': toggleGraphView,
   'mindmap.focusNode': () => { if (mind?.currentNode) mind.focusNode(mind.currentNode); },
-  'mindmap.cancelFocus': () => mind?.cancelFocus(),
+  'mindmap.cancelFocus': () => focusById(null),
   'mindmap.undo': () => mind?.undo(),
   'mindmap.redo': () => mind?.redo(),
   ...canvasActions,
@@ -487,7 +574,10 @@ defineExpose({
       <pre>{{ parseError }}</pre>
       <button type="button" @click="emit('open-as-text')">{{ t('mindmap.openAsText') }}</button>
     </div>
-    <div v-else ref="host" class="mindmap-view__canvas" />
+    <template v-else>
+      <MindmapFreezeStrip v-if="strip && !isGraphView" :strip="strip" :focus-id="focusId" @focus="focusById" />
+      <div ref="host" class="mindmap-view__canvas" />
+    </template>
     <div class="mindmap-view__status">
       <button v-if="duplicateCount > 0 && !locked" type="button" class="mindmap-view__chip" @click="findDuplicates">
         {{ t('mindmap.duplicatesChip', { count: duplicateCount }) }}
@@ -501,8 +591,8 @@ defineExpose({
 </template>
 
 <style scoped>
-.mindmap-view { position: relative; width: 100%; height: 100%; }
-.mindmap-view__canvas { width: 100%; height: 100%; }
+.mindmap-view { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
+.mindmap-view__canvas { flex: 1; min-height: 0; width: 100%; }
 .mindmap-view__status { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; z-index: 5; display: flex; gap: 6px; pointer-events: none; }
 .mindmap-view__badge { padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); opacity: 0.9; }
 .mindmap-view__chip { pointer-events: auto; padding: 2px 10px; border-radius: 999px; font-size: 12px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--accent); cursor: pointer; }
