@@ -1,4 +1,17 @@
+import type { MindElixirInstance } from 'mind-elixir';
+import type { MapDisplay } from './mindmap-display.ts';
+
 export interface MindmapHandle { run(actionId: string): boolean }
+
+export interface MindmapCanvasApi {
+  flush(): void;
+  run(actionId: string): boolean;
+  getMind(): MindElixirInstance | null;
+  getDisplayOverride(): MapDisplay;
+  setDisplayOverride(next: MapDisplay): void;
+  readonly isReadOnly: boolean;
+  readonly isGraphView: boolean;
+}
 
 let active: MindmapHandle | null = null;
 
