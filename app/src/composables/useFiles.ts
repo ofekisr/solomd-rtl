@@ -18,6 +18,7 @@ import type { FileReadResult, Tab } from '../types';
 import { isSafPath, fromSafPath, safRead, safWrite, safLaunchPicker } from '../lib/saf-fs';
 import { baseNameOf, fileNameOf, claimImportName, joinInFolder } from '../lib/import-plan';
 import { newFileDirFor, treeSelection } from '../lib/new-file-target';
+import { planXmindOpen } from '../lib/mindmap-xmind-open';
 import { MMAP_EXTENSION, MINDMAP_EXTENSIONS, isXmindPath, mmapPathFor } from '../lib/mindmap-format';
 import { XMIND_TOO_LARGE_ERROR, XMIND_CONTENT_TOO_LARGE_ERROR } from '../lib/xmind-limits';
 import { untitledFileName } from '../lib/file-language';
@@ -426,10 +427,23 @@ export function useFiles() {
     announceXmindImport(fileName, result.extraSheetCount);
   }
 
+  async function sidecarMmapExists(path: string): Promise<boolean> {
+    try {
+      return await invoke<boolean>('fs_file_exists', { path: mmapPathFor(path) });
+    } catch {
+      return false;
+    }
+  }
+
   async function openXmind(path: string): Promise<void> {
-    const existing = tabs.tabs.find((t) => t.importedFrom === path);
-    if (existing) {
-      tabs.activate(existing.id);
+    const plan = planXmindOpen(path, tabs.tabs, await sidecarMmapExists(path));
+    if (plan.kind === 'activate') {
+      tabs.activate(plan.tabId);
+      return;
+    }
+    if (plan.kind === 'open-mmap') {
+      await openPath(plan.path, { bypassNewWindow: true });
+      toasts.info(t('mindmap.openedExistingMmap', { name: fileNameOf(plan.path) }));
       return;
     }
     if (xmindImportsInFlight.has(path)) return;
