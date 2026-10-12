@@ -131,6 +131,7 @@ function scheduleDuplicateCount(): void {
 }
 
 function scheduleSync(): void {
+  if (isReadOnly.value) return;
   if (syncTimer !== null) window.clearTimeout(syncTimer);
   syncTimer = window.setTimeout(syncNow, SYNC_DEBOUNCE_MS);
 }
@@ -208,6 +209,7 @@ function sanitizedTopic(tpc: Topic): Topic | null {
 function sanitizeCopiedNodes(instance: MindElixirInstance): void {
   const { copyNodes } = instance;
   instance.copyNodes = (tpcs, to) => {
+    if (isEditBlocked() || isGraphView.value) return Promise.resolve();
     const safe = tpcs.map(sanitizedTopic).filter((tpc): tpc is Topic => tpc !== null);
     return copyNodes.call(instance, safe, to);
   };
