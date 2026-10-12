@@ -27,6 +27,8 @@ import type { MapDisplay } from '../lib/mindmap-display';
 import { createMapDisplayApplier } from '../composables/useMindmapDisplay';
 import Editor from './Editor.vue';
 import Preview from './Preview.vue';
+import type { Snippet } from '../lib/mindmap-snippets';
+import MindmapSnippets from './MindmapSnippets.vue';
 
 const SOURCE_LANGUAGE = 'json';
 const FLUSH_CONTENT_EVENT = 'solomd:flush-content-sync';
@@ -57,7 +59,8 @@ function partOrder(part: CellPart): number {
 const isSplit = computed(() => parts.value.length > 1);
 const isPanelVisible = computed(() => has('map') && settings.mindmapPanelOpen);
 const parsedContent = computed(() => codec.value.parse(props.tab.content));
-const outlineMarkdown = computed(() => (has('outlineText') || has('outlinePreview') ? outlineMarkdownOf(parsedContent.value) : ''));
+const outlineText = computed(() => (has('outlineText') ? outlineMarkdownOf(parsedContent.value, 'source') : ''));
+const outlinePreview = computed(() => (has('outlinePreview') ? outlineMarkdownOf(parsedContent.value, 'rendered') : ''));
 const lastValidContent = ref('');
 const liveJsonError = computed<string | null>(() => {
   if (!has('json') || !has('map') || parsedContent.value.ok) return null;
@@ -65,6 +68,15 @@ const liveJsonError = computed<string | null>(() => {
 });
 const isMapLocked = computed(() => liveJsonError.value !== null);
 const isPanelEditable = computed(() => !(canvas.value?.isReadOnly || canvas.value?.isGraphView || isMapLocked.value));
+const LIVE_EDIT_VIEW: ViewMode = 'liveEdit';
+const snippets = ref<Snippet[]>([]);
+const canEditSnippets = computed(() => settings.viewMode === LIVE_EDIT_VIEW && isPanelEditable.value);
+
+function setSnippets(next: Snippet[]): void {
+  if (!canEditSnippets.value) return;
+  snippets.value = next;
+  canvas.value?.setSnippets(next);
+}
 const jsonError = computed(() => sourceError.value ?? liveJsonError.value);
 const mapContent = computed(() => (has('json') ? lastValidContent.value : props.tab.content));
 
@@ -157,6 +169,7 @@ function applyDisplay(): void {
 }
 
 function onCanvasReady(): void {
+  snippets.value = [...(canvas.value?.getSnippets() ?? [])];
   displayOverride.value = canvas.value?.getDisplayOverride() ?? {};
   applyDisplay();
 }
@@ -252,23 +265,25 @@ defineExpose({ setLens, canvas, lens });
           <div v-if="jsonError" class="mindmap-shell__error" role="alert">{{ jsonError }}</div>
           <Editor :key="`${tab.id}-source`" :tab="sourceTab" />
         </div>
-        <MindmapCanvas
-          v-if="has('map')"
-          ref="canvas"
-          :style="{ order: partOrder('map') }"
-          :content="mapContent"
-          :codec="codec"
-          :export-name="exportName"
-          :register-active="false"
-          :locked="isMapLocked"
-          @update:content="onUpdate"
-          @selection="(nodes) => (selected = nodes.map((n) => ({ ...n })))"
-          @open-as-text="openAsText"
-          @jump-to-source="onJump"
-          @ready="onCanvasReady"
-        />
-        <MindmapOutlineText v-if="has('outlineText')" :markdown="outlineMarkdown" :style="{ order: partOrder('outlineText') }" />
-        <Preview v-if="has('outlinePreview')" :source="outlineMarkdown" class="mindmap-shell__outline" :style="{ order: partOrder('outlinePreview') }" />
+        <div v-if="has('map')" class="mindmap-shell__map" :style="{ order: partOrder('map') }">
+          <MindmapCanvas
+            ref="canvas"
+            class="mindmap-shell__canvas"
+            :content="mapContent"
+            :codec="codec"
+            :export-name="exportName"
+            :register-active="false"
+            :locked="isMapLocked"
+            @update:content="onUpdate"
+            @selection="(nodes) => (selected = nodes.map((n) => ({ ...n })))"
+            @open-as-text="openAsText"
+            @jump-to-source="onJump"
+            @ready="onCanvasReady"
+          />
+          <MindmapSnippets :snippets="snippets" :editable="canEditSnippets" @change="setSnippets" />
+        </div>
+        <MindmapOutlineText v-if="has('outlineText')" :markdown="outlineText" :style="{ order: partOrder('outlineText') }" />
+        <Preview v-if="has('outlinePreview')" :source="outlinePreview" class="mindmap-shell__outline" :style="{ order: partOrder('outlinePreview') }" />
       </div>
       <MindmapSidePanel v-if="isPanelVisible" :has-single-node="singleNode !== null">
         <template #node>
@@ -291,6 +306,8 @@ defineExpose({ setLens, canvas, lens });
 .mindmap-shell__cell > * { flex: 1; min-width: 0; min-height: 0; }
 .mindmap-shell__cell--split { gap: 1px; background: var(--border); }
 .mindmap-shell__cell--split > * { background: var(--bg); }
+.mindmap-shell__map { display: flex; flex-direction: column; min-height: 0; }
+.mindmap-shell__canvas { flex: 1; min-height: 0; }
 .mindmap-shell__source { display: flex; flex-direction: column; }
 .mindmap-shell__error { padding: 6px 12px; font-size: 12px; background: var(--bg-elev); color: var(--text); border-block-end: 1px solid var(--border); }
 .mindmap-shell__hint { font-size: 12px; color: var(--text-faint); }

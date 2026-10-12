@@ -10,13 +10,18 @@ import type { MindmapCanvasApi } from '../lib/mindmap-active';
 import { createMapDisplayApplier } from '../composables/useMindmapDisplay';
 import MindmapCanvas from './MindmapCanvas.vue';
 import Preview from './Preview.vue';
+import MindmapSnippets from './MindmapSnippets.vue';
 
 const READING_VIEW: ViewMode = 'reading';
 const props = defineProps<{ tab: Tab }>();
 const settings = useSettingsStore();
 const codec = computed(() => mmapCodec(props.tab.fileName));
 const isWideMap = computed(() => cellHas(lensCell(resolveTabLens(props.tab), READING_VIEW), 'wideMap'));
-const outlineMarkdown = computed(() => (isWideMap.value ? '' : outlineMarkdownOf(codec.value.parse(props.tab.content))));
+const outlineMarkdown = computed(() => (isWideMap.value ? '' : outlineMarkdownOf(codec.value.parse(props.tab.content), 'rendered')));
+const readingSnippets = computed(() => {
+  const parsed = codec.value.parse(props.tab.content);
+  return parsed.ok ? parsed.snippets : [];
+});
 const canvas = ref<MindmapCanvasApi | null>(null);
 const displayApplier = createMapDisplayApplier();
 
@@ -29,19 +34,23 @@ watch(() => settings.mindmapDefaults, applyDisplay, { deep: true });
 </script>
 
 <template>
-  <MindmapCanvas
-    v-if="isWideMap"
-    ref="canvas"
-    class="mindmap-reading__map"
-    :content="tab.content"
-    :codec="codec"
-    :locked="true"
-    :register-active="false"
-    @ready="applyDisplay"
-  />
+  <div v-if="isWideMap" class="mindmap-reading__wide">
+    <MindmapCanvas
+      ref="canvas"
+      class="mindmap-reading__map"
+      :content="tab.content"
+      :codec="codec"
+      :locked="true"
+      :register-active="false"
+      @ready="applyDisplay"
+    />
+    <MindmapSnippets :snippets="readingSnippets" :editable="false" />
+  </div>
   <Preview v-else :source="outlineMarkdown" skin="reading" class="mindmap-reading__outline" />
 </template>
 
 <style scoped>
+.mindmap-reading__wide { display: flex; flex-direction: column; height: 100%; }
+.mindmap-reading__map { flex: 1; min-height: 0; }
 .mindmap-reading__outline :deep(:is(h1, h2, h3, h4, h5, h6, li, p)) { unicode-bidi: plaintext; text-align: start; }
 </style>
