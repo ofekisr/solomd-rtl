@@ -13,12 +13,14 @@ import { clearActiveMindmap, setActiveMindmap, type MindmapCanvasApi, type Mindm
 import { eventToCombo, resolveBindings } from '../lib/keybindings';
 import { useMindmapJump } from '../composables/useMindmapJump';
 import type { MindmapSource } from '../lib/mindmap-source';
+import MindmapToolbar from './MindmapToolbar.vue';
 import MindmapCanvas from './MindmapCanvas.vue';
 import Editor from './Editor.vue';
 import Preview from './Preview.vue';
 
 const SOURCE_LANGUAGE = 'json';
 const FLUSH_CONTENT_EVENT = 'solomd:flush-content-sync';
+const TOGGLE_PANEL_ACTION = 'mindmap.togglePanel';
 const props = defineProps<{ tab: Tab }>();
 const tabs = useTabsStore();
 const toasts = useToastsStore();
@@ -60,6 +62,10 @@ function leaveSourceAllowed(): boolean {
 }
 
 function runViewAction(actionId: string): boolean {
+  if (actionId === TOGGLE_PANEL_ACTION) {
+    settings.toggleMindmapPanel();
+    return true;
+  }
   const target = targetModeFor(actionId, mode.value);
   if (target === null) return false;
   setMode(target);
@@ -77,7 +83,7 @@ function activate(): void {
 function onViewKey(e: KeyboardEvent): void {
   const combo = eventToCombo(e);
   const actionId = combo ? resolveBindings(settings.keybindings, 'mindmap').get(combo) : undefined;
-  if (!actionId || !(actionId in VIEW_ACTIONS)) return;
+  if (!actionId || !(actionId in VIEW_ACTIONS || actionId === TOGGLE_PANEL_ACTION)) return;
   e.preventDefault();
   e.stopPropagation();
   runViewAction(actionId);
@@ -102,6 +108,15 @@ defineExpose({ setMode, canvas, mode });
 
 <template>
   <div class="mindmap-shell" @keydown.capture="onViewKey" @focusin="activate" @pointerdown="activate">
+    <MindmapToolbar
+      :mode="mode"
+      :is-panel-open="settings.mindmapPanelOpen"
+      :is-read-only="canvas?.isReadOnly ?? false"
+      :is-graph-view="canvas?.isGraphView ?? false"
+      @set-mode="setMode"
+      @run="(id) => handle.run(id)"
+      @toggle-panel="settings.toggleMindmapPanel()"
+    />
     <div class="mindmap-shell__body">
       <MindmapCanvas
         v-if="mode === 'map'"
