@@ -84,9 +84,13 @@ function isEditBlocked(): boolean {
   return isReadOnly.value || props.locked;
 }
 
-function syncNow(): void {
+function clearPendingSync(): void {
   if (syncTimer !== null) window.clearTimeout(syncTimer);
   syncTimer = null;
+}
+
+function syncNow(): void {
+  clearPendingSync();
   if (!mind || props.locked || isGraphView.value || parseError.value !== null) return;
   const serialized = props.codec.serialize(mind.getData(), displayOverride);
   if (serialized === pristineSerialized && props.content === '') return;
@@ -157,8 +161,20 @@ function onOperation(info: { name: string }): void {
 
 function syncAfterHistoryJumps(instance: MindElixirInstance): void {
   const { undo, redo } = instance;
-  instance.undo = () => { if (!props.locked) { undo.call(instance); gates.syncLabels(); scheduleSync(); emitSelection(); } };
-  instance.redo = () => { if (!props.locked) { redo.call(instance); gates.syncLabels(); scheduleSync(); emitSelection(); } };
+  instance.undo = () => {
+    if (props.locked) return;
+    undo.call(instance);
+    gates.syncLabels();
+    scheduleSync();
+    emitSelection();
+  };
+  instance.redo = () => {
+    if (props.locked) return;
+    redo.call(instance);
+    gates.syncLabels();
+    scheduleSync();
+    emitSelection();
+  };
 }
 
 function sanitizedTopic(tpc: Topic): Topic | null {
@@ -374,7 +390,7 @@ watch(() => props.content, (content) => {
 watch(() => props.locked, (isLocked) => {
   if (!mind || isGraphView.value) return;
   if (isLocked) {
-    flushPendingSync();
+    clearPendingSync();
     mind.disableEdit();
     return;
   }
