@@ -8,7 +8,7 @@ Self-contained start prompt for a fresh session. Read the spec first: `docs/supe
 |---|---|
 | Repo / app | `/Users/ofeki/repos/solomd-rtl`, app in `app/` |
 | Branch | `feat/mindmap` (stay on it; no worktree; never push) |
-| Version | `4.15.0` (Phase 7 shipped as `4.15.1`; Phase 6 takes the next patch after 4.15.1) |
+| Version | `4.16.0` (Phase 7 shipped as `4.15.1`, released in `4.16.0`; Phase 6 targets `4.16.1`) |
 | Done | Phase 1 `.mmap`, 2 XMind, 3 fences, 4 Map UI, 5 structural convert |
 | Plans | `docs/superpowers/plans/2026-10-11-mindmap-phase{1-mmap,2-xmind,3-fence,4-map-ui}.md`, `2026-10-12-mindmap-phase5-convert.md` |
 | Phase 5 Status | Read its Deviations and Open items before planning |
@@ -70,7 +70,7 @@ Self-contained start prompt for a fresh session. Read the spec first: `docs/supe
 2. Spike the risks above before writing the plan.
 3. Write `docs/superpowers/plans/2026-10-<DD>-mindmap-phase6-ai-convert.md` (`superpowers:writing-plans`) with a Status section shaped like Phase 5's.
 4. Execute with `superpowers:subagent-driven-development`: per-task implement, review, fix rounds; browser check per task; final whole-branch review before the docs/bump task.
-5. Last task: full test sweep, `pnpm build`, browser and desktop checks (record pending if not runnable), bump to the next patch after 4.15.1 in `app/package.json`, `app/src-tauri/Cargo.toml`, `app/src-tauri/tauri.conf.json`, and the `solomd` entry of `app/src-tauri/Cargo.lock`; update spec Status row 6.
+5. Last task: full test sweep, `pnpm build`, browser and desktop checks (record pending if not runnable), bump to `4.16.1` in `app/package.json`, `app/src-tauri/Cargo.toml`, `app/src-tauri/tauri.conf.json`, and the `solomd` entry of `app/src-tauri/Cargo.lock`; update spec Status row 6.
 
 ## Global Constraints
 
