@@ -44,7 +44,6 @@ const canvas = ref<MindmapCanvasApi | null>(null);
 const sourceError = ref<string | null>(null);
 const selected = ref<NodeObj[]>([]);
 const singleNode = computed(() => (selected.value.length === 1 ? selected.value[0] : null));
-const isPanelEditable = computed(() => !(canvas.value?.isReadOnly || canvas.value?.isGraphView));
 
 function has(part: CellPart): boolean {
   return cellHas(parts.value, part);
@@ -63,6 +62,8 @@ const liveJsonError = computed<string | null>(() => {
   if (!has('json') || !has('map') || parsedContent.value.ok) return null;
   return parsedContent.value.error;
 });
+const isMapLocked = computed(() => liveJsonError.value !== null);
+const isPanelEditable = computed(() => !(canvas.value?.isReadOnly || canvas.value?.isGraphView || isMapLocked.value));
 const jsonError = computed(() => sourceError.value ?? liveJsonError.value);
 const mapContent = computed(() => (has('json') ? lastValidContent.value : props.tab.content));
 
@@ -169,12 +170,14 @@ function onCanvasReady(): void {
 }
 
 function setOverride(patch: MapDisplay): void {
+  if (isMapLocked.value) return;
   displayOverride.value = { ...displayOverride.value, ...patch };
   canvas.value?.setDisplayOverride(displayOverride.value);
   applyDisplay();
 }
 
 function clearOverride(key: keyof MapDisplay): void {
+  if (isMapLocked.value) return;
   const next = { ...displayOverride.value };
   delete next[key];
   displayOverride.value = next;
@@ -244,7 +247,7 @@ defineExpose({ setLens, canvas, lens });
       :lens="lens"
       :has-map="has('map')"
       :is-panel-open="settings.mindmapPanelOpen"
-      :is-read-only="canvas?.isReadOnly ?? false"
+      :is-read-only="(canvas?.isReadOnly ?? false) || isMapLocked"
       :is-graph-view="canvas?.isGraphView ?? false"
       @set-lens="setLens"
       @run="(id) => handle.run(id)"
@@ -264,7 +267,7 @@ defineExpose({ setLens, canvas, lens });
           :codec="codec"
           :export-name="exportName"
           :register-active="false"
-          :locked="liveJsonError !== null"
+          :locked="isMapLocked"
           @update:content="onUpdate"
           @selection="(nodes) => (selected = nodes.map((n) => ({ ...n })))"
           @open-as-text="openAsText"
