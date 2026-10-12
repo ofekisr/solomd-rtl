@@ -11,6 +11,7 @@ const SAME_PARAGRAPH = ' ';
 const NEW_PARAGRAPH = '\n\n';
 const NEWLINE = '\n';
 const ROOT_LEVEL = 0;
+const ROOT_FRAME_COUNT = 1;
 
 type HeadingFrame = { level: number; node: NodeObj };
 type ItemFrame = { indent: number; node: NodeObj };
@@ -50,7 +51,7 @@ class TreeBuilder {
   }
 
   private addHeading(level: number, text: string, line: number): void {
-    while (this.headings.length > 1 && this.headings[this.headings.length - 1].level >= level) this.headings.pop();
+    while (this.headings.length > ROOT_FRAME_COUNT && this.headings[this.headings.length - 1].level >= level) this.headings.pop();
     const node = this.node(text, line);
     this.fromHeading.add(node);
     this.headingTop().children?.push(node);
@@ -67,10 +68,15 @@ class TreeBuilder {
   }
 
   private addText(indent: number, text: string): void {
-    const isContinuation = this.items.length > 0 && (indent > 0 || this.previous?.kind !== 'blank');
-    if (!isContinuation) this.items = [];
-    const target = isContinuation ? this.items[this.items.length - 1].node : this.headingTop();
+    const canContinue = this.items.length > 0 && (indent > 0 || this.previous?.kind !== 'blank');
+    if (canContinue && indent > 0) this.closeItemsFrom(indent);
+    const target = this.items.length > 0 && canContinue ? this.items[this.items.length - 1].node : this.headingTop();
+    if (target === this.headingTop()) this.items = [];
     this.appendNote(target, text);
+  }
+
+  private closeItemsFrom(indent: number): void {
+    while (this.items.length > 0 && this.items[this.items.length - 1].indent >= indent) this.items.pop();
   }
 
   private appendNote(node: NodeObj, text: string): void {

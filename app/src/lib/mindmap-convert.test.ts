@@ -43,3 +43,18 @@ test('sectionRange ends before the next same-or-higher heading and ignores fence
   assert.equal(sectionRange('intro\n# A', 1), null);
   assert.equal(sliceLines(src, { fromLine: 2, toLine: 3 }), '## B\ntext');
 });
+
+test('indented text closes deeper items and joins the nearest shallower one', () => {
+  const closed = markdownToMindmap('- a\n  - b\n  c', { rootTopic: 'd' });
+  const [a] = closed.nodeData.children ?? [];
+  assert.equal(a.note, 'c');
+  assert.equal(a.children?.[0].note, undefined);
+  const open = markdownToMindmap('- a\n  - b\n    c', { rootTopic: 'd' });
+  assert.equal(open.nodeData.children?.[0].children?.[0].note, 'c');
+});
+
+test('a root note blocks the heading lift', () => {
+  const data = markdownToMindmap('intro\n# A', { rootTopic: 'd' });
+  assert.equal(data.nodeData.topic, 'd');
+  assert.equal(data.nodeData.note, 'intro');
+});
