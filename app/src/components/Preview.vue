@@ -324,7 +324,7 @@ function showMindmapError(wrap: HTMLElement, message: string): void {
 async function mountMindmapInto(wrap: HTMLElement, canvas: HTMLElement, body: string): Promise<ReadOnlyMindmap | null> {
   try {
     const { mountReadOnlyMindmap } = await import('../lib/mindmap-readonly');
-    const result = await mountReadOnlyMindmap(canvas, body, isDarkTheme());
+    const result = await mountReadOnlyMindmap(canvas, body, isDarkTheme(), t('mindmap.gateBroken'));
     if (result.ok) return result.map;
     showMindmapError(wrap, result.error);
   } catch (error) {

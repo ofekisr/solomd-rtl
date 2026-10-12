@@ -502,10 +502,10 @@ class PlantumlWidget extends WidgetType {
 }
 
 
-interface MindmapStrings { openFull: string; parseError: string }
+interface MindmapStrings { openFull: string; parseError: string; gateBroken: string }
 interface MindmapMountState { isDestroyed: boolean; map: ReadOnlyMindmap | null }
 
-const MINDMAP_FALLBACK_STRINGS: MindmapStrings = { openFull: 'Open fullscreen', parseError: 'Mind map could not be read' };
+const MINDMAP_FALLBACK_STRINGS: MindmapStrings = { openFull: 'Open fullscreen', parseError: 'Mind map could not be read', gateBroken: '⚠ missing target' };
 const CM_RELAYOUT_EVENT = 'solomd:cm-relayout';
 const mindmapTeardowns = new WeakMap<HTMLElement, () => void>();
 
@@ -562,7 +562,7 @@ class MindmapWidget extends WidgetType {
 
   private async load(canvas: HTMLElement): Promise<ReadOnlyMountResult> {
     try {
-      return await mountReadOnlyMindmap(canvas, this.body, this.isDark);
+      return await mountReadOnlyMindmap(canvas, this.body, this.isDark, this.strings().gateBroken);
     } catch (error) {
       return { ok: false, error: error instanceof Error ? error.message : String(error) };
     }
@@ -821,7 +821,7 @@ interface BlockOptions {
    */
   getBoardStrings?: () => { loading: string; openFull: string; loadFailed: string };
   /** Mindmap fence i18n: localized strings for the inline mindmap chrome. Optional — English fallbacks used when absent. */
-  getMindmapStrings?: () => { openFull: string; parseError: string };
+  getMindmapStrings?: () => { openFull: string; parseError: string; gateBroken: string };
   /**
    * #354 — Mermaid theme for the current app theme ('dark' for any dark
    * theme). Absent → 'default'. A change takes effect on the next rebuild;

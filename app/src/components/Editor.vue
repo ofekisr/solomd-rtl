@@ -2915,7 +2915,7 @@ function richExtensionsFor(tab: Tab) {
           openFull: t('whiteboard.openFull'),
           loadFailed: t('whiteboard.loadFailed'),
         }),
-        getMindmapStrings: () => ({ openFull: t('mindmap.fenceOpenFull'), parseError: t('mindmap.fenceParseError') }),
+        getMindmapStrings: () => ({ openFull: t('mindmap.fenceOpenFull'), parseError: t('mindmap.fenceParseError'), gateBroken: t('mindmap.gateBroken') }),
         onBoardEdit: (boardId, snapshotJson) => {
           const cur = tabs.tabs.find((x) => x.id === tab.id);
           if (!cur) return;

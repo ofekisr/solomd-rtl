@@ -1369,6 +1369,17 @@ export const en = {
     noActiveMap: 'Click a mind map first',
     copiedPlaintext: 'Mind map copied as plaintext',
     noSource: 'This node has no source location',
+    gateBroken: '⚠ missing target',
+    gateMarked: 'Gate target marked',
+    gateNoTarget: 'Mark a target node first (or the target is gone)',
+    gateTargetIsGate: 'A gate cannot target another gate',
+    gateNotGate: 'Select a gate first',
+    gateCannotHoldChildren: 'Gates cannot have children',
+    gateMarkTarget: 'Mark as gate target',
+    gateInsert: 'Insert gate to marked node',
+    gateFollow: 'Follow gate',
+    gateRepair: 'Repair gate',
+    gateRemove: 'Remove gate',
   },
   whiteboard: {
     // F7 — Markdown-backed tldraw whiteboards.

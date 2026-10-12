@@ -1,6 +1,7 @@
 import type { MindElixirInstance } from 'mind-elixir';
 import { layoutDirectionFor } from './mindmap-direction.ts';
 import { parseMindmapFence } from './mindmap-fence.ts';
+import { withGateLabels } from './mindmap-gates.ts';
 
 export const MINDMAP_BLOCK_HEIGHT_PX = 360;
 
@@ -32,7 +33,7 @@ function wrap(mind: MindElixirInstance, module: MindElixirModule, observer: Resi
   };
 }
 
-export async function mountReadOnlyMindmap(el: HTMLElement, body: string, isDark: boolean): Promise<ReadOnlyMountResult> {
+export async function mountReadOnlyMindmap(el: HTMLElement, body: string, isDark: boolean, brokenLabel: string): Promise<ReadOnlyMountResult> {
   const parsed = parseMindmapFence(body);
   if (!parsed.ok) return parsed;
   const [module] = await Promise.all([import('mind-elixir'), import('mind-elixir/style.css')]);
@@ -41,6 +42,6 @@ export async function mountReadOnlyMindmap(el: HTMLElement, body: string, isDark
     el, direction: layoutDirectionFor(parsed.data), editable: false, contextMenu: false,
     keypress: false, toolBar: true, theme: themeOf(module, isDark),
   });
-  mind.init(parsed.data);
+  mind.init(withGateLabels(parsed.data, brokenLabel));
   return { ok: true, map: wrap(mind, module, fitOnceLaidOut(el, mind)) };
 }

@@ -14,6 +14,7 @@ import { MINDMAP_BUILTIN_COMBOS } from '../lib/mindmap-keymap';
 import { layoutDirectionFor } from '../lib/mindmap-direction';
 import { themeFamily } from '../lib/themes';
 import { clearActiveMindmap, setActiveMindmap, type MindmapHandle } from '../lib/mindmap-active';
+import { createGateController, type GateMenuAction, type GateNotice } from '../lib/mindmap-gate-controller';
 import { useMindmapCanvasActions } from '../composables/useMindmapCanvasActions';
 import MindmapShortcutHelp from './MindmapShortcutHelp.vue';
 
@@ -96,13 +97,15 @@ function mount(): void {
     el: host.value,
     direction: layoutDirectionFor(data),
     editable: !isReadOnly.value,
-    contextMenu: true,
+    contextMenu: { extend: gates.menu },
+    before: gates.guards,
     toolBar: true,
     keypress: true,
     allowUndo: true,
     theme: themeFor(),
   });
   mind.init(data);
+  gates.syncLabels();
   pristineSerialized = props.content === '' ? props.codec.serialize(mind.getData()) : null;
   centerOnceLaidOut();
   mind.bus.addListener(OPERATION_EVENT, onOperation);
@@ -114,6 +117,7 @@ function mount(): void {
 
 function onOperation(info: { name: string }): void {
   if (info.name === BEGIN_EDIT_OPERATION) return;
+  gates.syncLabels();
   scheduleSync();
 }
 
@@ -157,6 +161,7 @@ async function applyExternalContent(): Promise<void> {
   }
   if (mind) {
     mind.refresh(data);
+    gates.syncLabels();
     mind.clearHistory?.();
     return;
   }
@@ -197,6 +202,28 @@ function jumpToSource(): void {
 
 const canvasActions = useMindmapCanvasActions({ getMind: () => mind, exportName: () => props.exportName, isReadOnly });
 
+const GATE_MENU_LABEL_KEYS: Record<GateMenuAction, string> = {
+  'mindmap.markGateTarget': 'mindmap.gateMarkTarget',
+  'mindmap.insertGate': 'mindmap.gateInsert',
+  'mindmap.followGate': 'mindmap.gateFollow',
+  'mindmap.repairGate': 'mindmap.gateRepair',
+  'mindmap.removeGate': 'mindmap.gateRemove',
+};
+
+function gateMenuLabels(): Record<GateMenuAction, string> {
+  const labels: Record<GateMenuAction, string> = { ...GATE_MENU_LABEL_KEYS };
+  for (const id of Object.keys(GATE_MENU_LABEL_KEYS) as GateMenuAction[]) labels[id] = t(GATE_MENU_LABEL_KEYS[id]);
+  return labels;
+}
+
+const gates = createGateController({
+  getMind: () => mind,
+  isReadOnly: () => isReadOnly.value,
+  brokenLabel: () => t('mindmap.gateBroken'),
+  notify: (key: GateNotice) => toasts.info(t(`mindmap.${key}`)),
+  onChange: scheduleSync,
+}, gateMenuLabels());
+
 const actions: Record<string, () => void> = {
   [TOGGLE_NODE_ACTION]: toggleCurrentNode,
   'mindmap.fit': () => mind?.scaleFit(),
@@ -204,6 +231,7 @@ const actions: Record<string, () => void> = {
   'mindmap.shortcutHelp': () => { isHelpOpen.value = true; },
   'mindmap.jumpToSource': jumpToSource,
   ...canvasActions,
+  ...gates.actions,
 };
 
 const handle: MindmapHandle = {

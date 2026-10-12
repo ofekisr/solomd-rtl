@@ -191,6 +191,12 @@ export const KEY_ACTIONS: KeyActionDef[] = [
   { id: 'mindmap.toHeadingsDocument', label: 'Mindmap: Open as Markdown Headings', category: 'mindmap', scope: 'mindmap', defaults: [] },
   { id: 'mindmap.jumpToSource', label: 'Mindmap: Jump to Source', category: 'mindmap', scope: 'mindmap', defaults: [] },
   { id: 'mindmap.toggleReadOnly', label: 'Mindmap: Toggle Read-Only', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.markGateTarget', label: 'Mindmap: Mark Gate Target', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.insertGate', label: 'Mindmap: Insert Gate to Marked Node', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.followGate', label: 'Mindmap: Follow Gate', category: 'mindmap', scope: 'mindmap', defaults: ['Alt+Enter'] },
+  { id: 'mindmap.gateBack', label: 'Mindmap: Back from Gate', category: 'mindmap', scope: 'mindmap', defaults: ['Alt+ArrowLeft'] },
+  { id: 'mindmap.repairGate', label: 'Mindmap: Repair Gate to Marked Node', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.removeGate', label: 'Mindmap: Remove Gate', category: 'mindmap', scope: 'mindmap', defaults: [] },
 ];
 
 /** Keys whose `event.key` is punctuation — spelled by code for stability. */
