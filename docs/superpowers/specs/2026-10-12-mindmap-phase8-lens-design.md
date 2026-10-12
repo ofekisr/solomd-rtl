@@ -20,6 +20,7 @@ The phase also moves map settings into their own Settings category, adds map the
 | 3 | Themes | 5 preset map themes, each with light and dark variants |
 | 4 | Toolbar | ⬇ Export icon, Graph and Read-only toggle icons |
 | 5 | Canvas controls | Fit and Root buttons; "N duplicates" chip |
+| 6 | Read-only paste fix | Cmd+V cannot change a read-only or locked map |
 
 Out of scope: editing the Markdown outline back into the map, and the cells that need it (follow-ups item 1). Those cells ship read-only here (🔒).
 
@@ -118,6 +119,14 @@ Commands: `mindmap.lensData`, `mindmap.lensMap`, `mindmap.lensDoc`, `mindmap.cyc
 - **Fit** and **Root** buttons sit beside the package's zoom controls (bottom inline-end corner), styled like them. They run `mindmap.fit` and `mindmap.focusRoot`.
 - **Duplicates chip**: a small floating chip "N duplicates" at the top inline-end of the canvas, shown only when duplicate groups exist; clicking opens the existing duplicates dialog. Recomputed after map operations, debounced.
 - "Find duplicates" leaves the `⋯` menu (the command stays in the palette).
+
+## 6. Read-only paste fix
+
+Bug on `main`: Mind Elixir's paste listener (`MindElixir.js` container `paste` handler) never checks `editable`, so with a node selected, pasting copied nodes into a read-only map inserts them. `scheduleSync` checks `props.locked` only, so the change can reach the file.
+
+- `sanitizeCopiedNodes` wrapper in `MindmapCanvas.vue`: no-op while `isEditBlocked()` or graph view.
+- `scheduleSync`: also skip while the read-only toggle is on.
+- Test: browser — read-only on, copy a node, select another, Cmd+V → no new node, file not dirty; same with `locked`. Read-only off → paste still works.
 
 ## Testing
 

@@ -17,7 +17,7 @@ Parent design: `docs/superpowers/specs/2026-10-11-mindmap-design.md`. Unschedule
 |---|---|---|---|
 | 1 | Snippets | `snippets` key in the file; rendered and edited per lens × view cell | ~1.5 days |
 | 2 | Freeze + focus | Frozen strip above the canvas; focus any node as root | ~1 day |
-| 3 | Paste import | Cmd+V parses common formats into a subtree; paste respects read-only | ~1 day |
+| 3 | Paste import | Cmd+V parses common formats into a subtree | ~1 day |
 
 Out of scope: rich `text/html` or image paste, node → snippet references, snippets referencing other files by path, configurable freeze depth, saving focus in the file.
 
@@ -93,7 +93,7 @@ Pinned above the canvas, shown only when the map has level-2 nodes.
 
 - Mind Elixir's own clipboard JSON (`magic: "MIND-ELIXIR-WAIT-COPY"`) pastes as children of the selected node.
 - Anything else is ignored: the app sets no `pasteHandler`.
-- Bug: the package's paste listener ignores `editable`, and `sanitizeCopiedNodes` does not check `isEditBlocked()`; `scheduleSync` checks `locked` only. Pasting into a read-only map likely inserts and saves. Fixed here.
+- Pasting into a read-only or locked map is already blocked (Phase 8 §6).
 
 ### Detection
 
