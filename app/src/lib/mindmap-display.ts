@@ -1,8 +1,10 @@
+import { DEFAULT_MAP_THEME, isMapThemeId, type MapThemeId } from './mindmap-themes.ts';
+
 export type BranchStyle = 'curve' | 'straight';
 export type MapFont = 'system' | 'serif' | 'mono';
 
-export interface MapDisplay { compact?: boolean; branchStyle?: BranchStyle; textColor?: string; font?: MapFont }
-export type ResolvedMapDisplay = { compact: boolean; branchStyle: BranchStyle; textColor: string | null; font: MapFont };
+export interface MapDisplay { compact?: boolean; branchStyle?: BranchStyle; textColor?: string; font?: MapFont; theme?: MapThemeId }
+export type ResolvedMapDisplay = { compact: boolean; branchStyle: BranchStyle; textColor: string | null; font: MapFont; theme: MapThemeId };
 export interface BranchBox { pT: number; pL: number; pW: number; pH: number; cT: number; cL: number; cW: number; cH: number; direction: string }
 
 const BRANCH_STYLES: readonly BranchStyle[] = ['curve', 'straight'];
@@ -11,7 +13,7 @@ const SAFE_COLOR_PATTERN = /^(#[0-9a-f]{3,8}|rgba?\([\d\s.,%]+\)|hsla?\([\d\s.,%
 const LEFT_DIRECTION = 'lhs';
 const HALF = 2;
 
-export const DEFAULT_MAP_DISPLAY: ResolvedMapDisplay = { compact: false, branchStyle: 'curve', textColor: null, font: 'system' };
+export const DEFAULT_MAP_DISPLAY: ResolvedMapDisplay = { compact: false, branchStyle: 'curve', textColor: null, font: 'system', theme: DEFAULT_MAP_THEME };
 
 export const FONT_STACKS: Readonly<Record<MapFont, string>> = {
   system: 'system-ui, -apple-system, "Segoe UI", sans-serif',
@@ -34,6 +36,7 @@ export function parseMapDisplay(value: unknown): MapDisplay {
   if (BRANCH_STYLES.includes(value.branchStyle as BranchStyle)) out.branchStyle = value.branchStyle as BranchStyle;
   if (isSafeColor(value.textColor)) out.textColor = value.textColor.trim();
   if (MAP_FONTS.includes(value.font as MapFont)) out.font = value.font as MapFont;
+  if (isMapThemeId(value.theme)) out.theme = value.theme;
   return out;
 }
 
@@ -43,6 +46,7 @@ export function resolveMapDisplay(override: MapDisplay, defaults: MapDisplay): R
     branchStyle: override.branchStyle ?? defaults.branchStyle ?? DEFAULT_MAP_DISPLAY.branchStyle,
     textColor: override.textColor ?? defaults.textColor ?? DEFAULT_MAP_DISPLAY.textColor,
     font: override.font ?? defaults.font ?? DEFAULT_MAP_DISPLAY.font,
+    theme: override.theme ?? defaults.theme ?? DEFAULT_MAP_DISPLAY.theme,
   };
 }
 

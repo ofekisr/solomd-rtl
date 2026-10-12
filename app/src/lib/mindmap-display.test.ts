@@ -28,3 +28,14 @@ test('left-side branches end on the child right edge', () => {
   const box = { pT: 0, pL: 300, pW: 100, pH: 40, cT: 100, cL: 100, cW: 80, cH: 30, direction: 'lhs' };
   assert.equal(straightSubBranch(box), 'M 300 20 L 180 115');
 });
+
+test('parseMapDisplay keeps a known theme and drops an unknown one', () => {
+  assert.deepEqual(parseMapDisplay({ theme: 'forest' }), { theme: 'forest' });
+  assert.deepEqual(parseMapDisplay({ theme: 'neon' }), {});
+});
+
+test('resolveMapDisplay resolves theme override → default → preset default', () => {
+  assert.equal(resolveMapDisplay({ theme: 'mono' }, { theme: 'ocean' }).theme, 'mono');
+  assert.equal(resolveMapDisplay({}, { theme: 'ocean' }).theme, 'ocean');
+  assert.equal(resolveMapDisplay({}, {}).theme, 'default');
+});
