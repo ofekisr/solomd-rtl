@@ -15,6 +15,7 @@ export interface CanvasActionContext {
   exportName(): string;
   isReadOnly: Ref<boolean>;
   isGraphView: Ref<boolean>;
+  isLocked(): boolean;
 }
 
 const HEADINGS_SUFFIX = '-outline.md';
@@ -58,7 +59,7 @@ export function useMindmapCanvasActions(ctx: CanvasActionContext): Record<string
     if (!mind) return;
     ctx.isReadOnly.value = !ctx.isReadOnly.value;
     if (ctx.isReadOnly.value) mind.disableEdit();
-    else if (!ctx.isGraphView.value) mind.enableEdit();
+    else if (!ctx.isGraphView.value && !ctx.isLocked()) mind.enableEdit();
   }
 
   const exports = Object.fromEntries(Object.entries(EXPORT_ACTIONS).map(([id, format]) => [id, exportAs(format)]));

@@ -77,7 +77,11 @@ function loadData(): MindElixirData | null {
 }
 
 function canEdit(): boolean {
-  return !isReadOnly.value && !props.locked;
+  return !isEditBlocked();
+}
+
+function isEditBlocked(): boolean {
+  return isReadOnly.value || props.locked;
 }
 
 function syncNow(): void {
@@ -153,8 +157,8 @@ function onOperation(info: { name: string }): void {
 
 function syncAfterHistoryJumps(instance: MindElixirInstance): void {
   const { undo, redo } = instance;
-  instance.undo = () => { undo.call(instance); gates.syncLabels(); scheduleSync(); emitSelection(); };
-  instance.redo = () => { redo.call(instance); gates.syncLabels(); scheduleSync(); emitSelection(); };
+  instance.undo = () => { if (!props.locked) { undo.call(instance); gates.syncLabels(); scheduleSync(); emitSelection(); } };
+  instance.redo = () => { if (!props.locked) { redo.call(instance); gates.syncLabels(); scheduleSync(); emitSelection(); } };
 }
 
 function sanitizedTopic(tpc: Topic): Topic | null {
@@ -261,7 +265,7 @@ function jumpToSource(): void {
   emit('jump-to-source', source);
 }
 
-const canvasActions = useMindmapCanvasActions({ getMind: () => mind, exportName: () => props.exportName, isReadOnly, isGraphView });
+const canvasActions = useMindmapCanvasActions({ getMind: () => mind, exportName: () => props.exportName, isReadOnly, isGraphView, isLocked: () => props.locked });
 
 const GATE_MENU_LABEL_KEYS: Record<GateMenuAction, string> = {
   'mindmap.markGateTarget': 'mindmap.gateMarkTarget',
@@ -279,7 +283,7 @@ function gateMenuLabels(): Record<GateMenuAction, string> {
 
 const gates = createGateController({
   getMind: () => mind,
-  isReadOnly: () => isReadOnly.value || isGraphView.value,
+  isReadOnly: () => isEditBlocked() || isGraphView.value,
   brokenLabel: () => t('mindmap.gateBroken'),
   notify: (key: GateNotice) => toasts.info(t(`mindmap.${key}`)),
   onChange: scheduleSync,
@@ -296,7 +300,7 @@ function topicOf(id: string): string {
 }
 
 function mergeDuplicate(keepId: string, dupId: string): void {
-  if (!mind || isReadOnly.value || isGraphView.value) return;
+  if (!mind || isEditBlocked() || isGraphView.value) return;
   const merged = mergeIntoGate(mind.getData(), keepId, dupId);
   if (!merged) return;
   mind.refresh(merged);
@@ -369,8 +373,12 @@ watch(() => props.content, (content) => {
 
 watch(() => props.locked, (isLocked) => {
   if (!mind || isGraphView.value) return;
-  if (isLocked) mind.disableEdit();
-  else if (canEdit()) mind.enableEdit();
+  if (isLocked) {
+    flushPendingSync();
+    mind.disableEdit();
+    return;
+  }
+  if (canEdit()) mind.enableEdit();
 });
 
 watch(() => settings.theme, () => {

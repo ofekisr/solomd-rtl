@@ -8,9 +8,9 @@ const DATA = { nodeData: { id: 'root', topic: 'Root', children: [{ id: 'a', topi
 
 test('outlineMarkdownOf renders topics as headings', () => {
   const md = outlineMarkdownOf(codec.parse(codec.serialize(DATA)));
-  assert.match(md, /Root/);
-  assert.match(md, /שלום/);
-  assert.match(md, /Child/);
+  assert.match(md, /^# Root/m);
+  assert.match(md, /^## שלום/m);
+  assert.match(md, /^## Child/m);
   assert.ok(md.indexOf('Root') < md.indexOf('Child'));
 });
 

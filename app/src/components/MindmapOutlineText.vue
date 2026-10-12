@@ -11,7 +11,7 @@ const lines = computed(() => outlineLines(props.markdown));
 <template>
   <div class="mm-outline-text">
     <p class="mm-outline-text__note" role="note">{{ t('mindmap.outlineLocked') }}</p>
-    <div class="mm-outline-text__body" aria-readonly="true">
+    <div class="mm-outline-text__body" role="textbox" aria-multiline="true" aria-readonly="true" tabindex="0">
       <div v-for="(line, index) in lines" :key="index" class="mm-outline-text__line" dir="auto">{{ line }}</div>
     </div>
   </div>
