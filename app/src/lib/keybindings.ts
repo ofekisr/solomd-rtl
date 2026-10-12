@@ -18,14 +18,18 @@
  * folding them into a global table would change when they fire.
  */
 
+import { MINDMAP_BUILTIN_COMBOS } from './mindmap-keymap.ts';
+
 export type KeyCombo = string;
+
+export type KeyScope = 'global' | 'mindmap';
 
 export interface KeyActionDef {
   /** Stable id — matches the command registry's id where one exists. */
   id: string;
   /** Name shown in Settings. English, like the command palette's titles. */
   label: string;
-  category: 'file' | 'edit' | 'view' | 'navigate' | 'tools';
+  category: 'file' | 'edit' | 'view' | 'navigate' | 'tools' | 'mindmap';
   /**
    * Defaults, in priority order. A few actions ship two chords — ⌘N and ⌘T
    * both make a note, F1 and ⌘/ both open help — because both are muscle
@@ -37,6 +41,12 @@ export interface KeyActionDef {
    * case for everything except `file.exit` — see its entry.
    */
   platforms?: ('mac' | 'windows' | 'linux')[];
+  /** Where the chord is live. Omitted means everywhere (the window dispatcher). */
+  scope?: KeyScope;
+}
+
+function scopeOf(action: KeyActionDef): KeyScope {
+  return action.scope ?? 'global';
 }
 
 /** Which platform's key table to build. Overridable so tests can pin one. */
@@ -160,12 +170,43 @@ export const KEY_ACTIONS: KeyActionDef[] = [
   { id: 'tile.focusPrev', label: 'Focus Previous Pane', category: 'navigate', defaults: ['Mod+Alt+ArrowLeft'] },
 
   // ---- Tools ----
+  { id: 'mindmap.convertDocument', label: 'Mindmap: Convert Document to Map', category: 'tools', defaults: ['Mod+Alt+Shift+M'] },
+  { id: 'mindmap.convertSection', label: 'Mindmap: Convert Section to Map', category: 'tools', defaults: [] },
+  { id: 'mindmap.convertSelection', label: 'Mindmap: Convert Selection to Map', category: 'tools', defaults: [] },
+  { id: 'mindmap.insertFenceFromSection', label: 'Mindmap: Insert Map Fence from Section', category: 'tools', defaults: [] },
+  { id: 'mindmap.insertFenceFromSelection', label: 'Mindmap: Insert Map Fence from Selection', category: 'tools', defaults: [] },
+  { id: 'mindmap.convertFolder', label: 'Mindmap: Convert Folder to Map', category: 'tools', defaults: [] },
   { id: 'settings.open', label: 'Settings', category: 'tools', defaults: ['Mod+Comma'] },
   { id: 'help.markdown', label: 'Markdown Help', category: 'tools', defaults: ['F1', 'Mod+Slash'] },
   { id: 'proofread.cjk', label: 'CJK Proofread', category: 'tools', defaults: ['Mod+Shift+J'] },
   { id: 'daily.openToday', label: "Open Today's Daily Note", category: 'tools', defaults: ['Mod+D'] },
   { id: 'inbox.toggle', label: 'Toggle Inbox Flag / Organize', category: 'tools', defaults: ['Mod+E'] },
   { id: 'pomodoro.startLast', label: 'Start Writing Session (Zen)', category: 'tools', defaults: ['Mod+Shift+Z'] },
+
+  // ---- Mindmap (live only while a mindmap view has focus) ----
+  { id: 'mindmap.toggleNode', label: 'Mindmap: Collapse / Expand Node', category: 'mindmap', scope: 'mindmap', defaults: ['Space'] },
+  { id: 'mindmap.fit', label: 'Mindmap: Fit to Window', category: 'mindmap', scope: 'mindmap', defaults: ['Mod+Alt+0'] },
+  { id: 'mindmap.focusRoot', label: 'Mindmap: Select Root', category: 'mindmap', scope: 'mindmap', defaults: ['Home'] },
+  { id: 'mindmap.shortcutHelp', label: 'Mindmap: Keyboard Shortcuts', category: 'mindmap', scope: 'mindmap', defaults: ['Shift+Slash'] },
+  { id: 'mindmap.exportPng', label: 'Mindmap: Export as PNG', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.exportSvg', label: 'Mindmap: Export as SVG', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.exportHtml', label: 'Mindmap: Export as HTML', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.exportJson', label: 'Mindmap: Export as JSON', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.exportMarkdown', label: 'Mindmap: Export as Markdown List', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.copyPlaintext', label: 'Mindmap: Copy as Plaintext', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.toHeadingsDocument', label: 'Mindmap: Open as Markdown Headings', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.jumpToSource', label: 'Mindmap: Jump to Source', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.toggleReadOnly', label: 'Mindmap: Toggle Read-Only', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.toggleGraphView', label: 'Mindmap: Toggle Graph View', category: 'mindmap', scope: 'mindmap', defaults: ['Mod+Alt+G'] },
+  { id: 'mindmap.exportMermaid', label: 'Mindmap: Export Graph as Mermaid', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.exportAdjacency', label: 'Mindmap: Export Graph as JSON Adjacency', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.markGateTarget', label: 'Mindmap: Mark Gate Target', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.insertGate', label: 'Mindmap: Insert Gate to Marked Node', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.followGate', label: 'Mindmap: Follow Gate', category: 'mindmap', scope: 'mindmap', defaults: ['Alt+Enter'] },
+  { id: 'mindmap.gateBack', label: 'Mindmap: Back from Gate', category: 'mindmap', scope: 'mindmap', defaults: ['Alt+ArrowLeft'] },
+  { id: 'mindmap.repairGate', label: 'Mindmap: Repair Gate to Marked Node', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.removeGate', label: 'Mindmap: Remove Gate', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.findDuplicates', label: 'Mindmap: Find Duplicates', category: 'mindmap', scope: 'mindmap', defaults: [] },
 ];
 
 /** Keys whose `event.key` is punctuation — spelled by code for stability. */
@@ -216,6 +257,8 @@ export function eventToCombo(e: KeyboardEvent): KeyCombo | null {
     key = e.code;
   } else if (/^F\d{1,2}$/.test(raw)) {
     key = raw;
+  } else if (raw === ' ') {
+    key = 'Space';
   } else if (raw.length === 1) {
     key = raw.toUpperCase();
   } else {
@@ -265,9 +308,11 @@ export function formatCombo(combo: KeyCombo, isMac: boolean): string {
  */
 export function resolveBindings(
   overrides: Record<string, string | null | undefined> = {},
+  scope: KeyScope = 'global',
 ): Map<KeyCombo, string> {
   const map = new Map<KeyCombo, string>();
   for (const action of activeKeyActions()) {
+    if (scopeOf(action) !== scope) continue;
     const override = overrides[action.id];
     if (override === null) continue;
     const combos = override ? [normalizeCombo(override)] : action.defaults.map(normalizeCombo);
@@ -461,15 +506,22 @@ export function filterKeyActions(
   });
 }
 
-/** Which other action already owns this chord, if any. */
+/** Sentinel `conflictFor` returns when a mindmap rebind hits a Mind Elixir key. */
+export const MINDMAP_BUILTIN_OWNER = 'mindmap.builtin';
+
+/** Which other action in the same scope already owns this chord, if any. */
 export function conflictFor(
   combo: KeyCombo,
   actionId: string,
   overrides: Record<string, string | null | undefined> = {},
 ): string | null {
   const target = normalizeCombo(combo);
-  for (const action of activeKeyActions()) {
-    if (action.id === actionId) continue;
+  const actions = activeKeyActions();
+  const owner = actions.find((a) => a.id === actionId);
+  const scope = owner ? scopeOf(owner) : 'global';
+  if (scope === 'mindmap' && MINDMAP_BUILTIN_COMBOS.has(target)) return MINDMAP_BUILTIN_OWNER;
+  for (const action of actions) {
+    if (action.id === actionId || scopeOf(action) !== scope) continue;
     if (combosFor(action.id, overrides).includes(target)) return action.id;
   }
   return null;

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, defineAsyncComponent } from 'vue';
 import Editor from './Editor.vue';
 import Preview from './Preview.vue';
 import { useSettingsStore } from '../stores/settings';
 import { useTilesStore } from '../stores/tiles';
 import type { Tab } from '../types';
+import { MINDMAP_CONVERT_EVENT, useMindmapConvert, type LineSelection, type MindmapConvertDetail } from '../composables/useMindmapConvert';
 import { isWindowsEditorRuntime, shouldUsePlainWindowsEditor } from '../lib/platform';
 
 const props = defineProps<{
@@ -23,8 +24,12 @@ const tiles = useTilesStore();
 const editorRef = ref<InstanceType<typeof Editor> | null>(null);
 const previewRef = ref<InstanceType<typeof Preview> | null>(null);
 
+const MindmapView = defineAsyncComponent(() => import('./MindmapView.vue'));
+
+const isMindmap = computed(() => props.tab?.language === 'mindmap');
+
 const showEditor = computed(
-  () => props.tab?.language !== 'markdown' || settings.viewMode !== 'preview'
+  () => !isMindmap.value && (props.tab?.language !== 'markdown' || settings.viewMode !== 'preview')
 );
 // `liveEdit` mode is editor-only: the inline-rendered markdown IS the
 // preview, so we don't show the separate Preview pane next to it.
@@ -316,6 +321,7 @@ onMounted(() => {
   setTimeout(bindScrollSync, 300);
   window.addEventListener('solomd:outline-goto', onOutlineGotoEvent);
   window.addEventListener('solomd:insert-markdown', onInsertMarkdownEvent);
+  window.addEventListener(MINDMAP_CONVERT_EVENT, onMindmapConvertEvent);
   window.addEventListener('solomd:insert-image-path', onInsertImagePathEvent);
   window.addEventListener('solomd:insert-image-url', onInsertImageUrlEvent);
   window.addEventListener('solomd:upload-local-images', onUploadLocalImagesEvent);
@@ -331,6 +337,7 @@ onBeforeUnmount(() => {
   syncPreviewScroll?.();
   window.removeEventListener('solomd:outline-goto', onOutlineGotoEvent);
   window.removeEventListener('solomd:insert-markdown', onInsertMarkdownEvent);
+  window.removeEventListener(MINDMAP_CONVERT_EVENT, onMindmapConvertEvent);
   window.removeEventListener('solomd:insert-image-path', onInsertImagePathEvent);
   window.removeEventListener('solomd:insert-image-url', onInsertImageUrlEvent);
   window.removeEventListener('solomd:upload-local-images', onUploadLocalImagesEvent);
@@ -356,6 +363,17 @@ function onOutlineGotoEvent(e: Event) {
   const { line, paneId } = (e as CustomEvent).detail;
   if (paneId !== props.paneId) return;
   gotoLine(line);
+}
+
+const mindmapConvert = useMindmapConvert();
+
+function onMindmapConvertEvent(e: Event) {
+  const { scope, output, paneId } = (e as CustomEvent<MindmapConvertDetail>).detail;
+  if (paneId !== props.paneId) return;
+  if (!props.tab) return;
+  window.dispatchEvent(new Event('solomd:flush-content-sync'));
+  const ed = editorRef.value as unknown as { getLineSelection?: () => LineSelection | null } | null;
+  mindmapConvert.convert(props.tab, scope, output, ed?.getLineSelection?.() ?? null);
 }
 
 function onInsertMarkdownEvent(e: Event) {
@@ -442,6 +460,9 @@ function onPreviewSearchEvent(e: Event) {
       'pane-content--distinct': settings.distinctSplitPanes && showEditor && showPreview,
     }"
   >
+    <div class="pane pane--mindmap" v-if="isMindmap && tab">
+      <MindmapView :key="tab.id" :tab="tab" />
+    </div>
     <div class="pane pane--editor" v-if="showEditor && tab">
       <Editor
         :key="editorImplementationKey"

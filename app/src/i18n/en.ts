@@ -287,6 +287,8 @@ export const en = {
     keysCatView: 'View',
     keysCatNavigate: 'Navigate',
     keysCatTools: 'Tools',
+    keysCatMindmap: 'Mindmap',
+    keysMindmapBuiltin: 'Mind Elixir built-in: {label}',
     keysChange: 'Change',
     keysCancel: 'Cancel',
     keysUnbind: 'Unbind',
@@ -1350,6 +1352,59 @@ export const en = {
       frontmatter: '--- yaml ---',
     },
   },
+  mindmap: {
+    convertMarkdownOnly: 'Convert works on markdown documents',
+    convertNoSection: 'Place the cursor under a heading',
+    convertEmptySelection: 'Select some text first',
+    convertNeedsEditor: 'Section and selection need the rich editor',
+    convertDone: 'Mind map inserted',
+    sourceUnavailable: 'Source document is not available',
+    parseError: 'This mindmap file could not be read.',
+    openAsText: 'Open as text',
+    shortcutsTitle: 'Mindmap shortcuts',
+    builtinSection: 'Editing',
+    customSection: 'SoloMD (rebindable in Settings)',
+    close: 'Close',
+    folderTitle: 'Convert folder to mind map',
+    folderChoose: 'Choose…',
+    folderNone: 'Open or choose a folder first',
+    folderSkipKeywords: 'Skip files whose title contains (comma-separated whole words)',
+    folderGroup: 'Group by subfolder',
+    folderSkippedDirective: 'epub skip',
+    folderOversized: 'Skipped (over {size} MB or unreadable)',
+    folderLarge: 'This map has {count} nodes. Continue?',
+    folderConvert: 'Convert',
+    folderConvertAnyway: 'Convert anyway',
+    folderCancel: 'Cancel',
+    folderReadFailed: 'Could not read the folder',
+    folderConvertFailed: 'Could not convert the folder',
+    folderTruncated: 'Only the first {count} files are listed',
+    duplicatesTitle: 'Duplicate nodes',
+    duplicatesEmpty: 'No duplicates found',
+    mergeIntoGate: 'Merge into gate',
+    fenceOpenFull: 'Open fullscreen',
+    fenceEditorTitle: 'Mind map',
+    fenceParseError: 'Mind map could not be read',
+    fenceStale: 'The mind map block changed in the note; edits are no longer saved. Close and reopen it.',
+    exportDone: 'Mind map exported',
+    exportFailed: 'Mind map export failed',
+    readOnlyBadge: 'Read-only',
+    graphViewBadge: 'Graph view',
+    noActiveMap: 'Click a mind map first',
+    copiedPlaintext: 'Mind map copied as plaintext',
+    noSource: 'This node has no source location',
+    gateBroken: '⚠ missing target',
+    gateMarked: 'Gate target marked',
+    gateNoTarget: 'Mark a target node first (or the target is gone)',
+    gateTargetIsGate: 'A gate cannot target another gate',
+    gateNotGate: 'Select a gate first',
+    gateCannotHoldChildren: 'Gates cannot have children',
+    gateMarkTarget: 'Mark as gate target',
+    gateInsert: 'Insert gate to marked node',
+    gateFollow: 'Follow gate',
+    gateRepair: 'Repair gate',
+    gateRemove: 'Remove gate',
+  },
   whiteboard: {
     // F7 — Markdown-backed tldraw whiteboards.
     loading: 'Loading whiteboard…',
@@ -1801,6 +1856,14 @@ export const en = {
     formatChange: "Change shortcuts",
   },
   cmd: {
+    mindmap: {
+      convertDocument: 'Mindmap: Convert Document to Map',
+      convertSection: 'Mindmap: Convert Section to Map',
+      convertSelection: 'Mindmap: Convert Selection to Map',
+      insertFenceFromSection: 'Mindmap: Insert Map Fence from Section',
+      insertFenceFromSelection: 'Mindmap: Insert Map Fence from Selection',
+      convertFolder: 'Mindmap: Convert Folder to Map',
+    },
     fmt: {
       bold: "Bold",
       italic: "Italic",
@@ -2006,12 +2069,18 @@ type DirectiveCompletionFallbackKey =
   | 'directiveCompletionLoaded'
   | 'directiveCompletionRestartHint'
   | 'directiveCompletionWarnings'
-  | 'directiveCompletionOpenFailed';
+  | 'directiveCompletionOpenFailed'
+  | 'keysCatMindmap'
+  | 'keysMindmapBuiltin';
 
 type EnglishDictionary = typeof en;
 type EnglishSettings = EnglishDictionary['settings'];
 
-export type I18n = Omit<EnglishDictionary, 'settings'> & {
+type EnglishCmd = EnglishDictionary['cmd'];
+
+export type I18n = Omit<EnglishDictionary, 'settings' | 'mindmap' | 'cmd'> & {
+  cmd: Omit<EnglishCmd, 'mindmap'> & { mindmap?: EnglishCmd['mindmap'] };
   settings: Omit<EnglishSettings, DirectiveCompletionFallbackKey> &
     Partial<Pick<EnglishSettings, DirectiveCompletionFallbackKey>>;
+  mindmap?: EnglishDictionary['mindmap'];
 };

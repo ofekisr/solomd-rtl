@@ -14,5 +14,39 @@
         "shadow": true
       }
     ]
+  },
+  "bundle": {
+    "fileAssociations": [
+      {
+        "ext": [
+          "md",
+          "markdown",
+          "mdown",
+          "mkd"
+        ],
+        "name": "Markdown Document",
+        "description": "Markdown text document",
+        "role": "Editor",
+        "mimeType": "text/markdown"
+      },
+      {
+        "ext": [
+          "txt"
+        ],
+        "name": "Plain Text",
+        "description": "Plain text document",
+        "role": "Editor",
+        "mimeType": "text/plain"
+      },
+      {
+        "ext": [
+          "mmap"
+        ],
+        "name": "SoloMD Mindmap",
+        "description": "SoloMD mind map",
+        "role": "Editor",
+        "mimeType": "application/x-solomd-mindmap"
+      }
+    ]
   }
 }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { inferFileLanguage } from './file-language';
+import { inferFileLanguage, untitledFileName } from './file-language.ts';
 
 test('Recognizes filenames and paths rather than bare language names', () => {
   assert.equal(inferFileLanguage('example.py'), 'python');
@@ -38,4 +38,17 @@ test('Shell extensions and startup files select the shared Bash highlighter', ()
   ]) {
     assert.equal(inferFileLanguage(name), 'bash', name);
   }
+});
+
+test('mindmap files route to the mindmap language', () => {
+  assert.equal(inferFileLanguage('/maps/Plan.mmap'), 'mindmap');
+  assert.equal(inferFileLanguage('C:\\maps\\PLAN.MMAP'), 'mindmap');
+  assert.equal(inferFileLanguage('/maps/Old.xmind'), 'mindmap');
+});
+
+test('untitled names follow the language', () => {
+  assert.equal(untitledFileName('markdown'), 'Untitled.md');
+  assert.equal(untitledFileName('mindmap'), 'Untitled.mmap');
+  assert.equal(untitledFileName('plaintext'), 'Untitled.txt');
+  assert.equal(untitledFileName('python'), 'Untitled.txt');
 });

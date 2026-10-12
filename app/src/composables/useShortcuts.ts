@@ -8,6 +8,7 @@ import { useCommands } from './useCommands';
 import { useInbox } from './useInbox';
 import { usePomodoroStore, getLastPreset } from '../stores/pomodoro';
 import { eventToCombo, resolveBindings } from '../lib/keybindings';
+import { MINDMAP_CONVERT_ACTION_IDS, MINDMAP_CONVERT_FOLDER_ACTION } from './useMindmapConvert';
 import { FORMAT_KINDS, type FormatKind } from '../lib/md-format';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 
@@ -151,6 +152,9 @@ export function useShortcuts(hooks: Hooks = {}) {
 
     'settings.open': () => hooks.openSettings?.(),
     'help.markdown': () => hooks.openHelp?.(),
+    ...Object.fromEntries(
+      [...MINDMAP_CONVERT_ACTION_IDS, MINDMAP_CONVERT_FOLDER_ACTION].map((id) => [id, () => runById(id)]),
+    ),
     'proofread.cjk': () => hooks.openCjkProofread?.(),
     'daily.openToday': () => runById('daily.openToday'),
     // v4.6 F6: inside the inbox context with auto-advance on, this marks the

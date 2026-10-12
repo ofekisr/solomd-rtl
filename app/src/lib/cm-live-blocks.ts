@@ -18,7 +18,7 @@
  * handles inline marker hiding.
  */
 
-import { RangeSetBuilder, StateField, StateEffect, Prec, EditorSelection, Transaction, EditorState } from '@codemirror/state';
+import { RangeSetBuilder, StateField, StateEffect, Prec, EditorSelection, Transaction, EditorState, type Text } from '@codemirror/state';
 import { keymap } from '@codemirror/view';
 import { isDragging, isDragEndTransaction } from './cm-drag-aware';
 import { frozenFieldDuringComposition, isImeSafeFlushTransaction } from './cm-ime-guard';
@@ -54,6 +54,8 @@ import {
   TLDRAW_DEFAULT_HEIGHT,
   type BoardThemeTokens,
 } from './tldraw-board';
+import { mountReadOnlyMindmap, type ReadOnlyMindmap, type ReadOnlyMountResult } from './mindmap-readonly';
+import { findMindmapFences, MINDMAP_OPEN_EVENT, type MindmapFence, type MindmapOpenDetail } from './mindmap-fence';
 
 // v4.3.0 issue #57a — live-render math + Mermaid blocks in the editor.
 // Mermaid is async; we render lazily into a counter-keyed cache so the
@@ -499,6 +501,136 @@ class PlantumlWidget extends WidgetType {
   }
 }
 
+
+interface MindmapStrings { openFull: string; parseError: string; gateBroken: string }
+interface MindmapMountState { isDestroyed: boolean; map: ReadOnlyMindmap | null }
+
+const MINDMAP_FALLBACK_STRINGS: MindmapStrings = { openFull: 'Open fullscreen', parseError: 'Mind map could not be read', gateBroken: '⚠ missing target' };
+const CM_RELAYOUT_EVENT = 'solomd:cm-relayout';
+const mindmapTeardowns = new WeakMap<HTMLElement, () => void>();
+
+function teardownMindmap(state: MindmapMountState): void {
+  state.isDestroyed = true;
+  state.map?.destroy();
+  state.map = null;
+}
+
+class MindmapWidget extends WidgetType {
+  constructor(
+    private readonly body: string,
+    private readonly line: number,
+    private readonly isDark: boolean,
+    private readonly opts: BlockOptions,
+  ) {
+    super();
+  }
+
+  eq(other: MindmapWidget): boolean {
+    return other.body === this.body && other.line === this.line && other.isDark === this.isDark;
+  }
+
+  toDOM(): HTMLElement {
+    const wrap = document.createElement('div');
+    wrap.className = 'cm-live-block cm-live-block--mindmap';
+    const canvas = document.createElement('div');
+    wrap.append(canvas, this.openButton());
+    const state: MindmapMountState = { isDestroyed: false, map: null };
+    mindmapTeardowns.set(wrap, () => teardownMindmap(state));
+    void this.mount(wrap, canvas, state);
+    return wrap;
+  }
+
+  private strings(): MindmapStrings {
+    return this.opts.getMindmapStrings?.() ?? MINDMAP_FALLBACK_STRINGS;
+  }
+
+  private openButton(): HTMLButtonElement {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'cm-mindmap-open';
+    button.textContent = this.strings().openFull;
+    button.addEventListener('click', () => this.open());
+    return button;
+  }
+
+  private open(): void {
+    const tabId = this.opts.getTabId?.();
+    if (!tabId) return;
+    const detail: MindmapOpenDetail = { tabId, line: this.line, body: this.body };
+    window.dispatchEvent(new CustomEvent(MINDMAP_OPEN_EVENT, { detail }));
+  }
+
+  private async load(canvas: HTMLElement): Promise<ReadOnlyMountResult> {
+    try {
+      return await mountReadOnlyMindmap(canvas, this.body, this.isDark, this.strings().gateBroken);
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : String(error) };
+    }
+  }
+
+  private async mount(wrap: HTMLElement, canvas: HTMLElement, state: MindmapMountState): Promise<void> {
+    const result = await this.load(canvas);
+    if (state.isDestroyed) {
+      if (result.ok) result.map.destroy();
+      return;
+    }
+    if (result.ok) {
+      state.map = result.map;
+      window.dispatchEvent(new CustomEvent(CM_RELAYOUT_EVENT));
+      return;
+    }
+    wrap.classList.add('cm-live-block--broken');
+    wrap.textContent = `${this.strings().parseError}: ${result.error}`;
+  }
+
+  destroy(dom: HTMLElement): void {
+    mindmapTeardowns.get(dom)?.();
+    mindmapTeardowns.delete(dom);
+  }
+
+  ignoreEvent(): boolean {
+    return true;
+  }
+}
+
+interface MindmapBuildContext {
+  doc: Text;
+  cursorLine: number;
+  cursorLineEnd: number;
+  keepSource: boolean;
+  opts: BlockOptions;
+}
+
+const mindmapFenceCache = new WeakMap<Text, Map<number, MindmapFence>>();
+
+function mindmapFencesByCmLine(doc: Text): Map<number, MindmapFence> {
+  const cached = mindmapFenceCache.get(doc);
+  if (cached) return cached;
+  const byLine = new Map(findMindmapFences(doc.toString()).map((fence) => [fence.line + 1, fence] as const));
+  mindmapFenceCache.set(doc, byLine);
+  return byLine;
+}
+
+function isLineWithin(line: number, from: number, to: number): boolean {
+  return line >= from && line <= to;
+}
+
+function addMindmapDecoration(builder: RangeSetBuilder<Decoration>, fence: MindmapFence, ctx: MindmapBuildContext): number {
+  const startLine = fence.line + 1;
+  const endLine = ctx.doc.lineAt(fence.to).number;
+  const isRevealed = ctx.keepSource
+    || isLineWithin(ctx.cursorLine, startLine, endLine)
+    || isLineWithin(ctx.cursorLineEnd, startLine, endLine);
+  if (!isRevealed) {
+    const isDark = ctx.opts.getMermaidTheme?.() === 'dark';
+    builder.add(ctx.doc.line(startLine).from, ctx.doc.line(endLine).to, Decoration.replace({
+      widget: new MindmapWidget(fence.body, fence.line, isDark, ctx.opts),
+      block: true,
+    }));
+  }
+  return endLine + 1;
+}
+
 // v4.6 F7 — ```tldraw fenced whiteboard. Unlike mermaid (which collapses only
 // when the cursor leaves), the board ALWAYS replaces the fence: the JSON is
 // never meant to be hand-edited. The widget mounts a LIVE tldraw editor via the
@@ -688,6 +820,8 @@ interface BlockOptions {
    * English fallbacks are used when absent so the widget never shows a raw key.
    */
   getBoardStrings?: () => { loading: string; openFull: string; loadFailed: string };
+  /** Mindmap fence i18n: localized strings for the inline mindmap chrome. Optional — English fallbacks used when absent. */
+  getMindmapStrings?: () => { openFull: string; parseError: string; gateBroken: string };
   /**
    * #354 — Mermaid theme for the current app theme ('dark' for any dark
    * theme). Absent → 'default'. A change takes effect on the next rebuild;
@@ -726,8 +860,15 @@ function buildBlockDecorations(state: EditorState, opts: BlockOptions): Decorati
           { length: lastLine },
           (_, index) => doc.line(index + 1).text,
         );
+        const mindmapFences = mindmapFencesByCmLine(doc);
+        const mindmapContext: MindmapBuildContext = { doc, cursorLine, cursorLineEnd, keepSource, opts };
         let i = 1;
         while (i <= lastLine) {
+          const mindmapFence = mindmapFences.get(i);
+          if (mindmapFence) {
+            i = addMindmapDecoration(builder, mindmapFence, mindmapContext);
+            continue;
+          }
           const line = doc.line(i);
 
           // Raw block HTML (`<div>…</div>`, `<details>`, HTML tables, etc.).
@@ -1253,6 +1394,10 @@ export const liveBlocksTheme = EditorView.theme({
     maxWidth: '100%',
     height: 'auto',
   },
+  // mindmap fence widget
+  '.cm-live-block--mindmap': { position: 'relative', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' },
+  '.cm-mindmap-open': { position: 'absolute', insetBlockStart: '8px', insetInlineEnd: '8px', zIndex: '2' },
+  '.cm-live-block--mindmap me-tpc': { unicodeBidi: 'plaintext', textAlign: 'start' },
   // v4.6 F7 — tldraw whiteboard card. A bordered surface hosting the live
   // canvas; the inner `.cm-tldraw-surface` fills it so tldraw can measure.
   // The bordered card is an inner element (`.cm-tldraw-card`) so the outer

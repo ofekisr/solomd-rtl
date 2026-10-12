@@ -176,7 +176,7 @@ export const useTabsStore = defineStore('tabs', {
     },
   },
   actions: {
-    newTab(opts?: { fileName?: string; language?: Language }) {
+    newTab(opts?: { fileName?: string; language?: Language; importedFrom?: string }) {
       const fileName = opts?.fileName ?? 'Untitled.md';
       const language = opts?.language ?? inferLanguage(fileName);
       const settings = useSettingsStore();
@@ -189,6 +189,7 @@ export const useTabsStore = defineStore('tabs', {
         language,
         hadBom: false,
         showOutline: language === 'markdown' && settings.showOutline,
+        ...(opts?.importedFrom ? { importedFrom: opts.importedFrom } : {}),
       };
       this.tabs.push(tab);
       this.activeId = tab.id;

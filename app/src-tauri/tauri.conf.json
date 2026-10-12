@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "SoloMD",
-  "version": "4.14.8",
+  "version": "4.14.13",
   "identifier": "app.solomd",
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -72,6 +72,25 @@
         "description": "Plain text document",
         "role": "Editor",
         "mimeType": "text/plain"
+      },
+      {
+        "ext": [
+          "mmap"
+        ],
+        "name": "SoloMD Mindmap",
+        "description": "SoloMD mind map",
+        "role": "Editor",
+        "mimeType": "application/x-solomd-mindmap"
+      },
+      {
+        "ext": [
+          "xmind"
+        ],
+        "name": "SoloMD XMind Import",
+        "description": "XMind mind map (opens as an imported SoloMD mindmap)",
+        "role": "Viewer",
+        "rank": "Alternate",
+        "mimeType": "application/vnd.xmind.workbook"
       }
     ],
     "windows": {

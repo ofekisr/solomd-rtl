@@ -18,6 +18,9 @@ import type { FileReadResult, Tab } from '../types';
 import { isSafPath, fromSafPath, safRead, safWrite, safLaunchPicker } from '../lib/saf-fs';
 import { baseNameOf, fileNameOf, claimImportName, joinInFolder } from '../lib/import-plan';
 import { newFileDirFor, treeSelection } from '../lib/new-file-target';
+import { MMAP_EXTENSION, MINDMAP_EXTENSIONS, isXmindPath, mmapPathFor } from '../lib/mindmap-format';
+import { XMIND_TOO_LARGE_ERROR, XMIND_CONTENT_TOO_LARGE_ERROR } from '../lib/xmind-limits';
+import { untitledFileName } from '../lib/file-language';
 
 // Save dialogs only — opening uses no filter so any file is selectable.
 // (rfd treats `'*'` literally as the extension `*`, not as wildcard, so we
@@ -36,8 +39,14 @@ export function deriveNameFromHeading(tab: Pick<Tab, 'filePath' | 'fileName' | '
 
 const SAVE_FILTERS = [
   { name: 'Markdown', extensions: ['md', 'markdown', 'mdown', 'mkd'] },
+  { name: 'Mindmap', extensions: [MMAP_EXTENSION] },
   { name: 'Plain Text', extensions: ['txt'] },
 ];
+
+const XMIND_SHEET_WARNING_MS = 8000;
+const XMIND_UNREADABLE_MESSAGE = 'not a readable XMind file';
+const XMIND_SIZE_ERRORS: readonly string[] = [XMIND_TOO_LARGE_ERROR, XMIND_CONTENT_TOO_LARGE_ERROR];
+const xmindImportsInFlight = new Set<string>();
 
 export function useFiles() {
   const tabs = useTabsStore();
@@ -123,6 +132,7 @@ export function useFiles() {
     'vue', 'svelte', 'astro', 'py', 'rb', 'php', 'go', 'rs', 'java', 'kt',
     'swift', 'c', 'h', 'cpp', 'hpp', 'cc', 'cs', 'sh', 'bash', 'zsh', 'fish',
     'pl', 'lua', 'r', 'sql', 'graphql', 'proto', 'gradle', 'properties',
+    ...MINDMAP_EXTENSIONS,
   ]);
 
   function overlayStrings(): OverlayStrings {
@@ -209,7 +219,7 @@ export function useFiles() {
     return dest;
   }
 
-  async function openPath(path: string, opts: { bypassNewWindow?: boolean } = {}) {
+  async function openPath(path: string, opts: { bypassNewWindow?: boolean; revealInTree?: boolean } = {}) {
     // #148 — see importContentUri; must run before any path parsing below.
     if (isAndroid() && path.startsWith('content://')) {
       try {
@@ -289,6 +299,10 @@ export function useFiles() {
 
     const ext = (path.split('.').pop() || '').toLowerCase();
 
+    if (isXmindPath(path)) {
+      return openXmind(path);
+    }
+
     // If it's a convertible format, convert to Markdown first.
     if (CONVERT_BUILTIN.has(ext) || CONVERT_CLI.has(ext)) {
       return openAndConvert(path, ext);
@@ -313,7 +327,7 @@ export function useFiles() {
       // already current). That was the real "double-click opens nothing" bug.
       // Switching first means `openFromDisk` below adds the tab into the
       // already-settled workspace, so it survives and becomes active.
-      if (settings.revealInFileTreeOnOpen && !isSaf) {
+      if (opts.revealInTree !== false && settings.revealInFileTreeOnOpen && !isSaf) {
         const parent = path.replace(/[\\/][^\\/]+$/, '');
         if (parent && parent !== path) {
           workspace.setFolder(parent);
@@ -381,6 +395,54 @@ export function useFiles() {
       };
     }
     return openPath(path, opts);
+  }
+
+  function announceXmindImport(fileName: string, extraSheetCount: number): void {
+    toasts.success(`Imported ${fileName} — saving creates a .${MMAP_EXTENSION} file`);
+    if (extraSheetCount <= 0) return;
+    toasts.warning(
+      `${fileName}: only the first sheet was imported (${extraSheetCount} more not imported)`,
+      XMIND_SHEET_WARNING_MS,
+    );
+  }
+
+  function reportXmindFailure(fileName: string, error: string): void {
+    const isSizeError = XMIND_SIZE_ERRORS.includes(error);
+    if (!isSizeError) console.error('xmind import failed', error);
+    toasts.error(`Failed to open ${fileName}: ${isSizeError ? error : XMIND_UNREADABLE_MESSAGE}`);
+  }
+
+  async function importXmindTab(path: string, fileName: string): Promise<void> {
+    const bytes = new Uint8Array(await invoke<number[]>('read_binary_file', { path }));
+    const { convertXmind } = await import('../lib/xmind-import');
+    const result = await convertXmind(bytes, fileName);
+    if (!result.ok) {
+      reportXmindFailure(fileName, result.error);
+      return;
+    }
+    const tab = tabs.newTab({ fileName: fileNameOf(mmapPathFor(path)), language: 'mindmap', importedFrom: path });
+    tabs.setContent(tab.id, result.text);
+    workspace.pushRecent(path);
+    announceXmindImport(fileName, result.extraSheetCount);
+  }
+
+  async function openXmind(path: string): Promise<void> {
+    const existing = tabs.tabs.find((t) => t.importedFrom === path);
+    if (existing) {
+      tabs.activate(existing.id);
+      return;
+    }
+    if (xmindImportsInFlight.has(path)) return;
+    xmindImportsInFlight.add(path);
+    const fileName = fileNameOf(path);
+    try {
+      await importXmindTab(path, fileName);
+    } catch (e) {
+      console.error('xmind import failed', e);
+      toasts.error(`Failed to open ${fileName}: ${XMIND_UNREADABLE_MESSAGE}`);
+    } finally {
+      xmindImportsInFlight.delete(path);
+    }
   }
 
   async function openAndConvert(path: string, ext: string) {
@@ -681,7 +743,7 @@ export function useFiles() {
     const fname =
       deriveNameFromHeading(tab) ||
       tab.fileName ||
-      (tab.language === 'markdown' ? 'Untitled.md' : 'Untitled.txt');
+      untitledFileName(tab.language);
     const dir = await documentDir();
     return await join(dir, fname);
   }
@@ -707,6 +769,12 @@ export function useFiles() {
     }
   }
 
+  function refuseXmindWrite(path: string): boolean {
+    if (!isXmindPath(path)) return false;
+    toasts.error(`SoloMD does not write .xmind files — save as .${MMAP_EXTENSION}`);
+    return true;
+  }
+
   async function saveTab(tab: Tab, opts: { silent?: boolean } = {}): Promise<boolean> {
     // #222 — the CodeMirror editor syncs doc→tab.content on a 350ms debounce.
     // A save issued inside that window (vim `:w`/`:wq`, a fast Ctrl+S) would
@@ -723,6 +791,7 @@ export function useFiles() {
     } else if (!path) {
       return saveTabAs(tab);
     }
+    if (refuseXmindWrite(path)) return false;
     try {
       // Restore the file's original line endings on write — we
       // normalize CRLF→LF on open so CodeMirror behaves, but the user
@@ -779,7 +848,7 @@ export function useFiles() {
     const defaultName =
       deriveNameFromHeading(tab) ||
       tab.fileName ||
-      (tab.language === 'markdown' ? 'Untitled.md' : 'Untitled.txt');
+      untitledFileName(tab.language);
     let path: string | null;
     if (isIOS()) {
       // iOS: no Save-As picker UI that round-trips to Rust safely. Write
@@ -791,16 +860,19 @@ export function useFiles() {
       // is actually looking at — the Explorer's selection (a folder, or the
       // folder of the selected file), else the open document's folder —
       // instead of wherever the OS save dialog remembered last. An existing
-      // file keeps its own path, which is what "Save As" means.
-      const dir = tab.filePath
+      // file keeps its own path, which is what "Save As" means. Imported tabs
+      // default to the sibling `.mmap` of their source.
+      const importedPath = tab.importedFrom ? mmapPathFor(tab.importedFrom) : undefined;
+      const dir = tab.filePath || importedPath
         ? null
         : await pickerStartDir(newFileDirFor(treeSelection(), tabs.activeTab?.filePath));
       path = await saveDialog({
-        defaultPath: tab.filePath ?? (dir ? joinInFolder(dir, defaultName) : defaultName),
+        defaultPath: tab.filePath ?? importedPath ?? (dir ? joinInFolder(dir, defaultName) : defaultName),
         filters: SAVE_FILTERS,
       });
       if (!path) return false;
     }
+    if (refuseXmindWrite(path)) return false;
     try {
       const payload =
         tab.lineEnding === 'crlf' ? tab.content.replace(/\n/g, '\r\n') : tab.content;

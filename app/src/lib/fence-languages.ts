@@ -54,6 +54,13 @@ const SPECIAL_FENCES: FenceLanguage[] = [
     keywords: ['whiteboard', 'board', 'draw', 'canvas', 'sketch'],
   },
   {
+    name: 'mindmap',
+    aliases: [],
+    hint: 'mind map',
+    special: true,
+    keywords: ['mind', 'map', 'outline', 'tree', 'brainstorm'],
+  },
+  {
     name: 'plantuml',
     aliases: ['puml'],
     hint: 'UML',

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { initMermaid } from '../lib/mermaid-lazy';
-import { mermaidThemeFor } from '../lib/themes';
+import { mermaidThemeFor, themeFamily } from '../lib/themes';
+import { findMindmapFences, MINDMAP_OPEN_EVENT, type MindmapOpenDetail } from '../lib/mindmap-fence';
+import type { ReadOnlyMindmap } from '../lib/mindmap-readonly';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { documentDirection } from '../lib/doc-direction';
 import { isFullMdFile } from '../lib/markdown-block-badges';
@@ -293,6 +295,85 @@ async function processWhiteboards() {
   }
 }
 
+const mindmapMounts: ReadOnlyMindmap[] = [];
+
+function destroyMindmaps(): void {
+  for (const map of mindmapMounts.splice(0)) map.destroy();
+}
+
+function isDarkTheme(): boolean {
+  return themeFamily(settings.theme) === 'dark';
+}
+
+function openMindmapButton(detail: MindmapOpenDetail): HTMLButtonElement {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'mindmap-block__open';
+  button.textContent = t('mindmap.fenceOpenFull');
+  button.addEventListener('click', () => window.dispatchEvent(new CustomEvent(MINDMAP_OPEN_EVENT, { detail })));
+  return button;
+}
+
+let mindmapPass = 0;
+
+function showMindmapError(wrap: HTMLElement, message: string): void {
+  wrap.classList.add('mindmap-block--broken');
+  wrap.textContent = `${t('mindmap.fenceParseError')}: ${message}`;
+}
+
+async function mountMindmapInto(wrap: HTMLElement, canvas: HTMLElement, body: string): Promise<ReadOnlyMindmap | null> {
+  try {
+    const { mountReadOnlyMindmap } = await import('../lib/mindmap-readonly');
+    const result = await mountReadOnlyMindmap(canvas, body, isDarkTheme(), t('mindmap.gateBroken'));
+    if (result.ok) return result.map;
+    showMindmapError(wrap, result.error);
+  } catch (error) {
+    showMindmapError(wrap, error instanceof Error ? error.message : String(error));
+  }
+  return null;
+}
+
+async function renderMindmapBlock(pre: HTMLElement, body: string, line: number | null, pass: number): Promise<void> {
+  const wrap = document.createElement('div');
+  wrap.className = 'mindmap-block';
+  const canvas = document.createElement('div');
+  canvas.className = 'mindmap-block__canvas';
+  wrap.append(canvas);
+  pre.replaceWith(wrap);
+  const map = await mountMindmapInto(wrap, canvas, body);
+  if (!map) return;
+  if (pass !== mindmapPass || !canvas.isConnected) return map.destroy();
+  mindmapMounts.push(map);
+  if (props.tabId && line !== null) wrap.append(openMindmapButton({ tabId: props.tabId, line, body }));
+}
+
+const SOURCE_LINE_ATTR = 'data-source-line';
+
+function editableFenceLine(code: Element, editableLines: Set<number>): number | null {
+  const oneBased = Number(code.getAttribute(SOURCE_LINE_ATTR));
+  if (!Number.isInteger(oneBased) || oneBased < 1) return null;
+  return editableLines.has(oneBased - 1) ? oneBased - 1 : null;
+}
+
+async function processMindmaps(): Promise<void> {
+  if (!host.value) return;
+  const pass = ++mindmapPass;
+  destroyMindmaps();
+  const blocks = Array.from(host.value.querySelectorAll('pre > code.language-mindmap'));
+  const editableLines = new Set(findMindmapFences(props.source).map((fence) => fence.line));
+  for (const block of blocks) {
+    if (pass !== mindmapPass) return;
+    const pre = block.parentElement;
+    if (!pre || pre.dataset.rendered === '1') continue;
+    pre.dataset.rendered = '1';
+    await renderMindmapBlock(pre, block.textContent ?? '', editableFenceLine(block, editableLines), pass);
+  }
+}
+
+watch(() => settings.theme, () => {
+  for (const map of mindmapMounts) map.setDark(isDarkTheme());
+});
+
 // The theme is applied by processMermaid on each render pass. Diagrams already
 // on screen were drawn for the old theme and processMermaid skips them, so put
 // their source back as a fence first and let it render them again (#354).
@@ -428,6 +509,7 @@ watch(html, async () => {
   processPlantuml();
   await processMermaid();
   await processWhiteboards();
+  await processMindmaps();
   attachImageOverlayHandlers();
   attachCodeCopyButtons();
 });
@@ -445,6 +527,7 @@ watch(
     processPlantuml();
     await processMermaid();
     await processWhiteboards();
+    await processMindmaps();
     attachImageOverlayHandlers();
     attachCodeCopyButtons();
   },
@@ -536,6 +619,7 @@ onMounted(async () => {
   processPlantuml();
   await processMermaid();
   await processWhiteboards();
+  await processMindmaps();
   attachImageOverlayHandlers();
   attachCodeCopyButtons();
   host.value?.addEventListener('click', handleLinkClick);
@@ -543,6 +627,8 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  mindmapPass++;
+  destroyMindmaps();
   host.value?.removeEventListener('click', handleLinkClick);
   host.value?.removeEventListener('dblclick', onPreviewDblClick);
 });
@@ -944,6 +1030,11 @@ defineExpose({ scrollToLine, openSearch });
   background: rgba(214, 69, 69, 0.08);
   border-left: 3px solid var(--danger);
 }
+.mindmap-block { position: relative; margin: 1em 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.mindmap-block__canvas { width: 100%; }
+.mindmap-block__open { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; z-index: 2; }
+.mindmap-block--broken { padding: 12px; color: var(--text-muted, var(--text)); }
+.mindmap-block me-tpc { unicode-bidi: plaintext; text-align: start; }
 /* F7 — static whiteboard thumbnail in preview/reading/export. */
 :where(.preview-content) .whiteboard-block {
   display: flex;

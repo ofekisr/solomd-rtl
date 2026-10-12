@@ -2,11 +2,14 @@ import { FORMAT_KINDS } from '../lib/md-format';
 import { invoke } from '@tauri-apps/api/core';
 import { useFiles } from './useFiles';
 import { useSettingsStore } from '../stores/settings';
-import { shortcutLabel } from '../lib/keybindings';
+import { KEY_ACTIONS, shortcutLabel } from '../lib/keybindings';
+import { runActiveMindmapAction } from '../lib/mindmap-active';
+import { useI18n } from '../i18n';
 import { isMacOS, isMobile } from '../lib/platform';
 import { useTabsStore } from '../stores/tabs';
 import { useTilesStore } from '../stores/tiles';
 import { useExport } from './useExport';
+import { MINDMAP_CONVERT_ACTIONS, MINDMAP_CONVERT_EVENT, MINDMAP_CONVERT_FOLDER_ACTION, MINDMAP_CONVERT_FOLDER_EVENT, type MindmapConvertDetail } from './useMindmapConvert';
 import { useToastsStore } from '../stores/toasts';
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { openNewWindow } from '../lib/new-window';
@@ -55,6 +58,7 @@ export function useCommands(): Command[] {
   const tiles = useTilesStore();
   const exporter = useExport();
   const toasts = useToastsStore();
+  const { t } = useI18n();
   const daily = useDailyNotes();
   const pandoc = usePandocExport();
   const bases = useBasesView();
@@ -148,6 +152,32 @@ export function useCommands(): Command[] {
   ) {
     transformActive(pick(await loadChineseConvert()), successMsg);
   }
+
+  const MINDMAP_CATEGORY = 'mindmap';
+  const MINDMAP_ID_PREFIX = 'mindmap.';
+  const mindmapCommands: Command[] = KEY_ACTIONS.filter((a) => a.category === MINDMAP_CATEGORY).map((a) => ({
+    id: a.id,
+    title: a.label,
+    shortcut: kb(a.id),
+    run: () => { if (!runActiveMindmapAction(a.id)) toasts.info(t('mindmap.noActiveMap')); },
+  }));
+
+  const mindmapConvertCommands: Command[] = Object.entries(MINDMAP_CONVERT_ACTIONS).map(([id, { scope, output }]) => ({
+    id,
+    title: t(`cmd.mindmap.${id.slice(MINDMAP_ID_PREFIX.length)}`),
+    shortcut: kb(id),
+    run: () => {
+      const detail: MindmapConvertDetail = { scope, output, paneId: tiles.focusedPaneId };
+      window.dispatchEvent(new CustomEvent(MINDMAP_CONVERT_EVENT, { detail }));
+    },
+  }));
+
+  const mindmapFolderCommand: Command = {
+    id: MINDMAP_CONVERT_FOLDER_ACTION,
+    title: t('cmd.mindmap.convertFolder'),
+    shortcut: kb(MINDMAP_CONVERT_FOLDER_ACTION),
+    run: () => { window.dispatchEvent(new CustomEvent(MINDMAP_CONVERT_FOLDER_EVENT)); },
+  };
 
   const all: Command[] = [
     { id: 'file.new', title: 'New Markdown File', shortcut: kb('file.new'), run: () => files.newFile() },
@@ -753,6 +783,7 @@ export function useCommands(): Command[] {
   const built = IS_APP_STORE_BUILD
     ? all.filter((c) => c.id !== 'view.toggleAgentPanel')
     : all;
+  built.push(...mindmapCommands, ...mindmapConvertCommands, mindmapFolderCommand);
 
   // #230 — Android has no libgit2, so every `history.*` / `sync.*` entry would
   // resolve to a `Command … not found`. Keep them out of the palette entirely
