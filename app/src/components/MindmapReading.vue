@@ -60,7 +60,7 @@ function switchToData(): void {
 </template>
 
 <style scoped>
-.mindmap-reading__wide { display: flex; flex-direction: column; height: 100%; }
+.mindmap-reading__wide { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100%; }
 .mindmap-reading__map { flex: 1; min-height: 0; }
 .mindmap-reading__outline :deep(:is(h1, h2, h3, h4, h5, h6, li, p)) { unicode-bidi: plaintext; text-align: start; }
 </style>
