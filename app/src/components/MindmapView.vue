@@ -18,6 +18,7 @@ import Editor from './Editor.vue';
 import Preview from './Preview.vue';
 
 const SOURCE_LANGUAGE = 'json';
+const FLUSH_CONTENT_EVENT = 'solomd:flush-content-sync';
 const props = defineProps<{ tab: Tab }>();
 const tabs = useTabsStore();
 const toasts = useToastsStore();
@@ -43,6 +44,7 @@ const outlineMarkdown = computed(() => {
 function setMode(next: MindmapMode): void {
   if (next === mode.value) return;
   if (mode.value === 'map') canvas.value?.flush();
+  if (mode.value === 'source') window.dispatchEvent(new Event(FLUSH_CONTENT_EVENT));
   if (mode.value === 'source' && !leaveSourceAllowed()) return;
   sourceError.value = null;
   props.tab.mindmapMode = next;
@@ -128,4 +130,5 @@ defineExpose({ setMode, canvas, mode });
 .mindmap-shell__source { display: flex; flex-direction: column; }
 .mindmap-shell__error { padding: 6px 12px; font-size: 12px; background: var(--bg-secondary, #fee); border-block-end: 1px solid var(--border, #ccc); }
 .mindmap-shell__outline { overflow: auto; }
+.mindmap-shell__outline :deep(:is(h1, h2, h3, h4, h5, h6, li, p)) { unicode-bidi: plaintext; text-align: start; }
 </style>
