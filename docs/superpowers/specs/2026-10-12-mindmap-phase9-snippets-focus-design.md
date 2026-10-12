@@ -5,6 +5,8 @@
 Approved in conversation on 12-10-26. Starts after Phase 8 merges. Branch: `feat/mindmap-phase9`. Base: Phase 8 (`2026-10-12-mindmap-phase8-lens-design.md`).
 Parent design: `docs/superpowers/specs/2026-10-11-mindmap-design.md`. Unscheduled work: `2026-10-12-mindmap-follow-ups.md`.
 
+Done 12-10-26 (4.16.2) — plan `docs/superpowers/plans/2026-10-12-mindmap-phase9-snippets-focus-paste.md`
+
 ## Purpose
 
 - A `.mmap` holds code snippets (Markdown, Mermaid, nested maps) beside the map, the way a `.md` file holds fences.
@@ -149,3 +151,31 @@ Deferred minors from the Phase 8 final review (none blocked merge).
 | Focus | Unit: strip model (rows from map + focusId, deleted focus). Browser: chip focus, root cancel, breadcrumb, lens switch keeps focus, RTL |
 
 Desktop (Tauri) check before merge.
+
+## Decisions during planning
+
+| Spec says | Plan does | Why |
+|---|---|---|
+| Card edit toggles to "a code editor" | `<textarea dir="auto">` with monospace font | The only CodeMirror surface is the full `Editor.vue`, bound to a `Tab`. A small wrapper is out of scope |
+| Snippet edits "go through undo" | Not in Mind Elixir's undo history. Textarea has native undo while editing; delete needs a second click to confirm | Mind Elixir history only covers `nodeData`; snippets live outside it |
+| `mmap` snippet: small canvas "with an expand button" | Rendered by `Preview` as a read-only mindmap fence (360 px). No expand button | `Preview` already renders `mindmap` fences; a `Preview` with no `tabId` adds no "Open" button, so no fence side effects |
+| Markdown and HTML exports include snippets | Markdown export and "Open as Markdown headings" append `## Snippets`. HTML export unchanged | The HTML export is the package's interactive player with embedded map JSON; adding rendered Markdown needs a new renderer |
+| Outline preview: snippets as fences | Outline **text** uses fences for every kind; outline **preview** inlines `md` bodies raw so they render as Markdown | A `markdown` fence would render as code in preview |
+| Strip in "map renderer cells" | Strip in `MindmapView` map cells only. Reading's wide map shows the whole map without a strip | Reading is a view, not a work surface; keeps `MindmapReading` unchanged |
+| Focus entry points incl. "side panel button" | Palette, node context menu (the package's "Focus" item), strip chips | The context menu already has Focus; a panel button duplicates it |
+| Gates/arrows/summaries remapped by the Phase 5 merge rewriter | Remapped by walking pasted and inserted trees in parallel (`mindmap-paste-remap.ts`) | `copyNodes` regenerates every id itself (`we()`), so prefixing before insert is useless |
+| Pasted arrows and summaries in the same undo step | Inserted via `createArrowFrom` / `createSummaryFrom`: one extra undo step each | Those are the package's only public APIs that keep the operation bus in sync |
+| Snippet panel "remembers collapsed state per tab" | Component state: kept while the cell stays mounted, reset when the cell changes | Avoids a new `Tab` field for a cosmetic toggle |
+| Carry-over §4 #6 (`duplicateCount` reset in teardown) | Dropped: already fixed (`teardown()` sets it to 0) | Found during planning |
+| Carry-over §4 #8 (read-only toggle pressed during lock) | Dropped: `aria-pressed` reads the canvas toggle only; the button is disabled while locked | Found during planning |
+
+### Decisions during implementation
+
+| Topic | Decision | Why |
+|---|---|---|
+| Paste insert | Await `copyNodes`, take inserted roots as `target.nodeObj.children.slice(countBefore)` | `before:` hooks make Mind Elixir's `copyNodes` async, so `currentNodes` is not updated synchronously |
+| Gate remap undo | After remapping internal gate targets, fire one extra `copyNodes` operation so history snapshots the remapped tree (one extra undo step) | Mind Elixir undo is snapshot-based and recorded before the remap |
+| Paste sanitize | Every paste payload is sanitized in one choke point (`payloadOf`) | Spec: every map payload passes a sanitizer |
+| Focus vs full tree | Gate controller, duplicates, strip and sync read the live full tree (`nodeDataBackup` while focused); undo/redo leave and reapply focus | `mind.nodeData` is only the focused subtree |
+| RTL breadcrumb | Separator flips with `:dir(rtl)` (page/app direction) | Matches how the app mirrors RTL |
+| Carry-over §4 #5 | Not reproducible; no listener added | Delete/Tab/F2 on a focused Fit control changed nothing |

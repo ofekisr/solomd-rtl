@@ -98,3 +98,12 @@ Prep: a workspace folder with `plan.xmind` (2+ sheets if you have one), a Markdo
 - [ ] Cmd+X on a read-only map removes nothing
 - [ ] Tab / Delete on focused Fit/Root controls do not change the map
 - [ ] Data · Split with JSON invalid from the start
+
+## 12. Snippets, freeze + focus, paste (Phase 9)
+
+- [ ] Snippets: add, edit, reorder, delete each kind (md, Mermaid, map); Mermaid and Map render in the packaged app
+- [ ] Markdown export through the native save dialog ends with `## Snippets`
+- [ ] Frozen strip and focus, including RTL breadcrumb
+- [ ] Undo after pasting a subtree with an internal gate keeps the gate resolved
+- [ ] Cmd+V from the system clipboard: real XMind copy (record what XMind puts on the clipboard), a Markdown file, a `.mmap` file's text
+- [ ] Cmd+V into a topic edit box pastes text only
