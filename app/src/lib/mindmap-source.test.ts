@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { MindElixirData } from 'mind-elixir';
-import { fenceNodeSource, plaintextNodeLines, preorderIds, readNodeSource } from './mindmap-source.ts';
+import { fenceNodeSource, isSafeSourcePath, plaintextNodeLines, preorderIds, readNodeSource, resolveSourcePath, toWorkspaceRelative } from './mindmap-source.ts';
 import { parseMindmapFence } from './mindmap-fence.ts';
 
 const BODY = ['- Root', '  - Alpha [^a1]', '    - Child', '  - Beta', '    - B1', '    - B2', '    - }Sum', '  - Gamma [^b9]', '- > [^a1] <-lbl-> [^b9]'].join('\n');
@@ -34,8 +34,6 @@ test('metadata source is validated', () => {
   assert.equal(readNodeSource({ id: 'a', topic: 'A', metadata: { source: { line: 2, path: 5 } } }), null);
   assert.equal(readNodeSource({ id: 'a', topic: 'A' }), null);
 });
-
-import { isSafeSourcePath, toWorkspaceRelative, resolveSourcePath } from './mindmap-source.ts';
 
 test('isSafeSourcePath rejects absolute, drive, scheme, backslash and dot segments', () => {
   for (const bad of ['/etc/passwd', 'C:/x.md', 'file:///x', 'a\\b.md', '../x.md', 'a/../b.md', './a.md', '', 'a\0b'])

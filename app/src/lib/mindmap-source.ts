@@ -18,11 +18,13 @@ export function isSafeSourcePath(path: string): boolean {
   return !path.split(SEPARATOR).some((segment) => DOT_SEGMENTS.has(segment));
 }
 
-const normalize = (p: string): string => p.replace(BACKSLASH, SEPARATOR);
+export function normalizeSeparators(path: string): string {
+  return path.replace(BACKSLASH, SEPARATOR);
+}
 
 export function toWorkspaceRelative(absPath: string, root: string): string | undefined {
-  const base = `${normalize(root).replace(TRAILING_SLASHES, '')}${SEPARATOR}`;
-  const path = normalize(absPath);
+  const base = `${normalizeSeparators(root).replace(TRAILING_SLASHES, '')}${SEPARATOR}`;
+  const path = normalizeSeparators(absPath);
   if (!path.startsWith(base)) return undefined;
   const rel = path.slice(base.length);
   return isSafeSourcePath(rel) ? rel : undefined;

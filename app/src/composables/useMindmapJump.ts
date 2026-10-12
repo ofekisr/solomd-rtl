@@ -5,11 +5,9 @@ import { useTilesStore } from '../stores/tiles';
 import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useFiles } from './useFiles';
-import { resolveSourcePath, type MindmapSource } from '../lib/mindmap-source';
+import { normalizeSeparators, resolveSourcePath, type MindmapSource } from '../lib/mindmap-source';
 
 const GOTO_EVENT = 'solomd:outline-goto';
-const BACKSLASH = /\\/g;
-const SEPARATOR = '/';
 
 export function useMindmapJump() {
   const tabs = useTabsStore();
@@ -31,10 +29,10 @@ export function useMindmapJump() {
     const root = workspace.currentFolder;
     if (!root) return warnUnavailable();
     const abs = resolveSourcePath(root, path);
-    await files.openPath(abs, { bypassNewWindow: true });
+    await files.openPath(abs, { bypassNewWindow: true, revealInTree: false });
     await nextTick();
     const openPath = tabs.activeTab?.filePath;
-    if (openPath?.replace(BACKSLASH, SEPARATOR) !== abs.replace(BACKSLASH, SEPARATOR)) return warnUnavailable();
+    if (openPath === undefined || normalizeSeparators(openPath) !== normalizeSeparators(abs)) return warnUnavailable();
     dispatchGoto(line);
   }
 

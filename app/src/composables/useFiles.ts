@@ -219,7 +219,7 @@ export function useFiles() {
     return dest;
   }
 
-  async function openPath(path: string, opts: { bypassNewWindow?: boolean } = {}) {
+  async function openPath(path: string, opts: { bypassNewWindow?: boolean; revealInTree?: boolean } = {}) {
     // #148 — see importContentUri; must run before any path parsing below.
     if (isAndroid() && path.startsWith('content://')) {
       try {
@@ -327,7 +327,7 @@ export function useFiles() {
       // already current). That was the real "double-click opens nothing" bug.
       // Switching first means `openFromDisk` below adds the tab into the
       // already-settled workspace, so it survives and becomes active.
-      if (settings.revealInFileTreeOnOpen && !isSaf) {
+      if (opts.revealInTree !== false && settings.revealInFileTreeOnOpen && !isSaf) {
         const parent = path.replace(/[\\/][^\\/]+$/, '');
         if (parent && parent !== path) {
           workspace.setFolder(parent);
