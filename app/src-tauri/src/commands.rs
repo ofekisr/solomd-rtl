@@ -376,6 +376,13 @@ pub fn fs_dir_exists(path: String) -> bool {
     Path::new(&path).is_dir()
 }
 
+/// True only for an existing regular file. Lets the XMind importer open a
+/// previously saved `.mmap` instead of creating a colliding unsaved import.
+#[tauri::command]
+pub fn fs_file_exists(path: String) -> bool {
+    Path::new(&path).is_file()
+}
+
 #[tauri::command]
 pub fn fs_rename(from: String, to: String) -> Result<(), String> {
     let from_p = Path::new(&from);
@@ -1712,5 +1719,17 @@ mod list_dir_times_tests {
         let e = DirEntry { name: "x".into(), path: "/x".into(), is_dir: false, modified: None, created: None };
         let json = serde_json::to_string(&e).unwrap();
         assert!(!json.contains("modified") && !json.contains("created"), "{json}");
+    }
+
+    #[test]
+    fn fs_file_exists_distinguishes_files_and_dirs() {
+        let dir = std::env::temp_dir().join("solomd_fs_file_exists_test");
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("a.mmap");
+        std::fs::write(&file, "{}").unwrap();
+        assert!(fs_file_exists(file.to_string_lossy().into_owned()));
+        assert!(!fs_file_exists(dir.to_string_lossy().into_owned()));
+        assert!(!fs_file_exists(dir.join("missing.mmap").to_string_lossy().into_owned()));
+        std::fs::remove_dir_all(&dir).unwrap();
     }
 }

@@ -1,4 +1,5 @@
 import type { MindElixirData, NodeObj } from 'mind-elixir';
+import { parseMapDisplay, type MapDisplay } from './mindmap-display.ts';
 
 export const MMAP_EXTENSION = 'mmap';
 export const XMIND_EXTENSION = 'xmind';
@@ -22,6 +23,10 @@ const ALLOWED_STYLE_KEYS: readonly string[] = [
 const UNSAFE_CSS_VALUE_PATTERN = /url\(|image-set\(|expression\(|@import|javascript:/i;
 const CSS_ESCAPE_PATTERN = /[\\\u0000-\u001f\u007f]/;
 const SAFE_LINK_PATTERN = /^(https?:|mailto:)/i;
+
+export function isSafeLink(value: string): boolean {
+  return SAFE_LINK_PATTERN.test(value.trim());
+}
 const SAFE_IMAGE_URL_PATTERN = /^https?:/i;
 const ANGLE_BRACKET_PATTERN = /[<>]/g;
 const TRAILING_EXTENSION_PATTERN = /\.[^.\\/]+$/;
@@ -31,10 +36,11 @@ interface MindmapEnvelope {
   format: typeof FORMAT_ID;
   version: typeof FORMAT_VERSION;
   data: MindElixirData;
+  display?: MapDisplay;
 }
 
 export type MindmapParseResult =
-  | { ok: true; data: MindElixirData; isEmpty: boolean }
+  | { ok: true; data: MindElixirData; isEmpty: boolean; display: MapDisplay }
   | { ok: false; error: string };
 
 function extensionOf(path: string): string {
@@ -71,8 +77,9 @@ function documentFields(data: MindElixirData): MindElixirData {
   return { nodeData, arrows, summaries, direction };
 }
 
-export function serializeMindmap(data: MindElixirData): string {
+export function serializeMindmap(data: MindElixirData, display: MapDisplay = {}): string {
   const envelope: MindmapEnvelope = { format: FORMAT_ID, version: FORMAT_VERSION, data: documentFields(data) };
+  if (Object.keys(display).length > 0) envelope.display = display;
   return `${JSON.stringify(envelope, null, JSON_INDENT)}\n`;
 }
 
@@ -131,7 +138,7 @@ function sanitizeStyle(style: unknown): NodeObj['style'] | undefined {
   const safe: Record<string, string> = {};
   for (const [key, value] of Object.entries(style)) {
     if (!ALLOWED_STYLE_KEYS.includes(key)) continue;
-    if (typeof value !== 'string' || isUnsafeCssValue(value)) continue;
+    if (typeof value !== 'string' || value === '' || isUnsafeCssValue(value)) continue;
     safe[key] = value;
   }
   return Object.keys(safe).length > 0 ? safe : undefined;
@@ -140,7 +147,7 @@ function sanitizeStyle(style: unknown): NodeObj['style'] | undefined {
 function sanitizeNode(node: NodeObj): NodeObj {
   const copy: NodeObj = { ...node };
   delete copy.dangerouslySetInnerHTML;
-  if (copy.hyperLink !== undefined && !SAFE_LINK_PATTERN.test(copy.hyperLink)) delete copy.hyperLink;
+  if (copy.hyperLink !== undefined && !isSafeLink(copy.hyperLink)) delete copy.hyperLink;
   if (copy.image !== undefined && !isSafeImage(copy.image)) delete copy.image;
   const style = sanitizeStyle(copy.style);
   if (style) copy.style = style;
@@ -201,7 +208,7 @@ export function sanitizeMindmapData(data: MindElixirData): MindElixirData {
 }
 
 export function parseMindmap(text: string, fallbackTopic: string): MindmapParseResult {
-  if (text.trim() === '') return { ok: true, data: createEmptyMindmap(fallbackTopic), isEmpty: true };
+  if (text.trim() === '') return { ok: true, data: createEmptyMindmap(fallbackTopic), isEmpty: true, display: {} };
   let json: unknown;
   try {
     json = JSON.parse(text);
@@ -210,15 +217,16 @@ export function parseMindmap(text: string, fallbackTopic: string): MindmapParseR
   }
   const error = validateEnvelope(json);
   if (error) return { ok: false, error };
-  return { ok: true, data: sanitizeMindmapData((json as MindmapEnvelope).data), isEmpty: false };
+  const envelope = json as MindmapEnvelope;
+  return { ok: true, data: sanitizeMindmapData(envelope.data), isEmpty: false, display: parseMapDisplay(envelope.display) };
 }
 
 export interface MindmapCodec {
   parse(text: string): MindmapParseResult;
-  serialize(data: MindElixirData): string;
+  serialize(data: MindElixirData, display?: MapDisplay): string;
 }
 
 export function mmapCodec(fileName: string): MindmapCodec {
   const fallbackTopic = rootTopicFromFileName(fileName);
-  return { parse: (text) => parseMindmap(text, fallbackTopic), serialize: serializeMindmap };
+  return { parse: (text) => parseMindmap(text, fallbackTopic), serialize: (data, display) => serializeMindmap(data, display) };
 }

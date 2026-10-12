@@ -4,6 +4,7 @@ import MindElixir from 'mind-elixir';
 import type { MindElixirData, MindElixirInstance, NodeObj, Topic } from 'mind-elixir';
 import 'mind-elixir/style.css';
 import type { MindmapCodec } from '../lib/mindmap-format';
+import type { MapDisplay } from '../lib/mindmap-display';
 import { sanitizeNodeObj } from '../lib/mindmap-format';
 import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
@@ -26,12 +27,23 @@ const SYNC_DEBOUNCE_MS = 300;
 const TOPIC_EDITOR_ID = 'input-box';
 const OPERATION_EVENT = 'operation';
 const EXPAND_EVENT = 'expandNode';
+const SELECT_EVENT = 'selectNodes';
+const UNSELECT_EVENT = 'unselectNodes';
 const BEGIN_EDIT_OPERATION = 'beginEdit';
 const TOGGLE_NODE_ACTION = 'mindmap.toggleNode';
 const INTERACTIVE_SELECTOR = 'button, input, select, textarea, a[href], [contenteditable="true"], [role="button"], [role="menuitem"]';
 
-const props = withDefaults(defineProps<{ content: string; codec: MindmapCodec; exportName?: string; fenceLine?: number }>(), { exportName: 'mindmap' });
-const emit = defineEmits<{ 'update:content': [text: string]; 'open-as-text': []; 'jump-to-source': [source: MindmapSource] }>();
+const props = withDefaults(
+  defineProps<{ content: string; codec: MindmapCodec; exportName?: string; fenceLine?: number; registerActive?: boolean }>(),
+  { exportName: 'mindmap', registerActive: true },
+);
+const emit = defineEmits<{
+  'update:content': [text: string];
+  'open-as-text': [];
+  'jump-to-source': [source: MindmapSource];
+  selection: [nodes: NodeObj[]];
+  ready: [];
+}>();
 const settings = useSettingsStore();
 const toasts = useToastsStore();
 const { t } = useI18n();
@@ -43,6 +55,7 @@ const isReadOnly = ref(false);
 const isGraphView = ref(false);
 let graphBaseline: MindElixirData | null = null;
 let mind: MindElixirInstance | null = null;
+let displayOverride: MapDisplay = {};
 let lastSynced = props.content;
 let syncTimer: number | null = null;
 let pristineSerialized: string | null = null;
@@ -59,6 +72,7 @@ function loadData(): MindElixirData | null {
     return null;
   }
   parseError.value = null;
+  displayOverride = parsed.display;
   return parsed.data;
 }
 
@@ -66,7 +80,7 @@ function syncNow(): void {
   if (syncTimer !== null) window.clearTimeout(syncTimer);
   syncTimer = null;
   if (!mind || isGraphView.value || parseError.value !== null) return;
-  const serialized = props.codec.serialize(mind.getData());
+  const serialized = props.codec.serialize(mind.getData(), displayOverride);
   if (serialized === pristineSerialized && props.content === '') return;
   lastSynced = serialized;
   emit('update:content', lastSynced);
@@ -101,7 +115,7 @@ function mount(): void {
     el: host.value,
     direction: layoutDirectionFor(data),
     editable: !isReadOnly.value,
-    contextMenu: { extend: gates.menu },
+    contextMenu: { extend: [...gates.menu, { name: t('mindmap.jumpToSourceMenu'), onclick: jumpToSource }] },
     before: gates.guards,
     toolBar: true,
     keypress: true,
@@ -110,25 +124,33 @@ function mount(): void {
   });
   mind.init(data);
   gates.syncLabels();
-  pristineSerialized = props.content === '' ? props.codec.serialize(mind.getData()) : null;
+  pristineSerialized = props.content === '' ? props.codec.serialize(mind.getData(), displayOverride) : null;
   centerOnceLaidOut();
   mind.bus.addListener(OPERATION_EVENT, onOperation);
   mind.bus.addListener(EXPAND_EVENT, scheduleSync);
+  mind.bus.addListener(SELECT_EVENT, emitSelection);
+  mind.bus.addListener(UNSELECT_EVENT, emitSelection);
   syncAfterHistoryJumps(mind);
   sanitizeCopiedNodes(mind);
   activate();
+  emit('ready');
+}
+
+function emitSelection(): void {
+  emit('selection', mind?.currentNodes?.map((tpc) => tpc.nodeObj) ?? []);
 }
 
 function onOperation(info: { name: string }): void {
   if (info.name === BEGIN_EDIT_OPERATION) return;
   gates.syncLabels();
   scheduleSync();
+  emitSelection();
 }
 
 function syncAfterHistoryJumps(instance: MindElixirInstance): void {
   const { undo, redo } = instance;
-  instance.undo = () => { undo.call(instance); gates.syncLabels(); scheduleSync(); };
-  instance.redo = () => { redo.call(instance); gates.syncLabels(); scheduleSync(); };
+  instance.undo = () => { undo.call(instance); gates.syncLabels(); scheduleSync(); emitSelection(); };
+  instance.redo = () => { redo.call(instance); gates.syncLabels(); scheduleSync(); emitSelection(); };
 }
 
 function sanitizedTopic(tpc: Topic): Topic | null {
@@ -171,6 +193,7 @@ async function applyExternalContent(): Promise<void> {
     if (wasGraphView && !isReadOnly.value) mind.enableEdit();
     gates.syncLabels();
     mind.clearHistory?.();
+    emit('ready');
     return;
   }
   await nextTick();
@@ -287,6 +310,10 @@ const actions: Record<string, () => void> = {
   'mindmap.jumpToSource': jumpToSource,
   'mindmap.findDuplicates': findDuplicates,
   'mindmap.toggleGraphView': toggleGraphView,
+  'mindmap.focusNode': () => { if (mind?.currentNode) mind.focusNode(mind.currentNode); },
+  'mindmap.cancelFocus': () => mind?.cancelFocus(),
+  'mindmap.undo': () => mind?.undo(),
+  'mindmap.redo': () => mind?.redo(),
   ...canvasActions,
   ...gates.actions,
 };
@@ -301,7 +328,7 @@ const handle: MindmapHandle = {
 };
 
 function activate(): void {
-  setActiveMindmap(handle);
+  if (props.registerActive) setActiveMindmap(handle);
 }
 
 function isEditingTopic(e: KeyboardEvent): boolean {
@@ -336,7 +363,11 @@ watch(() => props.content, (content) => {
   void applyExternalContent();
 });
 
-watch(() => settings.theme, () => mind?.changeTheme(themeFor()));
+watch(() => settings.theme, () => {
+  if (!mind) return;
+  mind.changeTheme(themeFor());
+  emit('ready');
+});
 
 onMounted(() => {
   mount();
@@ -349,7 +380,20 @@ onBeforeUnmount(() => {
   teardown();
 });
 
-defineExpose({ flush: flushPendingSync });
+function setDisplayOverride(next: MapDisplay): void {
+  displayOverride = next;
+  scheduleSync();
+}
+
+defineExpose({
+  flush: flushPendingSync,
+  run: (actionId: string) => handle.run(actionId),
+  getMind: () => mind,
+  getDisplayOverride: () => displayOverride,
+  setDisplayOverride,
+  isReadOnly,
+  isGraphView,
+});
 </script>
 
 <template>

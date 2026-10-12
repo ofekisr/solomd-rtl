@@ -207,6 +207,13 @@ export const KEY_ACTIONS: KeyActionDef[] = [
   { id: 'mindmap.repairGate', label: 'Mindmap: Repair Gate to Marked Node', category: 'mindmap', scope: 'mindmap', defaults: [] },
   { id: 'mindmap.removeGate', label: 'Mindmap: Remove Gate', category: 'mindmap', scope: 'mindmap', defaults: [] },
   { id: 'mindmap.findDuplicates', label: 'Mindmap: Find Duplicates', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.viewMap', label: 'Mindmap: Map View', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.viewSource', label: 'Mindmap: Source View', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.viewOutline', label: 'Mindmap: Outline View', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.cycleView', label: 'Mindmap: Cycle View', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.togglePanel', label: 'Mindmap: Toggle Side Panel', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.focusNode', label: 'Mindmap: Focus Node', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.cancelFocus', label: 'Mindmap: Cancel Focus', category: 'mindmap', scope: 'mindmap', defaults: [] },
 ];
 
 /** Keys whose `event.key` is punctuation — spelled by code for stability. */
