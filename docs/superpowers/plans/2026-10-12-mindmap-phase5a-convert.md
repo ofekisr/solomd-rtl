@@ -1016,4 +1016,60 @@ git commit -m "chore(release): mindmap phase 5a docs and bump version to 4.14.13
 
 ## Status
 
-PENDING.
+COMPLETE. 12-10-26, version 4.14.13. Branch `feat/mindmap`, unpushed.
+
+| Task | Commits | Notes |
+|---|---|---|
+| 1 Markdown scanner | `f1e7acc..f8b00b2` | |
+| 2 Tree builder | `f8b00b2..ed86493` (fix `ed86493`) | Fix: continuation target, root frame constant |
+| 3 Merge + folder grouping | `ed86493..e187ea8` | |
+| 4 Source paths, jump | `e187ea8..094bd5a` (fix `094bd5a`) | Fix: root drift via `revealInTree: false`, import merge, separators |
+| 5 Convert commands | `094bd5a..b43bf01` | |
+| 6 Folder conversion dialog | `b43bf01..47d4931` (fix `47d4931`) | Fix: theme vars (also in duplicates dialog), stem match, try/catch, truncation note |
+| 7 Gate controller, capture-phase key dispatch tests | `47d4931..cfb8af3` | Key handlers moved to `mindmap-key-dispatch.ts` |
+| Final review (Opus, `a26cbb4..cfb8af3`) | fix wave `cfb8af3..5c53f07` | 12 items: stale tab content, fence plaintext topics, front matter at start only, one lift rule, byte size, inline confirm, markdown-only jump, indented fences, fence insert outside code blocks |
+| 8 Verification, docs, bump | this commit | |
+
+**Tests:** 196/196 pass (`node --test --experimental-strip-types src/lib/mindmap-*.test.ts src/lib/fence-scan.test.ts src/lib/fence-languages.test.ts src/lib/keybindings.test.ts`): mindmap-active 4, mindmap-convert 8, mindmap-direction 3, mindmap-duplicates 9, mindmap-export 9, mindmap-fence 19, mindmap-folder 5, mindmap-format 34, mindmap-gate-controller 7, mindmap-gate-plaintext 7, mindmap-gates 9, mindmap-graph 5, mindmap-headings 4, mindmap-keymap 5, mindmap-md-scan 13, mindmap-merge 4, mindmap-source 8, fence-scan 12, fence-languages 19, keybindings 12. `pnpm build` OK (chunk-size warning only).
+
+**Browser check (web, controller-run per task):** Mod+Alt+Shift+M on a Hebrew doc creates `convert-test.mmap` (sole-H1 lift, fenced `# no` absent, notes and continuations on the right nodes, checkbox prefix, source lines correct); section fence inserted after its section; selection becomes root `Selection lines 22-23`; `.mmap` tab guard toast; pathless Jump to Source toast. Folder dialog opens from the palette, readable in dark theme after the fix, Choose... fails with a clean toast (no Tauri), Escape closes. Gate follow (Alt+Enter) selects the target, Alt+Left returns, node count unchanged. After the fix wave: typing then an immediate convert includes the typed text; `> quote`, `[^1]`, `=> done` topics are clean. Re-run of the Tasks 5-6 paths after the final fixes covered by the fix-wave check above.
+
+**Desktop (Tauri) check:** PENDING. Not runnable in this session; nothing below claims it passed. It must cover:
+
+- Phases 1-4 pending items (Phase 4 Open items): export PNG, SVG, HTML, JSON, Markdown, Mermaid and adjacency through the native save dialog; open each file (Hebrew labels in PNG/SVG, HTML read-only, JSON parses); copy as plaintext into a note.
+- Jump to Source from a converted saved document (workspace open) and from a folder map (path-based jump).
+- Folder conversion of a real folder with Hebrew files, an `<!-- epub: skip=true -->` file, a subfolder (Group by subfolder) and a file over 2 MiB.
+- Large-map inline confirm.
+
+### Deviations
+
+- Ruling: Task 2 TreeBuilder uses an explicit field, not a constructor parameter property (`--experimental-strip-types` rejects them).
+- Ruling: Task 1 minors (attribute-only heading, attribute block before closing hashes, literal constants) folded into Task 2.
+- Ruling: Task 2 continuation: indented text goes to the deepest open item with smaller indent; unindented lazy continuation goes to the last item.
+- Ruling: Task 4 browser check folded into Task 5 (stamped sources only exist once converters run).
+- Ruling: Task 4 root drift handled with `openPath(..., { revealInTree: false })` from `jumpTo`; source paths not redesigned.
+- Ruling: Task 5 keybindings invariant changed from "no global id starts with `mindmap.`" to "no category `mindmap` action is global" (spec mandates global `mindmap.convert*`).
+- Ruling: `cmd.mindmap` optional in the I18n type (14 locales fall back to en).
+- Ruling: plain Windows editor supports document scope only (`getLineSelection` returns null).
+- Deviation: fence output drops notes (plaintext has no note syntax); `.mmap` output keeps them.
+- Ruling: Task 6 fix also corrected undefined `--bg-primary` in `MindmapDuplicates.vue`.
+- Ruling: Task 7 seam: key handlers moved verbatim to `lib/mindmap-key-dispatch.ts` so node can test them.
+- Ruling: final review ran before Task 8, scope `a26cbb4..HEAD`; fix wave took 12 items; `d32a3f8` alone is not green (imports `safeInsertLine` from `f1e2c00`), branch head is.
+
+### Open items
+
+- Desktop (Tauri) check PENDING (list above).
+- Notes are stored but not shown in the canvas (Mind Elixir core has no note UI): 5b or follow-up.
+- Fence output drops notes.
+- Root drift: source paths are relative to the workspace root at conversion time; a map converted after the root drifted keeps the drifted-root paths.
+- Plain Windows editor converts the whole document only.
+- Pre-existing, out of scope: Cmd+Shift+K also runs CodeMirror `deleteLine`; separate task suggested.
+- Parked: folder dialog `pendingLargeCount` not reset on folder change (stale "Convert anyway" skips re-confirm); `convertDone` toast says "Mind map inserted" for `.mmap` output; an indented code block with a bare fence and no closer hides the rest of the file (intended trade-off); `fileTitle` converts each file twice; front matter edge at selection line 1; `fenceRanges` ignore front matter.
+- Deferred minors:
+  - Scanner (T1): fences under list items indented 4+ (partly addressed by any-indent fences); backtick in a backtick info string accepted; lone `-`/`*`/`#` line becomes text; `__init__` becomes `init` in `plainInline`; test gaps (CRLF, `...` closer, unterminated front matter, single-line comment, `~~~` vs backticks, table in quote, `1)`, nested quotes).
+  - Tree builder (T2): `sectionRange` lastLine counts the trailing empty line at EOF; `addText` calls `headingTop()` twice, `canContinue` partly redundant; no test for heading-stack popping beyond one level.
+  - Merge (T3): grouping tests miss group/ungrouped/same-group and adjacent different groups; redundant `openGroup?.children` narrowing.
+  - Source/jump (T4): double toast when `openPath` fails then tab mismatch; strict path compare false negatives (case-insensitive FS, symlinks); symlink escape not caught lexically; `ensureRef` mutates `refId` on the clone before the `REF_PATTERN` check.
+  - Commands (T5): `getLineSelection` sits under `getViewLine`'s doc comment (`Editor.vue`); `resolveRange` guards untested; `insertBlockAfterLine` LF-only on CRLF docs; `MINDMAP_CONVERT_ACTIONS` ids typed `string`.
+  - Folder dialog (T6): Escape not stopped and no focus trap; sequential reads without progress; `load()` catch does not reset `isTruncated`; "500" hardcoded in `en.ts` vs `MAX_FILES`.
+  - Key dispatch (T7): `buildHarness` ~24 lines; test 3 not mutation-checked; no tests for chord follow-up or ignored-target path.
