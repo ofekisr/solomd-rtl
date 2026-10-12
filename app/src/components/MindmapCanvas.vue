@@ -9,8 +9,8 @@ import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
 import { fenceNodeSource, readNodeSource, type MindmapSource } from '../lib/mindmap-source';
 import { useI18n } from '../i18n';
-import { eventToCombo, resolveBindings } from '../lib/keybindings';
-import { MINDMAP_BUILTIN_COMBOS } from '../lib/mindmap-keymap';
+import { resolveBindings } from '../lib/keybindings';
+import { createMapKeyDispatch } from '../lib/mindmap-key-dispatch';
 import { layoutDirectionFor } from '../lib/mindmap-direction';
 import { themeFamily } from '../lib/themes';
 import { clearActiveMindmap, setActiveMindmap, type MindmapHandle } from '../lib/mindmap-active';
@@ -27,7 +27,6 @@ const TOPIC_EDITOR_ID = 'input-box';
 const OPERATION_EVENT = 'operation';
 const EXPAND_EVENT = 'expandNode';
 const BEGIN_EDIT_OPERATION = 'beginEdit';
-const CHORD_PREFIX_COMBO = 'Mod+K';
 const TOGGLE_NODE_ACTION = 'mindmap.toggleNode';
 const INTERACTIVE_SELECTOR = 'button, input, select, textarea, a[href], [contenteditable="true"], [role="button"], [role="menuitem"]';
 
@@ -48,7 +47,6 @@ let lastSynced = props.content;
 let syncTimer: number | null = null;
 let pristineSerialized: string | null = null;
 let centerObserver: ResizeObserver | null = null;
-let wasChordPrefixPressed = false;
 
 function themeFor(): typeof MindElixir.THEME {
   return themeFamily(settings.theme) === 'dark' ? MindElixir.DARK_THEME : MindElixir.THEME;
@@ -320,30 +318,17 @@ function canRunOn(actionId: string, e: KeyboardEvent): boolean {
   return actionId !== TOGGLE_NODE_ACTION || e.target === mind?.container;
 }
 
-function comboForMap(e: KeyboardEvent): string | null {
-  const combo = eventToCombo(e);
-  if (!combo || isEditingTopic(e) || isOnMapControl(e)) return null;
-  return combo;
+function isIgnoredKey(e: KeyboardEvent): boolean {
+  return isEditingTopic(e) || isOnMapControl(e);
 }
 
-function onKeydownCapture(e: KeyboardEvent): void {
-  const combo = comboForMap(e);
-  if (!combo) return;
-  const isChordFollowUp = wasChordPrefixPressed;
-  wasChordPrefixPressed = combo === CHORD_PREFIX_COMBO;
-  if (isChordFollowUp) scheduleSync();
-  const actionId = resolveBindings(settings.keybindings, 'mindmap').get(combo);
-  const run = actionId && canRunOn(actionId, e) ? actions[actionId] : undefined;
-  if (!run) return;
-  e.preventDefault();
-  e.stopPropagation();
-  if (!e.repeat) run();
-}
-
-function onKeydown(e: KeyboardEvent): void {
-  const combo = comboForMap(e);
-  if (combo && MINDMAP_BUILTIN_COMBOS.has(combo)) e.stopPropagation();
-}
+const keyDispatch = createMapKeyDispatch({
+  isIgnored: isIgnoredKey,
+  getBindings: () => resolveBindings(settings.keybindings, 'mindmap'),
+  canRunOn,
+  getAction: (actionId) => actions[actionId],
+  onChordFollowUp: scheduleSync,
+});
 
 watch(() => props.content, (content) => {
   if (content === lastSynced) return;
@@ -368,7 +353,7 @@ defineExpose({ flush: flushPendingSync });
 </script>
 
 <template>
-  <div class="mindmap-view" @keydown.capture="onKeydownCapture" @keydown="onKeydown" @focusin="activate" @pointerdown="activate">
+  <div class="mindmap-view" @keydown.capture="keyDispatch.onCapture" @keydown="keyDispatch.onBubble" @focusin="activate" @pointerdown="activate">
     <div v-if="parseError" class="mindmap-view__error" role="alert">
       <p>{{ t('mindmap.parseError') }}</p>
       <pre>{{ parseError }}</pre>
