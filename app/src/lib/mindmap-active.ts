@@ -1,5 +1,6 @@
 import type { MindElixirInstance } from 'mind-elixir';
 import type { MapDisplay } from './mindmap-display.ts';
+import type { Snippet } from './mindmap-snippets.ts';
 
 export interface MindmapHandle { run(actionId: string): boolean }
 
@@ -9,8 +10,11 @@ export interface MindmapCanvasApi {
   getMind(): MindElixirInstance | null;
   getDisplayOverride(): MapDisplay;
   setDisplayOverride(next: MapDisplay): void;
+  getSnippets(): Snippet[];
+  setSnippets(next: readonly Snippet[]): void;
   readonly isReadOnly: boolean;
   readonly isGraphView: boolean;
+  readonly hasMap: boolean;
 }
 
 let active: MindmapHandle | null = null;

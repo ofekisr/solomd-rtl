@@ -3,6 +3,8 @@ import { defineStore } from 'pinia';
 import type { Theme, ViewMode } from '../types';
 import { isIOS, isMobile } from '../lib/platform';
 import { parseMapDisplay, type MapDisplay } from '../lib/mindmap-display';
+import { migrateLensKeybindings } from '../lib/mindmap-lens';
+import { isViewModeChangeAllowed } from '../lib/view-mode-guard';
 
 const LS_KEY = 'solomd.settings.v1';
 
@@ -774,6 +776,7 @@ function load(): Settings {
           if (v === null || typeof v === 'string') merged.keybindings[k] = v;
         }
       }
+      merged.keybindings = migrateLensKeybindings(merged.keybindings);
       // One-time v4.0 upgrade: any saved settings blob written before
       // v4.0 release (or by a v4 beta where the panel defaulted off)
       // will not have the `v4AgentPanelMigrated` marker. Force-enable
@@ -848,6 +851,7 @@ export const useSettingsStore = defineStore('settings', {
       this.persist();
     },
     setViewMode(mode: ViewMode) {
+      if (mode !== this.viewMode && !isViewModeChangeAllowed(mode)) return;
       // Remember whatever non-reading mode we were in before — the
       // reading-mode close button / Esc handler restores it.
       if (mode !== 'reading' && this.viewMode !== 'reading') {
@@ -882,6 +886,7 @@ export const useSettingsStore = defineStore('settings', {
       if (this.viewMode === 'reading') {
         this.exitReadingMode();
       } else {
+        if (!isViewModeChangeAllowed('reading')) return;
         this.lastNonReadingViewMode = this.viewMode;
         this.viewMode = 'reading';
         this.persist();

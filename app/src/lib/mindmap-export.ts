@@ -2,6 +2,7 @@ import type { MindElixirData } from 'mind-elixir';
 import { convertToHtml, convertToMd } from '@mind-elixir/export-mindmap';
 import { sanitizeMindmapData } from './mindmap-format.ts';
 import { toAdjacency, toMermaid, withoutGateArrows } from './mindmap-graph.ts';
+import { snippetsMarkdown, type Snippet } from './mindmap-snippets.ts';
 
 export type MindmapTextFormat = 'html' | 'json' | 'markdown' | 'mermaid' | 'adjacency';
 export type MindmapImageFormat = 'png' | 'svg';
@@ -19,6 +20,7 @@ export const MINDMAP_EXPORT_SPECS: Record<MindmapExportFormat, { extension: stri
 
 const IMAGE_FORMATS: ReadonlySet<MindmapExportFormat> = new Set<MindmapExportFormat>(['png', 'svg']);
 const JSON_INDENT = 2;
+const BLOCK_SEPARATOR = '\n\n';
 const DATA_ASSIGNMENT = 'const data = ';
 const HTML_MARKER_MISSING = 'export-mindmap HTML layout changed: data assignment not found';
 const SCRIPT_UNSAFE_CHARS = /[<>&\u2028\u2029]/g;
@@ -53,6 +55,8 @@ const TEXT_EXPORTERS: Record<MindmapTextFormat, (data: MindElixirData) => string
   adjacency: (data) => JSON.stringify(toAdjacency(sanitizeMindmapData(data)), null, JSON_INDENT),
 };
 
-export function buildTextExport(data: MindElixirData, format: MindmapTextFormat): string {
-  return TEXT_EXPORTERS[format](data);
+export function buildTextExport(data: MindElixirData, format: MindmapTextFormat, snippets: readonly Snippet[] = []): string {
+  const text = TEXT_EXPORTERS[format](data);
+  if (format !== 'markdown' || snippets.length === 0) return text;
+  return `${text.trimEnd()}${BLOCK_SEPARATOR}${snippetsMarkdown(snippets, 'source')}`;
 }

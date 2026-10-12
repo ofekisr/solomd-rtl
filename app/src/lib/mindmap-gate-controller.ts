@@ -33,13 +33,28 @@ function isGateTopic(tpc: Topic | undefined): boolean {
   return tpc !== undefined && isGate(tpc.nodeObj);
 }
 
+function liveRoot(m: MindElixirInstance): NodeObj {
+  return m.isFocusMode && m.nodeDataBackup ? m.nodeDataBackup : m.nodeData;
+}
+
+function liveElement(m: MindElixirInstance, id: string): Topic | null {
+  try {
+    return m.findEle(id);
+  } catch {
+    return null;
+  }
+}
+
 export function createGateController(ctx: GateControllerContext, labels: Record<GateMenuAction, string>): GateController {
   let markedId: string | null = null;
   const history: string[] = [];
 
   const mind = (): MindElixirInstance | null => ctx.getMind();
   const current = (): NodeObj | null => mind()?.currentNode?.nodeObj ?? null;
-  const root = (): NodeObj | null => mind()?.nodeData ?? null;
+  const root = (): NodeObj | null => {
+    const m = mind();
+    return m ? liveRoot(m) : null;
+  };
   const liveMarked = (): NodeObj | null => {
     const r = root();
     const node = r && markedId ? findNode(r, markedId) : null;
@@ -48,13 +63,14 @@ export function createGateController(ctx: GateControllerContext, labels: Record<
 
   function reselect(id: string): void {
     const m = mind();
-    const el = m?.findEle(id);
+    const el = m ? liveElement(m, id) : null;
     if (m && el) m.selectNode(el);
   }
 
   function select(id: string): void {
     const m = mind();
-    const el = m?.findEle(id);
+    if (m?.isFocusMode && !liveElement(m, id)) m.cancelFocus();
+    const el = m ? liveElement(m, id) : null;
     if (!m || !el) return;
     m.selectNode(el);
     m.scrollIntoView(el, true);
@@ -62,9 +78,9 @@ export function createGateController(ctx: GateControllerContext, labels: Record<
 
   function expandAncestors(id: string): void {
     const m = mind();
-    const path = m ? ancestorIds(m.nodeData, id) : null;
+    const path = m ? ancestorIds(liveRoot(m), id) : null;
     if (!m || !path) return;
-    const collapsed = path.map((a) => findNode(m.nodeData, a)).filter((n): n is NodeObj => n?.expanded === false);
+    const collapsed = path.map((a) => findNode(liveRoot(m), a)).filter((n): n is NodeObj => n?.expanded === false);
     if (collapsed.length === 0) return;
     for (const node of collapsed) node.expanded = true;
     m.refresh();
@@ -122,9 +138,9 @@ export function createGateController(ctx: GateControllerContext, labels: Record<
     const m = mind();
     if (!m) return;
     const broken = ctx.brokenLabel();
-    const stale = walkNodes(m.nodeData).filter((n) => isGate(n) && n.topic !== gateLabel(n, m.nodeData, broken));
+    const stale = walkNodes(liveRoot(m)).filter((n) => isGate(n) && n.topic !== gateLabel(n, liveRoot(m), broken));
     if (stale.length === 0) return;
-    for (const node of stale) node.topic = gateLabel(node, m.nodeData, broken);
+    for (const node of stale) node.topic = gateLabel(node, liveRoot(m), broken);
     const selected = m.currentNode?.nodeObj.id;
     m.refresh();
     if (selected) reselect(selected);

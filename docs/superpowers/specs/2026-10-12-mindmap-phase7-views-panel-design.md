@@ -4,7 +4,7 @@
 
 Approved in conversation on 12-10-26. Parent design: `docs/superpowers/specs/2026-10-11-mindmap-design.md`.
 Done 12-10-26 (4.15.1) — plan `docs/superpowers/plans/2026-10-12-mindmap-phase7-views-panel.md`
-Follow-up spec (deferred work): `docs/superpowers/specs/2026-10-12-mindmap-phase8-app-features-design.md`.
+Follow-up spec (deferred work): `docs/superpowers/specs/2026-10-12-mindmap-follow-ups.md`.
 
 ## Purpose
 
@@ -24,7 +24,7 @@ A package feature that is "not wired" exists in that package; SoloMD has no UI t
 | 4 | Side panel | Node formatting and map settings through package APIs |
 | 5 | Multi-select | Package box/Shift selection with batch delete, copy, move |
 
-Out of scope (Phase 8): in-map search, editable outline tree, image tab, minimap, re-import of a changed `.xmind`, Map + Source split view.
+Out of scope (follow-ups): in-map search, editable outline tree, image tab, minimap, re-import of a changed `.xmind`, Map + Source split view.
 
 ## 1. View modes
 
@@ -95,7 +95,7 @@ All four are tab-scoped to mindmap tabs and work in every mode (including `sourc
 
 ### Not included
 
-Re-import when the `.xmind` is newer than the `.mmap`: deferred to Phase 8.
+Re-import when the `.xmind` is newer than the `.mmap`: deferred to follow-ups.
 Workaround: rename or delete the `.mmap`, then reopen the `.xmind`.
 
 ## 3. Map toolbar and menus

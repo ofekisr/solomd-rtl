@@ -1,16 +1,17 @@
 <script setup lang="ts">
+import { themeFamily } from '../lib/themes';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { MindElixirInstance, NodeObj } from 'mind-elixir';
 import type { Topic } from 'mind-elixir';
-import type { Tab } from '../types';
+import type { Tab, ViewMode } from '../types';
 import { useI18n } from '../i18n';
 import { useTabsStore } from '../stores/tabs';
 import { useToastsStore } from '../stores/toasts';
 import { useSettingsStore } from '../stores/settings';
 import { mmapCodec } from '../lib/mindmap-format';
-import { mapToHeadingsMarkdown } from '../lib/mindmap-headings';
-import { withoutGateArrows } from '../lib/mindmap-graph';
-import { checkSourceExit, normalizeMindmapMode, targetModeFor, VIEW_ACTIONS, type MindmapMode } from '../lib/mindmap-view-mode';
+import { outlineMarkdownOf } from '../lib/mindmap-outline';
+import { cellHas, checkJsonExit, isLensAction, lensCell, resolveTabLens, targetLensFor, type CellPart, type MindmapLens } from '../lib/mindmap-lens';
+import { addViewModeGuard } from '../lib/view-mode-guard';
 import { clearActiveMindmap, setActiveMindmap, type MindmapCanvasApi, type MindmapHandle } from '../lib/mindmap-active';
 import { eventToCombo, resolveBindings } from '../lib/keybindings';
 import { useMindmapJump } from '../composables/useMindmapJump';
@@ -21,12 +22,17 @@ import MindmapCanvas from './MindmapCanvas.vue';
 import MindmapSidePanel from './MindmapSidePanel.vue';
 import MindmapNodeFields from './MindmapNodeFields.vue';
 import MindmapMapFields from './MindmapMapFields.vue';
-import { resolveMapDisplay, type MapDisplay } from '../lib/mindmap-display';
-import { applyMapDisplay, captureBranchGenerators, type BranchGenerators } from '../composables/useMindmapDisplay';
+import MindmapOutlineText from './MindmapOutlineText.vue';
+import type { MapDisplay } from '../lib/mindmap-display';
+import { createMapDisplayApplier } from '../composables/useMindmapDisplay';
 import Editor from './Editor.vue';
 import Preview from './Preview.vue';
+import type { Snippet } from '../lib/mindmap-snippets';
+import MindmapSnippets from './MindmapSnippets.vue';
+import MindmapOutlineInvalid from './MindmapOutlineInvalid.vue';
 
 const SOURCE_LANGUAGE = 'json';
+const JSON_PARSE_DEBOUNCE_MS = 250;
 const FLUSH_CONTENT_EVENT = 'solomd:flush-content-sync';
 const TOGGLE_PANEL_ACTION = 'mindmap.togglePanel';
 const props = defineProps<{ tab: Tab }>();
@@ -37,41 +43,112 @@ const { t } = useI18n();
 const { jumpTo } = useMindmapJump();
 const codec = computed(() => mmapCodec(props.tab.fileName));
 const exportName = computed(() => props.tab.fileName.replace(/\.[^.]+$/u, ''));
-const mode = computed<MindmapMode>(() => normalizeMindmapMode(props.tab.mindmapMode));
+const lens = computed<MindmapLens>(() => resolveTabLens(props.tab));
+const parts = computed(() => lensCell(lens.value, settings.viewMode));
 const canvas = ref<MindmapCanvasApi | null>(null);
 const sourceError = ref<string | null>(null);
 const selected = ref<NodeObj[]>([]);
 const singleNode = computed(() => (selected.value.length === 1 ? selected.value[0] : null));
-const isPanelEditable = computed(() => !(canvas.value?.isReadOnly || canvas.value?.isGraphView));
-const isPanelVisible = computed(() => mode.value === 'map' && settings.mindmapPanelOpen);
+
+function has(part: CellPart): boolean {
+  return cellHas(parts.value, part);
+}
+
+function partOrder(part: CellPart): number {
+  return parts.value.indexOf(part);
+}
+
+const isSplit = computed(() => parts.value.length > 1);
+const isPanelVisible = computed(() => has('map') && settings.mindmapPanelOpen);
+const parseSource = ref(props.tab.content);
+let parseTimer: number | null = null;
+
+watch(() => props.tab.content, (content) => {
+  if (parseTimer !== null) window.clearTimeout(parseTimer);
+  parseTimer = null;
+  if (!has('json')) {
+    parseSource.value = content;
+    return;
+  }
+  parseTimer = window.setTimeout(() => { parseSource.value = content; }, JSON_PARSE_DEBOUNCE_MS);
+});
+
+const parsedContent = computed(() => codec.value.parse(parseSource.value));
+const outlineError = computed(() => (parsedContent.value.ok ? null : parsedContent.value.error));
+const outlineText = computed(() => (has('outlineText') ? outlineMarkdownOf(parsedContent.value, 'source') : ''));
+const outlinePreview = computed(() => (has('outlinePreview') ? outlineMarkdownOf(parsedContent.value, 'rendered') : ''));
+const lastValidContent = ref('');
+const liveJsonError = computed<string | null>(() => {
+  if (!has('json') || !has('map') || parsedContent.value.ok) return null;
+  return parsedContent.value.error;
+});
+const isMapLocked = computed(() => liveJsonError.value !== null);
+const isPanelEditable = computed(() => !(canvas.value?.isReadOnly || canvas.value?.isGraphView || isMapLocked.value) && canvas.value?.hasMap === true);
+const LIVE_EDIT_VIEW: ViewMode = 'liveEdit';
+const snippets = ref<Snippet[]>([]);
+const canEditSnippets = computed(() => settings.viewMode === LIVE_EDIT_VIEW && isPanelEditable.value);
+
+function setSnippets(next: Snippet[]): void {
+  if (!canEditSnippets.value) return;
+  snippets.value = next;
+  canvas.value?.setSnippets(next);
+}
+const jsonError = computed(() => sourceError.value ?? liveJsonError.value);
+const mapContent = computed(() => (has('json') ? lastValidContent.value : props.tab.content));
+
+watch(parsedContent, (parsed) => {
+  if (!parsed.ok) return;
+  lastValidContent.value = parseSource.value;
+  sourceError.value = null;
+}, { immediate: true });
+watch(() => has('map'), (hasMap) => { if (!hasMap) selected.value = []; });
 
 const sourceTab = computed<Tab>(() => new Proxy(props.tab, {
   get: (target, key) => (key === 'language' ? SOURCE_LANGUAGE : Reflect.get(target, key)),
 }));
 
-const outlineMarkdown = computed(() => {
-  if (mode.value !== 'outline') return '';
-  const parsed = codec.value.parse(props.tab.content);
-  return parsed.ok ? mapToHeadingsMarkdown(withoutGateArrows(parsed.data)) : '';
-});
-
-function setMode(next: MindmapMode): void {
-  if (next === mode.value) return;
-  if (mode.value === 'map') canvas.value?.flush();
-  if (mode.value === 'source') window.dispatchEvent(new Event(FLUSH_CONTENT_EVENT));
-  if (mode.value === 'source' && !leaveSourceAllowed()) return;
-  sourceError.value = null;
-  selected.value = [];
-  props.tab.mindmapMode = next;
-  tabs.persist();
-}
-
-function leaveSourceAllowed(): boolean {
-  const exit = checkSourceExit(props.tab.content, (text) => codec.value.parse(text));
+function leaveJsonAllowed(): boolean {
+  const exit = checkJsonExit(props.tab.content, (text) => codec.value.parse(text));
   if (exit.ok) return true;
   sourceError.value = exit.error;
   toasts.error(t('mindmap.sourceInvalid'));
   return false;
+}
+
+function leaveCellAllowed(nextParts: readonly CellPart[]): boolean {
+  canvas.value?.flush();
+  parseSource.value = props.tab.content;
+  if (!has('json') || cellHas(nextParts, 'json')) return true;
+  window.dispatchEvent(new Event(FLUSH_CONTENT_EVENT));
+  return leaveJsonAllowed();
+}
+
+function guardViewChange(next: ViewMode): boolean {
+  if (tabs.activeId !== props.tab.id) return true;
+  return leaveCellAllowed(lensCell(lens.value, next));
+}
+
+function storeLens(next: MindmapLens): void {
+  props.tab.mindmapLens = next;
+  delete props.tab.mindmapMode;
+  tabs.persist();
+}
+
+function setLens(next: MindmapLens): void {
+  if (next === lens.value) return;
+  if (!leaveCellAllowed(lensCell(next, settings.viewMode))) return;
+  sourceError.value = null;
+  selected.value = [];
+  storeLens(next);
+}
+
+function migrateLegacyMode(): void {
+  if (props.tab.mindmapLens === undefined && props.tab.mindmapMode !== undefined) storeLens(lens.value);
+}
+
+function openAsText(): void {
+  setLens('data');
+  if (!has('json')) settings.setViewMode('edit');
 }
 
 function applyNodePatch(field: NodeField, value: string | number | boolean | readonly string[] | null): void {
@@ -101,34 +178,28 @@ function findLiveElement(mind: MindElixirInstance, id: string): Topic | null {
 }
 
 const displayOverride = ref<MapDisplay>({});
-let branchGenerators: BranchGenerators | null = null;
-let generatorsOwner: MindElixirInstance | null = null;
+const displayApplier = createMapDisplayApplier();
 
 function applyDisplay(): void {
   const mind = canvas.value?.getMind();
-  if (!mind) return;
-  if (generatorsOwner !== mind) {
-    branchGenerators = captureBranchGenerators(mind);
-    generatorsOwner = mind;
-  }
-  if (!branchGenerators) return;
-  const defaults = settings.mindmapDefaults;
-  const hasExplicitFont = displayOverride.value.font !== undefined || defaults.font !== undefined;
-  applyMapDisplay(mind, resolveMapDisplay(displayOverride.value, defaults), branchGenerators, hasExplicitFont);
+  if (mind) displayApplier.apply(mind, displayOverride.value, settings.mindmapDefaults, themeFamily(settings.theme));
 }
 
 function onCanvasReady(): void {
+  snippets.value = [...(canvas.value?.getSnippets() ?? [])];
   displayOverride.value = canvas.value?.getDisplayOverride() ?? {};
   applyDisplay();
 }
 
 function setOverride(patch: MapDisplay): void {
+  if (isMapLocked.value) return;
   displayOverride.value = { ...displayOverride.value, ...patch };
   canvas.value?.setDisplayOverride(displayOverride.value);
   applyDisplay();
 }
 
 function clearOverride(key: keyof MapDisplay): void {
+  if (isMapLocked.value) return;
   const next = { ...displayOverride.value };
   delete next[key];
   displayOverride.value = next;
@@ -143,9 +214,9 @@ function runViewAction(actionId: string): boolean {
     settings.toggleMindmapPanel();
     return true;
   }
-  const target = targetModeFor(actionId, mode.value);
+  const target = targetLensFor(actionId, lens.value);
   if (target === null) return false;
-  setMode(target);
+  setLens(target);
   return true;
 }
 
@@ -160,7 +231,7 @@ function activate(): void {
 function onViewKey(e: KeyboardEvent): void {
   const combo = eventToCombo(e);
   const actionId = combo ? resolveBindings(settings.keybindings, 'mindmap').get(combo) : undefined;
-  if (!actionId || !(actionId in VIEW_ACTIONS || actionId === TOGGLE_PANEL_ACTION)) return;
+  if (!actionId || !(isLensAction(actionId) || actionId === TOGGLE_PANEL_ACTION)) return;
   e.preventDefault();
   e.stopPropagation();
   runViewAction(actionId);
@@ -178,41 +249,67 @@ function onJump(source: MindmapSource): void {
   void jumpTo(source, props.tab.id);
 }
 
-onMounted(activate);
-onBeforeUnmount(() => clearActiveMindmap(handle));
-defineExpose({ setMode, canvas, mode });
+let removeViewGuard: (() => void) | null = null;
+
+onMounted(() => {
+  migrateLegacyMode();
+  removeViewGuard = addViewModeGuard(guardViewChange);
+  activate();
+});
+onBeforeUnmount(() => {
+  if (parseTimer !== null) window.clearTimeout(parseTimer);
+  removeViewGuard?.();
+  clearActiveMindmap(handle);
+});
+defineExpose({ setLens, canvas, lens });
 </script>
 
 <template>
   <div class="mindmap-shell" @keydown.capture="onViewKey" @focusin="activate" @pointerdown="activate">
     <MindmapToolbar
-      :mode="mode"
+      :lens="lens"
+      :has-map="has('map')"
       :is-panel-open="settings.mindmapPanelOpen"
       :is-read-only="canvas?.isReadOnly ?? false"
+      :is-locked="isMapLocked"
       :is-graph-view="canvas?.isGraphView ?? false"
-      @set-mode="setMode"
+      @set-lens="setLens"
       @run="(id) => handle.run(id)"
       @toggle-panel="settings.toggleMindmapPanel()"
     />
     <div class="mindmap-shell__body">
-      <MindmapCanvas
-        v-if="mode === 'map'"
-        ref="canvas"
-        :content="tab.content"
-        :codec="codec"
-        :export-name="exportName"
-        :register-active="false"
-        @update:content="onUpdate"
-        @selection="(nodes) => (selected = nodes.map((n) => ({ ...n })))"
-        @open-as-text="setMode('source')"
-        @jump-to-source="onJump"
-        @ready="onCanvasReady"
-      />
-      <div v-else-if="mode === 'source'" class="mindmap-shell__source">
-        <div v-if="sourceError" class="mindmap-shell__error" role="alert">{{ sourceError }}</div>
-        <Editor :key="`${tab.id}-source`" :tab="sourceTab" />
+      <div class="mindmap-shell__cell" :class="{ 'mindmap-shell__cell--split': isSplit }">
+        <div v-if="has('json')" class="mindmap-shell__source" :style="{ order: partOrder('json') }">
+          <div v-if="jsonError" class="mindmap-shell__error" role="alert">{{ jsonError }}</div>
+          <Editor :key="`${tab.id}-source`" :tab="sourceTab" />
+        </div>
+        <div v-if="has('map')" class="mindmap-shell__map" :style="{ order: partOrder('map') }">
+          <MindmapCanvas
+            ref="canvas"
+            class="mindmap-shell__canvas"
+            :content="mapContent"
+            :codec="codec"
+            :export-name="exportName"
+            :register-active="false"
+            :locked="isMapLocked"
+            :focus-key="tab.id"
+            @update:content="onUpdate"
+            @selection="(nodes) => (selected = nodes.map((n) => ({ ...n })))"
+            @open-as-text="openAsText"
+            @jump-to-source="onJump"
+            @ready="onCanvasReady"
+          />
+          <MindmapSnippets v-if="canvas?.hasMap !== false" :snippets="snippets" :editable="canEditSnippets" @change="setSnippets" />
+        </div>
+        <template v-if="has('outlineText')">
+          <MindmapOutlineInvalid v-if="outlineError !== null" :error="outlineError" :style="{ order: partOrder('outlineText') }" @switch-to-data="openAsText" />
+          <MindmapOutlineText v-else :markdown="outlineText" :style="{ order: partOrder('outlineText') }" />
+        </template>
+        <template v-if="has('outlinePreview')">
+          <MindmapOutlineInvalid v-if="outlineError !== null" :error="outlineError" :style="{ order: partOrder('outlinePreview') }" @switch-to-data="openAsText" />
+          <Preview v-else :source="outlinePreview" class="mindmap-shell__outline" :style="{ order: partOrder('outlinePreview') }" />
+        </template>
       </div>
-      <Preview v-else :source="outlineMarkdown" class="mindmap-shell__outline" />
       <MindmapSidePanel v-if="isPanelVisible" :has-single-node="singleNode !== null">
         <template #node>
           <p v-if="!isPanelEditable" class="mindmap-shell__hint">{{ t('mindmap.panelReadOnly') }}</p>
@@ -230,6 +327,12 @@ defineExpose({ setMode, canvas, mode });
 .mindmap-shell { display: flex; flex-direction: column; width: 100%; height: 100%; }
 .mindmap-shell__body { position: relative; flex: 1; min-height: 0; display: flex; }
 .mindmap-shell__body > * { flex: 1; min-width: 0; }
+.mindmap-shell__cell { display: flex; min-height: 0; }
+.mindmap-shell__cell > * { flex: 1; min-width: 0; min-height: 0; }
+.mindmap-shell__cell--split { gap: 1px; background: var(--border); }
+.mindmap-shell__cell--split > * { background: var(--bg); }
+.mindmap-shell__map { display: flex; flex-direction: column; min-height: 0; }
+.mindmap-shell__canvas { flex: 1; min-height: 0; }
 .mindmap-shell__source { display: flex; flex-direction: column; }
 .mindmap-shell__error { padding: 6px 12px; font-size: 12px; background: var(--bg-elev); color: var(--text); border-block-end: 1px solid var(--border); }
 .mindmap-shell__hint { font-size: 12px; color: var(--text-faint); }

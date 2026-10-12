@@ -111,6 +111,8 @@ const exporter = useExport();
 const toasts = useToastsStore();
 
 const isMarkdown = computed(() => tabs.activeTab?.language === 'markdown');
+const isMindmap = computed(() => tabs.activeTab?.language === 'mindmap');
+const hasViewButtons = computed(() => isMarkdown.value || isMindmap.value);
 
 // v4.6 unified title bar (macOS only). With `titleBarStyle: "Overlay"` in
 // tauri.conf, the red/yellow/green traffic lights float over the top-left of
@@ -997,7 +999,7 @@ onBeforeUnmount(() => {
 
     <div class="toolbar__spacer"></div>
 
-    <div class="toolbar__group" v-if="isMarkdown">
+    <div class="toolbar__group" v-if="hasViewButtons">
       <button
         class="icon-btn"
         data-phone-primary
@@ -1048,6 +1050,7 @@ onBeforeUnmount(() => {
       <button
         v-if="settings.viewMode !== 'preview' && settings.viewMode !== 'liveEdit'"
         class="icon-btn"
+        :disabled="isMindmap"
         @click="() => { settings.toggleLivePreview(); track('live_preview_toggled', { on: settings.livePreview ? 1 : 0 }); }"
         :class="{ active: settings.livePreview }"
         :title="settings.livePreview ? t('toolbar.livePreviewOn') : t('toolbar.livePreviewOff')"
@@ -1055,7 +1058,7 @@ onBeforeUnmount(() => {
         <Icon :name="settings.livePreview ? 'live' : 'source'" />
       </button>
       <button
-        v-if="settings.viewMode === 'split' || settings.viewMode === 'preview' || settings.viewMode === 'reading'"
+        v-if="isMarkdown && (settings.viewMode === 'split' || settings.viewMode === 'preview' || settings.viewMode === 'reading')"
         class="icon-btn"
         @click="settings.togglePreviewFitWidth"
         :class="{ active: settings.previewFitWidth }"
@@ -1065,7 +1068,7 @@ onBeforeUnmount(() => {
       </button>
     </div>
 
-    <span v-if="isMarkdown" class="toolbar__divider"></span>
+    <span v-if="hasViewButtons" class="toolbar__divider"></span>
 
     <div class="toolbar__group">
       <div class="dropdown focus-with-pomo">

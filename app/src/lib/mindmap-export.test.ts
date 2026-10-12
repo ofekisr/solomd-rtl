@@ -69,3 +69,8 @@ test('json and html exports of a gate-arrow map carry no gate-arrow ids', () => 
   assert.ok(!buildTextExport(arrowed, 'json').includes('gate-arrow-'));
   assert.ok(!buildTextExport(arrowed, 'html').includes('gate-arrow-'));
 });
+
+test('markdown export appends snippets', () => {
+  const md = buildTextExport({ nodeData: { id: 'root', topic: 'R', children: [] } }, 'markdown', [{ id: 's1', kind: 'mermaid', title: 'F', body: 'graph LR' }]);
+  assert.match(md, /```mermaid\ngraph LR\n```/);
+});

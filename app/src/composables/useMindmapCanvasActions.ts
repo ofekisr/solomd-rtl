@@ -7,6 +7,7 @@ import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
 import type { MindmapExportFormat } from '../lib/mindmap-export';
 import { mapToHeadingsMarkdown } from '../lib/mindmap-headings';
+import { snippetsMarkdown, type Snippet } from '../lib/mindmap-snippets';
 import { serializeMindmapFence } from '../lib/mindmap-fence';
 import { withoutGateArrows } from '../lib/mindmap-graph';
 
@@ -15,9 +16,12 @@ export interface CanvasActionContext {
   exportName(): string;
   isReadOnly: Ref<boolean>;
   isGraphView: Ref<boolean>;
+  isLocked(): boolean;
+  getSnippets(): readonly Snippet[];
 }
 
 const HEADINGS_SUFFIX = '-outline.md';
+const SECTION_JOINER = '\n';
 const EXPORT_ACTIONS: Record<string, MindmapExportFormat> = {
   'mindmap.exportPng': 'png',
   'mindmap.exportSvg': 'svg',
@@ -36,7 +40,7 @@ export function useMindmapCanvasActions(ctx: CanvasActionContext): Record<string
 
   const exportAs = (format: MindmapExportFormat) => () => {
     const mind = ctx.getMind();
-    if (mind) void exportMap(mind, format, ctx.exportName());
+    if (mind) void exportMap(mind, format, ctx.exportName(), ctx.getSnippets());
   };
 
   async function copyPlaintext(): Promise<void> {
@@ -50,7 +54,9 @@ export function useMindmapCanvasActions(ctx: CanvasActionContext): Record<string
     const mind = ctx.getMind();
     if (!mind) return;
     const tab = tabs.newTab({ fileName: ctx.exportName() + HEADINGS_SUFFIX });
-    tabs.setContent(tab.id, mapToHeadingsMarkdown(withoutGateArrows(mind.getData())));
+    const markdown = mapToHeadingsMarkdown(withoutGateArrows(mind.getData()));
+    const snippets = snippetsMarkdown(ctx.getSnippets(), 'source');
+    tabs.setContent(tab.id, snippets === '' ? markdown : markdown + SECTION_JOINER + snippets);
   }
 
   function toggleReadOnly(): void {
@@ -58,7 +64,7 @@ export function useMindmapCanvasActions(ctx: CanvasActionContext): Record<string
     if (!mind) return;
     ctx.isReadOnly.value = !ctx.isReadOnly.value;
     if (ctx.isReadOnly.value) mind.disableEdit();
-    else if (!ctx.isGraphView.value) mind.enableEdit();
+    else if (!ctx.isGraphView.value && !ctx.isLocked()) mind.enableEdit();
   }
 
   const exports = Object.fromEntries(Object.entries(EXPORT_ACTIONS).map(([id, format]) => [id, exportAs(format)]));
