@@ -36,7 +36,7 @@ The target state makes them editable:
 | 6 | XMind re-import | When `foo.xmind` is newer than `foo.mmap`, offer re-import (replace or merge) | ~½ day |
 | 7 | Custom map theme | Pick branch palette, background, root and main colors beyond Phase 8's presets | ~1 day |
 
-AI Create is Phase 6 (`docs/superpowers/plans/2026-10-12-mindmap-phase6-handoff.md`).
+AI Create is Phase 6 (`docs/superpowers/plans/2026-10-12-mindmap-phase6-handoff.md`). Snippets and freeze + focus are Phase 9 (`2026-10-12-mindmap-phase9-snippets-focus-design.md`).
 
 ## Open questions
 
