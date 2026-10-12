@@ -115,9 +115,9 @@ const embeddedJson = (html: string): string => {
 };
 
 test('escapeScriptJson removes every char that can end a script block', () => {
-  const out = escapeScriptJson(JSON.stringify({ t: '</script>&  ' }));
-  assert.equal(/[<>&  ]/.test(out), false);
-  assert.deepEqual(JSON.parse(out), { t: '</script>&  ' });
+  const out = escapeScriptJson(JSON.stringify({ t: '</script>&\u2028\u2029' }));
+  assert.equal(/[<>&\u2028\u2029]/.test(out), false);
+  assert.deepEqual(JSON.parse(out), { t: '</script>&\u2028\u2029' });
 });
 
 test('html export cannot be broken out of by a topic', () => {
@@ -183,7 +183,7 @@ const IMAGE_FORMATS: ReadonlySet<MindmapExportFormat> = new Set<MindmapExportFor
 const JSON_INDENT = 2;
 const DATA_ASSIGNMENT = 'const data = ';
 const HTML_MARKER_MISSING = 'export-mindmap HTML layout changed: data assignment not found';
-const SCRIPT_UNSAFE_CHARS = /[<>&  ]/g;
+const SCRIPT_UNSAFE_CHARS = /[<>&\u2028\u2029]/g;
 
 export function isImageFormat(format: MindmapExportFormat): format is MindmapImageFormat {
   return IMAGE_FORMATS.has(format);
