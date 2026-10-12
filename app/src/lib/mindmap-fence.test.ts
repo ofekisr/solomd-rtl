@@ -101,3 +101,10 @@ test('body comparison ignores CRLF and trailing whitespace', () => {
   const crlf = '```mindmap\r\n- R  \r\n```\r\n';
   assert.ok(replaceMindmapFence(crlf, { line: 0, body: '- R\n' }, '- S').ok);
 });
+
+test('gate lines round-trip through the fence codec', () => {
+  const parsed = parseMindmapFence('- Root\n  - Alpha [^a1]\n  - => a1');
+  assert.ok(parsed.ok);
+  if (!parsed.ok) return;
+  assert.equal(serializeMindmapFence(parsed.data), '- Root\n  - Alpha [^a1]\n  - => a1');
+});

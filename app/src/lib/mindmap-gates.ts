@@ -6,7 +6,7 @@ export const GATE_LABEL_PREFIX = '⇒ ';
 
 type Meta = Record<string, unknown>;
 
-function isRecord(value: unknown): value is Meta {
+export function isRecord(value: unknown): value is Meta {
   return typeof value === 'object' && value !== null;
 }
 

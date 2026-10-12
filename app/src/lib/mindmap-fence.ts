@@ -1,6 +1,7 @@
 import type { MindElixirData } from 'mind-elixir';
 import { mindElixirToPlaintext, plaintextToMindElixir } from 'mind-elixir/plaintextConverter';
 import { scanFencedBlocks, type FencedBlock } from './fence-scan.ts';
+import { attachGatesFromTopics, gatesToTopics } from './mindmap-gate-plaintext.ts';
 import { createEmptyMindmap, sanitizeMindmapData, type MindmapCodec, type MindmapParseResult } from './mindmap-format.ts';
 
 export const MINDMAP_FENCE_LANG = 'mindmap';
@@ -33,14 +34,14 @@ export function parseMindmapFence(body: string): MindmapParseResult {
   const text = normalizeFenceBody(body);
   if (text === '') return { ok: true, data: createEmptyMindmap(MINDMAP_FENCE_ROOT_TOPIC), isEmpty: true };
   try {
-    return { ok: true, data: sanitizeMindmapData(plaintextToMindElixir(text, MINDMAP_FENCE_ROOT_TOPIC)), isEmpty: false };
+    return { ok: true, data: attachGatesFromTopics(sanitizeMindmapData(plaintextToMindElixir(text, MINDMAP_FENCE_ROOT_TOPIC))), isEmpty: false };
   } catch (err) {
     return { ok: false, error: (err as Error).message };
   }
 }
 
 export function serializeMindmapFence(data: MindElixirData): string {
-  return normalizeFenceBody(mindElixirToPlaintext(sanitizeMindmapData(data)));
+  return normalizeFenceBody(mindElixirToPlaintext(gatesToTopics(sanitizeMindmapData(data))));
 }
 
 export const mindmapFenceCodec: MindmapCodec = { parse: parseMindmapFence, serialize: serializeMindmapFence };
