@@ -3,6 +3,7 @@
 ## Status
 
 Approved in conversation on 12-10-26. Parent design: `docs/superpowers/specs/2026-10-11-mindmap-design.md`.
+Done 12-10-26 (4.15.1) — plan `docs/superpowers/plans/2026-10-12-mindmap-phase7-views-panel.md`
 Follow-up spec (deferred work): `docs/superpowers/specs/2026-10-12-mindmap-phase8-app-features-design.md`.
 
 ## Purpose
@@ -212,3 +213,24 @@ Used as a field reference only.
 | Multi-select | Browser: box select, batch delete, undo |
 
 Desktop (Tauri) check before merge, as in Phase 4.
+
+## Decisions during planning and execution
+
+### Spec deltas
+
+| Spec says | Plan does | Why |
+|---|---|---|
+| Top-level `solomd` block in the `.mmap` JSON | `display` block on the envelope (`{ format, version, data, display? }`) | The envelope is already SoloMD-specific; `data` stays pure Mind Elixir |
+| Zod for the block | Plain type guards | Repo rule: no zod in `src/lib` |
+| Add Focus / Unfocus to the context menu | Already shown by the package (`contextMenu.focus` defaults on); only add `mindmap.focusNode` / `mindmap.cancelFocus` commands | Avoid duplicate menu items |
+
+### Execution
+
+- Cleared node style keys are written as `''` because mind-elixir `reshapeNode` merges the patch style over a copy of the old style; `sanitizeStyle` drops empty values on load.
+- Single link allow-list: `isSafeLink` lives in `mindmap-format.ts`.
+- The side panel refreshes from the live node after `reshapeNode`, and re-syncs on every map operation, undo and redo.
+- Toolbar and panel use the app theme tokens (`--bg-elev`, `--text`, `--text-faint`, `--border`, `--accent`); `--bg-secondary` does not exist.
+- Map text color sets `--color`, `--main-color` and `--root-color`; the font is set on the map container; `changeCompact` runs before branch style and text color because it calls `changeTheme`, which resets both.
+- Outline view gives each heading and list line its own direction (`unicode-bidi: plaintext`), so Hebrew lines align right.
+- Box multi-select is on by default in mind-elixir 5.15.1; no code change was needed.
+- Phase 7 ships as 4.15.1; Phase 6 (AI convert) moves to the next patch.
