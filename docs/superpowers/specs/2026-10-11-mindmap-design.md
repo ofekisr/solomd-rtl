@@ -12,6 +12,8 @@ Approved in conversation on 11-10-26. Branch: `feat/mindmap`.
 | 4 Map UI | ✅ Done 12-10-26 (`4.14.12`) — plan `docs/superpowers/plans/2026-10-11-mindmap-phase4-map-ui.md` |
 | 5 Convert md→mindmap (structural) | ✅ Done 12-10-26 (`4.14.13`) — plan `docs/superpowers/plans/2026-10-12-mindmap-phase5-convert.md` |
 | 6 Convert md→mindmap (AI) | Ready to start (after `4.15.0`, target `4.15.1`) — handoff `docs/superpowers/plans/2026-10-12-mindmap-phase6-handoff.md` |
+| 7 Views, toolbar, node panel, XMind dedupe | Spec approved 12-10-26 — `docs/superpowers/specs/2026-10-12-mindmap-phase7-views-panel-design.md` |
+| 8 App features outside the package | Deferred — `docs/superpowers/specs/2026-10-12-mindmap-phase8-app-features-design.md` |
 
 ## Purpose
 
