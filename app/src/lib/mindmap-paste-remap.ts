@@ -14,15 +14,19 @@ export function buildIdMap(pasted: readonly NodeObj[], inserted: readonly NodeOb
   return out;
 }
 
-function remapNodeGate(node: NodeObj, idMap: ReadonlyMap<string, string>): void {
+function remapNodeGate(node: NodeObj, idMap: ReadonlyMap<string, string>): number {
   const gate = readGate(node);
   const next = gate ? idMap.get(gate.target) : undefined;
-  if (next && node.metadata) (node.metadata as { gate: { target: string } }).gate.target = next;
-  for (const child of node.children ?? []) remapNodeGate(child, idMap);
+  let count = 0;
+  if (next && node.metadata) {
+    (node.metadata as { gate: { target: string } }).gate.target = next;
+    count = 1;
+  }
+  return (node.children ?? []).reduce((sum, child) => sum + remapNodeGate(child, idMap), count);
 }
 
-export function remapGates(inserted: readonly NodeObj[], idMap: ReadonlyMap<string, string>): void {
-  for (const node of inserted) remapNodeGate(node, idMap);
+export function remapGates(inserted: readonly NodeObj[], idMap: ReadonlyMap<string, string>): number {
+  return inserted.reduce((sum, node) => sum + remapNodeGate(node, idMap), 0);
 }
 
 export function remapArrows(arrows: readonly Arrow[], idMap: ReadonlyMap<string, string>): Omit<Arrow, 'id'>[] {

@@ -13,7 +13,7 @@ test('buildIdMap pairs ids by tree position', () => {
 test('remapGates points internal gates at new ids and leaves outside gates', () => {
   const inserted: NodeObj[] = structuredClone(INSERTED);
   inserted[0].children?.push({ id: 'W', topic: 'out', metadata: { gate: { target: 'elsewhere' } } });
-  remapGates(inserted, buildIdMap(PASTED, INSERTED));
+  assert.equal(remapGates(inserted, buildIdMap(PASTED, INSERTED)), 1);
   assert.deepEqual(inserted[0].children?.[1].metadata, { gate: { target: 'Y' } });
   assert.deepEqual(inserted[0].children?.[2].metadata, { gate: { target: 'elsewhere' } });
 });

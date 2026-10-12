@@ -36,6 +36,8 @@ const EXPAND_EVENT = 'expandNode';
 const SELECT_EVENT = 'selectNodes';
 const UNSELECT_EVENT = 'unselectNodes';
 const BEGIN_EDIT_OPERATION = 'beginEdit';
+const COPY_NODES_OPERATION = 'copyNodes';
+const PASTE_NOTICE_KEYS = { empty: null, tooLarge: 'mindmap.pasteTooLarge', unrecognized: 'mindmap.pasteUnrecognized' } as const;
 const TOGGLE_NODE_ACTION = 'mindmap.toggleNode';
 const INTERACTIVE_SELECTOR = 'button, input, select, textarea, a[href], [contenteditable="true"], [role="button"], [role="menuitem"]';
 
@@ -494,8 +496,6 @@ function activate(): void {
   if (props.registerActive) setActiveMindmap(handle);
 }
 
-const PASTE_NOTICE_KEYS = { empty: null, tooLarge: 'mindmap.pasteTooLarge', unrecognized: 'mindmap.pasteUnrecognized' } as const;
-
 function pasteTarget(): Topic | null {
   if (!mind || isEditBlocked() || isGraphView.value) return null;
   const target = mind.currentNode;
@@ -512,9 +512,10 @@ async function insertPayload(instance: MindElixirInstance, target: Topic, payloa
   if (children.length !== countBefore + payload.nodes.length) return;
   const inserted = children.slice(countBefore);
   const idMap = buildIdMap(payload.nodes, inserted);
-  remapGates(inserted, idMap);
+  const remapped = remapGates(inserted, idMap);
   for (const arrow of remapArrows(payload.arrows, idMap)) instance.createArrowFrom(arrow);
   for (const summary of remapSummaries(payload.summaries, idMap)) instance.createSummaryFrom(summary);
+  if (remapped > 0) instance.bus.fire(OPERATION_EVENT, { name: COPY_NODES_OPERATION, objs: inserted });
   gates.syncLabels();
 }
 
