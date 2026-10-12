@@ -59,3 +59,20 @@ test('linesOutsideFences drops fenced lines and keeps numbering', () => {
     { text: 'a', line: 1 }, { text: 'c', line: 5 }, { text: 'f', line: 11 },
   ]);
 });
+
+test('front matter is skipped only at document start', () => {
+  const items = (src: string, first: number) => scanMarkdown(src, first).map((b) => (b.kind === 'item' ? b.text : b.kind));
+  assert.deepEqual(items('---\n- a\n- b\n---\n- c', 5), ['a', 'b', 'c']);
+  assert.deepEqual(items('---\ntitle: x\n---\n- c', 1), ['c']);
+});
+
+test('indented fences under list items are skipped', () => {
+  const texts = scanMarkdown('- a\n    ```\n    # no\n    ```\n- b').map((b) => (b.kind === 'item' ? b.text : b.kind));
+  assert.deepEqual(texts, ['a', 'b']);
+});
+
+test('footnote refs and grammar-like leads are neutralised', () => {
+  const texts = scanMarkdown('- > quote\n- }:1 x\n- Results [^1]\n- => done\n- a [^1] b').map((b) => (b.kind === 'item' ? b.text : b.kind));
+  assert.deepEqual(texts, ['quote', 'x', 'Results', 'done', 'a b']);
+  assert.equal(plainInline('see [^n] here'), 'see here');
+});

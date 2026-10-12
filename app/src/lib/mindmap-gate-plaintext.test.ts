@@ -61,3 +61,12 @@ test('orphaned gate with an unsafe target emits no gate line', () => {
   const topics = [...walkNodes(gatesToTopics(data).nodeData)].map((n) => n.topic);
   assert.ok(topics.every((t) => !t.includes('\n') && !t.startsWith('=>')), topics.join('|'));
 });
+
+test('a gate targeting an unsafe node id emits no injected line', () => {
+  const data: MindElixirData = { nodeData: { id: 'root', topic: 'R', children: [
+    { id: 'x]\n- injected [^y', topic: 'T' },
+    { id: 'g', topic: 'G', metadata: { gate: { target: 'x]\n- injected [^y' } } },
+  ] } };
+  const out = mindElixirToPlaintext(gatesToTopics(data));
+  assert.ok(!out.includes('injected'));
+});

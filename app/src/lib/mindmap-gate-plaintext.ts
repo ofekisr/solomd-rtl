@@ -37,6 +37,7 @@ export function attachGatesFromTopics(data: MindElixirData): MindElixirData {
 function ensureRef(target: NodeObj): string {
   const existing = refIdOf(target);
   if (existing) return existing;
+  if (!REF_PATTERN.test(target.id)) return '';
   const meta = isRecord(target.metadata) ? target.metadata : {};
   target.metadata = { ...meta, refId: target.id };
   return target.id;

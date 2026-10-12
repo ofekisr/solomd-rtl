@@ -2,8 +2,11 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   buildMindmapFence, insertBlockAfterLine, findMindmapFences, isMindmapFenceInfo, MAX_MINDMAP_FENCE_CHARS, MINDMAP_FENCE_ROOT_TOPIC,
-  parseMindmapFence, replaceMindmapFence, serializeMindmapFence,
+  parseMindmapFence, replaceMindmapFence, safeInsertLine, serializeMindmapFence, mindmapFenceCodec,
 } from './mindmap-fence.ts';
+import { markdownToMindmap } from './mindmap-convert.ts';
+import { preorderIds } from './mindmap-source.ts';
+import { walkNodes } from './mindmap-gates.ts';
 
 const OUTLINE = '- Root\n  - A [^a1]\n    - A1\n  - }:1 Group A\n  - B [^b1]\n  - > [^a1] <-relates-> [^b1]\n  - עברית';
 const DOC = `# T\n\n\`\`\`mindmap\n${OUTLINE}\n\`\`\`\n\ntext\n\n\`\`\`js\nx\n\`\`\`\n\n\`\`\`mindmap\n- Second\n\`\`\`\n`;
@@ -117,4 +120,32 @@ test('insertBlockAfterLine keeps one blank line around the block', () => {
 test('buildMindmapFence wraps the serialized body', () => {
   const fence = buildMindmapFence({ nodeData: { id: 'root', topic: 'R', children: [{ id: 'n1', topic: 'A' }] } });
   assert.match(fence, /^```mindmap\n[\s\S]*- A[\s\S]*\n```$/);
+});
+
+test('converted markdown with grammar-like items survives the fence round trip', () => {
+  const md = '# Doc\n- > quote\n- }:1 x\n- Results [^1]\n- => done\n- a [^1]';
+  const data = markdownToMindmap(md, { rootTopic: 'R' });
+  const parsed = mindmapFenceCodec.parse(findMindmapFences(buildMindmapFence(data))[0].body);
+  assert.ok(parsed.ok);
+  if (!parsed.ok) return;
+  assert.equal(preorderIds(parsed.data.nodeData).length, preorderIds(data.nodeData).length);
+  const topics = [...walkNodes(parsed.data.nodeData)].map((n) => n.topic);
+  assert.deepEqual(topics, ['Doc', 'quote', 'x', 'Results', 'done', 'a']);
+  for (const node of walkNodes(parsed.data.nodeData)) {
+    const meta = (node.metadata ?? {}) as Record<string, unknown>;
+    assert.equal(meta.refId, undefined);
+    assert.equal(meta.gate, undefined);
+    assert.equal(meta.arrow, undefined);
+  }
+  assert.equal((parsed.data.arrows ?? []).length, 0);
+  assert.equal((parsed.data.summaries ?? []).length, 0);
+});
+
+test('safeInsertLine moves out of an open code fence', () => {
+  const src = 'a\n```\ncode\nmore\n```\nb';
+  assert.equal(safeInsertLine(src, 1), 1);
+  assert.equal(safeInsertLine(src, 3), 5);
+  assert.equal(safeInsertLine(src, 5), 5);
+  assert.equal(safeInsertLine('x\n```\nopen', 3), 3);
+  assert.equal(safeInsertLine('x\n```\nopen\nmore', 3), 4);
 });
