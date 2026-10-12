@@ -371,6 +371,7 @@ function onMindmapConvertEvent(e: Event) {
   const { scope, output, paneId } = (e as CustomEvent<MindmapConvertDetail>).detail;
   if (paneId !== props.paneId) return;
   if (!props.tab) return;
+  window.dispatchEvent(new Event('solomd:flush-content-sync'));
   const ed = editorRef.value as unknown as { getLineSelection?: () => LineSelection | null } | null;
   mindmapConvert.convert(props.tab, scope, output, ed?.getLineSelection?.() ?? null);
 }

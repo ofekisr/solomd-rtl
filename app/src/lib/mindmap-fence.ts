@@ -1,5 +1,6 @@
 import type { MindElixirData } from 'mind-elixir';
 import { mindElixirToPlaintext, plaintextToMindElixir } from 'mind-elixir/plaintextConverter';
+import { fenceRanges } from './mindmap-md-scan.ts';
 import { scanFencedBlocks, type FencedBlock } from './fence-scan.ts';
 import { attachGatesFromTopics, gatesToTopics } from './mindmap-gate-plaintext.ts';
 import { createEmptyMindmap, sanitizeMindmapData, type MindmapCodec, type MindmapParseResult } from './mindmap-format.ts';
@@ -49,6 +50,11 @@ const BLANK_LINE_PATTERN = /^\s*$/;
 
 export function buildMindmapFence(data: MindElixirData): string {
   return [FENCE_MARKER + MINDMAP_FENCE_LANG, serializeMindmapFence(data), FENCE_MARKER].join(NEWLINE);
+}
+
+export function safeInsertLine(source: string, line: number): number {
+  const open = fenceRanges(source).find((range) => line >= range.from && line < range.to);
+  return open ? open.to : line;
 }
 
 export function insertBlockAfterLine(source: string, line: number, block: string): string {

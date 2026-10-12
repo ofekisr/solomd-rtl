@@ -5,7 +5,7 @@ import { useWorkspaceStore } from '../stores/workspace';
 import { useI18n } from '../i18n';
 import type { Tab } from '../types';
 import { fileNameOf } from '../lib/import-plan';
-import { buildMindmapFence, insertBlockAfterLine } from '../lib/mindmap-fence';
+import { buildMindmapFence, insertBlockAfterLine, safeInsertLine } from '../lib/mindmap-fence';
 import { markdownToMindmap, sectionRange, sliceLines, SELECTION_ROOT_TOPIC, type LineRange } from '../lib/mindmap-convert';
 import { mmapPathFor, rootTopicFromFileName, sanitizeMindmapData, serializeMindmap } from '../lib/mindmap-format';
 import { toWorkspaceRelative } from '../lib/mindmap-source';
@@ -61,7 +61,7 @@ export function useMindmapConvert() {
   }
 
   function insertFence(tab: Tab, range: LineRange, data: MindElixirData): void {
-    tabs.setContent(tab.id, insertBlockAfterLine(tab.content, range.toLine, buildMindmapFence(data)));
+    tabs.setContent(tab.id, insertBlockAfterLine(tab.content, safeInsertLine(tab.content, range.toLine), buildMindmapFence(data)));
   }
 
   function convert(tab: Tab, scope: ConvertScope, output: ConvertOutput, selection: LineSelection | null): void {

@@ -4030,7 +4030,6 @@ function parseFrontMatterImageRoot(source: string): string | undefined {
   return im ? im[1].replace(/^["']|["']$/g, '').trim() || undefined : undefined;
 }
 
-/** Returns the 1-indexed line currently at the top of the visible viewport. */
 function getLineSelection(): { fromLine: number; toLine: number; headLine: number; isEmpty: boolean } | null {
   if (usePlainWindowsEditor || !view) return null;
   const { doc, selection } = view.state;
@@ -4045,6 +4044,7 @@ function getLineSelection(): { fromLine: number; toLine: number; headLine: numbe
   };
 }
 
+/** Returns the 1-indexed line currently at the top of the visible viewport. */
 function getViewLine(): number | null {
   if (usePlainWindowsEditor) {
     if (plainLiveEnabled.value) {
