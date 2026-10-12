@@ -1,5 +1,8 @@
-import type { Arrow, MindElixirData, NodeObj, Summary } from 'mind-elixir';
+import type { MindElixirData, NodeObj } from 'mind-elixir';
 import { isRecord } from './mindmap-gates.ts';
+
+type Arrow = NonNullable<MindElixirData['arrows']>[number];
+type Summary = NonNullable<MindElixirData['summaries']>[number];
 
 export interface MergeEntry { data: MindElixirData; group?: string }
 
