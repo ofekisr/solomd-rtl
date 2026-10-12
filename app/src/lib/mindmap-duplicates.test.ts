@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import type { MindElixirData } from 'mind-elixir';
-import { findDuplicateGroups, mergeIntoGate, normalizeTopic, subtreeHash } from './mindmap-duplicates.ts';
+import type { MindElixirData, NodeObj } from 'mind-elixir';
+import { canonical, findDuplicateGroups, mergeIntoGate, normalizeTopic, subtreeHash } from './mindmap-duplicates.ts';
 import { findNode, readGate } from './mindmap-gates.ts';
 
 const data = (): MindElixirData => ({
@@ -66,4 +66,20 @@ test('union does not confuse ambiguous canonical forms', () => {
   ] } };
   const merged = mergeIntoGate(ambiguous, 'k', 'd');
   assert.deepEqual(findNode(merged!.nodeData, 'k')!.children!.map((c) => c.id), ['k1', 'd1']);
+});
+
+test('children differing in note are not twins', () => {
+  const d: MindElixirData = { nodeData: { id: 'r', topic: 'Root', children: [
+    { id: 'k', topic: 'T', children: [{ id: 'k1', topic: 'A' }] },
+    { id: 'x', topic: 'O', children: [{ id: 'd', topic: 't', children: [{ id: 'd1', topic: 'a', note: 'important' }] }] },
+  ] } };
+  const merged = mergeIntoGate(d, 'k', 'd')!;
+  assert.ok(findNode(merged.nodeData, 'k')!.children!.some((c) => c.id === 'd1' && c.note === 'important'));
+});
+
+test('canonical stays linear on deep chains', () => {
+  let node: NodeObj = { id: 'n0', topic: 'a' };
+  for (let i = 1; i < 30; i += 1) node = { id: `n${i}`, topic: 'a', children: [node] };
+  assert.ok(canonical(node).length < 5_000);
+  assert.ok(subtreeHash(node).length > 0);
 });

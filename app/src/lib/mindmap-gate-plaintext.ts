@@ -46,7 +46,7 @@ function gateTopicOf(node: NodeObj, root: NodeObj): string | null {
   const gate = readGate(node);
   if (!gate) return null;
   const target = gate.target ? findNode(root, gate.target) : null;
-  const ref = target ? ensureRef(target) : gate.missingRef;
+  const ref = target ? ensureRef(target) : gate.missingRef || gate.target;
   return ref ? GATE_TOPIC_PREFIX + ref : null;
 }
 

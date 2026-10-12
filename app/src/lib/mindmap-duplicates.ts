@@ -19,10 +19,18 @@ function fnv1a(text: string): string {
   return hash.toString(HEX_RADIX);
 }
 
-function canonical(node: NodeObj): string {
+function contentOf(node: NodeObj): unknown[] {
+  return [node.note ?? '', node.hyperLink ?? '', node.image?.url ?? '', node.tags ?? [], node.icons ?? []];
+}
+
+function canonicalValue(node: NodeObj): unknown[] {
   const gate = readGate(node);
-  if (gate) return JSON.stringify(['=>', gate.target || gate.missingRef || '']);
-  return JSON.stringify([normalizeTopic(node.topic), (node.children ?? []).map(canonical)]);
+  if (gate) return ['=>', gate.target || gate.missingRef || ''];
+  return [normalizeTopic(node.topic), contentOf(node), (node.children ?? []).map(canonicalValue)];
+}
+
+export function canonical(node: NodeObj): string {
+  return JSON.stringify(canonicalValue(node));
 }
 
 export function subtreeHash(node: NodeObj): string {

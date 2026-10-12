@@ -40,3 +40,16 @@ test('existing refId is reused and survives a full round-trip', () => {
   const alpha = walkNodes(again.nodeData).find((n) => n.topic === 'Alpha')!;
   assert.equal(readGate(walkNodes(again.nodeData).find((n) => readGate(n) !== null)!)?.target, alpha.id);
 });
+
+test('gate whose target was deleted survives serialize as a broken gate', () => {
+  const data = parse('- Root\n  - Alpha [^a1]\n  - => a1');
+  const alpha = walkNodes(data.nodeData).find((n) => n.topic === 'Alpha')!;
+  data.nodeData.children = data.nodeData.children!.filter((n) => n.id !== alpha.id);
+  walkNodes(data.nodeData).filter((n) => readGate(n)).forEach((n) => { n.topic = '⇒ ⚠ missing target'; });
+  const text = mindElixirToPlaintext(gatesToTopics(data));
+  assert.ok(/- => [\w-]+/u.test(text), text);
+  const again = parse(text);
+  const gate = walkNodes(again.nodeData).find((n) => readGate(n) !== null)!;
+  assert.equal(readGate(gate)?.target, '');
+  assert.ok(readGate(gate)?.missingRef);
+});

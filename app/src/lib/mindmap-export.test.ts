@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { MindElixirData } from 'mind-elixir';
+import { withGateArrows } from './mindmap-graph.ts';
 import { buildHtmlExport, buildTextExport, escapeScriptJson, exportFileName, isImageFormat } from './mindmap-export.ts';
 
 const BREAKOUT = '</script><script>window.__pwn=1</script>';
@@ -56,4 +57,15 @@ test('graph text formats', () => {
   assert.equal(exportFileName('plan', 'adjacency'), 'plan.graph.json');
   assert.ok(buildTextExport(data('A'), 'mermaid').startsWith('graph LR\n'));
   assert.equal(JSON.parse(buildTextExport(data('A'), 'adjacency')).nodes.length, 4);
+});
+
+test('json and html exports of a gate-arrow map carry no gate-arrow ids', () => {
+  const withGate: MindElixirData = { nodeData: { id: 'root', topic: 'R', children: [
+    { id: 'a', topic: 'A' },
+    { id: 'g', topic: '⇒ A', metadata: { gate: { target: 'a' } } },
+  ] } };
+  const arrowed = withGateArrows(withGate);
+  assert.ok((arrowed.arrows ?? []).length > 0);
+  assert.ok(!buildTextExport(arrowed, 'json').includes('gate-arrow-'));
+  assert.ok(!buildTextExport(arrowed, 'html').includes('gate-arrow-'));
 });

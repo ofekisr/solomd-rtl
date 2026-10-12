@@ -14,10 +14,12 @@ function metaOf(node: NodeObj): Meta {
   return isRecord(node.metadata) ? node.metadata : {};
 }
 
+const REF_PATTERN = /^[\w-]+$/u;
+
 export function readGate(node: NodeObj): GateMeta | null {
   const gate = metaOf(node).gate;
   if (!isRecord(gate) || typeof gate.target !== 'string') return null;
-  const missingRef = typeof gate.missingRef === 'string' ? gate.missingRef : undefined;
+  const missingRef = typeof gate.missingRef === 'string' && REF_PATTERN.test(gate.missingRef) ? gate.missingRef : undefined;
   if (gate.target === '' && missingRef === undefined) return null;
   return missingRef === undefined ? { target: gate.target } : { target: gate.target, missingRef };
 }

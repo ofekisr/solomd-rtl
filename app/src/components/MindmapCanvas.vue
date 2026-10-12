@@ -129,8 +129,8 @@ function onOperation(info: { name: string }): void {
 
 function syncAfterHistoryJumps(instance: MindElixirInstance): void {
   const { undo, redo } = instance;
-  instance.undo = () => { undo.call(instance); scheduleSync(); };
-  instance.redo = () => { redo.call(instance); scheduleSync(); };
+  instance.undo = () => { undo.call(instance); gates.syncLabels(); scheduleSync(); };
+  instance.redo = () => { redo.call(instance); gates.syncLabels(); scheduleSync(); };
 }
 
 function sanitizedTopic(tpc: Topic): Topic | null {
@@ -275,6 +275,7 @@ function mergeDuplicate(keepId: string, dupId: string): void {
   const merged = mergeIntoGate(mind.getData(), keepId, dupId);
   if (!merged) return;
   mind.refresh(merged);
+  mind.clearHistory?.();
   gates.syncLabels();
   scheduleSync();
   findDuplicates();

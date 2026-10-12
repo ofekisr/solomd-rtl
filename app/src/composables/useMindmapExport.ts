@@ -30,9 +30,9 @@ export function useMindmapExport() {
 
   async function exportMap(mind: MindElixirInstance, format: MindmapExportFormat, baseName: string): Promise<void> {
     const spec = MINDMAP_EXPORT_SPECS[format];
-    const path = await pickWritePath(exportFileName(baseName, format), [{ name: spec.filterName, extensions: [spec.filterExtension ?? spec.extension] }]);
-    if (!path) return;
     try {
+      const path = await pickWritePath(exportFileName(baseName, format), [{ name: spec.filterName, extensions: [spec.filterExtension ?? spec.extension] }]);
+      if (!path) return;
       await writePayload(path, await buildPayload(mind, format));
       toasts.success(t('mindmap.exportDone'));
     } catch (err) {

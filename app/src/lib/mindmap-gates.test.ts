@@ -77,3 +77,10 @@ test('withGateLabels copies and labels', () => {
   assert.equal(findNode(labelled.nodeData, 'g')?.topic, `${GATE_LABEL_PREFIX}Deep`);
   assert.equal(findNode(data.nodeData, 'g')?.topic, 'stale');
 });
+
+test('readGate ignores a missingRef that is not a safe ref', () => {
+  const bad = { id: 'g', topic: 'x', metadata: { gate: { target: '', missingRef: 'a\n- injected' } } };
+  assert.equal(readGate(bad), null);
+  const withTarget = { id: 'g', topic: 'x', metadata: { gate: { target: 't', missingRef: 'a b' } } };
+  assert.deepEqual(readGate(withTarget), { target: 't' });
+});
