@@ -1365,6 +1365,9 @@ export const en = {
     fenceStale: 'The mind map block changed in the note; edits are no longer saved. Close and reopen it.',
     exportDone: 'Mind map exported',
     exportFailed: 'Mind map export failed',
+    readOnlyBadge: 'Read-only',
+    noActiveMap: 'Click a mind map first',
+    copiedPlaintext: 'Mind map copied as plaintext',
   },
   whiteboard: {
     // F7 — Markdown-backed tldraw whiteboards.

@@ -182,6 +182,14 @@ export const KEY_ACTIONS: KeyActionDef[] = [
   { id: 'mindmap.fit', label: 'Mindmap: Fit to Window', category: 'mindmap', scope: 'mindmap', defaults: ['Mod+Alt+0'] },
   { id: 'mindmap.focusRoot', label: 'Mindmap: Select Root', category: 'mindmap', scope: 'mindmap', defaults: ['Home'] },
   { id: 'mindmap.shortcutHelp', label: 'Mindmap: Keyboard Shortcuts', category: 'mindmap', scope: 'mindmap', defaults: ['Shift+Slash'] },
+  { id: 'mindmap.exportPng', label: 'Mindmap: Export as PNG', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.exportSvg', label: 'Mindmap: Export as SVG', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.exportHtml', label: 'Mindmap: Export as HTML', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.exportJson', label: 'Mindmap: Export as JSON', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.exportMarkdown', label: 'Mindmap: Export as Markdown List', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.copyPlaintext', label: 'Mindmap: Copy as Plaintext', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.toHeadingsDocument', label: 'Mindmap: Open as Markdown Headings', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.toggleReadOnly', label: 'Mindmap: Toggle Read-Only', category: 'mindmap', scope: 'mindmap', defaults: [] },
 ];
 
 /** Keys whose `event.key` is punctuation — spelled by code for stability. */

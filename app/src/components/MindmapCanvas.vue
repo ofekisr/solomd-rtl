@@ -11,6 +11,8 @@ import { eventToCombo, resolveBindings } from '../lib/keybindings';
 import { MINDMAP_BUILTIN_COMBOS } from '../lib/mindmap-keymap';
 import { layoutDirectionFor } from '../lib/mindmap-direction';
 import { themeFamily } from '../lib/themes';
+import { clearActiveMindmap, setActiveMindmap, type MindmapHandle } from '../lib/mindmap-active';
+import { useMindmapCanvasActions } from '../composables/useMindmapCanvasActions';
 import MindmapShortcutHelp from './MindmapShortcutHelp.vue';
 
 const SYNC_DEBOUNCE_MS = 300;
@@ -22,7 +24,7 @@ const CHORD_PREFIX_COMBO = 'Mod+K';
 const TOGGLE_NODE_ACTION = 'mindmap.toggleNode';
 const INTERACTIVE_SELECTOR = 'button, input, select, textarea, a[href], [contenteditable="true"], [role="button"], [role="menuitem"]';
 
-const props = defineProps<{ content: string; codec: MindmapCodec }>();
+const props = withDefaults(defineProps<{ content: string; codec: MindmapCodec; exportName?: string }>(), { exportName: 'mindmap' });
 const emit = defineEmits<{ 'update:content': [text: string]; 'open-as-text': [] }>();
 const settings = useSettingsStore();
 const { t } = useI18n();
@@ -30,6 +32,7 @@ const { t } = useI18n();
 const host = ref<HTMLElement | null>(null);
 const parseError = ref<string | null>(null);
 const isHelpOpen = ref(false);
+const isReadOnly = ref(false);
 let mind: MindElixirInstance | null = null;
 let lastSynced = props.content;
 let syncTimer: number | null = null;
@@ -89,7 +92,7 @@ function mount(): void {
   mind = new MindElixir({
     el: host.value,
     direction: layoutDirectionFor(data),
-    editable: true,
+    editable: !isReadOnly.value,
     contextMenu: true,
     toolBar: true,
     keypress: true,
@@ -103,6 +106,7 @@ function mount(): void {
   mind.bus.addListener(EXPAND_EVENT, scheduleSync);
   syncAfterHistoryJumps(mind);
   sanitizeCopiedNodes(mind);
+  activate();
 }
 
 function onOperation(info: { name: string }): void {
@@ -134,6 +138,7 @@ function flushPendingSync(): void {
 }
 
 function teardown(): void {
+  clearActiveMindmap(handle);
   stopCentering();
   if (syncTimer !== null) window.clearTimeout(syncTimer);
   syncTimer = null;
@@ -169,12 +174,28 @@ function selectRoot(): void {
   mind.toCenter();
 }
 
+const canvasActions = useMindmapCanvasActions({ getMind: () => mind, exportName: () => props.exportName, isReadOnly });
+
 const actions: Record<string, () => void> = {
   [TOGGLE_NODE_ACTION]: toggleCurrentNode,
   'mindmap.fit': () => mind?.scaleFit(),
   'mindmap.focusRoot': selectRoot,
   'mindmap.shortcutHelp': () => { isHelpOpen.value = true; },
+  ...canvasActions,
 };
+
+const handle: MindmapHandle = {
+  run: (actionId) => {
+    const run = actions[actionId];
+    if (!run) return false;
+    run();
+    return true;
+  },
+};
+
+function activate(): void {
+  setActiveMindmap(handle);
+}
 
 function isEditingTopic(e: KeyboardEvent): boolean {
   return e.target instanceof HTMLElement && e.target.id === TOPIC_EDITOR_ID;
@@ -230,13 +251,14 @@ defineExpose({ flush: flushPendingSync });
 </script>
 
 <template>
-  <div class="mindmap-view" @keydown="onKeydown">
+  <div class="mindmap-view" @keydown="onKeydown" @focusin="activate" @pointerdown="activate">
     <div v-if="parseError" class="mindmap-view__error" role="alert">
       <p>{{ t('mindmap.parseError') }}</p>
       <pre>{{ parseError }}</pre>
       <button type="button" @click="emit('open-as-text')">{{ t('mindmap.openAsText') }}</button>
     </div>
     <div v-else ref="host" class="mindmap-view__canvas" />
+    <span v-if="isReadOnly" class="mindmap-view__badge">{{ t('mindmap.readOnlyBadge') }}</span>
     <MindmapShortcutHelp v-if="isHelpOpen" @close="isHelpOpen = false" />
   </div>
 </template>
@@ -244,6 +266,7 @@ defineExpose({ flush: flushPendingSync });
 <style scoped>
 .mindmap-view { position: relative; width: 100%; height: 100%; }
 .mindmap-view__canvas { width: 100%; height: 100%; }
+.mindmap-view__badge { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--bg-secondary, #eee); opacity: 0.85; pointer-events: none; }
 .mindmap-view__error { padding: 24px; }
 .mindmap-view__error pre { white-space: pre-wrap; opacity: 0.8; }
 .mindmap-view__canvas :deep(me-tpc),

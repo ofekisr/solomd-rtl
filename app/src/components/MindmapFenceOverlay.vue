@@ -82,6 +82,7 @@ onBeforeUnmount(() => {
         :key="openCount"
         :content="target.body"
         :codec="mindmapFenceCodec"
+        export-name="mindmap"
         @update:content="onUpdate"
         @open-as-text="close"
       />
