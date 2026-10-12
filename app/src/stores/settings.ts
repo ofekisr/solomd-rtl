@@ -4,6 +4,7 @@ import type { Theme, ViewMode } from '../types';
 import { isIOS, isMobile } from '../lib/platform';
 import { parseMapDisplay, type MapDisplay } from '../lib/mindmap-display';
 import { migrateLensKeybindings } from '../lib/mindmap-lens';
+import { isViewModeChangeAllowed } from '../lib/view-mode-guard';
 
 const LS_KEY = 'solomd.settings.v1';
 
@@ -850,6 +851,7 @@ export const useSettingsStore = defineStore('settings', {
       this.persist();
     },
     setViewMode(mode: ViewMode) {
+      if (mode !== this.viewMode && !isViewModeChangeAllowed(mode)) return;
       // Remember whatever non-reading mode we were in before — the
       // reading-mode close button / Esc handler restores it.
       if (mode !== 'reading' && this.viewMode !== 'reading') {
@@ -884,6 +886,7 @@ export const useSettingsStore = defineStore('settings', {
       if (this.viewMode === 'reading') {
         this.exitReadingMode();
       } else {
+        if (!isViewModeChangeAllowed('reading')) return;
         this.lastNonReadingViewMode = this.viewMode;
         this.viewMode = 'reading';
         this.persist();
