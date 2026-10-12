@@ -259,6 +259,7 @@ export const en = {
     title: 'Settings',
     catBasics: 'Basics',
     catWriting: 'Writing',
+    catMindmap: 'Mindmap',
     catSync: 'Sync',
     syncUnsupportedAndroid: 'Git-backed sync (version history, GitHub sync, proxy) isn\'t available in the Android build yet — the libgit2 engine it relies on isn\'t compiled into the Android binary. Use the desktop or iOS apps to sync this vault for now.',
     catIntegrations: 'Integrations',
@@ -1409,6 +1410,7 @@ export const en = {
     fontMono: 'Monospace',
     useGlobalDefault: 'Use global default',
     settingsDefaults: 'Mindmap defaults',
+    settingsDefaultsHint: 'Applied to every map unless the map sets its own.',
     openAsText: 'Open as text',
     shortcutsTitle: 'Mindmap shortcuts',
     builtinSection: 'Editing',
@@ -2120,7 +2122,8 @@ type DirectiveCompletionFallbackKey =
   | 'directiveCompletionWarnings'
   | 'directiveCompletionOpenFailed'
   | 'keysCatMindmap'
-  | 'keysMindmapBuiltin';
+  | 'keysMindmapBuiltin'
+  | 'catMindmap';
 
 type EnglishDictionary = typeof en;
 type EnglishSettings = EnglishDictionary['settings'];

@@ -81,7 +81,7 @@ function withChord(key: string, actionId: string): string {
 
 // v3.0 — left-side category nav. Settings was a 30+ item single scroll;
 // split into 6 groups so the user navigates by category, not by scroll.
-type SettingsCategory = 'basics' | 'writing' | 'sync' | 'integrations' | 'export' | 'keys' | 'advanced';
+type SettingsCategory = 'basics' | 'writing' | 'mindmap' | 'sync' | 'integrations' | 'export' | 'keys' | 'advanced';
 const activeCategory = ref<SettingsCategory>('basics');
 // #144 — all six category pages share the single scrolling `.settings__body`
 // (pages are toggled via CSS display), so one page's scrollTop leaked into
@@ -208,6 +208,7 @@ onUnmounted(stopRecording);
 const categories: { id: SettingsCategory; icon: string; labelKey: string }[] = [
   { id: 'basics', icon: '⚙️', labelKey: 'settings.catBasics' },
   { id: 'writing', icon: '✍️', labelKey: 'settings.catWriting' },
+  { id: 'mindmap', icon: '🧠', labelKey: 'settings.catMindmap' },
   { id: 'sync', icon: '☁️', labelKey: 'settings.catSync' },
   { id: 'integrations', icon: '🔌', labelKey: 'settings.catIntegrations' },
   { id: 'export', icon: '📤', labelKey: 'settings.catExport' },
@@ -260,7 +261,7 @@ const emit = defineEmits<{ (e: 'close'): void }>();
 // section value alone, because the parent leaves the section ref in place
 // after close — re-opening would otherwise jump back to the same anchor.
 const VALID_CATEGORIES = new Set<SettingsCategory>([
-  'basics', 'writing', 'sync', 'integrations', 'export', 'advanced',
+  'basics', 'writing', 'mindmap', 'sync', 'integrations', 'export', 'advanced',
 ]);
 watch(
   () => props.open,
@@ -1239,8 +1240,9 @@ function onSelectPdfFont(v: string) {
           </details>
         </section>
 
-        <section data-cat="writing">
+        <section data-cat="mindmap">
           <h4>{{ t('mindmap.settingsDefaults') }}</h4>
+          <p class="setting-hint">{{ t('mindmap.settingsDefaultsHint') }}</p>
           <MindmapMapFields :value="settings.mindmapDefaults" @set="settings.setMindmapDefaults($event)" @clear="settings.clearMindmapDefault($event)" />
         </section>
 
@@ -2308,7 +2310,7 @@ function onSelectPdfFont(v: string) {
   flex: 1;
 }
 /* v3.0 — single-source-of-truth visibility: each section/component
-   gets data-cat="basics|writing|sync|integrations|export|keys|advanced",
+   gets data-cat="basics|writing|mindmap|sync|integrations|export|keys|advanced",
    the body's data-active-cat determines which subset renders. Saves
    wrapping every section in v-if.
 
@@ -2320,6 +2322,7 @@ function onSelectPdfFont(v: string) {
 }
 .settings__body[data-active-cat="basics"] > [data-cat="basics"],
 .settings__body[data-active-cat="writing"] > [data-cat="writing"],
+.settings__body[data-active-cat="mindmap"] > [data-cat="mindmap"],
 .settings__body[data-active-cat="sync"] > [data-cat="sync"],
 .settings__body[data-active-cat="integrations"] > [data-cat="integrations"],
 .settings__body[data-active-cat="export"] > [data-cat="export"],
