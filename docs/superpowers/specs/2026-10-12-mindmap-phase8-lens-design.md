@@ -3,7 +3,7 @@
 ## Status
 
 Approved in conversation on 12-10-26. Branch: `feat/mindmap-phase8`. Base: `main` at `4.16.0`.
-Parent design: `docs/superpowers/specs/2026-10-11-mindmap-design.md`. Previous: Phase 7 (`2026-10-12-mindmap-phase7-views-panel-design.md`). Deferred work: Phase 9 (`2026-10-12-mindmap-phase9-app-features-design.md`).
+Parent design: `docs/superpowers/specs/2026-10-11-mindmap-design.md`. Previous: Phase 7 (`2026-10-12-mindmap-phase7-views-panel-design.md`). Unscheduled work: `2026-10-12-mindmap-follow-ups.md`.
 
 ## Purpose
 
@@ -21,7 +21,7 @@ The phase also moves map settings into their own Settings category, adds map the
 | 4 | Toolbar | ⬇ Export icon, Graph and Read-only toggle icons |
 | 5 | Canvas controls | Fit and Root buttons; "N duplicates" chip |
 
-Out of scope: editing the Markdown outline back into the map (Phase 9 #3). Cells that need it ship read-only (🔒).
+Out of scope: editing the Markdown outline back into the map, and the cells that need it (follow-ups item 1). Those cells ship read-only here (🔒).
 
 ## 1. Lens
 
@@ -40,17 +40,9 @@ Out of scope: editing the Markdown outline back into the map (Phase 9 #3). Cells
 - The view stays global and shared with Markdown tabs, exactly as today. Pressing a view button on a map tab changes `settings.viewMode` for all tabs.
 - The `<>` live code preview button is inactive (disabled) while a map tab is active.
 
-### Target matrix (final state)
+### Matrix
 
-| View | Data | Map (default) | Doc |
-|---|---|---|---|
-| ✏️ Edit | Raw JSON | Raw outline Markdown | Raw outline Markdown |
-| ◫ Split | Raw JSON ‖ Map | Map ‖ Outline preview | Raw outline Markdown ‖ Outline preview |
-| 📝 Live edit | Map | **Map** | Markdown live edit |
-| 👁 Preview | Outline preview | Outline preview | Outline preview |
-| 📖 Reading | Wide map | Wide map | Markdown reading |
-
-### This phase (staged)
+The full target (with editable Markdown cells) lives in the follow-ups doc. This phase ships:
 
 | View | Data | Map | Doc |
 |---|---|---|---|
@@ -60,7 +52,7 @@ Out of scope: editing the Markdown outline back into the map (Phase 9 #3). Cells
 | 👁 Preview | Outline preview ✅ | Outline preview ✅ | Outline preview ✅ |
 | 📖 Reading | Wide map 🆕 | Wide map 🆕 | Outline reading 🆕 |
 
-✅ exists (Phase 7) · 🆕 new, fully working · 🔒 read-only until Phase 9 #3
+✅ exists (Phase 7) · 🆕 new, fully working · 🔒 read-only; becomes editable via follow-ups item 1
 
 ### Cell renderers
 
@@ -69,7 +61,7 @@ Out of scope: editing the Markdown outline back into the map (Phase 9 #3). Cells
 | JSON editor | Phase 7 Source view (code editor, JSON highlighting, exit guard) | Yes |
 | Map | `MindmapCanvas` | Yes (except read-only toggle) |
 | Outline preview | Phase 7 Outline view (`Preview` over `mapToHeadingsMarkdown`, per-line direction) | No |
-| Outline Markdown 🔒 | The same Markdown as text in a read-only `<pre>` (`dir="auto"` per line), with a one-line note "Editing Markdown → map comes in a later phase" | No |
+| Outline Markdown 🔒 | The same Markdown as text in a read-only `<pre>` (`dir="auto"` per line), with a one-line note "Editing Markdown → map is not available yet" | No |
 | Wide map | `MindmapCanvas` read-only, no toolbar/panel, inside the app's reading layout | No |
 | Outline reading | `ReadingView` rendering the outline Markdown | No |
 
