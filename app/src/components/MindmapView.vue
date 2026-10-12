@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { themeFamily } from '../lib/themes';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { MindElixirInstance, NodeObj } from 'mind-elixir';
 import type { Topic } from 'mind-elixir';
@@ -152,7 +153,7 @@ const displayApplier = createMapDisplayApplier();
 
 function applyDisplay(): void {
   const mind = canvas.value?.getMind();
-  if (mind) displayApplier.apply(mind, displayOverride.value, settings.mindmapDefaults);
+  if (mind) displayApplier.apply(mind, displayOverride.value, settings.mindmapDefaults, themeFamily(settings.theme));
 }
 
 function onCanvasReady(): void {

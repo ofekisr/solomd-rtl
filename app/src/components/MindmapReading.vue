@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { themeFamily } from '../lib/themes';
 import { computed, ref, watch } from 'vue';
 import type { Tab, ViewMode } from '../types';
 import { useSettingsStore } from '../stores/settings';
@@ -21,7 +22,7 @@ const displayApplier = createMapDisplayApplier();
 
 function applyDisplay(): void {
   const mind = canvas.value?.getMind();
-  if (mind) displayApplier.apply(mind, canvas.value?.getDisplayOverride() ?? {}, settings.mindmapDefaults);
+  if (mind) displayApplier.apply(mind, canvas.value?.getDisplayOverride() ?? {}, settings.mindmapDefaults, themeFamily(settings.theme));
 }
 
 watch(() => settings.mindmapDefaults, applyDisplay, { deep: true });

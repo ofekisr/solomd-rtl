@@ -1,10 +1,17 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useI18n } from '../i18n';
+import { MAP_THEMES, type MapThemeId } from '../lib/mindmap-themes';
+import { themeFamily } from '../lib/themes';
+import { useSettingsStore } from '../stores/settings';
 import type { BranchStyle, MapDisplay, MapFont } from '../lib/mindmap-display';
 
 const props = defineProps<{ value: MapDisplay; inherited?: MapDisplay; disabled?: boolean }>();
 const emit = defineEmits<{ set: [patch: MapDisplay]; clear: [key: keyof MapDisplay] }>();
 const { t } = useI18n();
+const settings = useSettingsStore();
+const family = computed(() => themeFamily(settings.theme));
+const currentTheme = computed<MapThemeId>(() => props.value.theme ?? props.inherited?.theme ?? 'default');
 
 const BRANCH_OPTIONS: readonly { value: BranchStyle; labelKey: string }[] = [
   { value: 'curve', labelKey: 'mindmap.branchCurve' },
@@ -33,6 +40,26 @@ const resetLabel = (): string => (props.inherited ? t('mindmap.useGlobalDefault'
 
 <template>
   <fieldset class="mm-fields" :disabled="disabled">
+    <div class="mm-fields__group">
+      <span id="mm-theme-label">{{ t('mindmap.fieldTheme') }}</span>
+      <div class="mm-fields__themes" role="radiogroup" aria-labelledby="mm-theme-label">
+        <button
+          v-for="preset in MAP_THEMES"
+          :key="preset.id"
+          type="button"
+          role="radio"
+          class="mm-fields__theme"
+          :aria-checked="currentTheme === preset.id"
+          @click="emit('set', { theme: preset.id })"
+        >
+          <span class="mm-fields__theme-name">{{ t(preset.labelKey) }}</span>
+          <span class="mm-fields__swatches" aria-hidden="true">
+            <span v-for="color in preset[family].palette" :key="color" class="mm-fields__swatch" :style="{ background: color }" />
+          </span>
+        </button>
+      </div>
+      <button v-if="isSet('theme')" type="button" @click="emit('clear', 'theme')">{{ resetLabel() }}</button>
+    </div>
     <label class="mm-fields__inline">
       <input type="checkbox" :checked="value.compact ?? inherited?.compact ?? false" @change="emit('set', { compact: ($event.target as HTMLInputElement).checked })" />
       {{ t('mindmap.fieldCompact') }}
@@ -64,4 +91,10 @@ const resetLabel = (): string => (props.inherited ? t('mindmap.useGlobalDefault'
 .mm-fields label { display: flex; flex-direction: column; gap: 4px; }
 .mm-fields__inline { flex-direction: row !important; align-items: center; gap: 8px !important; }
 .mm-fields__row { display: flex; gap: 8px; align-items: center; }
+.mm-fields__group { display: flex; flex-direction: column; gap: 4px; }
+.mm-fields__themes { display: flex; flex-direction: column; gap: 4px; }
+.mm-fields__theme { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); cursor: pointer; font: inherit; }
+.mm-fields__theme[aria-checked='true'] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.mm-fields__swatches { display: flex; gap: 2px; }
+.mm-fields__swatch { width: 10px; height: 10px; border-radius: 2px; }
 </style>
