@@ -30,7 +30,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function payloadOf(format: PasteFormat, data: MindElixirData): PastePayload {
+export function payloadOf(format: PasteFormat, data: MindElixirData): PastePayload {
   const { nodeData: root, arrows, summaries } = sanitizeMindmapData(data);
   const nodes = SYNTHETIC_ROOTS.includes(root.topic) ? root.children ?? [] : [root];
   return { format, nodes, arrows: arrows ?? [], summaries: summaries ?? [] };

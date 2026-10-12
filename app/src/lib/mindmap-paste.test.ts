@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { outlineToPlaintext, parsePaste } from './mindmap-paste.ts';
-import { MAX_MINDMAP_FENCE_CHARS } from './mindmap-fence.ts';
+import type { MindElixirData, NodeObj } from 'mind-elixir';
+import { outlineToPlaintext, parsePaste, payloadOf, type PasteFormat } from './mindmap-paste.ts';
+import { MAX_MINDMAP_FENCE_CHARS, MINDMAP_FENCE_ROOT_TOPIC } from './mindmap-fence.ts';
 
 function ok(text: string) {
   const result = parsePaste(text);
@@ -85,11 +86,26 @@ test('outlineToPlaintext converts indent levels to bullets', () => {
   assert.equal(outlineToPlaintext(['R', '  A', '    A1', '  B']), '- R\n  - A\n    - A1\n  - B');
 });
 
-test('line and markdown payloads pass the sanitizer', () => {
-  const line = ok('<b>x</b>').nodes[0];
-  assert.equal(line.dangerouslySetInnerHTML, undefined);
-  assert.equal(line.hyperLink, undefined);
-  const md = ok('# T\n\n## <img src=x onerror=alert(1)>');
-  assert.equal(md.nodes[0].children?.[0].dangerouslySetInnerHTML, undefined);
-  assert.equal(md.nodes[0].children?.[0].hyperLink, undefined);
+const UNSAFE_FIELDS = { dangerouslySetInnerHTML: '<img>', hyperLink: 'javascript:alert(1)' };
+const ALL_FORMATS: readonly PasteFormat[] = ['mmap', 'json', 'plaintext', 'markdown', 'outline', 'line'];
+
+function unsafeData(rootTopic: string): MindElixirData {
+  return { nodeData: { id: 'r', topic: rootTopic, ...UNSAFE_FIELDS, children: [{ id: 'c', topic: 'C', ...UNSAFE_FIELDS }] } };
+}
+
+function collect(nodes: readonly NodeObj[]): NodeObj[] {
+  return nodes.flatMap((n) => [n, ...collect(n.children ?? [])]);
+}
+
+test('payloadOf sanitizes every node for every format, real or synthetic root', () => {
+  for (const format of ALL_FORMATS) {
+    for (const topic of ['Real', MINDMAP_FENCE_ROOT_TOPIC]) {
+      const all = collect(payloadOf(format, unsafeData(topic)).nodes);
+      assert.ok(all.length > 0);
+      for (const n of all) {
+        assert.equal(n.dangerouslySetInnerHTML, undefined, `${format}/${topic}/${n.id}`);
+        assert.equal(n.hyperLink, undefined, `${format}/${topic}/${n.id}`);
+      }
+    }
+  }
 });
