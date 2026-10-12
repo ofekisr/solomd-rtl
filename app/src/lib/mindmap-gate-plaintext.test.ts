@@ -53,3 +53,11 @@ test('gate whose target was deleted survives serialize as a broken gate', () => 
   assert.equal(readGate(gate)?.target, '');
   assert.ok(readGate(gate)?.missingRef);
 });
+
+test('orphaned gate with an unsafe target emits no gate line', () => {
+  const data: MindElixirData = {
+    nodeData: { id: 'r', topic: 'Root', children: [{ id: 'g', topic: 'Gate', metadata: { gate: { target: 'x\n- injected' } } }] },
+  } as MindElixirData;
+  const topics = [...walkNodes(gatesToTopics(data).nodeData)].map((n) => n.topic);
+  assert.ok(topics.every((t) => !t.includes('\n') && !t.startsWith('=>')), topics.join('|'));
+});

@@ -1353,6 +1353,7 @@ export const en = {
     },
   },
   mindmap: {
+    sourceUnavailable: 'Source document is not available',
     parseError: 'This mindmap file could not be read.',
     openAsText: 'Open as text',
     shortcutsTitle: 'Mindmap shortcuts',

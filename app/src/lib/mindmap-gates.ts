@@ -14,7 +14,7 @@ function metaOf(node: NodeObj): Meta {
   return isRecord(node.metadata) ? node.metadata : {};
 }
 
-const REF_PATTERN = /^[\w-]+$/u;
+export const REF_PATTERN = /^[\w-]+$/u;
 
 export function readGate(node: NodeObj): GateMeta | null {
   const gate = metaOf(node).gate;

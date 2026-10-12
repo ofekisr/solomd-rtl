@@ -28,9 +28,28 @@ test('unknown node has no source', () => {
 });
 
 test('metadata source is validated', () => {
-  assert.deepEqual(readNodeSource({ id: 'a', topic: 'A', metadata: { source: { path: '/n.md', line: 4 } } }), { path: '/n.md', line: 4 });
+  assert.deepEqual(readNodeSource({ id: 'a', topic: 'A', metadata: { source: { path: 'n.md', line: 4 } } }), { path: 'n.md', line: 4 });
   assert.deepEqual(readNodeSource({ id: 'a', topic: 'A', metadata: { source: { line: 2 } } }), { line: 2 });
   assert.equal(readNodeSource({ id: 'a', topic: 'A', metadata: { source: { line: 0 } } }), null);
   assert.equal(readNodeSource({ id: 'a', topic: 'A', metadata: { source: { line: 2, path: 5 } } }), null);
   assert.equal(readNodeSource({ id: 'a', topic: 'A' }), null);
+});
+
+import { isSafeSourcePath, toWorkspaceRelative, resolveSourcePath } from './mindmap-source.ts';
+
+test('isSafeSourcePath rejects absolute, drive, scheme, backslash and dot segments', () => {
+  for (const bad of ['/etc/passwd', 'C:/x.md', 'file:///x', 'a\\b.md', '../x.md', 'a/../b.md', './a.md', '', 'a\0b'])
+    assert.equal(isSafeSourcePath(bad), false, bad);
+  assert.equal(isSafeSourcePath('notes/פרק 1.md'), true);
+});
+
+test('readNodeSource drops an unsafe path', () => {
+  assert.equal(readNodeSource({ id: 'a', topic: 'a', metadata: { source: { line: 2, path: '/abs.md' } } }), null);
+});
+
+test('toWorkspaceRelative and resolveSourcePath round-trip', () => {
+  assert.equal(toWorkspaceRelative('/ws/notes/a.md', '/ws/'), 'notes/a.md');
+  assert.equal(toWorkspaceRelative('/other/a.md', '/ws'), undefined);
+  assert.equal(toWorkspaceRelative('C:\\ws\\a.md', 'C:\\ws'), 'a.md');
+  assert.equal(resolveSourcePath('/ws/', 'notes/a.md'), '/ws/notes/a.md');
 });
