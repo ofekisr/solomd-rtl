@@ -23,6 +23,10 @@ const ALLOWED_STYLE_KEYS: readonly string[] = [
 const UNSAFE_CSS_VALUE_PATTERN = /url\(|image-set\(|expression\(|@import|javascript:/i;
 const CSS_ESCAPE_PATTERN = /[\\\u0000-\u001f\u007f]/;
 const SAFE_LINK_PATTERN = /^(https?:|mailto:)/i;
+
+export function isSafeLink(value: string): boolean {
+  return SAFE_LINK_PATTERN.test(value.trim());
+}
 const SAFE_IMAGE_URL_PATTERN = /^https?:/i;
 const ANGLE_BRACKET_PATTERN = /[<>]/g;
 const TRAILING_EXTENSION_PATTERN = /\.[^.\\/]+$/;
@@ -134,7 +138,7 @@ function sanitizeStyle(style: unknown): NodeObj['style'] | undefined {
   const safe: Record<string, string> = {};
   for (const [key, value] of Object.entries(style)) {
     if (!ALLOWED_STYLE_KEYS.includes(key)) continue;
-    if (typeof value !== 'string' || isUnsafeCssValue(value)) continue;
+    if (typeof value !== 'string' || value === '' || isUnsafeCssValue(value)) continue;
     safe[key] = value;
   }
   return Object.keys(safe).length > 0 ? safe : undefined;
@@ -143,7 +147,7 @@ function sanitizeStyle(style: unknown): NodeObj['style'] | undefined {
 function sanitizeNode(node: NodeObj): NodeObj {
   const copy: NodeObj = { ...node };
   delete copy.dangerouslySetInnerHTML;
-  if (copy.hyperLink !== undefined && !SAFE_LINK_PATTERN.test(copy.hyperLink)) delete copy.hyperLink;
+  if (copy.hyperLink !== undefined && !isSafeLink(copy.hyperLink)) delete copy.hyperLink;
   if (copy.image !== undefined && !isSafeImage(copy.image)) delete copy.image;
   const style = sanitizeStyle(copy.style);
   if (style) copy.style = style;

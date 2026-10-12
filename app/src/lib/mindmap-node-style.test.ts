@@ -9,8 +9,15 @@ test('color merges into existing style', () => {
   assert.deepEqual(buildNodePatch(node, 'background', '#ffeeaa'), { ok: true, patch: { style: { fontWeight: 'bold', color: '#111', background: '#ffeeaa' } } });
 });
 
-test('null clears a style key', () => {
-  assert.deepEqual(buildNodePatch(node, 'color', null), { ok: true, patch: { style: { fontWeight: 'bold' } } });
+test('null clears a style key to an empty string', () => {
+  assert.deepEqual(buildNodePatch(node, 'color', null), { ok: true, patch: { style: { fontWeight: 'bold', color: '' } } });
+});
+
+test('cleared style key survives the reshapeNode merge', () => {
+  const result = buildNodePatch(node, 'color', null);
+  const merged = Object.assign({ ...node.style }, result.ok ? result.patch.style : {});
+  assert.equal(merged.color, '');
+  assert.equal(merged.fontWeight, 'bold');
 });
 
 test('unsafe color is rejected', () => {
@@ -24,7 +31,7 @@ test('font size is clamped and written as px', () => {
 
 test('bold toggles fontWeight', () => {
   const result = buildNodePatch(node, 'bold', false);
-  assert.deepEqual(result, { ok: true, patch: { style: { color: '#111' } } });
+  assert.deepEqual(result, { ok: true, patch: { style: { fontWeight: '', color: '#111' } } });
 });
 
 test('tags split on commas, trim, drop empties and angle brackets', () => {

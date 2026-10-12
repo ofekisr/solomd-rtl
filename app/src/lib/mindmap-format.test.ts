@@ -352,3 +352,10 @@ test('invalid display values are dropped on parse', () => {
   assert.equal(parsed.ok, true);
   if (parsed.ok) assert.deepEqual(parsed.display, {});
 });
+
+test('empty-string style values are dropped on sanitize', () => {
+  const node = sanitizeNodeObj({ id: 'n1', topic: 'A', style: { fontWeight: '', color: '#111' } });
+  assert.deepEqual(node?.style, { color: '#111' });
+  const cleared = sanitizeNodeObj({ id: 'n2', topic: 'B', style: { fontWeight: '' } });
+  assert.equal(cleared?.style, undefined);
+});

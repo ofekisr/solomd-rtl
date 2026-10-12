@@ -1,5 +1,8 @@
 import type { NodeObj } from 'mind-elixir';
 import { isSafeColor } from './mindmap-display.ts';
+import { isSafeLink } from './mindmap-format.ts';
+
+export { isSafeLink };
 
 export const FONT_SIZE_MIN = 12;
 export const FONT_SIZE_MAX = 40;
@@ -10,16 +13,12 @@ export type NodePatchResult = { ok: true; patch: Partial<NodeObj> } | { ok: fals
 type FieldValue = string | number | boolean | null;
 type NodeStyle = NonNullable<NodeObj['style']>;
 
-const SAFE_LINK_PATTERN = /^(https?:|mailto:)/i;
 const ANGLE_BRACKET_PATTERN = /[<>]/g;
 const TAG_SEPARATOR = ',';
 const BOLD_WEIGHT = 'bold';
+const CLEARED_STYLE_VALUE = '';
 const PX = 'px';
 const INVALID: NodePatchResult = { ok: false, reason: 'invalid' };
-
-export function isSafeLink(value: string): boolean {
-  return SAFE_LINK_PATTERN.test(value.trim());
-}
 
 export function toggleIcon(icons: readonly string[] | undefined, icon: string): string[] {
   const current = icons ?? [];
@@ -28,8 +27,7 @@ export function toggleIcon(icons: readonly string[] | undefined, icon: string): 
 
 function withStyle(node: NodeObj, key: keyof NodeStyle, value: string | null): NodePatchResult {
   const style: NodeStyle = { ...(node.style ?? {}) };
-  if (value === null) delete style[key];
-  else style[key] = value;
+  style[key] = value ?? CLEARED_STYLE_VALUE;
   return { ok: true, patch: { style } };
 }
 
