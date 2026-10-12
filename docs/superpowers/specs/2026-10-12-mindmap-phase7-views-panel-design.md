@@ -128,9 +128,8 @@ The package's bottom-right toolbar (fullscreen, center, zoom) and left layout to
 Extend the existing `contextMenu.extend` list (gates today) with:
 
 - Jump to source
-- Focus / Unfocus (package `focusNode` / `cancelFocus`)
 
-New commands `mindmap.focusNode` and `mindmap.cancelFocus`, no default keys.
+Focus / Unfocus is already in the package context menu (`contextMenu.focus` defaults on). New commands `mindmap.focusNode` and `mindmap.cancelFocus`, no default keys.
 
 ### Keys
 
@@ -176,14 +175,14 @@ Each control offers "Use global default".
 ### Settings storage
 
 - Global defaults: new `settings.mindmapDefaults: { compact, branchStyle, textColor, font }`, edited in this tab and in Settings → Mindmap.
-- Per-file override: optional top-level `solomd` block in the `.mmap` JSON:
+- Per-file override: optional `display` block on the `.mmap` envelope:
 
   ```json
-  { "nodeData": {}, "solomd": { "compact": true, "branchStyle": "straight" } }
+  { "format": "solomd-mindmap", "version": 1, "data": { "nodeData": {} }, "display": { "compact": true, "branchStyle": "straight" } }
   ```
 
 - Effective value = file override ?? global default.
-- `mindmap-format.ts` allow-lists `solomd` with typed values (Zod); unknown keys and invalid values are dropped on load.
+- `mindmap-format.ts` validates `display` with plain type guards; unknown keys and invalid values are dropped on load. An empty `display` is omitted on save.
 - App light/dark theme still comes from SoloMD; per-file text color is applied on top of it.
 
 ### Rejected: `@mind-elixir/node-menu` 5.0.1
@@ -208,7 +207,7 @@ Used as a field reference only.
 | View modes | Unit: mode default, persistence fallback, transition guard (invalid JSON stays in `source`). Browser: switch all three modes on a sample `.mmap`, Hebrew outline renders RTL |
 | XMind fix | Unit: four lookup cases in order. Rust: `fs_file_exists` true/false |
 | Toolbar | Browser: every overflow item runs its action; RTL mirroring |
-| Side panel | Unit: field validators (URL, colors, font size bounds, tags, icons); `solomd` block sanitizer. Browser: edit each field, undo restores it, reload preserves it |
+| Side panel | Unit: field validators (URL, colors, font size bounds, tags, icons); `display` block validator. Browser: edit each field, undo restores it, reload preserves it |
 | Map settings | Unit: override ?? default resolution. Browser: compact and branch style visibly change |
 | Multi-select | Browser: box select, batch delete, undo |
 
