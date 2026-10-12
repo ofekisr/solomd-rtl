@@ -122,3 +122,15 @@ export function scanMarkdown(source: string, firstLine: number = DEFAULT_FIRST_L
   }
   return blocks;
 }
+
+export function linesOutsideFences(source: string): { text: string; line: number }[] {
+  const lines = source.split(/\r?\n/);
+  const kept: { text: string; line: number }[] = [];
+  let skip: Skip = null;
+  lines.forEach((text, i) => {
+    if (skip) { if (skip.until(text)) skip = null; return; }
+    skip = fenceSkip(text);
+    if (!skip) kept.push({ text, line: i + 1 });
+  });
+  return kept;
+}

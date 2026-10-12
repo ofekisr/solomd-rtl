@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { scanMarkdown, plainInline } from './mindmap-md-scan.ts';
+import { scanMarkdown, plainInline, linesOutsideFences } from './mindmap-md-scan.ts';
 
 const kinds = (src: string) => scanMarkdown(src).map((b) => b.kind);
 
@@ -52,4 +52,10 @@ test('plainInline strips links, images, emphasis and code', () => {
 test('empty headings are dropped and attributes are stripped before closing hashes', () => {
   assert.deepEqual(kinds('# {#id}\n## Title ## {#id}'), ['heading']);
   assert.equal((scanMarkdown('## Title ## {#id}')[0] as { text: string }).text, 'Title');
+});
+
+test('linesOutsideFences drops fenced lines and keeps numbering', () => {
+  assert.deepEqual(linesOutsideFences('a\n```\nb\n```\nc\n~~~~\nd\n~~~\ne\n~~~~\nf'), [
+    { text: 'a', line: 1 }, { text: 'c', line: 5 }, { text: 'f', line: 11 },
+  ]);
 });

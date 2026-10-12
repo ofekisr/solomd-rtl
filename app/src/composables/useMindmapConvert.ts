@@ -13,6 +13,8 @@ import { toWorkspaceRelative } from '../lib/mindmap-source';
 export type ConvertScope = 'document' | 'section' | 'selection';
 export type ConvertOutput = 'map' | 'fence';
 export const MINDMAP_CONVERT_EVENT = 'solomd:mindmap-convert';
+export const MINDMAP_CONVERT_FOLDER_EVENT = 'solomd:mindmap-convert-folder';
+export const MINDMAP_CONVERT_FOLDER_ACTION = 'mindmap.convertFolder';
 const MARKDOWN_LANGUAGE = 'markdown';
 const MINDMAP_LANGUAGE = 'mindmap';
 
