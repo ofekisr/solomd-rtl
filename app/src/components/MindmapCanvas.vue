@@ -5,6 +5,7 @@ import type { MindElixirData, MindElixirInstance, NodeObj, Topic } from 'mind-el
 import 'mind-elixir/style.css';
 import type { MindmapCodec } from '../lib/mindmap-format';
 import type { MapDisplay } from '../lib/mindmap-display';
+import type { Snippet } from '../lib/mindmap-snippets';
 import { sanitizeNodeObj } from '../lib/mindmap-format';
 import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
@@ -57,6 +58,7 @@ const isGraphView = ref(false);
 let graphBaseline: MindElixirData | null = null;
 let mind: MindElixirInstance | null = null;
 let displayOverride: MapDisplay = {};
+let snippetsOverride: Snippet[] = [];
 let lastSynced = props.content;
 let syncTimer: number | null = null;
 let pristineSerialized: string | null = null;
@@ -74,6 +76,7 @@ function loadData(): MindElixirData | null {
   }
   parseError.value = null;
   displayOverride = parsed.display;
+  snippetsOverride = parsed.snippets;
   return parsed.data;
 }
 
@@ -93,7 +96,7 @@ function clearPendingSync(): void {
 function syncNow(): void {
   clearPendingSync();
   if (!mind || props.locked || isGraphView.value || parseError.value !== null) return;
-  const serialized = props.codec.serialize(mind.getData(), displayOverride);
+  const serialized = props.codec.serialize(mind.getData(), displayOverride, snippetsOverride);
   if (serialized === pristineSerialized && props.content === '') return;
   lastSynced = serialized;
   emit('update:content', lastSynced);
@@ -157,7 +160,7 @@ function mount(): void {
   ]);
   gates.syncLabels();
   countDuplicates();
-  pristineSerialized = props.content === '' ? props.codec.serialize(mind.getData(), displayOverride) : null;
+  pristineSerialized = props.content === '' ? props.codec.serialize(mind.getData(), displayOverride, snippetsOverride) : null;
   centerOnceLaidOut();
   mind.bus.addListener(OPERATION_EVENT, onOperation);
   mind.bus.addListener(EXPAND_EVENT, scheduleSync);
@@ -319,7 +322,7 @@ function jumpToSource(): void {
   emit('jump-to-source', source);
 }
 
-const canvasActions = useMindmapCanvasActions({ getMind: () => mind, exportName: () => props.exportName, isReadOnly, isGraphView, isLocked: () => props.locked });
+const canvasActions = useMindmapCanvasActions({ getMind: () => mind, exportName: () => props.exportName, isReadOnly, isGraphView, isLocked: () => props.locked, getSnippets: () => snippetsOverride });
 
 const GATE_MENU_LABEL_KEYS: Record<GateMenuAction, string> = {
   'mindmap.markGateTarget': 'mindmap.gateMarkTarget',
@@ -458,12 +461,20 @@ function setDisplayOverride(next: MapDisplay): void {
   scheduleSync();
 }
 
+function setSnippets(next: readonly Snippet[]): void {
+  if (isEditBlocked() || isGraphView.value) return;
+  snippetsOverride = [...next];
+  scheduleSync();
+}
+
 defineExpose({
   flush: flushPendingSync,
   run: (actionId: string) => handle.run(actionId),
   getMind: () => mind,
   getDisplayOverride: () => displayOverride,
   setDisplayOverride,
+  getSnippets: () => snippetsOverride,
+  setSnippets,
   isReadOnly,
   isGraphView,
 });
