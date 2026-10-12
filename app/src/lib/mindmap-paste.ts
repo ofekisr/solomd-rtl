@@ -3,8 +3,8 @@ import { parseMindmap, sanitizeMindmapData, sanitizeNodeObj } from './mindmap-fo
 import { MAX_MINDMAP_FENCE_CHARS, MINDMAP_FENCE_ROOT_TOPIC, parseMindmapFence } from './mindmap-fence.ts';
 import { markdownToMindmap, SELECTION_ROOT_TOPIC } from './mindmap-convert.ts';
 
-type Arrow = NonNullable<MindElixirData['arrows']>[number];
-type Summary = NonNullable<MindElixirData['summaries']>[number];
+export type Arrow = NonNullable<MindElixirData['arrows']>[number];
+export type Summary = NonNullable<MindElixirData['summaries']>[number];
 
 export type PasteFormat = 'mmap' | 'json' | 'plaintext' | 'markdown' | 'outline' | 'line';
 export interface PastePayload { format: PasteFormat; nodes: NodeObj[]; arrows: Arrow[]; summaries: Summary[] }

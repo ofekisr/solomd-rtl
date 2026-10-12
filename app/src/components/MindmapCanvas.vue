@@ -22,7 +22,9 @@ import { appendCanvasControls } from '../composables/useMindmapCanvasControls';
 import MindmapShortcutHelp from './MindmapShortcutHelp.vue';
 import MindmapDuplicates from './MindmapDuplicates.vue';
 import { findDuplicateGroups, mergeIntoGate, type DuplicateGroup } from '../lib/mindmap-duplicates';
-import { findNode } from '../lib/mindmap-gates';
+import { findNode, isGate } from '../lib/mindmap-gates';
+import { parsePaste, type PastePayload } from '../lib/mindmap-paste';
+import { buildIdMap, remapArrows, remapGates, remapSummaries } from '../lib/mindmap-paste-remap';
 import { withGateArrows } from '../lib/mindmap-graph';
 import { buildFreezeStrip, getTabFocus, pathTo, setTabFocus, type FreezeStrip } from '../lib/mindmap-focus';
 import MindmapFreezeStrip from './MindmapFreezeStrip.vue';
@@ -157,6 +159,7 @@ function mount(): void {
     keypress: true,
     allowUndo: true,
     theme: themeFor(),
+    pasteHandler: onPaste,
   });
   mind.init(data);
   appendCanvasControls(host.value, [
@@ -489,6 +492,44 @@ const handle: MindmapHandle = {
 
 function activate(): void {
   if (props.registerActive) setActiveMindmap(handle);
+}
+
+const PASTE_NOTICE_KEYS = { empty: null, tooLarge: 'mindmap.pasteTooLarge', unrecognized: 'mindmap.pasteUnrecognized' } as const;
+
+function pasteTarget(): Topic | null {
+  if (!mind || isEditBlocked() || isGraphView.value) return null;
+  const target = mind.currentNode;
+  if (!target) toasts.info(t('mindmap.pasteSelectNode'));
+  else if (isGate(target.nodeObj)) toasts.info(t('mindmap.gateCannotHoldChildren'));
+  else return target;
+  return null;
+}
+
+async function insertPayload(instance: MindElixirInstance, target: Topic, payload: PastePayload): Promise<void> {
+  const countBefore = target.nodeObj.children?.length ?? 0;
+  await instance.copyNodes(payload.nodes.map((nodeObj) => ({ nodeObj }) as Topic), target);
+  const children = target.nodeObj.children ?? [];
+  if (children.length !== countBefore + payload.nodes.length) return;
+  const inserted = children.slice(countBefore);
+  const idMap = buildIdMap(payload.nodes, inserted);
+  remapGates(inserted, idMap);
+  for (const arrow of remapArrows(payload.arrows, idMap)) instance.createArrowFrom(arrow);
+  for (const summary of remapSummaries(payload.summaries, idMap)) instance.createSummaryFrom(summary);
+  gates.syncLabels();
+}
+
+function onPaste(e: ClipboardEvent): void {
+  if (e.target instanceof HTMLElement && e.target.id === TOPIC_EDITOR_ID) return;
+  const target = pasteTarget();
+  if (!mind || !target) return;
+  const result = parsePaste(e.clipboardData?.getData('text/plain') ?? '');
+  e.preventDefault();
+  if (!result.ok) {
+    const key = PASTE_NOTICE_KEYS[result.reason];
+    if (key) toasts.info(t(key));
+    return;
+  }
+  void insertPayload(mind, target, result.payload);
 }
 
 function isEditingTopic(e: KeyboardEvent): boolean {
