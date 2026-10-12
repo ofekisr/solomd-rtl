@@ -84,3 +84,12 @@ test('outlineToPlaintext converts indent levels to bullets', () => {
   assert.equal(outlineToPlaintext(['R', '\tA', '\t\tA1']), '- R\n  - A\n    - A1');
   assert.equal(outlineToPlaintext(['R', '  A', '    A1', '  B']), '- R\n  - A\n    - A1\n  - B');
 });
+
+test('line and markdown payloads pass the sanitizer', () => {
+  const line = ok('<b>x</b>').nodes[0];
+  assert.equal(line.dangerouslySetInnerHTML, undefined);
+  assert.equal(line.hyperLink, undefined);
+  const md = ok('# T\n\n## <img src=x onerror=alert(1)>');
+  assert.equal(md.nodes[0].children?.[0].dangerouslySetInnerHTML, undefined);
+  assert.equal(md.nodes[0].children?.[0].hyperLink, undefined);
+});

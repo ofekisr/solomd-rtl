@@ -31,9 +31,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function payloadOf(format: PasteFormat, data: MindElixirData): PastePayload {
-  const root = data.nodeData;
+  const { nodeData: root, arrows, summaries } = sanitizeMindmapData(data);
   const nodes = SYNTHETIC_ROOTS.includes(root.topic) ? root.children ?? [] : [root];
-  return { format, nodes, arrows: data.arrows ?? [], summaries: data.summaries ?? [] };
+  return { format, nodes, arrows: arrows ?? [], summaries: summaries ?? [] };
 }
 
 function nodesPayload(nodes: NodeObj[]): PastePayload {
@@ -67,7 +67,7 @@ const tryJson: Attempt = (text) => {
     return nodes ? nodesPayload(nodes) : null;
   }
   if (!isRecord(json)) return null;
-  if (sanitizeNodeObj(json.nodeData)) return payloadOf('json', sanitizeMindmapData(json as unknown as MindElixirData));
+  if (sanitizeNodeObj(json.nodeData)) return payloadOf('json', json as unknown as MindElixirData);
   const node = sanitizeNodeObj(json);
   return node ? nodesPayload([node]) : null;
 };
@@ -87,9 +87,11 @@ const tryMarkdown: Attempt = (text) => {
 
 const tryOutline: Attempt = (_text, lines) => (lines.length >= 2 ? fromPlaintext('outline', outlineToPlaintext(lines)) : null);
 
-const tryLine: Attempt = (_text, lines) => (
-  lines.length === 1 ? { format: 'line', nodes: [{ id: LINE_NODE_ID, topic: lines[0].trim() }], arrows: [], summaries: [] } : null
-);
+const tryLine: Attempt = (_text, lines) => {
+  if (lines.length !== 1) return null;
+  const node = sanitizeNodeObj({ id: LINE_NODE_ID, topic: lines[0].trim() });
+  return node ? { format: 'line', nodes: [node], arrows: [], summaries: [] } : null;
+};
 
 const JSON_ATTEMPTS: readonly Attempt[] = [tryEnvelope, tryJson];
 const TEXT_ATTEMPTS: readonly Attempt[] = [tryPlaintext, tryMarkdown, tryOutline, tryLine];
