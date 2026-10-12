@@ -29,6 +29,15 @@ test('mmap envelope keeps its real root as one node, with arrows', () => {
   assert.equal(p.arrows.length, 1);
 });
 
+test('mmap envelope whose root topic is Mind Map keeps that root as one node', () => {
+  const text = JSON.stringify({ format: 'solomd-mindmap', version: 1, data: {
+    nodeData: { id: 'root', topic: MINDMAP_FENCE_ROOT_TOPIC, children: [{ id: 'a', topic: 'A' }] },
+  } });
+  const p = ok(text);
+  assert.equal(p.format, 'mmap');
+  assert.deepEqual(p.nodes.map((n) => n.topic), [MINDMAP_FENCE_ROOT_TOPIC]);
+});
+
 test('bare map data, a single node and a node array are json', () => {
   assert.equal(ok(JSON.stringify({ nodeData: { id: 'r', topic: 'R' } })).nodes[0].topic, 'R');
   assert.equal(ok(JSON.stringify({ id: 'n', topic: 'N' })).format, 'json');

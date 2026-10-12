@@ -37,6 +37,14 @@ function liveRoot(m: MindElixirInstance): NodeObj {
   return m.isFocusMode && m.nodeDataBackup ? m.nodeDataBackup : m.nodeData;
 }
 
+function liveElement(m: MindElixirInstance, id: string): Topic | null {
+  try {
+    return m.findEle(id);
+  } catch {
+    return null;
+  }
+}
+
 export function createGateController(ctx: GateControllerContext, labels: Record<GateMenuAction, string>): GateController {
   let markedId: string | null = null;
   const history: string[] = [];
@@ -55,16 +63,8 @@ export function createGateController(ctx: GateControllerContext, labels: Record<
 
   function reselect(id: string): void {
     const m = mind();
-    const el = m?.findEle(id);
+    const el = m ? liveElement(m, id) : null;
     if (m && el) m.selectNode(el);
-  }
-
-  function liveElement(m: MindElixirInstance, id: string): Topic | null {
-    try {
-      return m.findEle(id);
-    } catch {
-      return null;
-    }
   }
 
   function select(id: string): void {

@@ -14,6 +14,7 @@ export interface MindmapCanvasApi {
   setSnippets(next: readonly Snippet[]): void;
   readonly isReadOnly: boolean;
   readonly isGraphView: boolean;
+  readonly hasMap: boolean;
 }
 
 let active: MindmapHandle | null = null;

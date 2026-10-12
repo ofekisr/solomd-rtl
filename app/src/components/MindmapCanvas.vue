@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import MindElixir from 'mind-elixir';
 import type { MindElixirData, MindElixirInstance, NodeObj, Topic } from 'mind-elixir';
 import 'mind-elixir/style.css';
@@ -196,7 +196,7 @@ function onOperation(info: { name: string }): void {
   scheduleDuplicateCount();
   const root = mind ? fullRoot(mind) : null;
   if (focusId.value !== null && root && !pathTo(root, focusId.value)) focusById(null);
-  else refreshStrip();
+  else refreshStrip(root);
   emitSelection();
 }
 
@@ -235,13 +235,14 @@ function rememberFocus(id: string | null): void {
   if (props.focusKey) setTabFocus(props.focusKey, id);
 }
 
-function refreshStrip(): void {
-  strip.value = mind && props.focusKey ? buildFreezeStrip(fullRoot(mind), focusId.value) : null;
+function refreshStrip(knownRoot?: NodeObj | null): void {
+  strip.value = mind && props.focusKey ? buildFreezeStrip(knownRoot ?? fullRoot(mind), focusId.value) : null;
 }
 
 function wrapFocus(instance: MindElixirInstance): void {
   const { focusNode, cancelFocus } = instance;
   instance.focusNode = (tpc) => {
+    if (isGraphView.value) return;
     const isRoot = !tpc.nodeObj.parent;
     focusNode.call(instance, tpc);
     if (!isApplyingFocus && !isRoot) rememberFocus(tpc.nodeObj.id);
@@ -275,7 +276,7 @@ function focusById(id: string | null): void {
 }
 
 function reapplyFocus(): void {
-  if (!mind) return;
+  if (!mind || isGraphView.value) return;
   const id = focusId.value;
   if (id === null || !pathTo(fullRoot(mind), id)) {
     rememberFocus(null);
@@ -376,6 +377,7 @@ function enterGraphView(instance: MindElixirInstance): void {
 }
 
 function leaveGraphView(instance: MindElixirInstance): void {
+  leaveFocusQuietly();
   if (graphBaseline) instance.refresh(graphBaseline);
   resetGraphView();
   gates.syncLabels();
@@ -598,7 +600,7 @@ function setDisplayOverride(next: MapDisplay): void {
 }
 
 function setSnippets(next: readonly Snippet[]): void {
-  if (isEditBlocked() || isGraphView.value) return;
+  if (!mind || isEditBlocked() || isGraphView.value) return;
   snippetsOverride = [...next];
   scheduleSync();
 }
@@ -613,6 +615,7 @@ defineExpose({
   setSnippets,
   isReadOnly,
   isGraphView,
+  hasMap: computed(() => parseError.value === null),
 });
 </script>
 

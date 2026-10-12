@@ -12,6 +12,7 @@ export type PasteResult = { ok: true; payload: PastePayload } | { ok: false; rea
 
 const PASTE_ROOT_TOPIC = '\u0000paste-root';
 const SYNTHETIC_ROOTS: readonly string[] = [MINDMAP_FENCE_ROOT_TOPIC, SELECTION_ROOT_TOPIC, PASTE_ROOT_TOPIC];
+const TEXT_FORMATS: readonly PasteFormat[] = ['plaintext', 'outline', 'markdown'];
 const ENVELOPE_FORMAT = 'solomd-mindmap';
 const JSON_START = /^[[{]/u;
 const BULLET_LINE = /^\s*- /u;
@@ -32,7 +33,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 export function payloadOf(format: PasteFormat, data: MindElixirData): PastePayload {
   const { nodeData: root, arrows, summaries } = sanitizeMindmapData(data);
-  const nodes = SYNTHETIC_ROOTS.includes(root.topic) ? root.children ?? [] : [root];
+  const isSyntheticRoot = TEXT_FORMATS.includes(format) && SYNTHETIC_ROOTS.includes(root.topic);
+  const nodes = isSyntheticRoot ? root.children ?? [] : [root];
   return { format, nodes, arrows: arrows ?? [], summaries: summaries ?? [] };
 }
 

@@ -54,7 +54,7 @@ onBeforeUnmount(clearConfirmTimer);
     <header class="mm-snippet__head">
       <span class="mm-snippet__kind">{{ t(KIND_LABEL_KEYS[snippet.kind]) }}</span>
       <input
-        v-if="isEditing"
+        v-if="isEditing && editable"
         class="mm-snippet__title-input"
         dir="auto"
         :aria-label="t('mindmap.snippetTitleLabel')"
@@ -70,7 +70,7 @@ onBeforeUnmount(clearConfirmTimer);
       </div>
     </header>
     <textarea
-      v-if="isEditing"
+      v-if="isEditing && editable"
       class="mm-snippet__body"
       dir="auto"
       spellcheck="false"

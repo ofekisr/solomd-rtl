@@ -83,7 +83,7 @@ const liveJsonError = computed<string | null>(() => {
   return parsedContent.value.error;
 });
 const isMapLocked = computed(() => liveJsonError.value !== null);
-const isPanelEditable = computed(() => !(canvas.value?.isReadOnly || canvas.value?.isGraphView || isMapLocked.value));
+const isPanelEditable = computed(() => !(canvas.value?.isReadOnly || canvas.value?.isGraphView || isMapLocked.value) && canvas.value?.hasMap === true);
 const LIVE_EDIT_VIEW: ViewMode = 'liveEdit';
 const snippets = ref<Snippet[]>([]);
 const canEditSnippets = computed(() => settings.viewMode === LIVE_EDIT_VIEW && isPanelEditable.value);
@@ -299,7 +299,7 @@ defineExpose({ setLens, canvas, lens });
             @jump-to-source="onJump"
             @ready="onCanvasReady"
           />
-          <MindmapSnippets :snippets="snippets" :editable="canEditSnippets" @change="setSnippets" />
+          <MindmapSnippets v-if="canvas?.hasMap !== false" :snippets="snippets" :editable="canEditSnippets" @change="setSnippets" />
         </div>
         <template v-if="has('outlineText')">
           <MindmapOutlineInvalid v-if="outlineError !== null" :error="outlineError" :style="{ order: partOrder('outlineText') }" @switch-to-data="openAsText" />
