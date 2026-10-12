@@ -1354,6 +1354,9 @@ export const en = {
     },
   },
   mindmap: {
+    canvasFit: 'Fit to window',
+    canvasRoot: 'Go to root',
+    duplicatesChip: '{count} duplicates',
     convertMarkdownOnly: 'Convert works on markdown documents',
     convertNoSection: 'Place the cursor under a heading',
     convertEmptySelection: 'Select some text first',

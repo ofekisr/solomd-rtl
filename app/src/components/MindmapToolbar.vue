@@ -25,7 +25,6 @@ const EXPORT_ITEMS: readonly { id: string; label: string }[] = [
 const MORE_ITEMS: readonly { id: string; labelKey: string }[] = [
   { id: 'mindmap.copyPlaintext', labelKey: 'mindmap.menuCopyPlaintext' },
   { id: 'mindmap.toHeadingsDocument', labelKey: 'mindmap.menuHeadings' },
-  { id: 'mindmap.findDuplicates', labelKey: 'mindmap.menuDuplicates' },
   { id: 'mindmap.shortcutHelp', labelKey: 'mindmap.menuShortcuts' },
 ];
 

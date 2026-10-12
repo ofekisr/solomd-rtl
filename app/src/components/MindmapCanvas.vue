@@ -17,6 +17,7 @@ import { themeFamily } from '../lib/themes';
 import { clearActiveMindmap, setActiveMindmap, type MindmapHandle } from '../lib/mindmap-active';
 import { createGateController, type GateMenuAction, type GateNotice } from '../lib/mindmap-gate-controller';
 import { useMindmapCanvasActions } from '../composables/useMindmapCanvasActions';
+import { appendCanvasControls } from '../composables/useMindmapCanvasControls';
 import MindmapShortcutHelp from './MindmapShortcutHelp.vue';
 import MindmapDuplicates from './MindmapDuplicates.vue';
 import { findDuplicateGroups, mergeIntoGate, type DuplicateGroup } from '../lib/mindmap-duplicates';
@@ -115,6 +116,20 @@ function centerOnceLaidOut(): void {
   centerObserver.observe(host.value);
 }
 
+const DUPLICATE_COUNT_DEBOUNCE_MS = 500;
+const duplicateCount = ref(0);
+let duplicateTimer: number | null = null;
+
+function countDuplicates(): void {
+  duplicateTimer = null;
+  duplicateCount.value = mind ? findDuplicateGroups(mind.nodeData).length : 0;
+}
+
+function scheduleDuplicateCount(): void {
+  if (duplicateTimer !== null) window.clearTimeout(duplicateTimer);
+  duplicateTimer = window.setTimeout(countDuplicates, DUPLICATE_COUNT_DEBOUNCE_MS);
+}
+
 function scheduleSync(): void {
   if (syncTimer !== null) window.clearTimeout(syncTimer);
   syncTimer = window.setTimeout(syncNow, SYNC_DEBOUNCE_MS);
@@ -135,7 +150,12 @@ function mount(): void {
     theme: themeFor(),
   });
   mind.init(data);
+  appendCanvasControls(host.value, [
+    { glyph: '⤢', label: t('mindmap.canvasFit'), run: () => mind?.scaleFit() },
+    { glyph: '⌂', label: t('mindmap.canvasRoot'), run: selectRoot },
+  ]);
   gates.syncLabels();
+  countDuplicates();
   pristineSerialized = props.content === '' ? props.codec.serialize(mind.getData(), displayOverride) : null;
   centerOnceLaidOut();
   mind.bus.addListener(OPERATION_EVENT, onOperation);
@@ -156,6 +176,7 @@ function onOperation(info: { name: string }): void {
   if (info.name === BEGIN_EDIT_OPERATION) return;
   gates.syncLabels();
   scheduleSync();
+  scheduleDuplicateCount();
   emitSelection();
 }
 
@@ -166,6 +187,7 @@ function syncAfterHistoryJumps(instance: MindElixirInstance): void {
     undo.call(instance);
     gates.syncLabels();
     scheduleSync();
+    scheduleDuplicateCount();
     emitSelection();
   };
   instance.redo = () => {
@@ -173,6 +195,7 @@ function syncAfterHistoryJumps(instance: MindElixirInstance): void {
     redo.call(instance);
     gates.syncLabels();
     scheduleSync();
+    scheduleDuplicateCount();
     emitSelection();
   };
 }
@@ -199,6 +222,8 @@ function teardown(): void {
   stopCentering();
   if (syncTimer !== null) window.clearTimeout(syncTimer);
   syncTimer = null;
+  if (duplicateTimer !== null) window.clearTimeout(duplicateTimer);
+  duplicateTimer = null;
   resetGraphView();
   mind?.destroy();
   mind = null;
@@ -216,6 +241,7 @@ async function applyExternalContent(): Promise<void> {
     mind.refresh(data);
     if (wasGraphView && canEdit()) mind.enableEdit();
     gates.syncLabels();
+    countDuplicates();
     mind.clearHistory?.();
     emit('ready');
     return;
@@ -324,6 +350,7 @@ function mergeDuplicate(keepId: string, dupId: string): void {
   gates.syncLabels();
   scheduleSync();
   findDuplicates();
+  countDuplicates();
 }
 
 const actions: Record<string, () => void> = {
@@ -438,8 +465,13 @@ defineExpose({
       <button type="button" @click="emit('open-as-text')">{{ t('mindmap.openAsText') }}</button>
     </div>
     <div v-else ref="host" class="mindmap-view__canvas" />
-    <span v-if="isReadOnly" class="mindmap-view__badge">{{ t('mindmap.readOnlyBadge') }}</span>
-    <span v-if="isGraphView" class="mindmap-view__badge mindmap-view__badge--graph">{{ t('mindmap.graphViewBadge') }}</span>
+    <div class="mindmap-view__status">
+      <button v-if="duplicateCount > 0 && !locked" type="button" class="mindmap-view__chip" @click="findDuplicates">
+        {{ t('mindmap.duplicatesChip', { count: duplicateCount }) }}
+      </button>
+      <span v-if="isGraphView" class="mindmap-view__badge">{{ t('mindmap.graphViewBadge') }}</span>
+      <span v-if="isReadOnly" class="mindmap-view__badge">{{ t('mindmap.readOnlyBadge') }}</span>
+    </div>
     <MindmapDuplicates v-if="duplicateGroups" :groups="duplicateGroups" :topic-of="topicOf" @merge="mergeDuplicate" @close="duplicateGroups = null" />
     <MindmapShortcutHelp v-if="isHelpOpen" @close="isHelpOpen = false" />
   </div>
@@ -448,8 +480,11 @@ defineExpose({
 <style scoped>
 .mindmap-view { position: relative; width: 100%; height: 100%; }
 .mindmap-view__canvas { width: 100%; height: 100%; }
-.mindmap-view__badge { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--bg-secondary, #eee); opacity: 0.85; pointer-events: none; }
-.mindmap-view__badge--graph { inset-inline-end: 96px; }
+.mindmap-view__status { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; z-index: 5; display: flex; gap: 6px; pointer-events: none; }
+.mindmap-view__badge { padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); opacity: 0.9; }
+.mindmap-view__chip { pointer-events: auto; padding: 2px 10px; border-radius: 999px; font-size: 12px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--accent); cursor: pointer; }
+.mindmap-view__canvas :deep(.mm-canvas-control) { display: inline-block; min-width: 1em; font-size: 16px; line-height: 1; text-align: center; cursor: pointer; }
+.mindmap-view__canvas :deep(.mm-canvas-control:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 .mindmap-view__error { padding: 24px; }
 .mindmap-view__error pre { white-space: pre-wrap; opacity: 0.8; }
 .mindmap-view__canvas :deep(me-tpc),
