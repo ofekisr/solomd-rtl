@@ -5,11 +5,11 @@ import { useI18n } from '../i18n';
 import { useTabsStore } from '../stores/tabs';
 import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
-import { useMindmapFolderFiles } from '../composables/useMindmapFolderFiles';
+import { MAX_FILES, useMindmapFolderFiles } from '../composables/useMindmapFolderFiles';
 import { MINDMAP_CONVERT_FOLDER_EVENT } from '../composables/useMindmapConvert';
 import { rootTopicFromFileName, serializeMindmap } from '../lib/mindmap-format';
 import {
-  NODE_WARNING_THRESHOLD, buildFolderMap, countNodes, fileTitle, hasEpubSkip,
+  MAX_FILE_BYTES, NODE_WARNING_THRESHOLD, buildFolderMap, countNodes, fileTitle, hasEpubSkip,
   matchesSkipKeyword, parseSkipKeywords, type FolderFile, type FolderPick,
 } from '../lib/mindmap-folder';
 
@@ -18,6 +18,9 @@ const MINDMAP_LANGUAGE = 'mindmap';
 const MMAP_SUFFIX = '.mmap';
 const PATH_SEPARATOR = /[\\/]/;
 const FALLBACK_FOLDER_NAME = 'folder';
+const BYTES_PER_MB = 1024 * 1024;
+const MAX_FILE_MB = String(MAX_FILE_BYTES / BYTES_PER_MB);
+const MAX_FILES_TEXT = String(MAX_FILES);
 
 const { t } = useI18n();
 const tabs = useTabsStore();
@@ -35,6 +38,7 @@ const manuallyToggled = new Set<string>();
 const skipInput = ref('');
 const groupBySubfolder = ref(false);
 const isLoading = ref(false);
+const pendingLargeCount = ref<number | null>(null);
 const dialogEl = ref<HTMLElement | null>(null);
 
 const skipKeywords = computed(() => parseSkipKeywords(skipInput.value));
@@ -57,7 +61,13 @@ function applyChecks(): void {
   checked.value = next;
 }
 
+function onSkipInput(): void {
+  pendingLargeCount.value = null;
+  applyChecks();
+}
+
 function toggle(relPath: string): void {
+  pendingLargeCount.value = null;
   manuallyToggled.add(relPath);
   checked.value = { ...checked.value, [relPath]: !checked.value[relPath] };
 }
@@ -76,6 +86,7 @@ async function load(path: string): Promise<void> {
     toasts.error(t('mindmap.folderReadFailed'));
     picks.value = [];
     oversized.value = [];
+    isTruncated.value = false;
   } finally {
     isLoading.value = false;
   }
@@ -95,6 +106,7 @@ async function chooseFolder(): Promise<void> {
 
 async function onOpen(): Promise<void> {
   isOpen.value = true;
+  pendingLargeCount.value = null;
   picks.value = [];
   oversized.value = [];
   isTruncated.value = false;
@@ -115,7 +127,10 @@ function convert(): void {
       workspaceRoot: workspace.currentFolder,
     });
     const count = countNodes(map);
-    if (count > NODE_WARNING_THRESHOLD && !window.confirm(t('mindmap.folderLarge', { count: String(count) }))) return;
+    if (count > NODE_WARNING_THRESHOLD && pendingLargeCount.value === null) {
+      pendingLargeCount.value = count;
+      return;
+    }
     const tab = tabs.newTab({ fileName: `${folderName.value}${MMAP_SUFFIX}`, language: MINDMAP_LANGUAGE });
     tabs.setContent(tab.id, serializeMindmap(map));
     close();
@@ -151,10 +166,10 @@ onBeforeUnmount(() => {
       </div>
       <label class="mmf-field">
         <span>{{ t('mindmap.folderSkipKeywords') }}</span>
-        <input v-model="skipInput" type="text" dir="auto" @input="applyChecks" />
+        <input v-model="skipInput" type="text" dir="auto" @input="onSkipInput" />
       </label>
       <label class="mmf-check">
-        <input v-model="groupBySubfolder" type="checkbox" />
+        <input v-model="groupBySubfolder" type="checkbox" @change="pendingLargeCount = null" />
         <span>{{ t('mindmap.folderGroup') }}</span>
       </label>
       <ul class="mmf-list">
@@ -167,14 +182,15 @@ onBeforeUnmount(() => {
           </label>
         </li>
       </ul>
-      <p v-if="isTruncated" class="mmf-truncated">{{ t('mindmap.folderTruncated') }}</p>
+      <p v-if="isTruncated" class="mmf-truncated">{{ t('mindmap.folderTruncated', { count: MAX_FILES_TEXT }) }}</p>
+      <p v-if="pendingLargeCount !== null" class="mmf-large" role="alert">{{ t('mindmap.folderLarge', { count: String(pendingLargeCount) }) }}</p>
       <div v-if="oversized.length" class="mmf-oversized">
-        <strong>{{ t('mindmap.folderOversized') }}</strong>
+        <strong>{{ t('mindmap.folderOversized', { size: MAX_FILE_MB }) }}</strong>
         <ul><li v-for="name in oversized" :key="name" dir="auto">{{ name }}</li></ul>
       </div>
       <footer>
         <button type="button" @click="close">{{ t('mindmap.folderCancel') }}</button>
-        <button type="button" class="mmf-primary" :disabled="!canConvert" @click="convert">{{ t('mindmap.folderConvert') }}</button>
+        <button type="button" class="mmf-primary" :disabled="!canConvert" @click="convert">{{ t(pendingLargeCount === null ? 'mindmap.folderConvert' : 'mindmap.folderConvertAnyway') }}</button>
       </footer>
     </div>
   </div>
@@ -198,5 +214,6 @@ onBeforeUnmount(() => {
 .mmf-dialog button { background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 5px 12px; font: inherit; cursor: pointer; }
 .mmf-dialog button:disabled { opacity: 0.5; cursor: default; }
 .mmf-dialog .mmf-primary { background: var(--accent-soft); }
+.mmf-large { color: var(--text); }
 .mmf-truncated { color: var(--text-faint); }
 </style>

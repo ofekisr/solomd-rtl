@@ -30,6 +30,8 @@ test('epub skip directive is honored outside fences only', () => {
 test('title is the sole H1, else the stem; subfolder is the dir part', () => {
   assert.equal(fileTitle(f('a/01-x.md', '# Intro\n## s')), 'Intro');
   assert.equal(fileTitle(f('02-y.md', '# A\n# B')), '02-y');
+  assert.equal(fileTitle(f('03-z.md', 'intro\n# Only')), '03-z');
+  assert.equal(fileTitle(f('04.md', '## Sole')), 'Sole');
   assert.equal(subfolderOf('a/b/c.md'), 'a/b');
   assert.equal(subfolderOf('c.md'), undefined);
 });

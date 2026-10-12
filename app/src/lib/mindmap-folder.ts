@@ -1,5 +1,5 @@
 import type { MindElixirData, NodeObj } from 'mind-elixir';
-import { linesOutsideFences, scanMarkdown } from './mindmap-md-scan.ts';
+import { linesOutsideFences } from './mindmap-md-scan.ts';
 import { markdownToMindmap } from './mindmap-convert.ts';
 import { mergeMindmaps, type MergeEntry } from './mindmap-merge.ts';
 import { toWorkspaceRelative } from './mindmap-source.ts';
@@ -8,15 +8,13 @@ import { rootTopicFromFileName, sanitizeMindmapData } from './mindmap-format.ts'
 export interface FolderFile { absPath: string; relPath: string; text: string }
 export interface FolderPick { file: FolderFile; title: string; skippedByDirective: boolean }
 
-export const MAX_FILE_CHARS = 2_000_000;
+export const MAX_FILE_BYTES = 2 * 1024 * 1024;
 export const NODE_WARNING_THRESHOLD = 5000;
 
 const KEYWORD_SEPARATOR = ',';
 const PAIR_SEPARATOR = '=';
 const PATH_SEPARATOR = '/';
 const SKIP_PAIR = 'skip=true';
-const SOLE_H1_COUNT = 1;
-const H1_LEVEL = 1;
 const EPUB_DIRECTIVE = /^\s*<!--\s*epub:\s*(.*?)\s*-->\s*$/;
 const REGEX_META = /[.*+?^${}()|[\]\\]/g;
 const WORD_BEFORE = '(?<![\\p{L}\\p{N}_])';
@@ -58,9 +56,7 @@ export function hasEpubSkip(text: string): boolean {
 }
 
 export function fileTitle(file: FolderFile): string {
-  const h1s = scanMarkdown(file.text).filter((block) => block.kind === 'heading' && block.level === H1_LEVEL);
-  const only = h1s.length === SOLE_H1_COUNT ? h1s[0] : undefined;
-  return only && only.kind === 'heading' ? only.text : rootTopicFromFileName(file.relPath);
+  return markdownToMindmap(file.text, { rootTopic: rootTopicFromFileName(file.relPath) }).nodeData.topic;
 }
 
 export function subfolderOf(relPath: string): string | undefined {

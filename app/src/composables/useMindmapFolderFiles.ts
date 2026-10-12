@@ -1,11 +1,11 @@
 import { invoke } from '@tauri-apps/api/core';
 import type { FileReadResult } from '../types';
-import { MAX_FILE_CHARS, sortFolderFiles, type FolderFile } from '../lib/mindmap-folder';
+import { MAX_FILE_BYTES, sortFolderFiles, type FolderFile } from '../lib/mindmap-folder';
 
 interface DirEntry { name: string; path: string; is_dir: boolean }
 interface ListResult { files: FolderFile[]; oversized: string[]; truncated: boolean }
 
-const MAX_FILES = 500;
+export const MAX_FILES = 500;
 const HIDDEN_PREFIX = '.';
 const IGNORED_DIR = 'node_modules';
 const MARKDOWN_NAME = /\.(md|markdown)$/i;
@@ -37,7 +37,7 @@ async function collectCandidates(folder: string): Promise<{ found: Candidate[]; 
 async function readCandidate(candidate: Candidate): Promise<FolderFile | null> {
   try {
     const { content } = await invoke<FileReadResult>('read_file', { path: candidate.absPath });
-    return content.length > MAX_FILE_CHARS ? null : { ...candidate, text: content };
+    return new TextEncoder().encode(content).length > MAX_FILE_BYTES ? null : { ...candidate, text: content };
   } catch (error) {
     console.error('mindmap folder: read failed', candidate.relPath, error);
     return null;
