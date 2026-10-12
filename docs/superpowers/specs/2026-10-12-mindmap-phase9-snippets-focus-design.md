@@ -1,8 +1,8 @@
-# Mindmap Phase 9 — Snippets, Freeze + Focus, Paste Import
+# Mindmap Phase 9 — Snippets, Freeze + Focus, Paste Import, Phase 8 Carry-over
 
 ## Status
 
-Approved in conversation on 12-10-26. Starts after Phase 8 merges. Base: Phase 8 (`2026-10-12-mindmap-phase8-lens-design.md`).
+Approved in conversation on 12-10-26. Starts after Phase 8 merges. Branch: `feat/mindmap-phase9`. Base: Phase 8 (`2026-10-12-mindmap-phase8-lens-design.md`).
 Parent design: `docs/superpowers/specs/2026-10-11-mindmap-design.md`. Unscheduled work: `2026-10-12-mindmap-follow-ups.md`.
 
 ## Purpose
@@ -18,6 +18,7 @@ Parent design: `docs/superpowers/specs/2026-10-11-mindmap-design.md`. Unschedule
 | 1 | Snippets | `snippets` key in the file; rendered and edited per lens × view cell | ~1.5 days |
 | 2 | Freeze + focus | Frozen strip above the canvas; focus any node as root | ~1 day |
 | 3 | Paste import | Cmd+V parses common formats into a subtree | ~1 day |
+| 4 | Phase 8 carry-over | Deferred minors from the Phase 8 final review | ~½ day |
 
 Out of scope: rich `text/html` or image paste, node → snippet references, snippets referencing other files by path, configurable freeze depth, saving focus in the file.
 
@@ -120,6 +121,22 @@ Spike before planning: confirm what XMind puts on the clipboard (`text/plain` ta
 - Input larger than `MAX_MINDMAP_FENCE_CHARS` → toast, no change.
 - Nothing parses → toast "Clipboard format not recognized".
 - Editing a topic (`#input-box`) keeps the native plain-text paste.
+
+## 4. Phase 8 carry-over
+
+Deferred minors from the Phase 8 final review (none blocked merge).
+
+| # | Issue | Fix |
+|---|---|---|
+| 1 | Duplicates chip reads "1 duplicates" | Plural-aware i18n (`one` / `other`); drop the unused `menuDuplicates` key |
+| 2 | Settings and the side panel open together render two elements with the same theme-label id | Per-instance id (`useId()`) for the label/select pair |
+| 3 | Data · Split parses the JSON on every keystroke (`parsedContent` on every content change, all cells) | Parse only in cells that show a map or outline; debounce in Data · Split |
+| 4 | Outline views (preview, reading) render a blank page when the JSON is invalid | Empty state with the parse error and a "Switch to Data" action |
+| 5 | Canvas control buttons stop only Enter/Space; Delete/Tab/F2 on a focused control reach Mind Elixir and act on the selected node | Stop propagation of all keydown on canvas controls except Escape |
+| 6 | `duplicateCount` not reset in teardown → stale chip over the parse-error panel | Reset on teardown and on parse error |
+| 7 | Duplicates chip shows in read-only / graph view where merging is a no-op | Hide when edits are blocked |
+| 8 | Read-only toggle shows pressed while the JSON lock is on | `aria-pressed` reflects the user toggle only; lock shown by the existing hint |
+| 9 | No automated test for the read-only paste guard | Unit/browser test: blocked in read-only, locked, graph view |
 
 ## Testing
 
