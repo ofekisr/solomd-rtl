@@ -21,3 +21,10 @@ test('outlineMarkdownOf returns empty text for unparsable input', () => {
 test('outlineLines splits on newlines', () => {
   assert.deepEqual(outlineLines('# A\n\n## B'), ['# A', '', '## B']);
 });
+
+test('outlineMarkdownOf appends the snippets section after the map', () => {
+  const text = codec.serialize(DATA, {}, [{ id: 's1', kind: 'md', title: 'Notes', body: 'hello' }]);
+  const md = outlineMarkdownOf(codec.parse(text), 'rendered');
+  assert.ok(md.indexOf('## Child') < md.indexOf('## Snippets'));
+  assert.match(md, /^hello$/m);
+});

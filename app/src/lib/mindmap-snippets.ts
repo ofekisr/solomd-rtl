@@ -43,3 +43,38 @@ export function sanitizeSnippets(value: unknown): Snippet[] {
 export function createSnippet(kind: SnippetKind, existing: readonly Snippet[], title: string): Snippet {
   return { id: nextSnippetId(existing), kind, title, body: '' };
 }
+
+export type SnippetMarkdownMode = 'source' | 'rendered';
+
+const SECTION_HEADING = '## Snippets';
+const TITLE_MARK = '### ';
+const MIN_FENCE = 3;
+const BACKTICK = '`';
+const BACKTICK_RUN = /`+/g;
+const FENCE_LANG: Record<SnippetKind, string> = { md: 'markdown', mermaid: 'mermaid', mmap: 'mindmap' };
+const BLOCK_SEPARATOR = '\n\n';
+
+function fenceOf(body: string, lang: string): string {
+  const longest = Math.max(0, ...(body.match(BACKTICK_RUN) ?? []).map((run) => run.length));
+  const fence = BACKTICK.repeat(Math.max(MIN_FENCE, longest + 1));
+  return `${fence}${lang}\n${body}\n${fence}`;
+}
+
+function bodyBlock(snippet: Snippet, mode: SnippetMarkdownMode): string {
+  if (snippet.kind === 'md' && mode === 'rendered') return snippet.body;
+  return fenceOf(snippet.body, FENCE_LANG[snippet.kind]);
+}
+
+function titleOf(snippet: Snippet): string {
+  return snippet.title.trim() || snippet.id;
+}
+
+export function snippetPreviewSource(snippet: Snippet): string {
+  return bodyBlock(snippet, 'rendered');
+}
+
+export function snippetsMarkdown(snippets: readonly Snippet[], mode: SnippetMarkdownMode): string {
+  if (snippets.length === 0) return '';
+  const blocks = snippets.map((s) => `${TITLE_MARK}${titleOf(s)}${BLOCK_SEPARATOR}${bodyBlock(s, mode)}`);
+  return `${[SECTION_HEADING, ...blocks].join(BLOCK_SEPARATOR)}\n`;
+}
