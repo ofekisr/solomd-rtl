@@ -1,5 +1,5 @@
 import type { MindElixirInstance } from 'mind-elixir';
-import { FONT_STACKS, straightMainBranch, straightSubBranch, type ResolvedMapDisplay } from '../lib/mindmap-display';
+import { FONT_STACKS, resolveMapDisplay, straightMainBranch, straightSubBranch, type MapDisplay, type ResolvedMapDisplay } from '../lib/mindmap-display';
 
 const TEXT_COLOR_VARS: readonly string[] = ['--color', '--main-color'];
 
@@ -33,4 +33,23 @@ export function applyMapDisplay(mind: MindElixirInstance, display: ResolvedMapDi
   applyBranchStyle(mind, display, original);
   applyText(mind, display, hasExplicitFont);
   mind.linkDiv();
+}
+
+export interface MapDisplayApplier {
+  apply(mind: MindElixirInstance, override: MapDisplay, defaults: MapDisplay): void;
+}
+
+export function createMapDisplayApplier(): MapDisplayApplier {
+  let owner: MindElixirInstance | null = null;
+  let generators: BranchGenerators | null = null;
+  return {
+    apply(mind, override, defaults) {
+      if (owner !== mind || !generators) {
+        generators = captureBranchGenerators(mind);
+        owner = mind;
+      }
+      const hasExplicitFont = override.font !== undefined || defaults.font !== undefined;
+      applyMapDisplay(mind, resolveMapDisplay(override, defaults), generators, hasExplicitFont);
+    },
+  };
 }

@@ -22,8 +22,8 @@ import MindmapSidePanel from './MindmapSidePanel.vue';
 import MindmapNodeFields from './MindmapNodeFields.vue';
 import MindmapMapFields from './MindmapMapFields.vue';
 import MindmapOutlineText from './MindmapOutlineText.vue';
-import { resolveMapDisplay, type MapDisplay } from '../lib/mindmap-display';
-import { applyMapDisplay, captureBranchGenerators, type BranchGenerators } from '../composables/useMindmapDisplay';
+import type { MapDisplay } from '../lib/mindmap-display';
+import { createMapDisplayApplier } from '../composables/useMindmapDisplay';
 import Editor from './Editor.vue';
 import Preview from './Preview.vue';
 
@@ -148,20 +148,11 @@ function findLiveElement(mind: MindElixirInstance, id: string): Topic | null {
 }
 
 const displayOverride = ref<MapDisplay>({});
-let branchGenerators: BranchGenerators | null = null;
-let generatorsOwner: MindElixirInstance | null = null;
+const displayApplier = createMapDisplayApplier();
 
 function applyDisplay(): void {
   const mind = canvas.value?.getMind();
-  if (!mind) return;
-  if (generatorsOwner !== mind) {
-    branchGenerators = captureBranchGenerators(mind);
-    generatorsOwner = mind;
-  }
-  if (!branchGenerators) return;
-  const defaults = settings.mindmapDefaults;
-  const hasExplicitFont = displayOverride.value.font !== undefined || defaults.font !== undefined;
-  applyMapDisplay(mind, resolveMapDisplay(displayOverride.value, defaults), branchGenerators, hasExplicitFont);
+  if (mind) displayApplier.apply(mind, displayOverride.value, settings.mindmapDefaults);
 }
 
 function onCanvasReady(): void {

@@ -9,7 +9,7 @@
  * Reuses `Preview.vue`'s renderer via the `skin: 'reading'` prop, so
  * we don't duplicate the markdown / mermaid / image-overlay pipeline.
  */
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
+import { computed, defineAsyncComponent, ref, onMounted, onBeforeUnmount } from 'vue';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import Preview from './Preview.vue';
 import Icon from './Icons.vue';
@@ -22,7 +22,11 @@ const tabs = useTabsStore();
 const settings = useSettingsStore();
 const { t } = useI18n();
 
+const MindmapReading = defineAsyncComponent(() => import('./MindmapReading.vue'));
+const MINDMAP_LANGUAGE = 'mindmap';
+
 const tab = computed(() => tabs.activeTab);
+const isMindmap = computed(() => tab.value?.language === MINDMAP_LANGUAGE);
 
 function exit() {
   settings.exitReadingMode();
@@ -117,8 +121,10 @@ onBeforeUnmount(() => {
         <Icon name="view-edit" :size="18" />
       </button>
     </div>
-    <div v-if="tab" class="reading-view__doc">
+    <div v-if="tab" class="reading-view__doc" :class="{ 'reading-view__doc--map': isMindmap }">
+      <MindmapReading v-if="isMindmap" :tab="tab" />
       <Preview
+        v-else
         :source="tab.content"
         :file-path="tab.filePath"
         :tab-id="tab.id"
@@ -147,6 +153,10 @@ onBeforeUnmount(() => {
   min-height: 0;
 }
 .reading-view__doc > :deep(.preview-host) {
+  flex: 1;
+  min-height: 0;
+}
+.reading-view__doc--map > :deep(.mindmap-view) {
   flex: 1;
   min-height: 0;
 }
