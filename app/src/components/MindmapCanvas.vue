@@ -261,21 +261,29 @@ function canRunOn(actionId: string, e: KeyboardEvent): boolean {
   return actionId !== TOGGLE_NODE_ACTION || e.target === mind?.container;
 }
 
-function onKeydown(e: KeyboardEvent): void {
+function comboForMap(e: KeyboardEvent): string | null {
   const combo = eventToCombo(e);
-  if (!combo || isEditingTopic(e) || isOnMapControl(e)) return;
+  if (!combo || isEditingTopic(e) || isOnMapControl(e)) return null;
+  return combo;
+}
+
+function onKeydownCapture(e: KeyboardEvent): void {
+  const combo = comboForMap(e);
+  if (!combo) return;
   const isChordFollowUp = wasChordPrefixPressed;
   wasChordPrefixPressed = combo === CHORD_PREFIX_COMBO;
   if (isChordFollowUp) scheduleSync();
   const actionId = resolveBindings(settings.keybindings, 'mindmap').get(combo);
   const run = actionId && canRunOn(actionId, e) ? actions[actionId] : undefined;
-  if (run) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!e.repeat) run();
-    return;
-  }
-  if (MINDMAP_BUILTIN_COMBOS.has(combo)) e.stopPropagation();
+  if (!run) return;
+  e.preventDefault();
+  e.stopPropagation();
+  if (!e.repeat) run();
+}
+
+function onKeydown(e: KeyboardEvent): void {
+  const combo = comboForMap(e);
+  if (combo && MINDMAP_BUILTIN_COMBOS.has(combo)) e.stopPropagation();
 }
 
 watch(() => props.content, (content) => {
@@ -301,7 +309,7 @@ defineExpose({ flush: flushPendingSync });
 </script>
 
 <template>
-  <div class="mindmap-view" @keydown="onKeydown" @focusin="activate" @pointerdown="activate">
+  <div class="mindmap-view" @keydown.capture="onKeydownCapture" @keydown="onKeydown" @focusin="activate" @pointerdown="activate">
     <div v-if="parseError" class="mindmap-view__error" role="alert">
       <p>{{ t('mindmap.parseError') }}</p>
       <pre>{{ parseError }}</pre>
