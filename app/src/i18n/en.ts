@@ -1363,6 +1363,8 @@ export const en = {
     fenceEditorTitle: 'Mind map',
     fenceParseError: 'Mind map could not be read',
     fenceStale: 'The mind map block changed in the note; edits are no longer saved. Close and reopen it.',
+    exportDone: 'Mind map exported',
+    exportFailed: 'Mind map export failed',
   },
   whiteboard: {
     // F7 — Markdown-backed tldraw whiteboards.

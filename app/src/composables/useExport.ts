@@ -684,5 +684,6 @@ export function useExport() {
     copyAsPlainText,
     copyAsMarkdown,
     copyAsImage,
+    pickWritePath,
   };
 }
