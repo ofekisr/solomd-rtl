@@ -37,8 +37,9 @@ export interface Tab {
   /** Source path of an imported file (e.g. `.xmind`). The tab has no
    *  `filePath`, so saving always goes through Save As. */
   importedFrom?: string;
-  /** Mindmap tabs only: which renderer shows the file. Read through
-   *  `normalizeMindmapMode`; older sessions have no value. */
+  /** Mindmap tabs only: Data · Map · Doc lens. Read through `resolveTabLens`. */
+  mindmapLens?: 'data' | 'map' | 'doc';
+  /** Phase 7 field, read once by `resolveTabLens` for migration and then deleted. */
   mindmapMode?: 'map' | 'source' | 'outline';
 }
 

@@ -3,6 +3,7 @@ import { defineStore } from 'pinia';
 import type { Theme, ViewMode } from '../types';
 import { isIOS, isMobile } from '../lib/platform';
 import { parseMapDisplay, type MapDisplay } from '../lib/mindmap-display';
+import { migrateLensKeybindings } from '../lib/mindmap-lens';
 
 const LS_KEY = 'solomd.settings.v1';
 
@@ -774,6 +775,7 @@ function load(): Settings {
           if (v === null || typeof v === 'string') merged.keybindings[k] = v;
         }
       }
+      merged.keybindings = migrateLensKeybindings(merged.keybindings);
       // One-time v4.0 upgrade: any saved settings blob written before
       // v4.0 release (or by a v4 beta where the panel defaulted off)
       // will not have the `v4AgentPanelMigrated` marker. Force-enable
