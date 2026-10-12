@@ -2,6 +2,7 @@ import { isTreeSortMode, type TreeSortMode } from '../lib/tree-sort';
 import { defineStore } from 'pinia';
 import type { Theme, ViewMode } from '../types';
 import { isIOS, isMobile } from '../lib/platform';
+import { parseMapDisplay, type MapDisplay } from '../lib/mindmap-display';
 
 const LS_KEY = 'solomd.settings.v1';
 
@@ -251,6 +252,9 @@ interface Settings {
   // pre-v2.5 behavior). YAML front matter `pdf:` block on a doc overrides
   // these per-document.
   pdfDefaults: PdfDefaults;
+  /** Phase 7 — global map display defaults; a `.mmap` `display` block overrides per key. */
+  mindmapDefaults: MapDisplay;
+  mindmapPanelOpen: boolean;
   // v2.5 F4: Pomodoro / focus session timer.
   pomodoroShowControls: boolean;
   pomodoroAutoEngageFocus: boolean;
@@ -651,6 +655,8 @@ function defaults(): Settings {
     showWritingStats: true,
     showWorkspaceDailyTotal: false,
     pdfDefaults: defaultPdfDefaults(),
+    mindmapDefaults: {},
+    mindmapPanelOpen: false,
     pomodoroShowControls: true,
     pomodoroAutoEngageFocus: true,
     pomodoroDefaultMinutes: 25,
@@ -752,6 +758,7 @@ function load(): Settings {
       // sub-key (older settings blob) doesn't yield `undefined` and a
       // tampered numeric stays in range.
       merged.pdfDefaults = mergePdfDefaults(parsed.pdfDefaults);
+      merged.mindmapDefaults = parseMapDisplay(parsed.mindmapDefaults);
       // #180 — keybindings is a free-form map, so a tampered or older blob
       // could put anything here; keep only string/null values.
       if (merged.windowsEditorEngine !== 'codemirror') merged.windowsEditorEngine = 'native';
@@ -1320,6 +1327,20 @@ export const useSettingsStore = defineStore('settings', {
     },
     resetPdfDefaults() {
       this.pdfDefaults = defaultPdfDefaults();
+      this.persist();
+    },
+    setMindmapDefaults(patch: MapDisplay) {
+      this.mindmapDefaults = parseMapDisplay({ ...this.mindmapDefaults, ...patch });
+      this.persist();
+    },
+    clearMindmapDefault(key: keyof MapDisplay) {
+      const next = { ...this.mindmapDefaults };
+      delete next[key];
+      this.mindmapDefaults = next;
+      this.persist();
+    },
+    toggleMindmapPanel() {
+      this.mindmapPanelOpen = !this.mindmapPanelOpen;
       this.persist();
     },
     togglePomodoroShowControls() {

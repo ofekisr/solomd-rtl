@@ -33,9 +33,9 @@ export function normalizeFenceBody(body: string): string {
 export function parseMindmapFence(body: string): MindmapParseResult {
   if (body.length > MAX_MINDMAP_FENCE_CHARS) return { ok: false, error: `Mindmap fence exceeds ${MAX_MINDMAP_FENCE_CHARS} characters` };
   const text = normalizeFenceBody(body);
-  if (text === '') return { ok: true, data: createEmptyMindmap(MINDMAP_FENCE_ROOT_TOPIC), isEmpty: true };
+  if (text === '') return { ok: true, data: createEmptyMindmap(MINDMAP_FENCE_ROOT_TOPIC), isEmpty: true, display: {} };
   try {
-    return { ok: true, data: attachGatesFromTopics(sanitizeMindmapData(plaintextToMindElixir(text, MINDMAP_FENCE_ROOT_TOPIC))), isEmpty: false };
+    return { ok: true, data: attachGatesFromTopics(sanitizeMindmapData(plaintextToMindElixir(text, MINDMAP_FENCE_ROOT_TOPIC))), isEmpty: false, display: {} };
   } catch (err) {
     return { ok: false, error: (err as Error).message };
   }

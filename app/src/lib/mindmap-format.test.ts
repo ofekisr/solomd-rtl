@@ -332,3 +332,23 @@ test('mmapCodec round-trips through parse and serialize', () => {
   assert.equal(parsed.data.nodeData.topic, 'plan');
   assert.ok(codec.parse(codec.serialize(parsed.data)).ok);
 });
+
+test('display block round-trips through the envelope', () => {
+  const data = createEmptyMindmap('Root');
+  const text = serializeMindmap(data, { compact: true, font: 'serif' });
+  const parsed = parseMindmap(text, 'Root');
+  assert.equal(parsed.ok, true);
+  if (parsed.ok) assert.deepEqual(parsed.display, { compact: true, font: 'serif' });
+});
+
+test('empty display is omitted from the file', () => {
+  const text = serializeMindmap(createEmptyMindmap('Root'), {});
+  assert.equal(JSON.parse(text).display, undefined);
+});
+
+test('invalid display values are dropped on parse', () => {
+  const text = JSON.stringify({ format: 'solomd-mindmap', version: 1, data: createEmptyMindmap('R'), display: { textColor: 'expression(x)', compact: 'yes' } });
+  const parsed = parseMindmap(text, 'R');
+  assert.equal(parsed.ok, true);
+  if (parsed.ok) assert.deepEqual(parsed.display, {});
+});
