@@ -189,7 +189,8 @@ function onOperation(info: { name: string }): void {
   gates.syncLabels();
   scheduleSync();
   scheduleDuplicateCount();
-  if (focusId.value !== null && mind && !pathTo(fullRoot(mind), focusId.value)) focusById(null);
+  const root = mind ? fullRoot(mind) : null;
+  if (focusId.value !== null && root && !pathTo(root, focusId.value)) focusById(null);
   else refreshStrip();
   emitSelection();
 }
@@ -198,7 +199,9 @@ function syncAfterHistoryJumps(instance: MindElixirInstance): void {
   const { undo, redo } = instance;
   instance.undo = () => {
     if (props.locked) return;
+    leaveFocusQuietly();
     undo.call(instance);
+    reapplyFocus();
     gates.syncLabels();
     scheduleSync();
     scheduleDuplicateCount();
@@ -207,7 +210,9 @@ function syncAfterHistoryJumps(instance: MindElixirInstance): void {
   };
   instance.redo = () => {
     if (props.locked) return;
+    leaveFocusQuietly();
     redo.call(instance);
+    reapplyFocus();
     gates.syncLabels();
     scheduleSync();
     scheduleDuplicateCount();
@@ -232,8 +237,9 @@ function refreshStrip(): void {
 function wrapFocus(instance: MindElixirInstance): void {
   const { focusNode, cancelFocus } = instance;
   instance.focusNode = (tpc) => {
+    const isRoot = !tpc.nodeObj.parent;
     focusNode.call(instance, tpc);
-    if (!isApplyingFocus) rememberFocus(tpc.nodeObj.id);
+    if (!isApplyingFocus && !isRoot) rememberFocus(tpc.nodeObj.id);
     refreshStrip();
   };
   instance.cancelFocus = () => {
@@ -274,6 +280,7 @@ function reapplyFocus(): void {
   isApplyingFocus = true;
   const el = findLiveTopic(mind, id);
   if (el) mind.focusNode(el);
+  else rememberFocus(null);
   isApplyingFocus = false;
   refreshStrip();
 }
@@ -438,7 +445,7 @@ function findDuplicates(): void {
 }
 
 function topicOf(id: string): string {
-  return (mind && findNode(mind.nodeData, id)?.topic) ?? '';
+  return (mind && findNode(fullRoot(mind), id)?.topic) ?? '';
 }
 
 function mergeDuplicate(keepId: string, dupId: string): void {
