@@ -4,6 +4,8 @@
 
 Approved in conversation on 13-10-26. Branch: `feat/mindmap-corner-docks`. Base: Phase 9 (`2026-10-12-mindmap-phase9-snippets-focus-design.md`, 4.16.2).
 
+Done 13-10-26 (4.16.3). Deviations: dock icons live in `MindmapIcon.vue`, not `Icons.vue`; with no canvas the rail shrinks to one lens button at top-end instead of padding the editor; fence previews keep Mind Elixir's own toolbars; new strings are English only.
+
 ## Purpose
 
 - A map opens with its whole tree in view, not with the root centred and half the branches off-screen.

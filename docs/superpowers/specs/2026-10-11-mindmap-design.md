@@ -15,6 +15,7 @@ Approved in conversation on 11-10-26. Branch: `feat/mindmap`.
 | 7 Views, toolbar, node panel, XMind dedupe | ✅ Done 12-10-26 (`4.15.1`) — plan `docs/superpowers/plans/2026-10-12-mindmap-phase7-views-panel.md` |
 | 8 Lens (Data · Map · Doc), themes, toolbar icons, Mindmap settings | ✅ Done 12-10-26 (`4.16.1`) — plan `docs/superpowers/plans/2026-10-12-mindmap-phase8-lens.md` |
 | 9 Snippets in `.mmap`, freeze strip + focus, paste import, Phase 8 carry-over | ✅ Done 12-10-26 (`4.16.2`) — plan `docs/superpowers/plans/2026-10-12-mindmap-phase9-snippets-focus-paste.md` |
+| 10 Layout-aware framing, reading width, corner docks, mouse hover-pan | ✅ Done 13-10-26 (`4.16.3`) — spec `docs/superpowers/specs/2026-10-13-mindmap-phase10-corner-docks-design.md` |
 | Follow-ups (unscheduled) | Backlog — `docs/superpowers/specs/2026-10-12-mindmap-follow-ups.md` |
 
 ## Purpose

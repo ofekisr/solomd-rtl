@@ -107,3 +107,11 @@ Prep: a workspace folder with `plan.xmind` (2+ sheets if you have one), a Markdo
 - [ ] Undo after pasting a subtree with an internal gate keeps the gate resolved
 - [ ] Cmd+V from the system clipboard: real XMind copy (record what XMind puts on the clipboard), a Markdown file, a `.mmap` file's text
 - [ ] Cmd+V into a topic edit box pastes text only
+
+## 13. Framing, reading width, corner docks, mouse pan (Phase 10)
+
+- [ ] Right-growing map opens with the root at the start edge; left-growing mirrored; both-sides centred
+- [ ] Reading mode map fills the window width
+- [ ] Rail flyouts (lens, direction, export, more) open, pick, and close on Esc / outside click; RTL mirrors the rail
+- [ ] Fullscreen button works in the Tauri window and the map re-frames on exit
+- [ ] ⌥ + mouse move pans; ✋ inverts; trackpad swipe and pinch unchanged
