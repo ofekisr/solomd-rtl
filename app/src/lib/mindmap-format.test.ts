@@ -359,3 +359,27 @@ test('empty-string style values are dropped on sanitize', () => {
   const cleared = sanitizeNodeObj({ id: 'n2', topic: 'B', style: { fontWeight: '' } });
   assert.equal(cleared?.style, undefined);
 });
+
+const SNIPPET_BASE = { nodeData: { id: 'root', topic: 'Root', children: [] } };
+const SNIPPETS = [{ id: 's1', kind: 'md' as const, title: 'Intro', body: '# שלום' }];
+
+test('serializeMindmap omits snippets when the list is empty', () => {
+  assert.equal(serializeMindmap(SNIPPET_BASE, {}, []), serializeMindmap(SNIPPET_BASE));
+  assert.ok(!serializeMindmap(SNIPPET_BASE).includes('snippets'));
+});
+
+test('snippets round-trip through serialize and parse', () => {
+  const parsed = parseMindmap(serializeMindmap(SNIPPET_BASE, {}, SNIPPETS), 'x');
+  assert.ok(parsed.ok);
+  assert.deepEqual(parsed.snippets, SNIPPETS);
+});
+
+test('parseMindmap sanitizes snippets and tolerates a missing key', () => {
+  const text = JSON.stringify({ format: 'solomd-mindmap', version: 1, data: SNIPPET_BASE, snippets: [{ id: 's1', kind: 'exe', title: '', body: '' }] });
+  const parsed = parseMindmap(text, 'x');
+  assert.ok(parsed.ok);
+  assert.deepEqual(parsed.snippets, []);
+  const empty = parseMindmap('', 'x');
+  assert.ok(empty.ok);
+  assert.deepEqual(empty.snippets, []);
+});
