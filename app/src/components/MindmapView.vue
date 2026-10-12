@@ -3,10 +3,12 @@ import { computed } from 'vue';
 import type { Tab } from '../types';
 import { useTabsStore } from '../stores/tabs';
 import { mmapCodec } from '../lib/mindmap-format';
+import { useMindmapJump } from '../composables/useMindmapJump';
 import MindmapCanvas from './MindmapCanvas.vue';
 
 const props = defineProps<{ tab: Tab }>();
 const tabs = useTabsStore();
+const { jumpTo } = useMindmapJump();
 const codec = computed(() => mmapCodec(props.tab.fileName));
 const exportName = computed(() => props.tab.fileName.replace(/\.[^.]+$/u, ''));
 
@@ -20,5 +22,5 @@ function openAsText(): void {
 </script>
 
 <template>
-  <MindmapCanvas :content="tab.content" :codec="codec" :export-name="exportName" @update:content="onUpdate" @open-as-text="openAsText" />
+  <MindmapCanvas :content="tab.content" :codec="codec" :export-name="exportName" @update:content="onUpdate" @open-as-text="openAsText" @jump-to-source="(s) => jumpTo(s, tab.id)" />
 </template>

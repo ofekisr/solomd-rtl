@@ -6,6 +6,8 @@ import 'mind-elixir/style.css';
 import type { MindmapCodec } from '../lib/mindmap-format';
 import { sanitizeNodeObj } from '../lib/mindmap-format';
 import { useSettingsStore } from '../stores/settings';
+import { useToastsStore } from '../stores/toasts';
+import { fenceNodeSource, readNodeSource, type MindmapSource } from '../lib/mindmap-source';
 import { useI18n } from '../i18n';
 import { eventToCombo, resolveBindings } from '../lib/keybindings';
 import { MINDMAP_BUILTIN_COMBOS } from '../lib/mindmap-keymap';
@@ -24,9 +26,10 @@ const CHORD_PREFIX_COMBO = 'Mod+K';
 const TOGGLE_NODE_ACTION = 'mindmap.toggleNode';
 const INTERACTIVE_SELECTOR = 'button, input, select, textarea, a[href], [contenteditable="true"], [role="button"], [role="menuitem"]';
 
-const props = withDefaults(defineProps<{ content: string; codec: MindmapCodec; exportName?: string }>(), { exportName: 'mindmap' });
-const emit = defineEmits<{ 'update:content': [text: string]; 'open-as-text': [] }>();
+const props = withDefaults(defineProps<{ content: string; codec: MindmapCodec; exportName?: string; fenceLine?: number }>(), { exportName: 'mindmap' });
+const emit = defineEmits<{ 'update:content': [text: string]; 'open-as-text': []; 'jump-to-source': [source: MindmapSource] }>();
 const settings = useSettingsStore();
+const toasts = useToastsStore();
 const { t } = useI18n();
 
 const host = ref<HTMLElement | null>(null);
@@ -174,6 +177,24 @@ function selectRoot(): void {
   mind.toCenter();
 }
 
+function currentSource(): MindmapSource | null {
+  const node = mind?.currentNode?.nodeObj;
+  if (!mind || !node) return null;
+  const stored = readNodeSource(node);
+  if (stored) return stored;
+  return props.fenceLine === undefined ? null : fenceNodeSource(mind.getData(), node.id, props.fenceLine);
+}
+
+function jumpToSource(): void {
+  const source = currentSource();
+  if (!source) {
+    toasts.info(t('mindmap.noSource'));
+    return;
+  }
+  flushPendingSync();
+  emit('jump-to-source', source);
+}
+
 const canvasActions = useMindmapCanvasActions({ getMind: () => mind, exportName: () => props.exportName, isReadOnly });
 
 const actions: Record<string, () => void> = {
@@ -181,6 +202,7 @@ const actions: Record<string, () => void> = {
   'mindmap.fit': () => mind?.scaleFit(),
   'mindmap.focusRoot': selectRoot,
   'mindmap.shortcutHelp': () => { isHelpOpen.value = true; },
+  'mindmap.jumpToSource': jumpToSource,
   ...canvasActions,
 };
 

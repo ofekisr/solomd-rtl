@@ -3,6 +3,8 @@ import { defineAsyncComponent, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from '../i18n';
 import { useTabsStore } from '../stores/tabs';
 import { useToastsStore } from '../stores/toasts';
+import { useMindmapJump } from '../composables/useMindmapJump';
+import type { MindmapSource } from '../lib/mindmap-source';
 import { MINDMAP_OPEN_EVENT, mindmapFenceCodec, replaceMindmapFence, type MindmapOpenDetail } from '../lib/mindmap-fence';
 
 const MindmapCanvas = defineAsyncComponent(() => import('./MindmapCanvas.vue'));
@@ -17,6 +19,7 @@ const TOPIC_EDITOR_ID = 'input-box';
 const { t } = useI18n();
 const tabs = useTabsStore();
 const toasts = useToastsStore();
+const { jumpTo } = useMindmapJump();
 const target = ref<MindmapOpenDetail | null>(null);
 const isStale = ref(false);
 const openCount = ref(0);
@@ -49,6 +52,13 @@ function onUpdate(nextBody: string): void {
 function close(): void {
   canvas.value?.flush();
   target.value = null;
+}
+
+function onJump(source: MindmapSource): void {
+  const tabId = target.value?.tabId;
+  if (!tabId) return;
+  close();
+  void jumpTo(source, tabId);
 }
 
 function onKeydown(e: KeyboardEvent): void {
@@ -84,7 +94,9 @@ onBeforeUnmount(() => {
         :codec="mindmapFenceCodec"
         export-name="mindmap"
         @update:content="onUpdate"
+        :fence-line="target.line"
         @open-as-text="close"
+        @jump-to-source="onJump"
       />
     </div>
   </div>

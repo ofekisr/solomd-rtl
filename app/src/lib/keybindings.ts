@@ -189,6 +189,7 @@ export const KEY_ACTIONS: KeyActionDef[] = [
   { id: 'mindmap.exportMarkdown', label: 'Mindmap: Export as Markdown List', category: 'mindmap', scope: 'mindmap', defaults: [] },
   { id: 'mindmap.copyPlaintext', label: 'Mindmap: Copy as Plaintext', category: 'mindmap', scope: 'mindmap', defaults: [] },
   { id: 'mindmap.toHeadingsDocument', label: 'Mindmap: Open as Markdown Headings', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.jumpToSource', label: 'Mindmap: Jump to Source', category: 'mindmap', scope: 'mindmap', defaults: [] },
   { id: 'mindmap.toggleReadOnly', label: 'Mindmap: Toggle Read-Only', category: 'mindmap', scope: 'mindmap', defaults: [] },
 ];
 

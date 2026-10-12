@@ -1368,6 +1368,7 @@ export const en = {
     readOnlyBadge: 'Read-only',
     noActiveMap: 'Click a mind map first',
     copiedPlaintext: 'Mind map copied as plaintext',
+    noSource: 'This node has no source location',
   },
   whiteboard: {
     // F7 — Markdown-backed tldraw whiteboards.
