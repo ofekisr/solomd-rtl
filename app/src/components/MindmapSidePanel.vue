@@ -26,10 +26,10 @@ watch(() => props.hasSingleNode, (isSingle) => { active.value = isSingle ? 'node
 </template>
 
 <style scoped>
-.mm-panel { width: 260px; flex: 0 0 260px !important; display: flex; flex-direction: column; border-inline-start: 1px solid var(--border, #ddd); background: var(--bg-secondary, #f6f6f6); overflow: auto; }
+.mm-panel { width: 260px; flex: 0 0 260px !important; display: flex; flex-direction: column; border-inline-start: 1px solid var(--border); background: var(--bg-elev); color: var(--text); overflow: auto; }
 .mm-panel__tabs { display: flex; gap: 2px; padding: 6px; }
 .mm-panel__tabs button { flex: 1; padding: 4px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: inherit; cursor: pointer; }
-.mm-panel__tabs button[aria-selected='true'] { border-color: var(--border, #ccc); background: var(--bg, #fff); }
+.mm-panel__tabs button[aria-selected='true'] { border-color: var(--border); background: var(--bg); }
 .mm-panel__body { padding: 8px 12px; }
-.mm-panel__hint { opacity: 0.7; font-size: 12px; }
+.mm-panel__hint { color: var(--text-faint); font-size: 12px; }
 </style>

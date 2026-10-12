@@ -142,12 +142,13 @@ function onOperation(info: { name: string }): void {
   if (info.name === BEGIN_EDIT_OPERATION) return;
   gates.syncLabels();
   scheduleSync();
+  emitSelection();
 }
 
 function syncAfterHistoryJumps(instance: MindElixirInstance): void {
   const { undo, redo } = instance;
-  instance.undo = () => { undo.call(instance); gates.syncLabels(); scheduleSync(); };
-  instance.redo = () => { redo.call(instance); gates.syncLabels(); scheduleSync(); };
+  instance.undo = () => { undo.call(instance); gates.syncLabels(); scheduleSync(); emitSelection(); };
+  instance.redo = () => { redo.call(instance); gates.syncLabels(); scheduleSync(); emitSelection(); };
 }
 
 function sanitizedTopic(tpc: Topic): Topic | null {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import type { NodeObj } from 'mind-elixir';
+import type { MindElixirInstance, NodeObj } from 'mind-elixir';
+import type { Topic } from 'mind-elixir';
 import type { Tab } from '../types';
 import { useI18n } from '../i18n';
 import { useTabsStore } from '../stores/tabs';
@@ -57,6 +58,7 @@ function setMode(next: MindmapMode): void {
   if (mode.value === 'source') window.dispatchEvent(new Event(FLUSH_CONTENT_EVENT));
   if (mode.value === 'source' && !leaveSourceAllowed()) return;
   sourceError.value = null;
+  selected.value = [];
   props.tab.mindmapMode = next;
   tabs.persist();
 }
@@ -78,9 +80,21 @@ function applyNodePatch(field: NodeField, value: string | number | boolean | nul
     toasts.error(t('mindmap.fieldUrlInvalid'));
     return;
   }
-  const element = mind.findEle(node.id);
+  const element = findLiveElement(mind, node.id);
+  if (!element) {
+    selected.value = [];
+    return;
+  }
   mind.reshapeNode(element, result.patch);
   selected.value = [{ ...element.nodeObj }];
+}
+
+function findLiveElement(mind: MindElixirInstance, id: string): Topic | null {
+  try {
+    return mind.findEle(id) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 function runViewAction(actionId: string): boolean {
@@ -148,7 +162,7 @@ defineExpose({ setMode, canvas, mode });
         :export-name="exportName"
         :register-active="false"
         @update:content="onUpdate"
-        @selection="(nodes) => (selected = nodes)"
+        @selection="(nodes) => (selected = nodes.map((n) => ({ ...n })))"
         @open-as-text="setMode('source')"
         @jump-to-source="onJump"
       />
@@ -172,8 +186,8 @@ defineExpose({ setMode, canvas, mode });
 .mindmap-shell__body { position: relative; flex: 1; min-height: 0; display: flex; }
 .mindmap-shell__body > * { flex: 1; min-width: 0; }
 .mindmap-shell__source { display: flex; flex-direction: column; }
-.mindmap-shell__error { padding: 6px 12px; font-size: 12px; background: var(--bg-secondary, #fee); border-block-end: 1px solid var(--border, #ccc); }
-.mindmap-shell__hint { font-size: 12px; opacity: 0.7; }
+.mindmap-shell__error { padding: 6px 12px; font-size: 12px; background: var(--bg-elev); color: var(--text); border-block-end: 1px solid var(--border); }
+.mindmap-shell__hint { font-size: 12px; color: var(--text-faint); }
 .mindmap-shell__outline { overflow: auto; }
 .mindmap-shell__outline :deep(:is(h1, h2, h3, h4, h5, h6, li, p)) { unicode-bidi: plaintext; text-align: start; }
 </style>

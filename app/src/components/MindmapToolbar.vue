@@ -63,14 +63,14 @@ function isMap(): boolean {
 </template>
 
 <style scoped>
-.mm-toolbar { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-block-end: 1px solid var(--border, #ddd); background: var(--bg-secondary, #f6f6f6); font-size: 12px; }
+.mm-toolbar { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-block-end: 1px solid var(--border); background: var(--bg-elev); color: var(--text); font-size: 12px; }
 .mm-toolbar button { padding: 2px 8px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: inherit; cursor: pointer; }
 .mm-toolbar button:disabled { opacity: 0.4; cursor: default; }
-.mm-toolbar button.active, .mm-toolbar button[aria-pressed='true'] { border-color: var(--border, #ccc); background: var(--bg, #fff); }
+.mm-toolbar button.active, .mm-toolbar button[aria-pressed='true'] { border-color: var(--border); background: var(--bg); }
 .mm-toolbar__modes { display: flex; gap: 2px; margin-inline-end: 8px; }
 .mm-toolbar__more { position: relative; margin-inline-start: auto; }
-.mm-toolbar__menu { position: absolute; inset-inline-end: 0; inset-block-start: 100%; z-index: 20; display: flex; flex-direction: column; min-width: 200px; padding: 4px; background: var(--bg, #fff); border: 1px solid var(--border, #ccc); border-radius: 6px; box-shadow: 0 4px 16px rgb(0 0 0 / 20%); }
+.mm-toolbar__menu { position: absolute; inset-inline-end: 0; inset-block-start: 100%; z-index: 20; display: flex; flex-direction: column; min-width: 200px; padding: 4px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 4px 16px rgb(0 0 0 / 20%); }
 .mm-toolbar__menu button { text-align: start; }
-.mm-toolbar__group { padding: 4px 8px; opacity: 0.6; }
-.mm-toolbar__menu hr { width: 100%; border: 0; border-block-start: 1px solid var(--border, #ddd); }
+.mm-toolbar__group { padding: 4px 8px; color: var(--text-faint); }
+.mm-toolbar__menu hr { width: 100%; border: 0; border-block-start: 1px solid var(--border); }
 </style>
