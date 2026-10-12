@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from '../i18n';
-import { MINDMAP_MODES, type MindmapMode } from '../lib/mindmap-view-mode';
+import { MINDMAP_LENSES, type MindmapLens } from '../lib/mindmap-lens';
 
-const props = defineProps<{ mode: MindmapMode; isPanelOpen: boolean; isReadOnly: boolean; isGraphView: boolean }>();
-const emit = defineEmits<{ 'set-mode': [mode: MindmapMode]; run: [actionId: string]; 'toggle-panel': [] }>();
+const props = defineProps<{ lens: MindmapLens; hasMap: boolean; isPanelOpen: boolean; isReadOnly: boolean; isGraphView: boolean }>();
+const emit = defineEmits<{ 'set-lens': [lens: MindmapLens]; run: [actionId: string]; 'toggle-panel': [] }>();
 const { t } = useI18n();
 const isMenuOpen = ref(false);
 
-const MODE_LABEL_KEYS: Record<MindmapMode, string> = { map: 'mindmap.viewMap', source: 'mindmap.viewSource', outline: 'mindmap.viewOutline' };
+const LENS_LABEL_KEYS: Record<MindmapLens, string> = { data: 'mindmap.lensData', map: 'mindmap.lensMap', doc: 'mindmap.lensDoc' };
 const EXPORT_ITEMS: readonly { id: string; label: string }[] = [
   { id: 'mindmap.exportPng', label: 'PNG' },
   { id: 'mindmap.exportSvg', label: 'SVG' },
@@ -33,33 +33,27 @@ watch(isMenuOpen, (isOpen) => {
   if (isOpen) document.addEventListener('pointerdown', closeOnOutsidePointer);
   else document.removeEventListener('pointerdown', closeOnOutsidePointer);
 });
-watch(() => props.mode, () => { isMenuOpen.value = false; });
+watch(() => [props.lens, props.hasMap], () => { isMenuOpen.value = false; });
 onBeforeUnmount(() => document.removeEventListener('pointerdown', closeOnOutsidePointer));
 
 function runAndClose(actionId: string): void {
   isMenuOpen.value = false;
   emit('run', actionId);
 }
-
-function isMap(): boolean {
-  return props.mode === 'map';
-}
 </script>
 
 <template>
   <div class="mm-toolbar" role="toolbar">
-    <div class="mm-toolbar__modes" role="tablist">
-      <button v-for="m in MINDMAP_MODES" :key="m" type="button" role="tab" :aria-selected="mode === m" :class="{ active: mode === m }" @click="emit('set-mode', m)">
-        {{ t(MODE_LABEL_KEYS[m]) }}
+    <div class="mm-toolbar__modes" role="tablist" :aria-label="t('mindmap.lensLabel')">
+      <button v-for="l in MINDMAP_LENSES" :key="l" type="button" role="tab" :aria-selected="lens === l" :class="{ active: lens === l }" @click="emit('set-lens', l)">
+        {{ t(LENS_LABEL_KEYS[l]) }}
       </button>
     </div>
-    <template v-if="isMap()">
-      <button type="button" :title="t('mindmap.toolbarUndo')" :disabled="isReadOnly || isGraphView" @click="emit('run', 'mindmap.undo')">↶</button>
-      <button type="button" :title="t('mindmap.toolbarRedo')" :disabled="isReadOnly || isGraphView" @click="emit('run', 'mindmap.redo')">↷</button>
-      <button type="button" :title="t('mindmap.toolbarPanel')" :aria-pressed="isPanelOpen" @click="emit('toggle-panel')">▤</button>
-    </template>
+    <button type="button" :title="t('mindmap.toolbarUndo')" :aria-label="t('mindmap.toolbarUndo')" :disabled="!hasMap || isReadOnly || isGraphView" @click="emit('run', 'mindmap.undo')">↶</button>
+    <button type="button" :title="t('mindmap.toolbarRedo')" :aria-label="t('mindmap.toolbarRedo')" :disabled="!hasMap || isReadOnly || isGraphView" @click="emit('run', 'mindmap.redo')">↷</button>
+    <button type="button" :title="t('mindmap.toolbarPanel')" :aria-label="t('mindmap.toolbarPanel')" :aria-pressed="isPanelOpen" :disabled="!hasMap" @click="emit('toggle-panel')">▤</button>
     <div class="mm-toolbar__more">
-      <button type="button" :title="t('mindmap.toolbarMore')" :aria-expanded="isMenuOpen" :disabled="!isMap()" @click="isMenuOpen = !isMenuOpen">⋯</button>
+      <button type="button" :title="t('mindmap.toolbarMore')" :aria-label="t('mindmap.toolbarMore')" :aria-expanded="isMenuOpen" :disabled="!hasMap" @click="isMenuOpen = !isMenuOpen">⋯</button>
       <div v-if="isMenuOpen" class="mm-toolbar__menu" role="menu" @keydown.escape="isMenuOpen = false">
         <div class="mm-toolbar__group">{{ t('mindmap.menuExport') }}</div>
         <button v-for="item in EXPORT_ITEMS" :key="item.id" type="button" role="menuitem" @click="runAndClose(item.id)">{{ item.label }}</button>
