@@ -48,3 +48,8 @@ test('firstLine offsets line numbers', () => {
 test('plainInline strips links, images, emphasis and code', () => {
   assert.equal(plainInline('**b** [l](u) ![i](p) `c` ~~s~~ __u__'), 'b l i c s u');
 });
+
+test('empty headings are dropped and attributes are stripped before closing hashes', () => {
+  assert.deepEqual(kinds('# {#id}\n## Title ## {#id}'), ['heading']);
+  assert.equal((scanMarkdown('## Title ## {#id}')[0] as { text: string }).text, 'Title');
+});

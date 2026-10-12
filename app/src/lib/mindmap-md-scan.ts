@@ -26,13 +26,16 @@ const QUOTE_MARKER = /^\s*>\s?/;
 const LINE_BLOCK = /^\|\s?/;
 const SUBHEADING = /^\[(.+)\]\{\.subheading\}$/;
 const LEADING_WS = /^[ \t]*/;
+const KEEP_CAPTURE = '$1';
+const SINGLE_LINE_COMMENT = 'single';
+const EMPTY_BLOCK = 'empty';
 const INLINE_RULES: [RegExp, string][] = [
-  [/!\[([^\]]*)\]\([^)]*\)/g, '$1'],
-  [/\[([^\]]+)\]\([^)]*\)/g, '$1'],
-  [/\*\*(.+?)\*\*/g, '$1'],
-  [/__(.+?)__/g, '$1'],
-  [/~~(.+?)~~/g, '$1'],
-  [/`([^`]*)`/g, '$1'],
+  [/!\[([^\]]*)\]\([^)]*\)/g, KEEP_CAPTURE],
+  [/\[([^\]]+)\]\([^)]*\)/g, KEEP_CAPTURE],
+  [/\*\*(.+?)\*\*/g, KEEP_CAPTURE],
+  [/__(.+?)__/g, KEEP_CAPTURE],
+  [/~~(.+?)~~/g, KEEP_CAPTURE],
+  [/`([^`]*)`/g, KEEP_CAPTURE],
 ];
 
 export function plainInline(text: string): string {
@@ -51,27 +54,28 @@ function fenceSkip(line: string): Skip {
   return { until: (next) => close.test(next) };
 }
 
-function commentSkip(line: string): Skip | 'single' {
+function commentSkip(line: string): Skip | typeof SINGLE_LINE_COMMENT {
   if (!line.trimStart().startsWith(COMMENT_OPEN)) return null;
-  if (line.includes(COMMENT_CLOSE)) return 'single';
+  if (line.includes(COMMENT_CLOSE)) return SINGLE_LINE_COMMENT;
   return { until: (next) => next.includes(COMMENT_CLOSE) };
 }
 
-function headingBlock(line: string, at: number): MdBlock | null {
+function headingBlock(line: string, at: number): MdBlock | typeof EMPTY_BLOCK | null {
   const match = HEADING.exec(line);
   if (!match) return null;
-  const text = plainInline(match[2].replace(CLOSING_HASHES, '').replace(ATTRIBUTE_BLOCK, ''));
+  const text = plainInline(match[2].replace(ATTRIBUTE_BLOCK, '').replace(CLOSING_HASHES, ''));
+  if (text === '') return EMPTY_BLOCK;
   return { kind: 'heading', level: match[1].length, text, line: at };
 }
 
-function itemBlock(line: string, at: number): MdBlock | 'empty' | null {
+function itemBlock(line: string, at: number): MdBlock | typeof EMPTY_BLOCK | null {
   const match = ITEM.exec(line);
   if (!match) return null;
   const box = TASK_BOX.exec(match[3]);
   const body = box ? match[3].slice(box[0].length) : match[3];
   const prefix = box ? (box[1] === ' ' ? TASK_OPEN : TASK_DONE) : '';
   const text = plainInline(body);
-  if (text === '') return 'empty';
+  if (text === '') return EMPTY_BLOCK;
   return { kind: 'item', indent: indentOf(line), text: `${prefix}${text}`, line: at };
 }
 
@@ -89,9 +93,10 @@ function textBlock(line: string, at: number): MdBlock | null {
 function blockFor(line: string, at: number): MdBlock | null {
   if (SKIPPED_LINE.some((pattern) => pattern.test(line))) return null;
   const heading = headingBlock(line, at);
+  if (heading === EMPTY_BLOCK) return null;
   if (heading) return heading;
   const item = itemBlock(line, at);
-  if (item === 'empty') return null;
+  if (item === EMPTY_BLOCK) return null;
   return item ?? textBlock(line, at);
 }
 
@@ -109,7 +114,7 @@ export function scanMarkdown(source: string, firstLine: number = DEFAULT_FIRST_L
     const line = lines[i];
     if (skip) { if (skip.until(line)) skip = null; continue; }
     const comment = commentSkip(line);
-    if (comment) { skip = comment === 'single' ? null : comment; continue; }
+    if (comment) { skip = comment === SINGLE_LINE_COMMENT ? null : comment; continue; }
     skip = fenceSkip(line);
     if (skip) continue;
     const block = blockFor(line, firstLine + i);
