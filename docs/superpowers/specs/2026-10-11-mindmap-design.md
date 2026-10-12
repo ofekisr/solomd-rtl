@@ -236,7 +236,7 @@ Markdown conventions follow `epub-builder` (`~/scripts/epub-builder/docs/writing
 | Paragraph, blockquote, `[text]{.subheading}`, list continuation text | Appended to the owning node's `note` (plain text, blank-line separated) |
 | Document root | The sole H1 when the document has exactly one (its children lift up); else the file stem |
 | Section root | The heading at the cursor, with its subtree |
-| Selection root | First heading in the selection, else the topic `Selection` |
+| Selection root | The topic `Selection`, replaced by the heading when the selection holds a single top-level heading (same lift rule as the document root) |
 
 - Every node gets `metadata.source = { path?, line }`; `path` is workspace-relative and omitted when no workspace is open or the file is unsaved.
 - Node ids match `[\w-]+`: `n<k>` per conversion; folder merge prefixes `f<NN>-` per file and rewrites arrow `from`/`to`, summary `parent`, and `metadata.gate.target` (generic, reused by 5b).
