@@ -77,6 +77,9 @@ importers:
       '@lezer/highlight':
         specifier: ^1.2.3
         version: 1.2.3
+      '@mind-elixir/export-mindmap':
+        specifier: 0.1.11
+        version: 0.1.11
       '@mind-elixir/import-xmind':
         specifier: 1.0.8
         version: 1.0.8
@@ -569,6 +572,9 @@ packages:
 
   '@mermaid-js/parser@1.1.0':
     resolution: {integrity: sha512-gxK9ZX2+Fex5zu8LhRQoMeMPEHbc73UKZ0FQ54YrQtUxE1VVhMwzeNtKRPAu5aXks4FasbMe4xB4bWrmq6Jlxw==}
+
+  '@mind-elixir/export-mindmap@0.1.11':
+    resolution: {integrity: sha512-7vGqYE9G/59BI/LLd+1ugevHhug7Y3G56wqxpqNsIy9udMAY+StF+p2F3Yt7lblBjIzGG53Rr/PEsWGiJtpGqg==}
 
   '@mind-elixir/import-xmind@1.0.8':
     resolution: {integrity: sha512-AS1OowjxNp9V6RHdgOjMVGYMRsssRUqKxzmc0Nal5LQRGkoRFdfAGwoMYAPjefYHSI6PoTH3+85P00Lt/z3AuQ==}
@@ -3232,6 +3238,8 @@ snapshots:
   '@mermaid-js/parser@1.1.0':
     dependencies:
       langium: 4.2.2
+
+  '@mind-elixir/export-mindmap@0.1.11': {}
 
   '@mind-elixir/import-xmind@1.0.8':
     dependencies:
