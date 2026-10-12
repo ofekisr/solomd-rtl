@@ -230,7 +230,11 @@ Desktop (Tauri) check before merge, as in Phase 4.
 - Single link allow-list: `isSafeLink` lives in `mindmap-format.ts`.
 - The side panel refreshes from the live node after `reshapeNode`, and re-syncs on every map operation, undo and redo.
 - Toolbar and panel use the app theme tokens (`--bg-elev`, `--text`, `--text-faint`, `--border`, `--accent`); `--bg-secondary` does not exist.
-- Map text color sets `--color`, `--main-color` and `--root-color`; the font is set on the map container; `changeCompact` runs before branch style and text color because it calls `changeTheme`, which resets both.
+- Map text color sets `--color` and `--main-color` only (the root keeps its theme colors); the font is set on the map container; `changeCompact` runs before branch style and text color because it calls `changeTheme`, which resets both.
 - Outline view gives each heading and list line its own direction (`unicode-bidi: plaintext`), so Hebrew lines align right.
 - Box multi-select is on by default in mind-elixir 5.15.1; no code change was needed.
+- The overflow `⋯` button is disabled outside Map because all its items are canvas actions.
+- Outline re-renders live from the tab content, better than the spec's regenerate-on-enter.
+- The font is applied only when the file override or global default sets one; otherwise the package's CJK-aware stack stays.
+- Icon edits keep icons outside the grid; the panel passes a `string[]` to `buildNodePatch`.
 - Phase 7 ships as 4.15.1; Phase 6 (AI convert) moves to the next patch.

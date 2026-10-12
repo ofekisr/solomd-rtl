@@ -20,6 +20,14 @@ function isSet(key: keyof MapDisplay): boolean {
   return props.value[key] !== undefined;
 }
 
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+const FALLBACK_TEXT_COLOR = '#000000';
+
+function themeTextColor(): string {
+  const token = getComputedStyle(document.documentElement).getPropertyValue('--text').trim();
+  return HEX_COLOR.test(token) ? token : FALLBACK_TEXT_COLOR;
+}
+
 const resetLabel = (): string => (props.inherited ? t('mindmap.useGlobalDefault') : t('mindmap.fieldClear'));
 </script>
 
@@ -38,7 +46,7 @@ const resetLabel = (): string => (props.inherited ? t('mindmap.useGlobalDefault'
     </label>
     <label>{{ t('mindmap.fieldTextColor') }}
       <span class="mm-fields__row">
-        <input type="color" :value="value.textColor ?? inherited?.textColor ?? '#000000'" @change="emit('set', { textColor: ($event.target as HTMLInputElement).value })" />
+        <input type="color" :value="value.textColor ?? inherited?.textColor ?? themeTextColor()" @change="emit('set', { textColor: ($event.target as HTMLInputElement).value })" />
         <button v-if="isSet('textColor')" type="button" @click="emit('clear', 'textColor')">{{ resetLabel() }}</button>
       </span>
     </label>

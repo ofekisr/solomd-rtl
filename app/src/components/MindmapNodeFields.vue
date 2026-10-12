@@ -6,7 +6,7 @@ import { FONT_SIZE_MAX, FONT_SIZE_MIN, NODE_ICONS, isSafeLink, toggleIcon, type 
 
 const DEFAULT_FONT_SIZE = 16;
 const props = defineProps<{ node: NodeObj; disabled: boolean }>();
-const emit = defineEmits<{ patch: [field: NodeField, value: string | number | boolean | null] }>();
+const emit = defineEmits<{ patch: [field: NodeField, value: string | number | boolean | readonly string[] | null] }>();
 const { t } = useI18n();
 
 const url = ref('');
@@ -19,7 +19,15 @@ function commitUrl(): void {
 }
 
 function onIcon(icon: string): void {
-  emit('patch', 'icons', toggleIcon(props.node.icons, icon).join(','));
+  emit('patch', 'icons', toggleIcon(props.node.icons, icon));
+}
+
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+const FALLBACK_TEXT_COLOR = '#000000';
+
+function themeTextColor(): string {
+  const token = getComputedStyle(document.documentElement).getPropertyValue('--text').trim();
+  return HEX_COLOR.test(token) ? token : FALLBACK_TEXT_COLOR;
 }
 
 function tagText(): string {
@@ -31,7 +39,7 @@ function tagText(): string {
   <fieldset class="mm-fields" :disabled="disabled">
     <label>{{ t('mindmap.fieldTextColor') }}
       <span class="mm-fields__row">
-        <input type="color" :value="node.style?.color || '#000000'" @change="emit('patch', 'color', ($event.target as HTMLInputElement).value)" />
+        <input type="color" :value="node.style?.color || themeTextColor()" @change="emit('patch', 'color', ($event.target as HTMLInputElement).value)" />
         <button type="button" @click="emit('patch', 'color', null)">{{ t('mindmap.fieldClear') }}</button>
       </span>
     </label>

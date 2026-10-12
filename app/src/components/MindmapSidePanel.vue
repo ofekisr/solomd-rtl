@@ -3,7 +3,7 @@ import { ref, watch } from 'vue';
 import { useI18n } from '../i18n';
 
 type PanelTab = 'node' | 'map';
-const props = defineProps<{ hasSingleNode: boolean; hasMultipleNodes: boolean }>();
+const props = defineProps<{ hasSingleNode: boolean }>();
 const { t } = useI18n();
 const active = ref<PanelTab>(props.hasSingleNode ? 'node' : 'map');
 watch(() => props.hasSingleNode, (isSingle) => { active.value = isSingle ? 'node' : 'map'; });

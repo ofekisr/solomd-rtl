@@ -74,7 +74,7 @@ function leaveSourceAllowed(): boolean {
   return false;
 }
 
-function applyNodePatch(field: NodeField, value: string | number | boolean | null): void {
+function applyNodePatch(field: NodeField, value: string | number | boolean | readonly string[] | null): void {
   const mind = canvas.value?.getMind();
   const node = singleNode.value;
   if (!mind || !node || !isPanelEditable.value) return;
@@ -112,7 +112,9 @@ function applyDisplay(): void {
     generatorsOwner = mind;
   }
   if (!branchGenerators) return;
-  applyMapDisplay(mind, resolveMapDisplay(displayOverride.value, settings.mindmapDefaults), branchGenerators);
+  const defaults = settings.mindmapDefaults;
+  const hasExplicitFont = displayOverride.value.font !== undefined || defaults.font !== undefined;
+  applyMapDisplay(mind, resolveMapDisplay(displayOverride.value, defaults), branchGenerators, hasExplicitFont);
 }
 
 function onCanvasReady(): void {
@@ -211,7 +213,7 @@ defineExpose({ setMode, canvas, mode });
         <Editor :key="`${tab.id}-source`" :tab="sourceTab" />
       </div>
       <Preview v-else :source="outlineMarkdown" class="mindmap-shell__outline" />
-      <MindmapSidePanel v-if="isPanelVisible" :has-single-node="singleNode !== null" :has-multiple-nodes="selected.length > 1">
+      <MindmapSidePanel v-if="isPanelVisible" :has-single-node="singleNode !== null">
         <template #node>
           <p v-if="!isPanelEditable" class="mindmap-shell__hint">{{ t('mindmap.panelReadOnly') }}</p>
           <MindmapNodeFields v-if="singleNode" :node="singleNode" :disabled="!isPanelEditable" @patch="applyNodePatch" />

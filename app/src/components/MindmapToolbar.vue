@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from '../i18n';
 import { MINDMAP_MODES, type MindmapMode } from '../lib/mindmap-view-mode';
 
@@ -24,6 +24,17 @@ const MAP_ONLY_ITEMS: readonly { id: string; labelKey: string }[] = [
   { id: 'mindmap.findDuplicates', labelKey: 'mindmap.menuDuplicates' },
   { id: 'mindmap.shortcutHelp', labelKey: 'mindmap.menuShortcuts' },
 ];
+
+function closeOnOutsidePointer(event: PointerEvent): void {
+  if (!(event.target as Element | null)?.closest('.mm-toolbar__more')) isMenuOpen.value = false;
+}
+
+watch(isMenuOpen, (isOpen) => {
+  if (isOpen) document.addEventListener('pointerdown', closeOnOutsidePointer);
+  else document.removeEventListener('pointerdown', closeOnOutsidePointer);
+});
+watch(() => props.mode, () => { isMenuOpen.value = false; });
+onBeforeUnmount(() => document.removeEventListener('pointerdown', closeOnOutsidePointer));
 
 function runAndClose(actionId: string): void {
   isMenuOpen.value = false;

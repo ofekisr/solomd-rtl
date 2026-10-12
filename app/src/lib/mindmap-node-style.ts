@@ -10,10 +10,11 @@ export const NODE_ICONS: readonly string[] = ['⭐', '✅', '❌', '⚠️', '�
 
 export type NodeField = 'color' | 'background' | 'fontSize' | 'bold' | 'branchColor' | 'tags' | 'icons' | 'hyperLink' | 'note';
 export type NodePatchResult = { ok: true; patch: Partial<NodeObj> } | { ok: false; reason: 'invalid' };
-type FieldValue = string | number | boolean | null;
+type FieldValue = string | number | boolean | readonly string[] | null;
 type NodeStyle = NonNullable<NodeObj['style']>;
 
 const ANGLE_BRACKET_PATTERN = /[<>]/g;
+const ANGLE_BRACKET_TEST = /[<>]/;
 const TAG_SEPARATOR = ',';
 const BOLD_WEIGHT = 'bold';
 const CLEARED_STYLE_VALUE = '';
@@ -60,8 +61,8 @@ function branchColorPatch(value: FieldValue): NodePatchResult {
 }
 
 function iconsPatch(value: FieldValue): NodePatchResult {
-  if (typeof value !== 'string') return { ok: true, patch: { icons: undefined } };
-  const icons = value.split(TAG_SEPARATOR).filter((icon) => NODE_ICONS.includes(icon));
+  if (!Array.isArray(value)) return { ok: true, patch: { icons: undefined } };
+  const icons = value.filter((icon): icon is string => typeof icon === 'string' && icon.trim() !== '' && !ANGLE_BRACKET_TEST.test(icon));
   return { ok: true, patch: { icons: icons.length > 0 ? icons : undefined } };
 }
 

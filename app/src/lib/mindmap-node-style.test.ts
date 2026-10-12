@@ -53,3 +53,17 @@ test('toggleIcon adds then removes', () => {
   assert.deepEqual(toggleIcon(undefined, '⭐'), ['⭐']);
   assert.deepEqual(toggleIcon(['⭐', '✅'], '⭐'), ['✅']);
 });
+
+test('icons patch keeps icons outside the grid', () => {
+  assert.deepEqual(buildNodePatch(node, 'icons', ['custom,1', '⭐']), { ok: true, patch: { icons: ['custom,1', '⭐'] } });
+});
+
+test('icons patch drops blank and angle-bracket entries; empty gives undefined', () => {
+  assert.deepEqual(buildNodePatch(node, 'icons', ['', '<x>', '✅']), { ok: true, patch: { icons: ['✅'] } });
+  assert.deepEqual(buildNodePatch(node, 'icons', []), { ok: true, patch: { icons: undefined } });
+});
+
+test('toggleIcon keeps non-grid icons', () => {
+  assert.deepEqual(toggleIcon(['custom', '⭐'], '⭐'), ['custom']);
+  assert.deepEqual(toggleIcon(['custom'], '✅'), ['custom', '✅']);
+});
