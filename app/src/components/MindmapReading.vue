@@ -3,6 +3,7 @@ import { themeFamily } from '../lib/themes';
 import { computed, ref, watch } from 'vue';
 import type { Tab, ViewMode } from '../types';
 import { useSettingsStore } from '../stores/settings';
+import { useTabsStore } from '../stores/tabs';
 import { mmapCodec } from '../lib/mindmap-format';
 import { cellHas, lensCell, resolveTabLens } from '../lib/mindmap-lens';
 import { outlineMarkdownOf } from '../lib/mindmap-outline';
@@ -11,17 +12,18 @@ import { createMapDisplayApplier } from '../composables/useMindmapDisplay';
 import MindmapCanvas from './MindmapCanvas.vue';
 import Preview from './Preview.vue';
 import MindmapSnippets from './MindmapSnippets.vue';
+import MindmapOutlineInvalid from './MindmapOutlineInvalid.vue';
 
 const READING_VIEW: ViewMode = 'reading';
 const props = defineProps<{ tab: Tab }>();
 const settings = useSettingsStore();
+const tabs = useTabsStore();
 const codec = computed(() => mmapCodec(props.tab.fileName));
 const isWideMap = computed(() => cellHas(lensCell(resolveTabLens(props.tab), READING_VIEW), 'wideMap'));
-const outlineMarkdown = computed(() => (isWideMap.value ? '' : outlineMarkdownOf(codec.value.parse(props.tab.content), 'rendered')));
-const readingSnippets = computed(() => {
-  const parsed = codec.value.parse(props.tab.content);
-  return parsed.ok ? parsed.snippets : [];
-});
+const parsedContent = computed(() => codec.value.parse(props.tab.content));
+const outlineError = computed(() => (parsedContent.value.ok ? null : parsedContent.value.error));
+const outlineMarkdown = computed(() => (isWideMap.value ? '' : outlineMarkdownOf(parsedContent.value, 'rendered')));
+const readingSnippets = computed(() => (parsedContent.value.ok ? parsedContent.value.snippets : []));
 const canvas = ref<MindmapCanvasApi | null>(null);
 const displayApplier = createMapDisplayApplier();
 
@@ -31,6 +33,12 @@ function applyDisplay(): void {
 }
 
 watch(() => settings.mindmapDefaults, applyDisplay, { deep: true });
+
+function switchToData(): void {
+  props.tab.mindmapLens = 'data';
+  tabs.persist();
+  settings.setViewMode('edit');
+}
 </script>
 
 <template>
@@ -42,10 +50,12 @@ watch(() => settings.mindmapDefaults, applyDisplay, { deep: true });
       :codec="codec"
       :locked="true"
       :register-active="false"
+      @open-as-text="switchToData"
       @ready="applyDisplay"
     />
     <MindmapSnippets :snippets="readingSnippets" :editable="false" />
   </div>
+  <MindmapOutlineInvalid v-else-if="outlineError !== null" :error="outlineError" @switch-to-data="switchToData" />
   <Preview v-else :source="outlineMarkdown" skin="reading" class="mindmap-reading__outline" />
 </template>
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, useId } from 'vue';
 import { useI18n } from '../i18n';
 import { MAP_THEMES, type MapThemeId } from '../lib/mindmap-themes';
 import { themeFamily } from '../lib/themes';
@@ -10,6 +10,7 @@ const props = defineProps<{ value: MapDisplay; inherited?: MapDisplay; disabled?
 const emit = defineEmits<{ set: [patch: MapDisplay]; clear: [key: keyof MapDisplay] }>();
 const { t } = useI18n();
 const settings = useSettingsStore();
+const themeLabelId = useId();
 const family = computed(() => themeFamily(settings.theme));
 const currentTheme = computed<MapThemeId>(() => props.value.theme ?? props.inherited?.theme ?? 'default');
 
@@ -41,8 +42,8 @@ const resetLabel = (): string => (props.inherited ? t('mindmap.useGlobalDefault'
 <template>
   <fieldset class="mm-fields" :disabled="disabled">
     <div class="mm-fields__group">
-      <span id="mm-theme-label">{{ t('mindmap.fieldTheme') }}</span>
-      <div class="mm-fields__themes" role="radiogroup" aria-labelledby="mm-theme-label">
+      <span :id="themeLabelId">{{ t('mindmap.fieldTheme') }}</span>
+      <div class="mm-fields__themes" role="radiogroup" :aria-labelledby="themeLabelId">
         <button
           v-for="preset in MAP_THEMES"
           :key="preset.id"

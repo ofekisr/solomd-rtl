@@ -29,8 +29,10 @@ import Editor from './Editor.vue';
 import Preview from './Preview.vue';
 import type { Snippet } from '../lib/mindmap-snippets';
 import MindmapSnippets from './MindmapSnippets.vue';
+import MindmapOutlineInvalid from './MindmapOutlineInvalid.vue';
 
 const SOURCE_LANGUAGE = 'json';
+const JSON_PARSE_DEBOUNCE_MS = 250;
 const FLUSH_CONTENT_EVENT = 'solomd:flush-content-sync';
 const TOGGLE_PANEL_ACTION = 'mindmap.togglePanel';
 const props = defineProps<{ tab: Tab }>();
@@ -58,7 +60,21 @@ function partOrder(part: CellPart): number {
 
 const isSplit = computed(() => parts.value.length > 1);
 const isPanelVisible = computed(() => has('map') && settings.mindmapPanelOpen);
-const parsedContent = computed(() => codec.value.parse(props.tab.content));
+const parseSource = ref(props.tab.content);
+let parseTimer: number | null = null;
+
+watch(() => props.tab.content, (content) => {
+  if (parseTimer !== null) window.clearTimeout(parseTimer);
+  parseTimer = null;
+  if (!has('json')) {
+    parseSource.value = content;
+    return;
+  }
+  parseTimer = window.setTimeout(() => { parseSource.value = content; }, JSON_PARSE_DEBOUNCE_MS);
+});
+
+const parsedContent = computed(() => codec.value.parse(parseSource.value));
+const outlineError = computed(() => (parsedContent.value.ok ? null : parsedContent.value.error));
 const outlineText = computed(() => (has('outlineText') ? outlineMarkdownOf(parsedContent.value, 'source') : ''));
 const outlinePreview = computed(() => (has('outlinePreview') ? outlineMarkdownOf(parsedContent.value, 'rendered') : ''));
 const lastValidContent = ref('');
@@ -82,7 +98,7 @@ const mapContent = computed(() => (has('json') ? lastValidContent.value : props.
 
 watch(parsedContent, (parsed) => {
   if (!parsed.ok) return;
-  lastValidContent.value = props.tab.content;
+  lastValidContent.value = parseSource.value;
   sourceError.value = null;
 }, { immediate: true });
 watch(() => has('map'), (hasMap) => { if (!hasMap) selected.value = []; });
@@ -101,6 +117,7 @@ function leaveJsonAllowed(): boolean {
 
 function leaveCellAllowed(nextParts: readonly CellPart[]): boolean {
   canvas.value?.flush();
+  parseSource.value = props.tab.content;
   if (!has('json') || cellHas(nextParts, 'json')) return true;
   window.dispatchEvent(new Event(FLUSH_CONTENT_EVENT));
   return leaveJsonAllowed();
@@ -240,6 +257,7 @@ onMounted(() => {
   activate();
 });
 onBeforeUnmount(() => {
+  if (parseTimer !== null) window.clearTimeout(parseTimer);
   removeViewGuard?.();
   clearActiveMindmap(handle);
 });
@@ -283,8 +301,14 @@ defineExpose({ setLens, canvas, lens });
           />
           <MindmapSnippets :snippets="snippets" :editable="canEditSnippets" @change="setSnippets" />
         </div>
-        <MindmapOutlineText v-if="has('outlineText')" :markdown="outlineText" :style="{ order: partOrder('outlineText') }" />
-        <Preview v-if="has('outlinePreview')" :source="outlinePreview" class="mindmap-shell__outline" :style="{ order: partOrder('outlinePreview') }" />
+        <template v-if="has('outlineText')">
+          <MindmapOutlineInvalid v-if="outlineError !== null" :error="outlineError" :style="{ order: partOrder('outlineText') }" @switch-to-data="openAsText" />
+          <MindmapOutlineText v-else :markdown="outlineText" :style="{ order: partOrder('outlineText') }" />
+        </template>
+        <template v-if="has('outlinePreview')">
+          <MindmapOutlineInvalid v-if="outlineError !== null" :error="outlineError" :style="{ order: partOrder('outlinePreview') }" @switch-to-data="openAsText" />
+          <Preview v-else :source="outlinePreview" class="mindmap-shell__outline" :style="{ order: partOrder('outlinePreview') }" />
+        </template>
       </div>
       <MindmapSidePanel v-if="isPanelVisible" :has-single-node="singleNode !== null">
         <template #node>

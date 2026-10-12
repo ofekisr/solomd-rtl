@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
 import type { Snippet, SnippetKind } from '../lib/mindmap-snippets';
 import { snippetPreviewSource } from '../lib/mindmap-snippets';
 import { useI18n } from '../i18n';
@@ -24,19 +24,29 @@ function onInput(field: 'title' | 'body', e: Event): void {
   patch({ [field]: (e.target as HTMLInputElement | HTMLTextAreaElement).value });
 }
 
+function clearConfirmTimer(): void {
+  if (confirmTimer === null) return;
+  window.clearTimeout(confirmTimer);
+  confirmTimer = null;
+}
+
 function requestDelete(): void {
   if (isConfirmingDelete.value) {
     emit('remove');
     return;
   }
   isConfirmingDelete.value = true;
+  clearConfirmTimer();
   confirmTimer = window.setTimeout(() => { isConfirmingDelete.value = false; }, CONFIRM_WINDOW_MS);
 }
 
 function stopEditing(): void {
   isEditing.value = false;
-  if (confirmTimer !== null) window.clearTimeout(confirmTimer);
+  isConfirmingDelete.value = false;
+  clearConfirmTimer();
 }
+
+onBeforeUnmount(clearConfirmTimer);
 </script>
 
 <template>

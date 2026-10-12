@@ -628,8 +628,8 @@ defineExpose({
       <div ref="host" class="mindmap-view__canvas" />
     </template>
     <div class="mindmap-view__status">
-      <button v-if="duplicateCount > 0 && !locked" type="button" class="mindmap-view__chip" @click="findDuplicates">
-        {{ t('mindmap.duplicatesChip', { count: duplicateCount }) }}
+      <button v-if="duplicateCount > 0 && !locked && !isReadOnly && !isGraphView" type="button" class="mindmap-view__chip" @click="findDuplicates">
+        {{ duplicateCount === 1 ? t('mindmap.duplicatesChipOne') : t('mindmap.duplicatesChip', { count: duplicateCount }) }}
       </button>
       <span v-if="isGraphView" class="mindmap-view__badge">{{ t('mindmap.graphViewBadge') }}</span>
       <span v-if="isReadOnly" class="mindmap-view__badge">{{ t('mindmap.readOnlyBadge') }}</span>
