@@ -11,11 +11,16 @@ const UNSAFE_PATH = [/^[\\/]/, /\\/, /^[A-Za-z]:/, /^[a-z][\w+.-]*:/i, /\0/];
 const DOT_SEGMENTS = new Set(['.', '..']);
 const SEPARATOR = '/';
 const BACKSLASH = /\\/g;
+const MARKDOWN_EXTENSION = /\.(?:md|markdown)$/i;
 const TRAILING_SLASHES = /\/+$/;
 
 export function isSafeSourcePath(path: string): boolean {
   if (path === '' || UNSAFE_PATH.some((p) => p.test(path))) return false;
   return !path.split(SEPARATOR).some((segment) => DOT_SEGMENTS.has(segment));
+}
+
+export function isMarkdownSourcePath(path: string): boolean {
+  return MARKDOWN_EXTENSION.test(path);
 }
 
 export function normalizeSeparators(path: string): string {

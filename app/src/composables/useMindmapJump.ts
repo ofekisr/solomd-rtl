@@ -5,7 +5,7 @@ import { useTilesStore } from '../stores/tiles';
 import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useFiles } from './useFiles';
-import { normalizeSeparators, resolveSourcePath, type MindmapSource } from '../lib/mindmap-source';
+import { isMarkdownSourcePath, normalizeSeparators, resolveSourcePath, type MindmapSource } from '../lib/mindmap-source';
 
 const GOTO_EVENT = 'solomd:outline-goto';
 
@@ -27,7 +27,7 @@ export function useMindmapJump() {
 
   async function jumpToPath(path: string, line: number): Promise<void> {
     const root = workspace.currentFolder;
-    if (!root) return warnUnavailable();
+    if (!root || !isMarkdownSourcePath(path)) return warnUnavailable();
     const abs = resolveSourcePath(root, path);
     await files.openPath(abs, { bypassNewWindow: true, revealInTree: false });
     await nextTick();

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { MindElixirData } from 'mind-elixir';
-import { fenceNodeSource, isSafeSourcePath, plaintextNodeLines, preorderIds, readNodeSource, resolveSourcePath, toWorkspaceRelative } from './mindmap-source.ts';
+import { fenceNodeSource, isMarkdownSourcePath, isSafeSourcePath, plaintextNodeLines, preorderIds, readNodeSource, resolveSourcePath, toWorkspaceRelative } from './mindmap-source.ts';
 import { parseMindmapFence } from './mindmap-fence.ts';
 
 const BODY = ['- Root', '  - Alpha [^a1]', '    - Child', '  - Beta', '    - B1', '    - B2', '    - }Sum', '  - Gamma [^b9]', '- > [^a1] <-lbl-> [^b9]'].join('\n');
@@ -50,4 +50,11 @@ test('toWorkspaceRelative and resolveSourcePath round-trip', () => {
   assert.equal(toWorkspaceRelative('/other/a.md', '/ws'), undefined);
   assert.equal(toWorkspaceRelative('C:\\ws\\a.md', 'C:\\ws'), 'a.md');
   assert.equal(resolveSourcePath('/ws/', 'notes/a.md'), '/ws/notes/a.md');
+});
+
+test('markdown source paths are detected by extension', () => {
+  assert.ok(isMarkdownSourcePath('a/b.md'));
+  assert.ok(isMarkdownSourcePath('A.MARKDOWN'));
+  assert.ok(!isMarkdownSourcePath('a/b.txt'));
+  assert.ok(!isMarkdownSourcePath('a/b.mmap'));
 });
