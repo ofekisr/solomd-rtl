@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  interceptedBindings, HOTKEY_INTERCEPTIONS, activeKeyActions, resolveBindings, conflictFor, eventToCombo, MINDMAP_BUILTIN_OWNER,
+  interceptedBindings, HOTKEY_INTERCEPTIONS, KEY_ACTIONS, activeKeyActions, resolveBindings, conflictFor, eventToCombo, MINDMAP_BUILTIN_OWNER,
 } from './keybindings.ts';
 
 test('the AMD/IME clashes are only reported on Windows', () => {
@@ -65,7 +65,8 @@ function keyEvent(init: Partial<KeyboardEvent>): KeyboardEvent {
 
 test('mindmap actions never reach the global dispatcher', () => {
   const global = resolveBindings({});
-  for (const id of global.values()) assert.ok(!id.startsWith('mindmap.'), id);
+  const mindmapCategoryIds = new Set(KEY_ACTIONS.filter((a) => a.category === 'mindmap').map((a) => a.id));
+  for (const id of global.values()) assert.ok(!mindmapCategoryIds.has(id), id);
 });
 
 test('mindmap scope resolves its own defaults', () => {

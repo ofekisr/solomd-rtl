@@ -5,6 +5,7 @@ import Preview from './Preview.vue';
 import { useSettingsStore } from '../stores/settings';
 import { useTilesStore } from '../stores/tiles';
 import type { Tab } from '../types';
+import { MINDMAP_CONVERT_EVENT, useMindmapConvert, type LineSelection, type MindmapConvertDetail } from '../composables/useMindmapConvert';
 import { isWindowsEditorRuntime, shouldUsePlainWindowsEditor } from '../lib/platform';
 
 const props = defineProps<{
@@ -320,6 +321,7 @@ onMounted(() => {
   setTimeout(bindScrollSync, 300);
   window.addEventListener('solomd:outline-goto', onOutlineGotoEvent);
   window.addEventListener('solomd:insert-markdown', onInsertMarkdownEvent);
+  window.addEventListener(MINDMAP_CONVERT_EVENT, onMindmapConvertEvent);
   window.addEventListener('solomd:insert-image-path', onInsertImagePathEvent);
   window.addEventListener('solomd:insert-image-url', onInsertImageUrlEvent);
   window.addEventListener('solomd:upload-local-images', onUploadLocalImagesEvent);
@@ -335,6 +337,7 @@ onBeforeUnmount(() => {
   syncPreviewScroll?.();
   window.removeEventListener('solomd:outline-goto', onOutlineGotoEvent);
   window.removeEventListener('solomd:insert-markdown', onInsertMarkdownEvent);
+  window.removeEventListener(MINDMAP_CONVERT_EVENT, onMindmapConvertEvent);
   window.removeEventListener('solomd:insert-image-path', onInsertImagePathEvent);
   window.removeEventListener('solomd:insert-image-url', onInsertImageUrlEvent);
   window.removeEventListener('solomd:upload-local-images', onUploadLocalImagesEvent);
@@ -360,6 +363,16 @@ function onOutlineGotoEvent(e: Event) {
   const { line, paneId } = (e as CustomEvent).detail;
   if (paneId !== props.paneId) return;
   gotoLine(line);
+}
+
+const mindmapConvert = useMindmapConvert();
+
+function onMindmapConvertEvent(e: Event) {
+  const { scope, output, paneId } = (e as CustomEvent<MindmapConvertDetail>).detail;
+  if (paneId !== props.paneId) return;
+  if (!props.tab) return;
+  const ed = editorRef.value as unknown as { getLineSelection?: () => LineSelection | null } | null;
+  mindmapConvert.convert(props.tab, scope, output, ed?.getLineSelection?.() ?? null);
 }
 
 function onInsertMarkdownEvent(e: Event) {

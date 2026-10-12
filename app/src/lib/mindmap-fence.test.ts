@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  findMindmapFences, isMindmapFenceInfo, MAX_MINDMAP_FENCE_CHARS, MINDMAP_FENCE_ROOT_TOPIC,
+  buildMindmapFence, insertBlockAfterLine, findMindmapFences, isMindmapFenceInfo, MAX_MINDMAP_FENCE_CHARS, MINDMAP_FENCE_ROOT_TOPIC,
   parseMindmapFence, replaceMindmapFence, serializeMindmapFence,
 } from './mindmap-fence.ts';
 
@@ -107,4 +107,14 @@ test('gate lines round-trip through the fence codec', () => {
   assert.ok(parsed.ok);
   if (!parsed.ok) return;
   assert.equal(serializeMindmapFence(parsed.data), '- Root\n  - Alpha [^a1]\n  - => a1');
+});
+
+test('insertBlockAfterLine keeps one blank line around the block', () => {
+  assert.equal(insertBlockAfterLine('a\nb\n\nc', 2, 'X'), 'a\nb\n\nX\n\nc');
+  assert.equal(insertBlockAfterLine('a', 5, 'X'), 'a\n\nX\n');
+});
+
+test('buildMindmapFence wraps the serialized body', () => {
+  const fence = buildMindmapFence({ nodeData: { id: 'root', topic: 'R', children: [{ id: 'n1', topic: 'A' }] } });
+  assert.match(fence, /^```mindmap\n[\s\S]*- A[\s\S]*\n```$/);
 });

@@ -9,6 +9,7 @@ import { isMacOS, isMobile } from '../lib/platform';
 import { useTabsStore } from '../stores/tabs';
 import { useTilesStore } from '../stores/tiles';
 import { useExport } from './useExport';
+import { MINDMAP_CONVERT_ACTIONS, MINDMAP_CONVERT_EVENT, type MindmapConvertDetail } from './useMindmapConvert';
 import { useToastsStore } from '../stores/toasts';
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { openNewWindow } from '../lib/new-window';
@@ -153,11 +154,22 @@ export function useCommands(): Command[] {
   }
 
   const MINDMAP_CATEGORY = 'mindmap';
+  const MINDMAP_ID_PREFIX = 'mindmap.';
   const mindmapCommands: Command[] = KEY_ACTIONS.filter((a) => a.category === MINDMAP_CATEGORY).map((a) => ({
     id: a.id,
     title: a.label,
     shortcut: kb(a.id),
     run: () => { if (!runActiveMindmapAction(a.id)) toasts.info(t('mindmap.noActiveMap')); },
+  }));
+
+  const mindmapConvertCommands: Command[] = Object.entries(MINDMAP_CONVERT_ACTIONS).map(([id, { scope, output }]) => ({
+    id,
+    title: t(`cmd.mindmap.${id.slice(MINDMAP_ID_PREFIX.length)}`),
+    shortcut: kb(id),
+    run: () => {
+      const detail: MindmapConvertDetail = { scope, output, paneId: tiles.focusedPaneId };
+      window.dispatchEvent(new CustomEvent(MINDMAP_CONVERT_EVENT, { detail }));
+    },
   }));
 
   const all: Command[] = [
@@ -764,7 +776,7 @@ export function useCommands(): Command[] {
   const built = IS_APP_STORE_BUILD
     ? all.filter((c) => c.id !== 'view.toggleAgentPanel')
     : all;
-  built.push(...mindmapCommands);
+  built.push(...mindmapCommands, ...mindmapConvertCommands);
 
   // #230 — Android has no libgit2, so every `history.*` / `sync.*` entry would
   // resolve to a `Command … not found`. Keep them out of the palette entirely

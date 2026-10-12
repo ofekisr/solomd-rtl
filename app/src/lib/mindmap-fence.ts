@@ -44,6 +44,23 @@ export function serializeMindmapFence(data: MindElixirData): string {
   return normalizeFenceBody(mindElixirToPlaintext(gatesToTopics(sanitizeMindmapData(data))));
 }
 
+const FENCE_MARKER = '```';
+const BLANK_LINE_PATTERN = /^\s*$/;
+
+export function buildMindmapFence(data: MindElixirData): string {
+  return [FENCE_MARKER + MINDMAP_FENCE_LANG, serializeMindmapFence(data), FENCE_MARKER].join(NEWLINE);
+}
+
+export function insertBlockAfterLine(source: string, line: number, block: string): string {
+  const lines = source.split(NEWLINE);
+  const head = lines.slice(0, line);
+  const tail = lines.slice(line);
+  while (head.length > 0 && BLANK_LINE_PATTERN.test(head[head.length - 1])) head.pop();
+  while (tail.length > 0 && BLANK_LINE_PATTERN.test(tail[0])) tail.shift();
+  const tailText = tail.join(NEWLINE);
+  return head.join(NEWLINE) + NEWLINE + NEWLINE + block + NEWLINE + (tailText ? NEWLINE + tailText : '');
+}
+
 export const mindmapFenceCodec: MindmapCodec = { parse: parseMindmapFence, serialize: serializeMindmapFence };
 
 function locate(fences: MindmapFence[], target: MindmapFenceTarget): MindmapFence | null {

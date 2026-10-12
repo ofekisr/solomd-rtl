@@ -4031,6 +4031,20 @@ function parseFrontMatterImageRoot(source: string): string | undefined {
 }
 
 /** Returns the 1-indexed line currently at the top of the visible viewport. */
+function getLineSelection(): { fromLine: number; toLine: number; headLine: number; isEmpty: boolean } | null {
+  if (usePlainWindowsEditor || !view) return null;
+  const { doc, selection } = view.state;
+  const main = selection.main;
+  const toLine = doc.lineAt(main.to);
+  const endsAtLineStart = !main.empty && main.to === toLine.from && toLine.number > 1;
+  return {
+    fromLine: doc.lineAt(main.from).number,
+    toLine: endsAtLineStart ? toLine.number - 1 : toLine.number,
+    headLine: doc.lineAt(main.head).number,
+    isEmpty: main.empty,
+  };
+}
+
 function getViewLine(): number | null {
   if (usePlainWindowsEditor) {
     if (plainLiveEnabled.value) {
@@ -4143,7 +4157,7 @@ function insertMarkdown(snippet: string): void {
   view.focus();
 }
 
-defineExpose({ gotoLine, insertImageFromPath, insertImageUrl, uploadLocalImages, getViewLine, scrollToLine, lineTopY, insertMarkdown, openFind, applyFold, openTableAtCursor, openFormulaAtCursor });
+defineExpose({ getLineSelection, gotoLine, insertImageFromPath, insertImageUrl, uploadLocalImages, getViewLine, scrollToLine, lineTopY, insertMarkdown, openFind, applyFold, openTableAtCursor, openFormulaAtCursor });
 
 const cls = computed(() => ({
   'cm-host': true,

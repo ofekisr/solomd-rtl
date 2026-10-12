@@ -1353,6 +1353,11 @@ export const en = {
     },
   },
   mindmap: {
+    convertMarkdownOnly: 'Convert works on markdown documents',
+    convertNoSection: 'Place the cursor under a heading',
+    convertEmptySelection: 'Select some text first',
+    convertNeedsEditor: 'Section and selection need the rich editor',
+    convertDone: 'Mind map inserted',
     sourceUnavailable: 'Source document is not available',
     parseError: 'This mindmap file could not be read.',
     openAsText: 'Open as text',
@@ -1837,6 +1842,13 @@ export const en = {
     formatChange: "Change shortcuts",
   },
   cmd: {
+    mindmap: {
+      convertDocument: 'Mindmap: Convert Document to Map',
+      convertSection: 'Mindmap: Convert Section to Map',
+      convertSelection: 'Mindmap: Convert Selection to Map',
+      insertFenceFromSection: 'Mindmap: Insert Map Fence from Section',
+      insertFenceFromSelection: 'Mindmap: Insert Map Fence from Selection',
+    },
     fmt: {
       bold: "Bold",
       italic: "Italic",
@@ -2049,7 +2061,10 @@ type DirectiveCompletionFallbackKey =
 type EnglishDictionary = typeof en;
 type EnglishSettings = EnglishDictionary['settings'];
 
-export type I18n = Omit<EnglishDictionary, 'settings' | 'mindmap'> & {
+type EnglishCmd = EnglishDictionary['cmd'];
+
+export type I18n = Omit<EnglishDictionary, 'settings' | 'mindmap' | 'cmd'> & {
+  cmd: Omit<EnglishCmd, 'mindmap'> & { mindmap?: EnglishCmd['mindmap'] };
   settings: Omit<EnglishSettings, DirectiveCompletionFallbackKey> &
     Partial<Pick<EnglishSettings, DirectiveCompletionFallbackKey>>;
   mindmap?: EnglishDictionary['mindmap'];
