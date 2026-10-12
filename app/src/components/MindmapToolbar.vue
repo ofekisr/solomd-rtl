@@ -5,7 +5,7 @@ import { MINDMAP_LENSES, type MindmapLens } from '../lib/mindmap-lens';
 
 type MenuId = 'export' | 'more';
 
-const props = defineProps<{ lens: MindmapLens; hasMap: boolean; isPanelOpen: boolean; isReadOnly: boolean; isGraphView: boolean }>();
+const props = defineProps<{ lens: MindmapLens; hasMap: boolean; isPanelOpen: boolean; isReadOnly: boolean; isGraphView: boolean; isLocked: boolean }>();
 const emit = defineEmits<{ 'set-lens': [lens: MindmapLens]; run: [actionId: string]; 'toggle-panel': [] }>();
 const { t } = useI18n();
 const openMenu = ref<MenuId | null>(null);
@@ -56,8 +56,8 @@ function runAndClose(actionId: string): void {
         {{ t(LENS_LABEL_KEYS[l]) }}
       </button>
     </div>
-    <button type="button" :title="t('mindmap.toolbarUndo')" :aria-label="t('mindmap.toolbarUndo')" :disabled="!hasMap || isReadOnly || isGraphView" @click="emit('run', 'mindmap.undo')">↶</button>
-    <button type="button" :title="t('mindmap.toolbarRedo')" :aria-label="t('mindmap.toolbarRedo')" :disabled="!hasMap || isReadOnly || isGraphView" @click="emit('run', 'mindmap.redo')">↷</button>
+    <button type="button" :title="t('mindmap.toolbarUndo')" :aria-label="t('mindmap.toolbarUndo')" :disabled="!hasMap || isLocked || isReadOnly || isGraphView" @click="emit('run', 'mindmap.undo')">↶</button>
+    <button type="button" :title="t('mindmap.toolbarRedo')" :aria-label="t('mindmap.toolbarRedo')" :disabled="!hasMap || isLocked || isReadOnly || isGraphView" @click="emit('run', 'mindmap.redo')">↷</button>
     <span class="mm-toolbar__sep" aria-hidden="true" />
     <div class="mm-toolbar__split mm-toolbar__menu-host">
       <button type="button" :title="t('mindmap.toolbarExportPng')" :aria-label="t('mindmap.toolbarExportPng')" :disabled="!hasMap" @click="emit('run', PRIMARY_EXPORT)">⬇</button>
@@ -66,8 +66,8 @@ function runAndClose(actionId: string): void {
         <button v-for="item in EXPORT_ITEMS" :key="item.id" type="button" role="menuitem" @click="runAndClose(item.id)">{{ item.label }}</button>
       </div>
     </div>
-    <button type="button" :title="t('mindmap.toolbarGraph')" :aria-label="t('mindmap.toolbarGraph')" :aria-pressed="isGraphView" :disabled="!hasMap" @click="emit('run', 'mindmap.toggleGraphView')">⇄</button>
-    <button type="button" :title="t('mindmap.toolbarReadOnly')" :aria-label="t('mindmap.toolbarReadOnly')" :aria-pressed="isReadOnly" :disabled="!hasMap" @click="emit('run', 'mindmap.toggleReadOnly')">🔒</button>
+    <button type="button" :title="t('mindmap.toolbarGraph')" :aria-label="t('mindmap.toolbarGraph')" :aria-pressed="isGraphView" :disabled="!hasMap || isLocked" @click="emit('run', 'mindmap.toggleGraphView')">⇄</button>
+    <button type="button" :title="t('mindmap.toolbarReadOnly')" :aria-label="t('mindmap.toolbarReadOnly')" :aria-pressed="isReadOnly" :disabled="!hasMap || isLocked" @click="emit('run', 'mindmap.toggleReadOnly')">🔒</button>
     <button type="button" :title="t('mindmap.toolbarPanel')" :aria-label="t('mindmap.toolbarPanel')" :aria-pressed="isPanelOpen" :disabled="!hasMap" @click="emit('toggle-panel')">▤</button>
     <div class="mm-toolbar__more mm-toolbar__menu-host">
       <button type="button" :title="t('mindmap.toolbarMore')" :aria-label="t('mindmap.toolbarMore')" aria-haspopup="menu" :aria-expanded="openMenu === 'more'" :disabled="!hasMap" @click="toggleMenu('more')">⋯</button>

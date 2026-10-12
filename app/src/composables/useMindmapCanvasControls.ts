@@ -18,9 +18,9 @@ function controlElement(control: CanvasControl): HTMLElement {
   el.textContent = control.glyph;
   el.addEventListener('click', control.run);
   el.addEventListener('keydown', (event) => {
+    event.stopPropagation();
     if (!ACTIVATION_KEYS.includes(event.key)) return;
     event.preventDefault();
-    event.stopPropagation();
     control.run();
   });
   return el;

@@ -165,6 +165,7 @@ function mount(): void {
   mind.bus.addListener(UNSELECT_EVENT, emitSelection);
   syncAfterHistoryJumps(mind);
   sanitizeCopiedNodes(mind);
+  guardRemovedNodes(mind);
   activate();
   emit('ready');
 }
@@ -215,6 +216,14 @@ function sanitizeCopiedNodes(instance: MindElixirInstance): void {
   };
 }
 
+function guardRemovedNodes(instance: MindElixirInstance): void {
+  const { removeNodes } = instance;
+  instance.removeNodes = (tpcs) => {
+    if (isEditBlocked() || isGraphView.value) return Promise.resolve();
+    return removeNodes.call(instance, tpcs);
+  };
+}
+
 function flushPendingSync(): void {
   if (syncTimer !== null) syncNow();
 }
@@ -227,6 +236,7 @@ function teardown(): void {
   if (duplicateTimer !== null) window.clearTimeout(duplicateTimer);
   duplicateTimer = null;
   resetGraphView();
+  duplicateCount.value = 0;
   mind?.destroy();
   mind = null;
 }
