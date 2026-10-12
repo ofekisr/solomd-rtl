@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Mindmap tabs use the global view buttons (Edit · Split · Live edit · Preview · Reading) through a per-tab Data · Map · Doc lens. The phase also adds a Settings → 🧠 Mindmap category, 5 map themes, toolbar icons, and canvas controls.
+**Goal:** Mindmap tabs use the global view buttons (Edit · Split · Live edit · Preview · Reading) through a per-tab Data · Map · Doc lens. The phase also adds a Settings → 🧠 Mindmap category, 5 map themes, toolbar icons, canvas controls, and a fix so paste cannot change a read-only map.
 
 **Architecture:** Pure logic lives in focused `src/lib` modules, each unit-tested with `node:test`:
 - `mindmap-lens.ts`: lens state, the 15-cell matrix, command ids, keybinding migration.
@@ -69,6 +69,7 @@
 | `app/src/components/MindmapMapFields.vue` | Theme picker | 7 |
 | `app/src/components/SettingsPanel.vue` | 🧠 Mindmap category | 8 |
 | `app/src/composables/useMindmapCanvasControls.ts` | Create | 10 |
+| `app/src/components/MindmapCanvas.vue` (paste, sync) | Read-only paste fix (spec §6) | 11 |
 | `app/src/i18n/en.ts` | New strings | 1, 3, 4, 7, 8, 9, 10 |
 
 ---
@@ -1903,7 +1904,67 @@ git commit -m "feat(mindmap): Fit/Root canvas controls and duplicates chip"
 
 ---
 
-### Task 11: Verification, docs, bump
+### Task 11: Read-only paste fix
+
+Spec §6. Bug on `main`: Mind Elixir's container `paste` listener (`MindElixir.js` ~line 1016) calls `instance.copyNodes(...)` without checking `editable`. With a node selected, Cmd+V inserts the copied nodes into a read-only map. `scheduleSync` does not check the read-only toggle, so the change can reach the file.
+
+**Files:**
+- Modify: `app/src/components/MindmapCanvas.vue` (`sanitizeCopiedNodes`, `scheduleSync`)
+
+**Interfaces:**
+- Consumes: `isEditBlocked(): boolean` (`isReadOnly.value || props.locked`, added in Task 3), `isGraphView` ref.
+- Produces: nothing new.
+
+- [ ] **Step 1: Block paste while edit is blocked**
+
+In `sanitizeCopiedNodes`, make the wrapper a no-op while editing is blocked:
+
+```ts
+function sanitizeCopiedNodes(instance: MindElixirInstance): void {
+  const { copyNodes } = instance;
+  instance.copyNodes = (tpcs, to) => {
+    if (isEditBlocked() || isGraphView.value) return;
+    const safe = tpcs.map(sanitizedTopic).filter((tpc): tpc is Topic => tpc !== null);
+    return copyNodes.call(instance, safe, to);
+  };
+}
+```
+
+If `vue-tsc` reports that the bare `return;` does not match `copyNodes`'s return type, check the type in `node_modules/mind-elixir/dist/types/` and return the matching empty value.
+
+- [ ] **Step 2: Skip sync while read-only**
+
+```ts
+function scheduleSync(): void {
+  if (isReadOnly.value) return;
+  if (syncTimer !== null) window.clearTimeout(syncTimer);
+  syncTimer = window.setTimeout(syncNow, SYNC_DEBOUNCE_MS);
+}
+```
+
+`syncNow` already returns early while `props.locked`, so the two guards together cover both states. One side effect: collapsing a node while read-only no longer writes the expanded state to the file. A read-only map must not change the file, so this is intended.
+
+- [ ] **Step 3: Build**
+
+Run: `cd app && pnpm build` → success.
+
+- [ ] **Step 4: Browser verification**
+
+1. Read-only on: copy a node (Cmd+C), select another node, press Cmd+V. No node is added and the tab is not dirty.
+2. Locked (Data · Split with invalid JSON): the same paste adds no node, and the JSON text is unchanged.
+3. Graph view: paste adds no node.
+4. Read-only off: paste adds the node, and the file updates after the debounce.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add app/src/components/MindmapCanvas.vue
+git commit -m "fix(mindmap): paste cannot change a read-only or locked map"
+```
+
+---
+
+### Task 12: Verification, docs, bump
 
 **Files:**
 - Modify: `docs/superpowers/specs/2026-10-12-mindmap-phase8-lens-design.md` (Status), `docs/superpowers/specs/2026-10-11-mindmap-design.md` (Phase 8 row), `docs/superpowers/plans/2026-10-12-mindmap-desktop-checklist.md`, `app/package.json`, `app/src-tauri/Cargo.toml`, `app/src-tauri/tauri.conf.json`
@@ -1936,6 +1997,7 @@ Expected hits, and nothing else:
    - Settings → Mindmap.
    - Export split button through native save dialogs.
    - Fit/Root controls and the duplicates chip.
+   - Cmd+V on a read-only map adds nothing.
 
 - [ ] **Step 5: Bump the patch version**
 
