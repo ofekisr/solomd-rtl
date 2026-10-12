@@ -37,6 +37,9 @@ export interface Tab {
   /** Source path of an imported file (e.g. `.xmind`). The tab has no
    *  `filePath`, so saving always goes through Save As. */
   importedFrom?: string;
+  /** Mindmap tabs only: which renderer shows the file. Read through
+   *  `normalizeMindmapMode`; older sessions have no value. */
+  mindmapMode?: 'map' | 'source' | 'outline';
 }
 
 export interface FileReadResult {
