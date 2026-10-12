@@ -17,6 +17,9 @@ import { clearActiveMindmap, setActiveMindmap, type MindmapHandle } from '../lib
 import { createGateController, type GateMenuAction, type GateNotice } from '../lib/mindmap-gate-controller';
 import { useMindmapCanvasActions } from '../composables/useMindmapCanvasActions';
 import MindmapShortcutHelp from './MindmapShortcutHelp.vue';
+import MindmapDuplicates from './MindmapDuplicates.vue';
+import { findDuplicateGroups, mergeIntoGate, type DuplicateGroup } from '../lib/mindmap-duplicates';
+import { findNode } from '../lib/mindmap-gates';
 
 const SYNC_DEBOUNCE_MS = 300;
 const TOPIC_EDITOR_ID = 'input-box';
@@ -224,12 +227,33 @@ const gates = createGateController({
   onChange: scheduleSync,
 }, gateMenuLabels());
 
+const duplicateGroups = ref<DuplicateGroup[] | null>(null);
+
+function findDuplicates(): void {
+  if (mind) duplicateGroups.value = findDuplicateGroups(mind.nodeData);
+}
+
+function topicOf(id: string): string {
+  return (mind && findNode(mind.nodeData, id)?.topic) ?? '';
+}
+
+function mergeDuplicate(keepId: string, dupId: string): void {
+  if (!mind || isReadOnly.value) return;
+  const merged = mergeIntoGate(mind.getData(), keepId, dupId);
+  if (!merged) return;
+  mind.refresh(merged);
+  gates.syncLabels();
+  scheduleSync();
+  findDuplicates();
+}
+
 const actions: Record<string, () => void> = {
   [TOGGLE_NODE_ACTION]: toggleCurrentNode,
   'mindmap.fit': () => mind?.scaleFit(),
   'mindmap.focusRoot': selectRoot,
   'mindmap.shortcutHelp': () => { isHelpOpen.value = true; },
   'mindmap.jumpToSource': jumpToSource,
+  'mindmap.findDuplicates': findDuplicates,
   ...canvasActions,
   ...gates.actions,
 };
@@ -317,6 +341,7 @@ defineExpose({ flush: flushPendingSync });
     </div>
     <div v-else ref="host" class="mindmap-view__canvas" />
     <span v-if="isReadOnly" class="mindmap-view__badge">{{ t('mindmap.readOnlyBadge') }}</span>
+    <MindmapDuplicates v-if="duplicateGroups" :groups="duplicateGroups" :topic-of="topicOf" @merge="mergeDuplicate" @close="duplicateGroups = null" />
     <MindmapShortcutHelp v-if="isHelpOpen" @close="isHelpOpen = false" />
   </div>
 </template>

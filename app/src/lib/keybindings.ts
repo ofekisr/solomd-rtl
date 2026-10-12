@@ -197,6 +197,7 @@ export const KEY_ACTIONS: KeyActionDef[] = [
   { id: 'mindmap.gateBack', label: 'Mindmap: Back from Gate', category: 'mindmap', scope: 'mindmap', defaults: ['Alt+ArrowLeft'] },
   { id: 'mindmap.repairGate', label: 'Mindmap: Repair Gate to Marked Node', category: 'mindmap', scope: 'mindmap', defaults: [] },
   { id: 'mindmap.removeGate', label: 'Mindmap: Remove Gate', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.findDuplicates', label: 'Mindmap: Find Duplicates', category: 'mindmap', scope: 'mindmap', defaults: [] },
 ];
 
 /** Keys whose `event.key` is punctuation — spelled by code for stability. */
