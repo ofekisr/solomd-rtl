@@ -21,8 +21,8 @@ function fnv1a(text: string): string {
 
 function canonical(node: NodeObj): string {
   const gate = readGate(node);
-  if (gate) return `=>${gate.target || gate.missingRef || ''}`;
-  return `${normalizeTopic(node.topic)}(${(node.children ?? []).map(canonical).join(',')})`;
+  if (gate) return JSON.stringify(['=>', gate.target || gate.missingRef || '']);
+  return JSON.stringify([normalizeTopic(node.topic), (node.children ?? []).map(canonical)]);
 }
 
 export function subtreeHash(node: NodeObj): string {
@@ -51,9 +51,17 @@ function parentOf(root: NodeObj, id: string): NodeObj | null {
 }
 
 function unionChildren(keep: NodeObj, dup: NodeObj): void {
-  const known = new Set((keep.children ?? []).map(subtreeHash));
-  const extra = (dup.children ?? []).filter((c) => !known.has(subtreeHash(c)));
+  const known = new Set((keep.children ?? []).map(canonical));
+  const extra = (dup.children ?? []).filter((c) => !known.has(canonical(c)));
   if (extra.length > 0) keep.children = [...(keep.children ?? []), ...extra];
+}
+
+function retargetGates(root: NodeObj, fromId: string, toId: string): void {
+  for (const node of walkNodes(root)) {
+    const gate = readGate(node);
+    if (gate?.target !== fromId) continue;
+    node.metadata = { ...(node.metadata as Record<string, unknown>), gate: { ...gate, target: toId } };
+  }
 }
 
 function pruneLinks(data: MindElixirData, dupId: string): void {
@@ -70,6 +78,7 @@ export function mergeIntoGate(data: MindElixirData, keepId: string, dupId: strin
   const parent = parentOf(copy.nodeData, dupId)!;
   unionChildren(keep, dup);
   parent.children = parent.children!.map((c) => (c.id === dupId ? makeGateNode(dupId, keep) : c));
+  retargetGates(copy.nodeData, dupId, keepId);
   pruneLinks(copy, dupId);
   return copy;
 }

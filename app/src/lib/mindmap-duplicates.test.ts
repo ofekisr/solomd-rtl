@@ -49,3 +49,21 @@ test('merge drops summaries anchored on the duplicate', () => {
   const merged = mergeIntoGate(withSummary, 'k', 'd');
   assert.deepEqual(merged!.summaries!.map((s) => s.id), ['s2']);
 });
+
+test('gates that pointed at the duplicate are retargeted to the kept node', () => {
+  const withGate = data();
+  withGate.nodeData.children!.push({ id: 'g', topic: '⇒ tasks', metadata: { refId: 'ref', gate: { target: 'd' } } });
+  const merged = mergeIntoGate(withGate, 'k', 'd');
+  const gate = findNode(merged!.nodeData, 'g')!;
+  assert.deepEqual(readGate(gate), { target: 'k' });
+  assert.equal((gate.metadata as { refId: string }).refId, 'ref');
+});
+
+test('union does not confuse ambiguous canonical forms', () => {
+  const ambiguous: MindElixirData = { nodeData: { id: 'r', topic: 'R', children: [
+    { id: 'k', topic: 'T', children: [{ id: 'k1', topic: 'p', children: [{ id: 'x', topic: 'x' }, { id: 'y', topic: 'y' }] }] },
+    { id: 'd', topic: 'T', children: [{ id: 'd1', topic: 'p', children: [{ id: 'z', topic: 'x(),y' }] }] },
+  ] } };
+  const merged = mergeIntoGate(ambiguous, 'k', 'd');
+  assert.deepEqual(findNode(merged!.nodeData, 'k')!.children!.map((c) => c.id), ['k1', 'd1']);
+});
