@@ -19,6 +19,7 @@ import { clearActiveMindmap, setActiveMindmap, type MindmapHandle } from '../lib
 import { createGateController, type GateMenuAction, type GateNotice } from '../lib/mindmap-gate-controller';
 import { useMindmapCanvasActions } from '../composables/useMindmapCanvasActions';
 import { createHoverPan } from '../composables/useMindmapHoverPan';
+import { createChordPan } from '../composables/useMindmapChordPan';
 import { frameDelta, insetRect, parseTranslate } from '../lib/mindmap-frame';
 import { EMPTY_FRAME_STYLE, readFrameVars, type StripFrameStyle } from '../lib/mindmap-frame-style';
 import MindmapDock from './MindmapDock.vue';
@@ -176,6 +177,7 @@ function mount(): void {
   mind.init(data);
   direction.value = mind.direction;
   hoverPan.attach(host.value);
+  chordPan.attach(host.value);
   stage.value?.addEventListener(FULLSCREEN_CHANGE_EVENT, onFullscreenChange);
   gates.syncLabels();
   countDuplicates();
@@ -238,6 +240,7 @@ function onFullscreenChange(): void {
 }
 
 const hoverPan = createHoverPan({ getMind: () => mind, isToggled: () => settings.mindmapHoverPan });
+const chordPan = createChordPan({ getMind: () => mind });
 
 function emitSelection(): void {
   emit('selection', mind?.currentNodes?.map((tpc) => tpc.nodeObj) ?? []);
@@ -387,6 +390,7 @@ function flushPendingSync(): void {
 function teardown(): void {
   clearActiveMindmap(handle);
   hoverPan.detach();
+  chordPan.detach();
   stage.value?.removeEventListener(FULLSCREEN_CHANGE_EVENT, onFullscreenChange);
   stopCentering();
   if (syncTimer !== null) window.clearTimeout(syncTimer);
@@ -730,6 +734,7 @@ defineExpose({
 .mindmap-view__stage { position: relative; flex: 1; min-height: 0; display: flex; background: var(--bg); }
 .mindmap-view__canvas { flex: 1; min-height: 0; width: 100%; }
 .mindmap-view__canvas.mm-hover-panning, .mindmap-view__canvas.mm-hover-panning :deep(*) { cursor: grab !important; }
+.mindmap-view__canvas.mm-grabbing, .mindmap-view__canvas.mm-grabbing :deep(*) { cursor: grabbing !important; }
 .mindmap-view__status { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; z-index: 5; display: flex; gap: 6px; pointer-events: none; }
 .mindmap-view__badge { padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); opacity: 0.9; }
 .mindmap-view__chip { pointer-events: auto; padding: 2px 10px; border-radius: 999px; font-size: 12px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--accent); cursor: pointer; }
