@@ -1,7 +1,8 @@
 /**
  * Telemetry wrapper. All events go through `track()` which checks the
- * user's opt-out setting before POSTing to our self-hosted analytics
- * endpoint at solomd.app/api/track.
+ * user's opt-in setting before POSTing to the endpoint in
+ * `VITE_ANALYTICS_ENDPOINT`. This fork ships no default endpoint and
+ * telemetry off, so nothing leaves the machine unless both are set.
  *
  * Privacy model:
  *   - We never send IP, User-Agent, fingerprint, or any OS identifier.
@@ -28,9 +29,7 @@ import { useSettingsStore } from '../stores/settings';
 
 type EventProps = Record<string, string | number | boolean>;
 
-const DEFAULT_ENDPOINT = 'https://solomd.app/api/track';
-const ENDPOINT =
-  (import.meta.env.VITE_ANALYTICS_ENDPOINT as string | undefined) || DEFAULT_ENDPOINT;
+const ENDPOINT = (import.meta.env.VITE_ANALYTICS_ENDPOINT as string | undefined)?.trim() || null;
 
 const POST_TIMEOUT_MS = 2000;
 const ANON_ID_KEY = 'solomd.anonId';
@@ -104,6 +103,7 @@ async function getAppVersion(): Promise<string | null> {
 }
 
 async function postEvent(payload: Record<string, unknown>): Promise<void> {
+  if (!ENDPOINT) return;
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), POST_TIMEOUT_MS);
   try {
@@ -125,6 +125,7 @@ async function postEvent(payload: Record<string, unknown>): Promise<void> {
 
 /** Fire-and-forget — never await, never throw into callers. */
 export function track(event: string, props?: EventProps): void {
+  if (!ENDPOINT) return;
   try {
     const settings = useSettingsStore();
     if (!settings.telemetryEnabled) return;
