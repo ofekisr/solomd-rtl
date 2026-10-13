@@ -110,7 +110,7 @@ export class DemoCursor {
       const named = el.closest('[aria-label],[title]');
       const raw = el.getAttribute('aria-label') || el.textContent?.trim() || el.getAttribute('title')
         || named?.getAttribute('aria-label') || named?.getAttribute('title') || '';
-      return raw.replace(/\s+/g, ' ').trim();
+      return raw.replace(/[≡×✕▾▸•]/g, '').replace(/\s+/g, ' ').trim();
     });
     return label;
   }
