@@ -65,7 +65,17 @@ function chipStyle(chip: StripChip, index: number): Record<string, string> {
 .mm-strip__crumb { background: none; border: 0; color: var(--text); font-size: 12px; cursor: pointer; unicode-bidi: plaintext; }
 .mm-strip__crumbs li + li:dir(rtl)::before { content: '‹'; }
 
-.mm-strip--framed { gap: 12px; padding-block: 14px 16px; padding-inline: 16px; background: var(--bgcolor, var(--bg)); border-block-end: 1px solid var(--border); }
+.mm-strip--framed {
+  --frame-surface: color-mix(in srgb, var(--bgcolor, var(--bg)) 88%, var(--text) 12%);
+  position: relative;
+  z-index: 1;
+  gap: 12px;
+  padding-block: 14px 16px;
+  padding-inline: 16px;
+  background: var(--frame-surface);
+  border-block-end: 2px solid color-mix(in srgb, var(--text) 35%, transparent);
+  box-shadow: 0 6px 14px -6px rgb(0 0 0 / 45%);
+}
 .mm-strip--framed .mm-strip__row { justify-content: center; gap: 10px 14px; }
 .mm-strip--framed .mm-strip__chip { padding-block: 6px; padding-inline: 16px; border: 2px solid var(--border); border-radius: var(--main-radius, 999px); background: var(--main-bgcolor, var(--bg-elev)); color: var(--main-color, var(--text)); font-size: 13px; box-shadow: 0 1px 2px rgb(0 0 0 / 20%); }
 .mm-strip--framed .mm-strip__chip--root { padding-block: 8px; padding-inline: 22px; border: 2px solid var(--root-border-color, var(--border)); border-radius: var(--root-radius, 12px); background: var(--root-bgcolor, var(--bg-elev)); color: var(--root-color, var(--text)); font-size: 15px; }
