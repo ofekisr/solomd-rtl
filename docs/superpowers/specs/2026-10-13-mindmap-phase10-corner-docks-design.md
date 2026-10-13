@@ -126,6 +126,8 @@ fullscreen · centre (framing) · zoom − · zoom + · fit · root · ✋ pan t
 - Pure decision `isPanActive({ toggle, altKey, pointerType, buttons, paused })` in `lib/mindmap-hover-pan.ts`, unit tested.
 - Setting `mindmapHoverPan: boolean` (default `false`) in the settings store, persisted. The ✋ nav button toggles it.
 
+> **Superseded 13-10-26:** hover-pan, the ⌥ modifier and the ✋ toggle were removed. Replaced by chord pan (`composables/useMindmapChordPan.ts`): while left-drag marquee-selecting, hold the right button to pan; the selection anchor stays on the map. Plain right-drag pan (stock mind-elixir) now shows a `grabbing` cursor.
+
 ## Verification
 
 - `pnpm test` green; `vue-tsc` clean.

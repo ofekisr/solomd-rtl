@@ -184,7 +184,7 @@ export const KEY_ACTIONS: KeyActionDef[] = [
   { id: 'pomodoro.startLast', label: 'Start Writing Session (Zen)', category: 'tools', defaults: ['Mod+Shift+Z'] },
 
   // ---- Mindmap (live only while a mindmap view has focus) ----
-  { id: 'mindmap.toggleNode', label: 'Mindmap: Collapse / Expand Node', category: 'mindmap', scope: 'mindmap', defaults: ['Space'] },
+  { id: 'mindmap.toggleNode', label: 'Mindmap: Collapse / Expand Selection or Whole Map', category: 'mindmap', scope: 'mindmap', defaults: ['Space'] },
   { id: 'mindmap.fit', label: 'Mindmap: Fit to Window', category: 'mindmap', scope: 'mindmap', defaults: ['Mod+Alt+0'] },
   { id: 'mindmap.focusRoot', label: 'Mindmap: Select Root', category: 'mindmap', scope: 'mindmap', defaults: ['Home'] },
   { id: 'mindmap.shortcutHelp', label: 'Mindmap: Keyboard Shortcuts', category: 'mindmap', scope: 'mindmap', defaults: ['Shift+Slash'] },
