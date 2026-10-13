@@ -19,6 +19,7 @@ import { clearActiveMindmap, setActiveMindmap, type MindmapHandle } from '../lib
 import { createGateController, type GateMenuAction, type GateNotice } from '../lib/mindmap-gate-controller';
 import { useMindmapCanvasActions } from '../composables/useMindmapCanvasActions';
 import { createChordPan } from '../composables/useMindmapChordPan';
+import { hasOpenBranch, planSelectionToggle, setDescendantsExpanded } from '../lib/mindmap-collapse';
 import { frameDelta, insetRect, parseTranslate } from '../lib/mindmap-frame';
 import { EMPTY_FRAME_STYLE, readFrameVars, type StripFrameStyle } from '../lib/mindmap-frame-style';
 import MindmapDock from './MindmapDock.vue';
@@ -453,10 +454,28 @@ function toggleGraphView(): void {
   else enterGraphView(mind);
 }
 
-function toggleCurrentNode(): void {
-  const node = mind?.currentNode;
-  if (!mind || !node?.nodeObj.children?.length) return;
-  mind.expandNode(node, node.nodeObj.expanded === false);
+function toggleSelectedNodes(instance: MindElixirInstance): boolean {
+  const selected = instance.currentNodes ?? [];
+  const steps = planSelectionToggle(selected.map((tpc) => tpc.nodeObj), instance.nodeData.id);
+  if (steps.length === 0) return false;
+  for (const step of steps) instance.expandNode(instance.findEle(step.id), step.expanded);
+  const detached = selected.filter((tpc) => !tpc.isConnected);
+  if (detached.length === 0) return true;
+  instance.unselectNodes(detached);
+  const restored = detached.map((tpc) => instance.findEle(tpc.nodeObj.id)).filter((tpc) => tpc?.isConnected);
+  if (restored.length > 0) instance.selectNodes(restored);
+  return true;
+}
+
+function toggleWholeMap(instance: MindElixirInstance): void {
+  setDescendantsExpanded(instance.nodeData, !hasOpenBranch(instance.nodeData));
+  instance.refresh();
+  instance.toCenter();
+  scheduleSync();
+}
+
+function toggleCollapse(): void {
+  if (mind && !toggleSelectedNodes(mind)) toggleWholeMap(mind);
 }
 
 function selectRoot(): void {
@@ -532,7 +551,7 @@ function mergeDuplicate(keepId: string, dupId: string): void {
 }
 
 const actions: Record<string, () => void> = {
-  [TOGGLE_NODE_ACTION]: toggleCurrentNode,
+  [TOGGLE_NODE_ACTION]: toggleCollapse,
   'mindmap.fit': () => mind?.scaleFit(),
   'mindmap.focusRoot': selectRoot,
   'mindmap.shortcutHelp': () => { isHelpOpen.value = true; },
@@ -707,6 +726,7 @@ defineExpose({
           <MindmapDockButton icon="zoom-in" :label="t('mindmap.canvasZoomIn')" @click="zoomBy(1)" />
           <MindmapDockButton icon="fit" :label="t('mindmap.canvasFit')" @click="actions['mindmap.fit']" />
           <MindmapDockButton icon="root" :label="t('mindmap.canvasRoot')" @click="selectRoot" />
+          <MindmapDockButton icon="collapse" :label="t('mindmap.canvasCollapse')" @click="toggleCollapse" />
         </MindmapDock>
       </div>
     </template>

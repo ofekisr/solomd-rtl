@@ -26,4 +26,5 @@ export const CLASSIC_GLYPHS: Readonly<Partial<Record<MindmapIconName, string>>> 
   more: '⋯',
   fit: '⤢',
   root: '⌂',
+  collapse: '⇕',
 };

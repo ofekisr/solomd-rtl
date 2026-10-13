@@ -1369,6 +1369,7 @@ export const en = {
     layoutRight: 'Grow right',
     layoutSide: 'Both sides',
     canvasRoot: 'Go to root',
+    canvasCollapse: 'Collapse / expand (Space): selected nodes, or the whole map',
     duplicatesChip: '{count} duplicates',
     duplicatesChipOne: '1 duplicate',
     outlineInvalid: 'The map JSON is invalid, so there is no outline to show.',

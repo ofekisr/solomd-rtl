@@ -34,6 +34,7 @@ const PATHS: Readonly<Record<MindmapIconName, readonly string[]>> = {
   'zoom-in': ['M5 12h14', 'M12 5v14'],
   fit: ['M9 4H4v5', 'M15 20h5v-5', 'M4 4l6 6', 'M20 20l-6-6'],
   root: ['M4 11l8-7 8 7', 'M6 10v10h12V10'],
+  collapse: ['M7 9l5-5 5 5', 'M7 15l5 5 5-5'],
 };
 
 const paths = computed(() => PATHS[props.name]);
