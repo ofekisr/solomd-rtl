@@ -24,6 +24,7 @@ const PATHS: Readonly<Record<MindmapIconName, readonly string[]>> = {
   graph: ['M5 7h13l-3-3', 'M19 17H6l3 3'],
   lock: ['M6 11h12v9H6z', 'M8.5 11V8a3.5 3.5 0 0 1 7 0v3'],
   panel: ['M4 4h16v16H4z', 'M15 4v16'],
+  details: ['M4 4h16v16H4z', 'M4 14h16', 'M7 17h6'],
   undo: ['M9 7 4 12l5 5', 'M4 12h11a5 5 0 0 1 0 10h-2'],
   redo: ['M15 7l5 5-5 5', 'M20 12H9a5 5 0 0 0 0 10h2'],
   export: ['M12 4v11', 'M7 10l5 5 5-5', 'M5 20h14'],

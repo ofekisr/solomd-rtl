@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { NodeObj } from 'mind-elixir';
-import { buildFreezeStrip, getTabFocus, pathTo, setTabFocus } from './mindmap-focus.ts';
+import { buildFreezeStrip, canAnchor, getTabFocus, getTabStripRoot, pathTo, setTabFocus, setTabStripRoot } from './mindmap-focus.ts';
 
 const MAP: NodeObj = {
   id: 'root', topic: 'Root', children: [
@@ -58,4 +58,34 @@ test('tab focus store is keyed and clearable', () => {
   assert.equal(getTabFocus('t2'), null);
   setTabFocus('t1', null);
   assert.equal(getTabFocus('t1'), null);
+});
+
+test('a strip root re-anchors the strip on that node and lists the path above it', () => {
+  const strip = buildFreezeStrip(MAP, null, 'a1');
+  assert.deepEqual(strip?.ancestors.map((c) => c.id), ['root', 'a']);
+  assert.equal(strip?.root.id, 'a1');
+  assert.deepEqual(strip?.level2.map((c) => c.id), ['a1x']);
+  assert.equal(strip?.branchIndex, 0);
+});
+
+test('focus inside the strip root highlights the child; focus outside highlights nothing', () => {
+  assert.equal(buildFreezeStrip(MAP, 'a1x', 'a')?.activeLevel2Id, 'a1');
+  assert.deepEqual(buildFreezeStrip(MAP, 'a1x', 'a')?.breadcrumb.map((c) => c.id), ['a1x']);
+  assert.equal(buildFreezeStrip(MAP, 'b', 'a')?.activeLevel2Id, null);
+});
+
+test('a missing or leaf strip root falls back to the map root', () => {
+  assert.equal(buildFreezeStrip(MAP, null, 'gone')?.root.id, 'root');
+  assert.equal(buildFreezeStrip(MAP, null, 'b')?.root.id, 'root');
+  assert.deepEqual(buildFreezeStrip(MAP, null, 'b')?.ancestors, []);
+  assert.equal(canAnchor(MAP, 'b'), false);
+  assert.equal(canAnchor(MAP, 'a1'), true);
+  assert.equal(canAnchor(MAP, 'root'), true);
+});
+
+test('strip root is remembered per tab', () => {
+  setTabStripRoot('tab-x', 'a');
+  assert.equal(getTabStripRoot('tab-x'), 'a');
+  setTabStripRoot('tab-x', null);
+  assert.equal(getTabStripRoot('tab-x'), null);
 });

@@ -20,6 +20,7 @@ export const CLASSIC_GLYPHS: Readonly<Partial<Record<MindmapIconName, string>>> 
   graph: '⇄',
   lock: '🔒',
   panel: '▤',
+  details: '⊟',
   undo: '↶',
   redo: '↷',
   export: '⬇',

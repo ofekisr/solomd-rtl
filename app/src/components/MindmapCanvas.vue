@@ -31,7 +31,7 @@ import { findNode, isGate } from '../lib/mindmap-gates';
 import { parsePaste, type PastePayload } from '../lib/mindmap-paste';
 import { buildIdMap, remapArrows, remapGates, remapSummaries } from '../lib/mindmap-paste-remap';
 import { withGateArrows } from '../lib/mindmap-graph';
-import { buildFreezeStrip, getTabFocus, pathTo, setTabFocus, type FreezeStrip } from '../lib/mindmap-focus';
+import { buildFreezeStrip, canAnchor, getTabFocus, getTabStripRoot, pathTo, setTabFocus, setTabStripRoot, type FreezeStrip } from '../lib/mindmap-focus';
 import MindmapFreezeStrip from './MindmapFreezeStrip.vue';
 
 const SYNC_DEBOUNCE_MS = 300;
@@ -58,6 +58,7 @@ const emit = defineEmits<{
   'jump-to-source': [source: MindmapSource];
   selection: [nodes: NodeObj[]];
   ready: [];
+  'show-details': [];
 }>();
 const settings = useSettingsStore();
 const toasts = useToastsStore();
@@ -71,6 +72,7 @@ const isHelpOpen = ref(false);
 const isReadOnly = ref(false);
 const isGraphView = ref(false);
 const focusId = ref<string | null>(props.focusKey ? getTabFocus(props.focusKey) : null);
+const stripRootId = ref<string | null>(props.focusKey ? getTabStripRoot(props.focusKey) : null);
 const strip = ref<FreezeStrip | null>(null);
 const frameStyle = ref<StripFrameStyle>(EMPTY_FRAME_STYLE);
 let isApplyingFocus = false;
@@ -165,7 +167,7 @@ function mount(): void {
     el: host.value,
     direction: layoutDirectionFor(data),
     editable: canEdit(),
-    contextMenu: { extend: [...gates.menu, { name: t('mindmap.jumpToSourceMenu'), onclick: jumpToSource }] },
+    contextMenu: { extend: [...gates.menu, { name: t('mindmap.jumpToSourceMenu'), onclick: jumpToSource }, { name: t('mindmap.pinStripRoot'), onclick: pinCurrentAsStripRoot }, { name: t('mindmap.detailsShow'), onclick: () => emit('show-details') }] },
     before: gates.guards,
     toolBar: false,
     keypress: true,
@@ -296,8 +298,32 @@ function refreshFrameStyle(): void {
   frameStyle.value = { vars: readFrameVars((name) => computed.getPropertyValue(name)), palette: [...mind.theme.palette] };
 }
 
+function rememberStripRoot(id: string | null): void {
+  stripRootId.value = id;
+  if (props.focusKey) setTabStripRoot(props.focusKey, id);
+}
+
+function setStripRoot(id: string | null): void {
+  if (!mind) return;
+  const root = fullRoot(mind);
+  if (id !== null && !canAnchor(root, id)) return;
+  rememberStripRoot(id === root.id ? null : id);
+  refreshStrip(root);
+}
+
+function pinCurrentAsStripRoot(): void {
+  const id = mind?.currentNode?.nodeObj.id;
+  if (id) setStripRoot(id);
+}
+
 function refreshStrip(knownRoot?: NodeObj | null): void {
-  strip.value = mind && props.focusKey ? buildFreezeStrip(knownRoot ?? fullRoot(mind), focusId.value) : null;
+  if (!mind || !props.focusKey) {
+    strip.value = null;
+    return;
+  }
+  const root = knownRoot ?? fullRoot(mind);
+  if (stripRootId.value !== null && !canAnchor(root, stripRootId.value)) rememberStripRoot(null);
+  strip.value = buildFreezeStrip(root, focusId.value, stripRootId.value);
 }
 
 function wrapFocus(instance: MindElixirInstance): void {
@@ -715,7 +741,7 @@ defineExpose({
       <button type="button" @click="emit('open-as-text')">{{ t('mindmap.openAsText') }}</button>
     </div>
     <template v-else>
-      <MindmapFreezeStrip v-if="strip && !isGraphView" :strip="strip" :focus-id="focusId" :frame-style="frameStyle" @focus="focusById" />
+      <MindmapFreezeStrip v-if="strip && !isGraphView" :strip="strip" :focus-id="focusId" :frame-style="frameStyle" @focus="focusById" @anchor="setStripRoot" />
       <div ref="stage" class="mindmap-view__stage">
         <div ref="host" class="mindmap-view__canvas" />
         <slot name="rail" />
