@@ -1,15 +1,17 @@
 import { test } from '../kit/fixtures';
 import { MapUi } from '../kit/mindmap';
+import { runCommand } from '../kit/palette';
 import { doc } from '../kit/seed';
 
 test('Mind maps — the basics', async ({ demo }) => {
   const { page, director } = demo;
   await demo.open([doc('השקה.mmap', { lens: 'map' })], { viewMode: 'liveEdit' });
   const map = new MapUi(page);
+  const viewButton = (title: string) => page.locator(`.toolbar__group button[title^="${title}"]`);
   await map.waitForCanvas();
   await map.dockButton('Fit to window').click();
 
-  await director.title('Mind maps in SoloMD', '.mmap files · lenses · themes · export');
+  await director.title('Mind maps in SoloMD', '.mmap files · raw JSON · outline · focus · themes · export');
 
   await director.step('A .mmap file opens as a live mind map — Hebrew maps grow right-to-left', async (c) => {
     await c.hover(map.node('השקת מוצר'));
@@ -22,15 +24,28 @@ test('Mind maps — the basics', async ({ demo }) => {
     await c.press('Enter');
   });
 
-  await director.step('Data · Map · Doc — one map, three lenses', async (c) => {
-    await c.click(map.dockButton('Lens'));
-    await c.click(map.menuItem('Doc'));
-    await director.pause();
+  await director.step('Data lens: the raw .mmap JSON next to the map — editable', async (c) => {
+    await c.click(viewButton('Split'));
     await c.click(map.dockButton('Lens'));
     await c.click(map.menuItem('Data'));
-    await director.pause();
+    await c.hover(page.locator('.cm-line', { hasText: '"topic"' }).first());
+  });
+
+  await director.step('Doc lens: the same map as a Markdown outline', async (c) => {
+    await c.click(map.dockButton('Lens'));
+    await c.click(map.menuItem('Doc'));
+  });
+
+  await director.step('Focus mode: zoom into one branch', async (c) => {
+    await c.click(viewButton('Live edit'));
     await c.click(map.dockButton('Lens'));
     await c.click(map.menuItem('Map'));
+    await c.click(map.node('פיתוח'));
+    await runCommand(page, c, 'focus node');
+  });
+
+  await director.step('…and step back out to the whole map', async (c) => {
+    await runCommand(page, c, 'cancel focus');
   });
 
   await director.step('Five map themes, each with light and dark variants', async (c) => {

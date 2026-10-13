@@ -1,15 +1,7 @@
-import { test, MOD, type Demo } from '../kit/fixtures';
+import { test } from '../kit/fixtures';
 import { MapUi } from '../kit/mindmap';
+import { runCommand } from '../kit/palette';
 import { doc } from '../kit/seed';
-import type { DemoCursor } from '../kit/cursor';
-
-async function runCommand(demo: Demo, c: DemoCursor, query: string): Promise<void> {
-  await c.press(`${MOD}+Shift+K`);
-  await demo.page.locator('input.palette__input').waitFor();
-  await c.type(query);
-  await demo.director.pause();
-  await c.press('Enter');
-}
 
 test('Markdown to mind map', async ({ demo }) => {
   const { page, director } = demo;
@@ -24,7 +16,7 @@ test('Markdown to mind map', async ({ demo }) => {
   });
 
   await director.step('Command palette → Convert Document to Map', async (c) => {
-    await runCommand(demo, c, 'convert document to map');
+    await runCommand(page, c, 'convert document to map');
     await map.waitForCanvas();
   });
 
@@ -35,7 +27,7 @@ test('Markdown to mind map', async ({ demo }) => {
   await director.step('Or embed a live map of one section inside the document', async (c) => {
     await c.click(page.locator('.tab', { hasText: 'תוכנית.md' }).first());
     await c.click(editor.locator('.cm-line', { hasText: 'צוותים' }));
-    await runCommand(demo, c, 'insert map fence from section');
+    await runCommand(page, c, 'insert map fence from section');
   });
 
   await director.step('The fence renders as a map in the preview', async (c) => {

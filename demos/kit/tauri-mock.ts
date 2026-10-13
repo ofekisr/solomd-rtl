@@ -4,10 +4,12 @@ import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 
 const CONTENT_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'content');
+const BINARY_EXTENSIONS = ['.xmind'];
 export const VAULT_ROOT = '/Users/demo/פרויקט';
 
 export interface FakeBackend {
   files: Record<string, string>;
+  binaryFiles: Record<string, string>;
   dirs: string[];
   pickedFolder: string;
   directiveManifests: unknown[];
@@ -19,12 +21,13 @@ function collect(dir: string, virtualDir: string, backend: FakeBackend): void {
     const real = path.join(dir, name);
     const virtual = `${virtualDir}/${name}`;
     if (statSync(real).isDirectory()) collect(real, virtual, backend);
+    else if (BINARY_EXTENSIONS.includes(path.extname(name))) backend.binaryFiles[virtual] = readFileSync(real).toString('base64');
     else backend.files[virtual] = readFileSync(real, 'utf8');
   }
 }
 
 export function vaultBackend(vaultDir: string, manifestFiles: string[] = []): FakeBackend {
-  const backend: FakeBackend = { files: {}, dirs: [], pickedFolder: VAULT_ROOT, directiveManifests: [] };
+  const backend: FakeBackend = { files: {}, binaryFiles: {}, dirs: [], pickedFolder: VAULT_ROOT, directiveManifests: [] };
   collect(path.join(CONTENT_DIR, vaultDir), VAULT_ROOT, backend);
   backend.directiveManifests = manifestFiles.map((f) => JSON.parse(readFileSync(path.join(CONTENT_DIR, f), 'utf8')));
   return backend;
@@ -45,7 +48,7 @@ function installTauriMock(backend: FakeBackend): void {
   const childrenOf = (dir: string) => {
     const prefix = `${dir}/`;
     const names = new Set<string>();
-    for (const p of [...Object.keys(backend.files), ...backend.dirs]) {
+    for (const p of [...Object.keys(backend.files), ...Object.keys(backend.binaryFiles), ...backend.dirs]) {
       if (p.startsWith(prefix)) names.add(p.slice(prefix.length).split('/')[0]);
     }
     return [...names].sort().map((name) => {
@@ -65,7 +68,18 @@ function installTauriMock(backend: FakeBackend): void {
       const p = String(a.path ?? '');
       return p in backend.files || backend.dirs.includes(p);
     },
+    'plugin:dialog|save': (a) => {
+      const options = (a.options ?? {}) as { defaultPath?: string };
+      const name = (options.defaultPath ?? 'export.md').split('/').pop();
+      return `${backend.pickedFolder}/${name}`;
+    },
     'plugin:path|resolve_directory': () => '/Users/demo/Documents',
+    fs_file_exists: (a) => String(a.path) in backend.files,
+    read_binary_file: (a) => Array.from(atob(backend.binaryFiles[String(a.path)] ?? ''), (ch) => ch.charCodeAt(0)),
+    write_file: (a) => {
+      backend.files[String(a.path)] = String(a.content ?? '');
+      return null;
+    },
     'plugin:event|listen': () => nextCallbackId++,
     'plugin:event|unlisten': () => null,
     fs_dir_exists: (a) => backend.dirs.includes(String(a.path)),

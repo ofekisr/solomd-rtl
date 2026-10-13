@@ -4,11 +4,13 @@ Captioned showcase videos of solomd-rtl features, recorded by Playwright against
 
 | Story | Shows |
 | --- | --- |
+| `00-intro` | English baseline file: "From SoloMD… to solomd-rtl" |
 | `01-rtl-hebrew` | Whole-file RTL detection, caret/gutter, mixed Hebrew + English, LTR code, split, reading, LTR English file |
 | `02-folders-code` | Open Folder, file tree, highlighting for Python/`.pyj`/TypeScript/shell and Markdown fences, `*.full.md` numbered blocks, EPUB directive completions |
-| `03-mindmap-basics` | `.mmap` canvas, Tab to add, Data · Map · Doc lens, themes, export menu, fit |
+| `03-mindmap-basics` | `.mmap` canvas, Tab to add, raw JSON (Data lens), Markdown outline (Doc lens), focus mode, themes, export menu |
 | `04-mindmap-power` | Freeze strip, focus, ⌥-click pin root, details pane note + fields, Space collapse, paste outline |
 | `05-md-to-mindmap` | Convert Document to Map, Insert Map Fence from Section |
+| `06-xmind-markdown` | Open a `.xmind` from the folder, edit, export as Markdown, open the RTL outline |
 
 ## Record
 
@@ -30,7 +32,7 @@ pnpm --dir demos demo all
 ## How it works
 
 - `kit/seed.ts` writes tabs and settings into `localStorage` before the app boots, so no app code changes and no first-run dialogs.
-- `kit/tauri-mock.ts` stands in for the desktop backend (Open Folder, file tree, `read_file`, directive manifests) and serves `content/vault/` as `/Users/demo/פרויקט`.
+- `kit/tauri-mock.ts` stands in for the desktop backend (Open Folder, file tree, `read_file`/`read_binary_file`, save dialog + `write_file`, directive manifests) and serves `content/vault/` as `/Users/demo/פרויקט`.
 - `kit/overlay.ts` injects the caption bar, title/end cards and a drawn cursor (`pointer-events: none`).
 - `kit/director.ts` runs `title → step(caption, action) → end`. `kit/cursor.ts` glides the real mouse and the drawn cursor together.
 - `record.mjs` runs each story and trims the app boot. It writes a video only when the story passes.
