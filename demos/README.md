@@ -1,0 +1,53 @@
+# Demo videos
+
+Captioned showcase videos of solomd-rtl features, recorded by Playwright against the web build.
+
+| Story | Shows |
+| --- | --- |
+| `01-rtl-hebrew` | Whole-file RTL detection, caret/gutter, mixed Hebrew + English, LTR code, split, reading, LTR English file |
+| `02-mindmap-basics` | `.mmap` canvas, Tab to add, Data · Map · Doc lens, themes, export menu, fit |
+| `03-mindmap-power` | Freeze strip, focus, ⌥-click pin root, details pane note + fields, Space collapse, paste outline |
+| `04-md-to-mindmap` | Convert Document to Map, Insert Map Fence from Section |
+
+## Record
+
+```bash
+pnpm --dir demos install
+```
+
+```bash
+pnpm --dir demos demo all
+```
+
+- One story: `pnpm --dir demos demo 03`
+- Output: `demos/out/<story>.mp4` (1280×720, H.264) and `<story>.gif` (960 px). `out/` is gitignored.
+- Faster or slower: `DEMO_TEMPO=0.7 pnpm --dir demos demo all` (1 = default pace).
+- Review without watching: `DEMO_SHOTS=1 DEMO_TEMPO=0.3 pnpm --dir demos exec playwright test` saves one frame per step to `out/shots/`.
+- Needs `ffmpeg` (`brew install ffmpeg`). Port 1440 must be free; your own dev server on 1420 is untouched.
+
+## How it works
+
+- `kit/seed.ts` writes tabs and settings into `localStorage` before the app boots, so no app code changes and no first-run dialogs.
+- `kit/overlay.ts` injects the caption bar, title/end cards and a drawn cursor (`pointer-events: none`).
+- `kit/director.ts` runs `title → step(caption, action) → end`. `kit/cursor.ts` glides the real mouse and the drawn cursor together.
+- `record.mjs` runs each story and trims the app boot. It writes a video only when the story passes.
+
+## Write a story
+
+```ts
+import { test } from '../kit/fixtures';
+import { doc } from '../kit/seed';
+
+test('My feature', async ({ demo }) => {
+  await demo.open([doc('מדריך.md')], { viewMode: 'split' });
+  await demo.director.title('My feature', 'one-line subtitle');
+  await demo.director.step('What the viewer should notice', async (c) => {
+    await c.click(demo.page.getByRole('button', { name: 'Fit to window' }));
+  });
+  await demo.director.end('solomd-rtl', 'github.com/ofekisr/solomd-rtl');
+});
+```
+
+- Put sample files in `content/` (Hebrew first). Name the story `NN-name.story.ts`.
+- Headless Chromium ignores OS paste: use `c.paste(text, selector)`.
+- Keep targets inside the 1280×720 frame. A long context menu can run off-screen.
