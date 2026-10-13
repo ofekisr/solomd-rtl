@@ -299,6 +299,9 @@ export const en = {
     keysUnbound: 'not bound',
     keysConflict: '{combo} is already used by "{action}". Pick another chord.',
     theme: 'Theme',
+    mindmapControlStyle: 'Mind map controls',
+    mindmapControlStyle_classic: 'Classic (default)',
+    mindmapControlStyle_compact: 'Compact',
     fontFamily: 'Font Family',
     customFont: 'Custom…',
     customFontPlaceholder: 'Enter font name, e.g. PingFang SC',
@@ -2166,7 +2169,10 @@ type DirectiveCompletionFallbackKey =
   | 'directiveCompletionOpenFailed'
   | 'keysCatMindmap'
   | 'keysMindmapBuiltin'
-  | 'catMindmap';
+  | 'catMindmap'
+  | 'mindmapControlStyle'
+  | 'mindmapControlStyle_classic'
+  | 'mindmapControlStyle_compact';
 
 type EnglishDictionary = typeof en;
 type EnglishSettings = EnglishDictionary['settings'];

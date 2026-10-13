@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useSettingsStore } from '../stores/settings';
+import type { MindmapIconName } from '../lib/mindmap-icon-names';
+import { CLASSIC_GLYPHS, CLASSIC_PATHS, CLASSIC_VIEWBOX } from '../lib/mindmap-classic-icons';
 
-export type MindmapIconName =
-  | 'lens-data' | 'lens-map' | 'lens-doc'
-  | 'dir-left' | 'dir-right' | 'dir-side'
-  | 'graph' | 'lock' | 'panel' | 'undo' | 'redo' | 'export' | 'more'
-  | 'fullscreen' | 'center' | 'zoom-out' | 'zoom-in' | 'fit' | 'root' | 'pan';
+export type { MindmapIconName };
 
-const props = withDefaults(defineProps<{ name: MindmapIconName; size?: number }>(), { size: 16 });
+const COMPACT_SIZE_PX = 16;
+const CLASSIC_SIZE_PX = 18;
+const props = defineProps<{ name: MindmapIconName }>();
+const settings = useSettingsStore();
+const isClassic = computed(() => settings.mindmapControlStyle === 'classic');
+const classicPaths = computed(() => (isClassic.value ? CLASSIC_PATHS[props.name] ?? null : null));
+const classicGlyph = computed(() => (isClassic.value && !classicPaths.value ? CLASSIC_GLYPHS[props.name] ?? null : null));
 
 const PATHS: Readonly<Record<MindmapIconName, readonly string[]>> = {
   'lens-data': ['M8 4c-2 0-3 1-3 3v2c0 1.5-1 2.5-2 3 1 .5 2 1.5 2 3v2c0 2 1 3 3 3', 'M16 4c2 0 3 1 3 3v2c0 1.5 1 2.5 2 3-1 .5-2 1.5-2 3v2c0 2-1 3-3 3'],
@@ -36,7 +41,15 @@ const paths = computed(() => PATHS[props.name]);
 </script>
 
 <template>
-  <svg :width="size" :height="size" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <svg v-if="classicPaths" :width="CLASSIC_SIZE_PX" :height="CLASSIC_SIZE_PX" :viewBox="CLASSIC_VIEWBOX" fill="currentColor" aria-hidden="true">
+    <path v-for="d in classicPaths" :key="d" :d="d" />
+  </svg>
+  <span v-else-if="classicGlyph" class="mm-icon-glyph" aria-hidden="true">{{ classicGlyph }}</span>
+  <svg v-else :width="COMPACT_SIZE_PX" :height="COMPACT_SIZE_PX" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path v-for="d in paths" :key="d" :d="d" />
   </svg>
 </template>
+
+<style>
+.mm-icon-glyph { display: inline-block; min-width: 18px; font-size: 16px; line-height: 18px; text-align: center; }
+</style>

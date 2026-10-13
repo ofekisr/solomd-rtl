@@ -5,6 +5,7 @@ import { isIOS, isMobile } from '../lib/platform';
 import { parseMapDisplay, type MapDisplay } from '../lib/mindmap-display';
 import { migrateLensKeybindings } from '../lib/mindmap-lens';
 import { isViewModeChangeAllowed } from '../lib/view-mode-guard';
+import { DEFAULT_MINDMAP_CONTROL_STYLE, normalizeControlStyle, type MindmapControlStyle } from '../lib/mindmap-icon-names';
 
 const LS_KEY = 'solomd.settings.v1';
 
@@ -258,6 +259,7 @@ interface Settings {
   mindmapDefaults: MapDisplay;
   mindmapPanelOpen: boolean;
   mindmapHoverPan: boolean;
+  mindmapControlStyle: MindmapControlStyle;
   // v2.5 F4: Pomodoro / focus session timer.
   pomodoroShowControls: boolean;
   pomodoroAutoEngageFocus: boolean;
@@ -661,6 +663,7 @@ function defaults(): Settings {
     mindmapDefaults: {},
     mindmapPanelOpen: false,
     mindmapHoverPan: false,
+    mindmapControlStyle: DEFAULT_MINDMAP_CONTROL_STYLE,
     pomodoroShowControls: true,
     pomodoroAutoEngageFocus: true,
     pomodoroDefaultMinutes: 25,
@@ -763,6 +766,7 @@ function load(): Settings {
       // tampered numeric stays in range.
       merged.pdfDefaults = mergePdfDefaults(parsed.pdfDefaults);
       merged.mindmapDefaults = parseMapDisplay(parsed.mindmapDefaults);
+      merged.mindmapControlStyle = normalizeControlStyle(parsed.mindmapControlStyle);
       // #180 — keybindings is a free-form map, so a tampered or older blob
       // could put anything here; keep only string/null values.
       if (merged.windowsEditorEngine !== 'codemirror') merged.windowsEditorEngine = 'native';
@@ -1348,6 +1352,10 @@ export const useSettingsStore = defineStore('settings', {
     },
     toggleMindmapPanel() {
       this.mindmapPanelOpen = !this.mindmapPanelOpen;
+      this.persist();
+    },
+    setMindmapControlStyle(style: MindmapControlStyle) {
+      this.mindmapControlStyle = normalizeControlStyle(style);
       this.persist();
     },
     toggleMindmapHoverPan() {

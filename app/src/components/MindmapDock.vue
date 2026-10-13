@@ -1,12 +1,15 @@
 <script setup lang="ts">
+import { useSettingsStore } from '../stores/settings';
+
 export type DockCorner = 'top-start' | 'top-end' | 'bottom-end';
 export type DockOrientation = 'row' | 'column';
 
 defineProps<{ corner: DockCorner; orientation: DockOrientation; label: string }>();
+const settings = useSettingsStore();
 </script>
 
 <template>
-  <div class="mm-dock" :class="[`mm-dock--${corner}`, `mm-dock--${orientation}`]" role="toolbar" :aria-label="label" :aria-orientation="orientation === 'row' ? 'horizontal' : 'vertical'">
+  <div class="mm-dock" :class="[`mm-dock--${corner}`, `mm-dock--${orientation}`, `mm-dock--${settings.mindmapControlStyle}`]" role="toolbar" :aria-label="label" :aria-orientation="orientation === 'row' ? 'horizontal' : 'vertical'">
     <slot />
   </div>
 </template>
@@ -25,5 +28,8 @@ defineProps<{ corner: DockCorner; orientation: DockOrientation; label: string }>
 .mm-dock-btn:hover:not(:disabled) { background: var(--bg-hover, var(--bg)); }
 .mm-dock-btn:disabled { opacity: 0.4; cursor: default; }
 .mm-dock-btn[aria-pressed='true'], .mm-dock-btn[aria-expanded='true'] { border-color: var(--border); background: var(--bg); color: var(--accent); }
+.mm-dock--classic { gap: 6px; padding: 8px; border-radius: 5px; }
+.mm-dock--classic .mm-dock-btn { width: 30px; height: 30px; border-radius: 4px; }
+.mm-dock--classic .mm-dock-btn:hover:not(:disabled) { background: transparent; opacity: 0.7; }
 .mm-dock-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 </style>
