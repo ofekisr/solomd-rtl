@@ -1,0 +1,98 @@
+{
+  "format": "solomd-mindmap",
+  "version": 1,
+  "data": {
+    "nodeData": {
+      "id": "root",
+      "topic": "השקת מוצר",
+      "children": [
+        {
+          "id": "mkt",
+          "topic": "שיווק",
+          "children": [
+            {
+              "id": "mkt-social",
+              "topic": "רשתות חברתיות",
+              "children": []
+            },
+            {
+              "id": "mkt-pr",
+              "topic": "יחסי ציבור",
+              "children": []
+            },
+            {
+              "id": "mkt-blog",
+              "topic": "בלוג ותוכן",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "dev",
+          "topic": "פיתוח",
+          "note": "להקפיא פיצ׳רים שבועיים לפני ההשקה.",
+          "children": [
+            {
+              "id": "dev-beta",
+              "topic": "גרסת בטא",
+              "children": []
+            },
+            {
+              "id": "dev-qa",
+              "topic": "בדיקות איכות",
+              "children": [
+                {
+                  "id": "dev-qa-e2e",
+                  "topic": "בדיקות קצה לקצה",
+                  "children": []
+                },
+                {
+                  "id": "dev-qa-a11y",
+                  "topic": "נגישות",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": "dev-docs",
+              "topic": "תיעוד",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "sales",
+          "topic": "מכירות",
+          "children": [
+            {
+              "id": "sales-price",
+              "topic": "תמחור",
+              "children": []
+            },
+            {
+              "id": "sales-partners",
+              "topic": "שותפים",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "support",
+          "topic": "תמיכה",
+          "children": [
+            {
+              "id": "support-faq",
+              "topic": "שאלות נפוצות",
+              "children": []
+            },
+            {
+              "id": "support-onboard",
+              "topic": "קליטת לקוחות",
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

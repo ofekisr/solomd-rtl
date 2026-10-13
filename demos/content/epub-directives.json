@@ -1,0 +1,10 @@
+{
+  "sourceFile": "epub.json",
+  "schemaVersion": 1,
+  "grammar": { "opening": "<!--", "marker": "epub:", "closing": "-->", "pairSeparator": ",", "keyValueSeparator": "=" },
+  "directives": [
+    { "key": "skip", "type": "boolean", "values": ["true", "false"], "default": "false", "label": "Skip section", "description": "Exclude this section from the EPUB." },
+    { "key": "toc", "type": "boolean", "values": ["true", "false"], "default": "true", "label": "Table of contents", "description": "List this heading in the TOC." },
+    { "key": "break", "type": "enum", "values": ["page", "none"], "default": "none", "label": "Page break", "description": "Start this section on a new page." }
+  ]
+}
