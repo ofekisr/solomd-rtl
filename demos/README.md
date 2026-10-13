@@ -4,14 +4,15 @@ Captioned showcase videos of solomd-rtl features, recorded by Playwright against
 
 | Story | Shows |
 | --- | --- |
-| `00-intro` | English baseline file: "From SoloMD… to solomd-rtl" |
 | `highlights` | ~30 s reel of the strongest features — the only story rendered as mp4 **and** gif |
+| `00-intro` | English baseline file: "From SoloMD… to solomd-rtl" |
 | `01-rtl-hebrew` | Whole-file RTL detection, caret/gutter, mixed Hebrew + English, LTR code, split, reading, LTR English file |
 | `02-folders-code` | Open Folder, file tree, highlighting for Python/`.pyj`/TypeScript/shell and Markdown fences, `*.full.md` numbered blocks, EPUB directive completions |
-| `03-mindmap-basics` | `.mmap` canvas, Tab to add, raw JSON (Data lens), Markdown outline (Doc lens), focus mode, themes, export menu |
-| `04-mindmap-power` | Freeze strip, focus, ⌥-click pin root, details pane note + fields, Space collapse, paste outline |
-| `05-md-to-mindmap` | Convert Document to Map, Insert Map Fence from Section |
-| `06-xmind-markdown` | Open a `.xmind` from the folder, edit, export as Markdown, open the RTL outline |
+| `03-mindmap-new` | New `.mmap` from the explorer, keyboard-only building (Tab/Enter), Markdown + Mermaid snippets inside the map |
+| `04-mindmap-basics` | `.mmap` canvas, Tab to add, raw JSON (Data lens), Markdown outline (Doc lens), focus mode, themes, export menu |
+| `05-mindmap-power` | Freeze strip, focus, ⌥-click pin root, details pane note + fields, Space collapse, paste outline |
+| `06-md-to-mindmap` | Mermaid + live mind map fence inside Markdown, Convert Document to Map, Insert Map Fence from Section |
+| `07-xmind-markdown` | Open a `.xmind` from the folder, edit, export as Markdown, open the RTL outline |
 
 ## Record
 
