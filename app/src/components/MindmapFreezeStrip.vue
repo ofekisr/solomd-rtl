@@ -6,25 +6,38 @@ import { useSettingsStore } from '../stores/settings';
 import { useI18n } from '../i18n';
 
 const props = withDefaults(defineProps<{ strip: FreezeStrip; focusId: string | null; frameStyle?: StripFrameStyle }>(), { frameStyle: () => EMPTY_FRAME_STYLE });
-const emit = defineEmits<{ focus: [id: string | null] }>();
+const emit = defineEmits<{ focus: [id: string | null]; anchor: [id: string] }>();
 const { t } = useI18n();
 const settings = useSettingsStore();
 const isFramed = computed(() => settings.mindmapControlStyle === 'classic');
 
 function chipStyle(chip: StripChip, index: number): Record<string, string> {
   const style: Record<string, string> = {};
-  const branch = isFramed.value ? branchColorAt(props.frameStyle.palette, index, chip.branch) : undefined;
+  const branch = isFramed.value ? branchColorAt(props.frameStyle.palette, props.strip.branchIndex ?? index, chip.branch) : undefined;
   if (branch) style.borderColor = branch;
   if (chip.color) style.color = chip.color;
   if (chip.background) style.background = chip.background;
   return style;
+}
+
+const isAnchored = computed(() => props.strip.ancestors.length > 0);
+const rootFocusId = computed(() => (isAnchored.value ? props.strip.root.id : null));
+
+function onChip(event: MouseEvent, id: string): void {
+  if (event.altKey) emit('anchor', id);
+  else emit('focus', id);
 }
 </script>
 
 <template>
   <nav class="mm-strip" :class="{ 'mm-strip--framed': isFramed }" :style="isFramed ? frameStyle.vars : undefined" :aria-label="t('mindmap.focusStripLabel')">
     <div class="mm-strip__row">
-      <button type="button" class="mm-strip__chip mm-strip__chip--root" dir="auto" :title="t('mindmap.focusWholeMap')" :aria-current="focusId === null ? 'true' : undefined" @click="emit('focus', null)">
+      <ol v-if="isAnchored" class="mm-strip__crumbs mm-strip__ancestors">
+        <li v-for="chip in strip.ancestors" :key="chip.id">
+          <button type="button" class="mm-strip__crumb" dir="auto" :title="t('mindmap.stripAncestorHint')" @click="emit('anchor', chip.id)">{{ chip.topic }}</button>
+        </li>
+      </ol>
+      <button type="button" class="mm-strip__chip mm-strip__chip--root" dir="auto" :title="isAnchored ? t('mindmap.stripChipHint') : t('mindmap.focusWholeMap')" :aria-current="focusId === rootFocusId ? 'true' : undefined" @click="emit('focus', rootFocusId)">
         {{ strip.root.topic }}
       </button>
     </div>
@@ -38,7 +51,8 @@ function chipStyle(chip: StripChip, index: number): Record<string, string> {
         dir="auto"
         :style="chipStyle(chip, index)"
         :aria-current="chip.id === focusId ? 'true' : undefined"
-        @click="emit('focus', chip.id)"
+        :title="t('mindmap.stripChipHint')"
+        @click="onChip($event, chip.id)"
       >
         <span v-for="icon in chip.icons" :key="icon">{{ icon }}</span>
         {{ chip.topic }}
@@ -47,7 +61,7 @@ function chipStyle(chip: StripChip, index: number): Record<string, string> {
     </div>
     <ol v-if="strip.breadcrumb.length > 0" class="mm-strip__row mm-strip__crumbs">
       <li v-for="chip in strip.breadcrumb" :key="chip.id">
-        <button type="button" class="mm-strip__crumb" dir="auto" :aria-current="chip.id === focusId ? 'true' : undefined" @click="emit('focus', chip.id)">{{ chip.topic }}</button>
+        <button type="button" class="mm-strip__crumb" dir="auto" :aria-current="chip.id === focusId ? 'true' : undefined" :title="t('mindmap.stripChipHint')" @click="onChip($event, chip.id)">{{ chip.topic }}</button>
       </li>
     </ol>
   </nav>
@@ -64,6 +78,9 @@ function chipStyle(chip: StripChip, index: number): Record<string, string> {
 .mm-strip__crumbs li + li::before { content: '›'; margin-inline-end: 6px; color: var(--text-faint); }
 .mm-strip__crumb { background: none; border: 0; color: var(--text); font-size: 12px; cursor: pointer; unicode-bidi: plaintext; }
 .mm-strip__crumbs li + li:dir(rtl)::before { content: '‹'; }
+.mm-strip__ancestors { display: flex; align-items: center; margin: 0; padding: 0; list-style: none; opacity: 0.75; }
+.mm-strip__ancestors li:last-child::after { content: '›'; margin-inline: 2px 4px; color: var(--text-faint); }
+.mm-strip__ancestors li:last-child:dir(rtl)::after { content: '‹'; }
 
 .mm-strip--framed {
   --frame-surface: color-mix(in srgb, var(--bgcolor, var(--bg)) 88%, var(--text) 12%);
