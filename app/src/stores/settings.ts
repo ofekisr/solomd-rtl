@@ -258,7 +258,6 @@ interface Settings {
   /** Phase 7 — global map display defaults; a `.mmap` `display` block overrides per key. */
   mindmapDefaults: MapDisplay;
   mindmapPanelOpen: boolean;
-  mindmapHoverPan: boolean;
   mindmapControlStyle: MindmapControlStyle;
   // v2.5 F4: Pomodoro / focus session timer.
   pomodoroShowControls: boolean;
@@ -662,7 +661,6 @@ function defaults(): Settings {
     pdfDefaults: defaultPdfDefaults(),
     mindmapDefaults: {},
     mindmapPanelOpen: false,
-    mindmapHoverPan: false,
     mindmapControlStyle: DEFAULT_MINDMAP_CONTROL_STYLE,
     pomodoroShowControls: true,
     pomodoroAutoEngageFocus: true,
@@ -1356,10 +1354,6 @@ export const useSettingsStore = defineStore('settings', {
     },
     setMindmapControlStyle(style: MindmapControlStyle) {
       this.mindmapControlStyle = normalizeControlStyle(style);
-      this.persist();
-    },
-    toggleMindmapHoverPan() {
-      this.mindmapHoverPan = !this.mindmapHoverPan;
       this.persist();
     },
     togglePomodoroShowControls() {

@@ -1362,7 +1362,6 @@ export const en = {
     canvasCenter: 'Frame map',
     canvasZoomIn: 'Zoom in',
     canvasZoomOut: 'Zoom out',
-    canvasHoverPan: 'Pan by moving the mouse (⌥ inverts)',
     dockView: 'Map controls',
     dockNavigate: 'Navigation',
     dockDirection: 'Layout direction',

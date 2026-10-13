@@ -18,7 +18,6 @@ import { themeFamily } from '../lib/themes';
 import { clearActiveMindmap, setActiveMindmap, type MindmapHandle } from '../lib/mindmap-active';
 import { createGateController, type GateMenuAction, type GateNotice } from '../lib/mindmap-gate-controller';
 import { useMindmapCanvasActions } from '../composables/useMindmapCanvasActions';
-import { createHoverPan } from '../composables/useMindmapHoverPan';
 import { createChordPan } from '../composables/useMindmapChordPan';
 import { frameDelta, insetRect, parseTranslate } from '../lib/mindmap-frame';
 import { EMPTY_FRAME_STYLE, readFrameVars, type StripFrameStyle } from '../lib/mindmap-frame-style';
@@ -176,7 +175,6 @@ function mount(): void {
   wrapToCenter(mind);
   mind.init(data);
   direction.value = mind.direction;
-  hoverPan.attach(host.value);
   chordPan.attach(host.value);
   stage.value?.addEventListener(FULLSCREEN_CHANGE_EVENT, onFullscreenChange);
   gates.syncLabels();
@@ -239,7 +237,6 @@ function onFullscreenChange(): void {
   requestAnimationFrame(() => mind?.toCenter());
 }
 
-const hoverPan = createHoverPan({ getMind: () => mind, isToggled: () => settings.mindmapHoverPan });
 const chordPan = createChordPan({ getMind: () => mind });
 
 function emitSelection(): void {
@@ -389,7 +386,6 @@ function flushPendingSync(): void {
 
 function teardown(): void {
   clearActiveMindmap(handle);
-  hoverPan.detach();
   chordPan.detach();
   stage.value?.removeEventListener(FULLSCREEN_CHANGE_EVENT, onFullscreenChange);
   stopCentering();
@@ -549,7 +545,6 @@ const actions: Record<string, () => void> = {
   'mindmap.layoutLeft': () => mind?.initLeft(),
   'mindmap.layoutRight': () => mind?.initRight(),
   'mindmap.layoutSide': () => mind?.initSide(),
-  'mindmap.toggleHoverPan': () => settings.toggleMindmapHoverPan(),
   'mindmap.redo': () => mind?.redo(),
   ...canvasActions,
   ...gates.actions,
@@ -712,8 +707,6 @@ defineExpose({
           <MindmapDockButton icon="zoom-in" :label="t('mindmap.canvasZoomIn')" @click="zoomBy(1)" />
           <MindmapDockButton icon="fit" :label="t('mindmap.canvasFit')" @click="actions['mindmap.fit']" />
           <MindmapDockButton icon="root" :label="t('mindmap.canvasRoot')" @click="selectRoot" />
-          <span class="mm-dock-sep" aria-hidden="true" />
-          <MindmapDockButton icon="pan" :label="t('mindmap.canvasHoverPan')" :pressed="settings.mindmapHoverPan" @click="settings.toggleMindmapHoverPan()" />
         </MindmapDock>
       </div>
     </template>
@@ -733,7 +726,6 @@ defineExpose({
 .mindmap-view { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
 .mindmap-view__stage { position: relative; flex: 1; min-height: 0; display: flex; background: var(--bg); }
 .mindmap-view__canvas { flex: 1; min-height: 0; width: 100%; }
-.mindmap-view__canvas.mm-hover-panning, .mindmap-view__canvas.mm-hover-panning :deep(*) { cursor: grab !important; }
 .mindmap-view__canvas.mm-grabbing, .mindmap-view__canvas.mm-grabbing :deep(*) { cursor: grabbing !important; }
 .mindmap-view__status { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; z-index: 5; display: flex; gap: 6px; pointer-events: none; }
 .mindmap-view__badge { padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); opacity: 0.9; }
