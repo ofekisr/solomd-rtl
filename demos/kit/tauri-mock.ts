@@ -76,6 +76,10 @@ function installTauriMock(backend: FakeBackend): void {
     'plugin:path|resolve_directory': () => '/Users/demo/Documents',
     fs_file_exists: (a) => String(a.path) in backend.files,
     read_binary_file: (a) => Array.from(atob(backend.binaryFiles[String(a.path)] ?? ''), (ch) => ch.charCodeAt(0)),
+    fs_create_file: (a) => {
+      backend.files[String(a.path)] = String(a.content ?? '');
+      return null;
+    },
     write_file: (a) => {
       backend.files[String(a.path)] = String(a.content ?? '');
       return null;

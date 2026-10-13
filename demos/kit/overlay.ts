@@ -5,6 +5,7 @@ export interface DemoOverlayApi {
   hideCard(): void;
   moveCursor(x: number, y: number, durationMs: number): void;
   ripple(): void;
+  action(label: string, holdMs: number): void;
 }
 
 declare global {
@@ -33,6 +34,13 @@ export function installOverlay(): void {
     #demo-cursor { position: absolute; left: 0; top: 0; width: 26px; height: 26px; margin: -3px 0 0 -4px;
       transition-property: transform; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
       filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35)); }
+    #demo-action { position: absolute; right: 28px; top: 84px; display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px; border-radius: 12px; background: rgba(255,255,255,0.97); color: #111827;
+      font-size: 20px; font-weight: 600; box-shadow: 0 8px 26px rgba(0,0,0,0.22); border: 1px solid #e5e7eb;
+      opacity: 0; transform: translateY(-8px); transition: opacity 180ms ease, transform 180ms ease; }
+    #demo-action.on { opacity: 1; transform: translateY(0); }
+    #demo-action kbd { font: inherit; font-family: ui-monospace, 'SF Mono', Menlo, monospace; padding: 3px 10px;
+      border-radius: 7px; background: #f3f4f6; border: 1px solid #d1d5db; border-bottom-width: 3px; }
     .demo-ripple { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%;
       border: 3px solid rgba(37, 99, 235, 0.9); animation: demo-ripple 520ms ease-out forwards; }
     @keyframes demo-ripple { to { transform: scale(3.4); opacity: 0; } }
@@ -53,7 +61,7 @@ export function installOverlay(): void {
     document.head.appendChild(style);
     const root = document.createElement('div');
     root.id = 'demo-overlay';
-    root.innerHTML = `<div id="demo-card"><h1></h1><p></p></div><div id="demo-caption"></div><div id="demo-cursor">${CURSOR_SVG}</div>`;
+    root.innerHTML = `<div id="demo-card"><h1></h1><p></p></div><div id="demo-caption"></div><div id="demo-action"></div><div id="demo-cursor">${CURSOR_SVG}</div>`;
     document.body.appendChild(root);
     const cursor = root.querySelector<HTMLElement>('#demo-cursor')!;
     cursor.style.transform = `translate(${cursorX}px, ${cursorY}px)`;
@@ -61,11 +69,13 @@ export function installOverlay(): void {
       root,
       card: root.querySelector<HTMLElement>('#demo-card')!,
       caption: root.querySelector<HTMLElement>('#demo-caption')!,
+      action: root.querySelector<HTMLElement>('#demo-action')!,
       cursor,
     };
   };
 
   let els: Record<string, HTMLElement> | null = null;
+  let actionTimer: ReturnType<typeof setTimeout> | undefined;
   const ui = (): Record<string, HTMLElement> => (els ??= build());
 
   window.__demo = {
@@ -93,6 +103,19 @@ export function installOverlay(): void {
       cursorX = x;
       cursorY = y;
       sessionStorage.setItem(CURSOR_KEY, JSON.stringify({ x, y }));
+    },
+    action(label, holdMs) {
+      const el = ui().action;
+      el.replaceChildren();
+      for (const part of label.split('|')) {
+        const isKey = part.startsWith('[') && part.endsWith(']');
+        const node = document.createElement(isKey ? 'kbd' : 'span');
+        node.textContent = isKey ? part.slice(1, -1) : part;
+        el.appendChild(node);
+      }
+      el.classList.add('on');
+      clearTimeout(actionTimer);
+      actionTimer = setTimeout(() => el.classList.remove('on'), holdMs);
     },
     ripple() {
       const dot = document.createElement('div');

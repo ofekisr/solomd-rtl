@@ -3,10 +3,11 @@
 // Records demo stories as captioned videos: runs the Playwright story, trims the app
 // boot off the front, and writes out/<story>.mp4 plus a README-sized out/<story>.gif.
 //
-// Usage: node record.mjs <story-prefix|all> [--no-gif] [--dry-run]
+// Usage: node record.mjs <story-prefix|all> [--dry-run]
 //   node record.mjs 03          → stories/03-*.story.ts
-//   node record.mjs all         → every story, then out/solomd-rtl-demo.mp4 joining them in order
-// DEMO_SPEED (default 1.25) speeds up playback at encode time.
+//   node record.mjs all         → every numbered story, then out/solomd-rtl-demo.mp4 joining them in order
+//   node record.mjs highlights  → the short reel, as mp4 + gif (the only story that gets a gif)
+// DEMO_SPEED (default 1.5) speeds up playback at encode time.
 
 import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -21,18 +22,19 @@ const TIMING_DIR = path.join(OUT_DIR, 'timing');
 const STORY_SUFFIX = '.story.ts';
 const MP4_FPS = '30';
 const MP4_CRF = '18';
-const SPEED = Number(process.env.DEMO_SPEED ?? '1.25');
+const SPEED = Number(process.env.DEMO_SPEED ?? '1.5');
 const FULL_VIDEO = 'solomd-rtl-demo.mp4';
 const GIF_FPS = 12;
 const GIF_WIDTH = 960;
-const USAGE = 'usage: pnpm demo <story-prefix|all> [--no-gif] [--dry-run]';
+const USAGE = 'usage: pnpm demo <story-prefix|all|highlights> [--dry-run]';
+const GIF_STORIES = ['highlights'];
+const NUMBERED = /^\d{2}-/;
 const EXIT_USAGE = 2;
 const EXIT_FAILED = 1;
 
 const args = process.argv.slice(2);
 const selector = args.find((a) => !a.startsWith('-'));
 const isDryRun = args.includes('--dry-run');
-const wantsGif = !args.includes('--no-gif');
 
 function fail(message, code = EXIT_FAILED) {
   console.error(`[demo] ${message}`);
@@ -45,7 +47,7 @@ function listStories() {
 
 function selectStories(sel) {
   const all = listStories();
-  if (sel === 'all') return all;
+  if (sel === 'all') return all.filter((f) => NUMBERED.test(f));
   return all.filter((f) => f.startsWith(sel));
 }
 
@@ -124,6 +126,7 @@ function recordOne(file) {
     return false;
   }
   const mp4 = path.join(OUT_DIR, `${name}.mp4`);
+  const wantsGif = GIF_STORIES.includes(name);
   encodeMp4(video, trimSeconds(name), mp4);
   if (wantsGif) encodeGif(mp4, path.join(OUT_DIR, `${name}.gif`));
   console.log(`[demo] ${name} → ${path.relative(DEMOS_DIR, mp4)}${wantsGif ? ' (+ .gif)' : ''}`);
@@ -136,7 +139,7 @@ if (files.length === 0) fail(`no story matches "${selector}" — have: ${listSto
 
 if (isDryRun) {
   console.log(`[demo] would record: ${files.join(', ')}`);
-  console.log(`[demo] output: ${path.relative(DEMOS_DIR, OUT_DIR)}/<story>.mp4${wantsGif ? ' + .gif' : ''}`);
+  console.log(`[demo] output: ${path.relative(DEMOS_DIR, OUT_DIR)}/<story>.mp4 (gif for: ${GIF_STORIES.join(', ')})`);
   process.exit(0);
 }
 

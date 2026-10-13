@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 
 const DEMOS_DIR = path.dirname(fileURLToPath(import.meta.url));
-const APP_PORT = 1440;
+const APP_PORT = Number(process.env.DEMO_PORT ?? '1440');
 const VIDEO_SIZE = { width: 1280, height: 720 };
 const STORY_TIMEOUT_MS = 5 * 60_000;
 

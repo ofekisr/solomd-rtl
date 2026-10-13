@@ -9,10 +9,15 @@ test('Markdown to mind map', async ({ demo }) => {
   const map = new MapUi(page);
   const editor = page.locator('.cm-content').first();
 
-  await director.title('Markdown → mind map', 'Turn any outline into a map or a live map fence');
+  await director.title('Markdown ⇄ mind map', 'Diagrams and maps inside Markdown · convert any outline to a map');
 
-  await director.step('Start from any Markdown document', async (c) => {
-    await c.hover(editor.locator('.cm-line', { hasText: 'תוכנית רבעונית' }));
+  await director.step('A Markdown file is more than text — a Mermaid diagram…', async (c) => {
+    await c.hover(page.locator('.preview-content svg').first());
+  });
+
+  await director.step('…and a live mind map, written as a simple outline fence', async (c) => {
+    await c.click(editor.locator('.cm-line', { hasText: 'מפת יעדים' }));
+    await c.hover(page.locator('.preview-content [class*="mindmap"]').last());
   });
 
   await director.step('Command palette → Convert Document to Map', async (c) => {

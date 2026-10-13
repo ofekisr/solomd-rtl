@@ -5,6 +5,7 @@ Captioned showcase videos of solomd-rtl features, recorded by Playwright against
 | Story | Shows |
 | --- | --- |
 | `00-intro` | English baseline file: "From SoloMD… to solomd-rtl" |
+| `highlights` | ~30 s reel of the strongest features — the only story rendered as mp4 **and** gif |
 | `01-rtl-hebrew` | Whole-file RTL detection, caret/gutter, mixed Hebrew + English, LTR code, split, reading, LTR English file |
 | `02-folders-code` | Open Folder, file tree, highlighting for Python/`.pyj`/TypeScript/shell and Markdown fences, `*.full.md` numbered blocks, EPUB directive completions |
 | `03-mindmap-basics` | `.mmap` canvas, Tab to add, raw JSON (Data lens), Markdown outline (Doc lens), focus mode, themes, export menu |
@@ -23,8 +24,9 @@ pnpm --dir demos demo all
 ```
 
 - One story: `pnpm --dir demos demo 03`
-- Output: `demos/out/<story>.mp4` (1280×720, H.264) and `<story>.gif` (960 px). `all` also writes `out/solomd-rtl-demo.mp4`, every story joined in order. `out/` is gitignored.
-- Playback speed: `DEMO_SPEED=1.5 pnpm --dir demos demo all` (default 1.25×, applied at encode).
+- Output: `demos/out/<story>.mp4` (1280×720, H.264). `all` records every numbered story and joins them into `out/solomd-rtl-demo.mp4`. `pnpm --dir demos demo highlights` writes `highlights.mp4` + `highlights.gif`. `out/` is gitignored.
+- Every click, key and typed text shows an on-screen badge; the first use of each action is held longer.
+- Playback speed: `DEMO_SPEED=1.5 pnpm --dir demos demo all` (default 1.5×, applied at encode).
 - Pacing while recording: `DEMO_TEMPO=0.7` (1 = default; lower is faster).
 - Review without watching: `DEMO_SHOTS=1 DEMO_TEMPO=0.3 pnpm --dir demos exec playwright test` saves one frame per step to `out/shots/`.
 - Needs `ffmpeg` (`brew install ffmpeg`). Port 1440 must be free; your own dev server on 1420 is untouched.
