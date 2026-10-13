@@ -13,12 +13,16 @@ import { fenceNodeSource, readNodeSource, type MindmapSource } from '../lib/mind
 import { useI18n } from '../i18n';
 import { resolveBindings } from '../lib/keybindings';
 import { createMapKeyDispatch } from '../lib/mindmap-key-dispatch';
-import { layoutDirectionFor } from '../lib/mindmap-direction';
+import { layoutDirectionFor, MINDMAP_LAYOUT } from '../lib/mindmap-direction';
 import { themeFamily } from '../lib/themes';
 import { clearActiveMindmap, setActiveMindmap, type MindmapHandle } from '../lib/mindmap-active';
 import { createGateController, type GateMenuAction, type GateNotice } from '../lib/mindmap-gate-controller';
 import { useMindmapCanvasActions } from '../composables/useMindmapCanvasActions';
-import { appendCanvasControls } from '../composables/useMindmapCanvasControls';
+import { createHoverPan } from '../composables/useMindmapHoverPan';
+import { frameDelta, insetRect, parseTranslate } from '../lib/mindmap-frame';
+import { EMPTY_FRAME_STYLE, readFrameVars, type StripFrameStyle } from '../lib/mindmap-frame-style';
+import MindmapDock from './MindmapDock.vue';
+import MindmapDockButton from './MindmapDockButton.vue';
 import MindmapShortcutHelp from './MindmapShortcutHelp.vue';
 import MindmapDuplicates from './MindmapDuplicates.vue';
 import { findDuplicateGroups, mergeIntoGate, type DuplicateGroup } from '../lib/mindmap-duplicates';
@@ -39,6 +43,8 @@ const BEGIN_EDIT_OPERATION = 'beginEdit';
 const COPY_NODES_OPERATION = 'copyNodes';
 const PASTE_NOTICE_KEYS = { empty: null, tooLarge: 'mindmap.pasteTooLarge', unrecognized: 'mindmap.pasteUnrecognized' } as const;
 const TOGGLE_NODE_ACTION = 'mindmap.toggleNode';
+const CHANGE_DIRECTION_EVENT = 'changeDirection';
+const FULLSCREEN_CHANGE_EVENT = 'fullscreenchange';
 const INTERACTIVE_SELECTOR = 'button, input, select, textarea, a[href], [contenteditable="true"], [role="button"], [role="menuitem"]';
 
 const props = withDefaults(
@@ -57,12 +63,15 @@ const toasts = useToastsStore();
 const { t } = useI18n();
 
 const host = ref<HTMLElement | null>(null);
+const stage = ref<HTMLElement | null>(null);
+const direction = ref<number>(MINDMAP_LAYOUT.SIDE);
 const parseError = ref<string | null>(null);
 const isHelpOpen = ref(false);
 const isReadOnly = ref(false);
 const isGraphView = ref(false);
 const focusId = ref<string | null>(props.focusKey ? getTabFocus(props.focusKey) : null);
 const strip = ref<FreezeStrip | null>(null);
+const frameStyle = ref<StripFrameStyle>(EMPTY_FRAME_STYLE);
 let isApplyingFocus = false;
 let graphBaseline: MindElixirData | null = null;
 let mind: MindElixirInstance | null = null;
@@ -157,17 +166,17 @@ function mount(): void {
     editable: canEdit(),
     contextMenu: { extend: [...gates.menu, { name: t('mindmap.jumpToSourceMenu'), onclick: jumpToSource }] },
     before: gates.guards,
-    toolBar: true,
+    toolBar: false,
     keypress: true,
     allowUndo: true,
     theme: themeFor(),
     pasteHandler: onPaste,
   });
+  wrapToCenter(mind);
   mind.init(data);
-  appendCanvasControls(host.value, [
-    { glyph: '⤢', label: t('mindmap.canvasFit'), run: () => mind?.scaleFit() },
-    { glyph: '⌂', label: t('mindmap.canvasRoot'), run: selectRoot },
-  ]);
+  direction.value = mind.direction;
+  hoverPan.attach(host.value);
+  stage.value?.addEventListener(FULLSCREEN_CHANGE_EVENT, onFullscreenChange);
   gates.syncLabels();
   countDuplicates();
   pristineSerialized = props.content === '' ? props.codec.serialize(mind.getData(), displayOverride, snippetsOverride) : null;
@@ -176,14 +185,59 @@ function mount(): void {
   mind.bus.addListener(EXPAND_EVENT, scheduleSync);
   mind.bus.addListener(SELECT_EVENT, emitSelection);
   mind.bus.addListener(UNSELECT_EVENT, emitSelection);
+  mind.bus.addListener(CHANGE_DIRECTION_EVENT, onDirectionChange);
   syncAfterHistoryJumps(mind);
   sanitizeCopiedNodes(mind);
   guardRemovedNodes(mind);
   wrapFocus(mind);
   reapplyFocus();
+  refreshFrameStyle();
   activate();
   emit('ready');
 }
+
+function frameMap(instance: MindElixirInstance): void {
+  const container = instance.container.getBoundingClientRect();
+  if (container.width === 0 || container.height === 0) return;
+  const padding = getComputedStyle(instance.nodes);
+  const content = insetRect(instance.nodes.getBoundingClientRect(), parseFloat(padding.paddingLeft) || 0, parseFloat(padding.paddingTop) || 0);
+  const root = instance.map.querySelector('me-root')?.getBoundingClientRect() ?? content;
+  const { dx, dy } = frameDelta({ container, content, root, layout: instance.direction });
+  const { x, y } = parseTranslate(instance.map.style.transform);
+  instance.map.style.transform = `translate3d(${x + dx}px, ${y + dy}px, 0) scale(${instance.scaleVal})`;
+}
+
+function wrapToCenter(instance: MindElixirInstance): void {
+  const { toCenter } = instance;
+  instance.toCenter = () => {
+    toCenter.call(instance);
+    frameMap(instance);
+  };
+}
+
+function onDirectionChange(next: number): void {
+  direction.value = next;
+  if (!mind?.isFocusMode) scheduleSync();
+}
+
+function zoomBy(step: number): void {
+  if (mind) mind.scale(mind.scaleVal + step * mind.scaleSensitivity);
+}
+
+function toggleFullscreen(): void {
+  if (document.fullscreenElement === stage.value) void document.exitFullscreen();
+  else void stage.value?.requestFullscreen();
+}
+
+function recenter(): void {
+  mind?.toCenter();
+}
+
+function onFullscreenChange(): void {
+  requestAnimationFrame(() => mind?.toCenter());
+}
+
+const hoverPan = createHoverPan({ getMind: () => mind, isToggled: () => settings.mindmapHoverPan });
 
 function emitSelection(): void {
   emit('selection', mind?.currentNodes?.map((tpc) => tpc.nodeObj) ?? []);
@@ -233,6 +287,12 @@ function fullRoot(instance: MindElixirInstance): NodeObj {
 function rememberFocus(id: string | null): void {
   focusId.value = id;
   if (props.focusKey) setTabFocus(props.focusKey, id);
+}
+
+function refreshFrameStyle(): void {
+  if (!mind) return;
+  const computed = getComputedStyle(mind.container);
+  frameStyle.value = { vars: readFrameVars((name) => computed.getPropertyValue(name)), palette: [...mind.theme.palette] };
 }
 
 function refreshStrip(knownRoot?: NodeObj | null): void {
@@ -326,6 +386,8 @@ function flushPendingSync(): void {
 
 function teardown(): void {
   clearActiveMindmap(handle);
+  hoverPan.detach();
+  stage.value?.removeEventListener(FULLSCREEN_CHANGE_EVENT, onFullscreenChange);
   stopCentering();
   if (syncTimer !== null) window.clearTimeout(syncTimer);
   syncTimer = null;
@@ -480,6 +542,10 @@ const actions: Record<string, () => void> = {
   'mindmap.focusNode': () => { if (mind?.currentNode) mind.focusNode(mind.currentNode); },
   'mindmap.cancelFocus': () => focusById(null),
   'mindmap.undo': () => mind?.undo(),
+  'mindmap.layoutLeft': () => mind?.initLeft(),
+  'mindmap.layoutRight': () => mind?.initRight(),
+  'mindmap.layoutSide': () => mind?.initSide(),
+  'mindmap.toggleHoverPan': () => settings.toggleMindmapHoverPan(),
   'mindmap.redo': () => mind?.redo(),
   ...canvasActions,
   ...gates.actions,
@@ -580,6 +646,7 @@ watch(() => props.locked, (isLocked) => {
 watch(() => settings.theme, () => {
   if (!mind) return;
   mind.changeTheme(themeFor());
+  refreshFrameStyle();
   emit('ready');
 });
 
@@ -615,6 +682,9 @@ defineExpose({
   setSnippets,
   isReadOnly,
   isGraphView,
+  direction,
+  refreshFrameStyle,
+  isFocused: computed(() => focusId.value !== null),
   hasMap: computed(() => parseError.value === null),
 });
 </script>
@@ -627,8 +697,21 @@ defineExpose({
       <button type="button" @click="emit('open-as-text')">{{ t('mindmap.openAsText') }}</button>
     </div>
     <template v-else>
-      <MindmapFreezeStrip v-if="strip && !isGraphView" :strip="strip" :focus-id="focusId" @focus="focusById" />
-      <div ref="host" class="mindmap-view__canvas" />
+      <MindmapFreezeStrip v-if="strip && !isGraphView" :strip="strip" :focus-id="focusId" :frame-style="frameStyle" @focus="focusById" />
+      <div ref="stage" class="mindmap-view__stage">
+        <div ref="host" class="mindmap-view__canvas" />
+        <slot name="rail" />
+        <MindmapDock corner="bottom-end" orientation="row" :label="t('mindmap.dockNavigate')">
+          <MindmapDockButton icon="fullscreen" :label="t('mindmap.canvasFullscreen')" @click="toggleFullscreen" />
+          <MindmapDockButton icon="center" :label="t('mindmap.canvasCenter')" @click="recenter" />
+          <MindmapDockButton icon="zoom-out" :label="t('mindmap.canvasZoomOut')" @click="zoomBy(-1)" />
+          <MindmapDockButton icon="zoom-in" :label="t('mindmap.canvasZoomIn')" @click="zoomBy(1)" />
+          <MindmapDockButton icon="fit" :label="t('mindmap.canvasFit')" @click="actions['mindmap.fit']" />
+          <MindmapDockButton icon="root" :label="t('mindmap.canvasRoot')" @click="selectRoot" />
+          <span class="mm-dock-sep" aria-hidden="true" />
+          <MindmapDockButton icon="pan" :label="t('mindmap.canvasHoverPan')" :pressed="settings.mindmapHoverPan" @click="settings.toggleMindmapHoverPan()" />
+        </MindmapDock>
+      </div>
     </template>
     <div class="mindmap-view__status">
       <button v-if="duplicateCount > 0 && !locked && !isReadOnly && !isGraphView" type="button" class="mindmap-view__chip" @click="findDuplicates">
@@ -644,12 +727,12 @@ defineExpose({
 
 <style scoped>
 .mindmap-view { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
+.mindmap-view__stage { position: relative; flex: 1; min-height: 0; display: flex; background: var(--bg); }
 .mindmap-view__canvas { flex: 1; min-height: 0; width: 100%; }
+.mindmap-view__canvas.mm-hover-panning, .mindmap-view__canvas.mm-hover-panning :deep(*) { cursor: grab !important; }
 .mindmap-view__status { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; z-index: 5; display: flex; gap: 6px; pointer-events: none; }
 .mindmap-view__badge { padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); opacity: 0.9; }
 .mindmap-view__chip { pointer-events: auto; padding: 2px 10px; border-radius: 999px; font-size: 12px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--accent); cursor: pointer; }
-.mindmap-view__canvas :deep(.mm-canvas-control) { display: inline-block; min-width: 1em; font-size: 16px; line-height: 1; text-align: center; cursor: pointer; }
-.mindmap-view__canvas :deep(.mm-canvas-control:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 .mindmap-view__error { padding: 24px; }
 .mindmap-view__error pre { white-space: pre-wrap; opacity: 0.8; }
 .mindmap-view__canvas :deep(me-tpc),

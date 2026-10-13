@@ -14,6 +14,9 @@ export interface MindmapCanvasApi {
   setSnippets(next: readonly Snippet[]): void;
   readonly isReadOnly: boolean;
   readonly isGraphView: boolean;
+  readonly direction: number;
+  refreshFrameStyle(): void;
+  readonly isFocused: boolean;
   readonly hasMap: boolean;
 }
 

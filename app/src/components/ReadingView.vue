@@ -156,8 +156,9 @@ onBeforeUnmount(() => {
   flex: 1;
   min-height: 0;
 }
-.reading-view__doc--map > :deep(.mindmap-view) {
+.reading-view__doc--map > :deep(*) {
   flex: 1;
+  min-width: 0;
   min-height: 0;
 }
 .reading-view__controls {

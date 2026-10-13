@@ -299,6 +299,9 @@ export const en = {
     keysUnbound: 'not bound',
     keysConflict: '{combo} is already used by "{action}". Pick another chord.',
     theme: 'Theme',
+    mindmapControlStyle: 'Mind map controls',
+    mindmapControlStyle_classic: 'Classic (default)',
+    mindmapControlStyle_compact: 'Compact',
     fontFamily: 'Font Family',
     customFont: 'Custom…',
     customFontPlaceholder: 'Enter font name, e.g. PingFang SC',
@@ -1355,6 +1358,17 @@ export const en = {
   },
   mindmap: {
     canvasFit: 'Fit to window',
+    canvasFullscreen: 'Full screen',
+    canvasCenter: 'Frame map',
+    canvasZoomIn: 'Zoom in',
+    canvasZoomOut: 'Zoom out',
+    canvasHoverPan: 'Pan by moving the mouse (⌥ inverts)',
+    dockView: 'Map controls',
+    dockNavigate: 'Navigation',
+    dockDirection: 'Layout direction',
+    layoutLeft: 'Grow left',
+    layoutRight: 'Grow right',
+    layoutSide: 'Both sides',
     canvasRoot: 'Go to root',
     duplicatesChip: '{count} duplicates',
     duplicatesChipOne: '1 duplicate',
@@ -2155,7 +2169,10 @@ type DirectiveCompletionFallbackKey =
   | 'directiveCompletionOpenFailed'
   | 'keysCatMindmap'
   | 'keysMindmapBuiltin'
-  | 'catMindmap';
+  | 'catMindmap'
+  | 'mindmapControlStyle'
+  | 'mindmapControlStyle_classic'
+  | 'mindmapControlStyle_compact';
 
 type EnglishDictionary = typeof en;
 type EnglishSettings = EnglishDictionary['settings'];

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { MINDMAP_CONTROL_STYLES, type MindmapControlStyle } from '../lib/mindmap-icon-names';
 import { ref, computed, watch, onUnmounted, nextTick } from 'vue';
 import { shortcutLabel } from '../lib/keybindings';
 import { builtinLabelFor } from '../lib/mindmap-keymap';
@@ -776,6 +777,16 @@ function onSelectPdfFont(v: string) {
               {{ t('settings.customThemeDisable') }}
             </button>
           </p>
+        </section>
+
+        <section data-cat="basics">
+          <label>{{ t('settings.mindmapControlStyle') }}</label>
+          <select
+            :value="settings.mindmapControlStyle"
+            @change="settings.setMindmapControlStyle(($event.target as HTMLSelectElement).value as MindmapControlStyle)"
+          >
+            <option v-for="style in MINDMAP_CONTROL_STYLES" :key="style" :value="style">{{ t(`settings.mindmapControlStyle_${style}`) }}</option>
+          </select>
         </section>
 
         <section data-cat="basics">
