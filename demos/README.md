@@ -5,9 +5,10 @@ Captioned showcase videos of solomd-rtl features, recorded by Playwright against
 | Story | Shows |
 | --- | --- |
 | `01-rtl-hebrew` | Whole-file RTL detection, caret/gutter, mixed Hebrew + English, LTR code, split, reading, LTR English file |
-| `02-mindmap-basics` | `.mmap` canvas, Tab to add, Data · Map · Doc lens, themes, export menu, fit |
-| `03-mindmap-power` | Freeze strip, focus, ⌥-click pin root, details pane note + fields, Space collapse, paste outline |
-| `04-md-to-mindmap` | Convert Document to Map, Insert Map Fence from Section |
+| `02-folders-code` | Open Folder, file tree, highlighting for Python/`.pyj`/TypeScript/shell and Markdown fences, `*.full.md` numbered blocks, EPUB directive completions |
+| `03-mindmap-basics` | `.mmap` canvas, Tab to add, Data · Map · Doc lens, themes, export menu, fit |
+| `04-mindmap-power` | Freeze strip, focus, ⌥-click pin root, details pane note + fields, Space collapse, paste outline |
+| `05-md-to-mindmap` | Convert Document to Map, Insert Map Fence from Section |
 
 ## Record
 
@@ -20,14 +21,16 @@ pnpm --dir demos demo all
 ```
 
 - One story: `pnpm --dir demos demo 03`
-- Output: `demos/out/<story>.mp4` (1280×720, H.264) and `<story>.gif` (960 px). `out/` is gitignored.
-- Faster or slower: `DEMO_TEMPO=0.7 pnpm --dir demos demo all` (1 = default pace).
+- Output: `demos/out/<story>.mp4` (1280×720, H.264) and `<story>.gif` (960 px). `all` also writes `out/solomd-rtl-demo.mp4`, every story joined in order. `out/` is gitignored.
+- Playback speed: `DEMO_SPEED=1.5 pnpm --dir demos demo all` (default 1.25×, applied at encode).
+- Pacing while recording: `DEMO_TEMPO=0.7` (1 = default; lower is faster).
 - Review without watching: `DEMO_SHOTS=1 DEMO_TEMPO=0.3 pnpm --dir demos exec playwright test` saves one frame per step to `out/shots/`.
 - Needs `ffmpeg` (`brew install ffmpeg`). Port 1440 must be free; your own dev server on 1420 is untouched.
 
 ## How it works
 
 - `kit/seed.ts` writes tabs and settings into `localStorage` before the app boots, so no app code changes and no first-run dialogs.
+- `kit/tauri-mock.ts` stands in for the desktop backend (Open Folder, file tree, `read_file`, directive manifests) and serves `content/vault/` as `/Users/demo/פרויקט`.
 - `kit/overlay.ts` injects the caption bar, title/end cards and a drawn cursor (`pointer-events: none`).
 - `kit/director.ts` runs `title → step(caption, action) → end`. `kit/cursor.ts` glides the real mouse and the drawn cursor together.
 - `record.mjs` runs each story and trims the app boot. It writes a video only when the story passes.

@@ -1,0 +1,5 @@
+# .pyj files open as Python
+def greet(name):
+    return "שלום, " + name
+
+items = [greet(n) for n in ["נועה", "דן"]]

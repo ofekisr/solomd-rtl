@@ -5,7 +5,8 @@
 //
 // Usage: node record.mjs <story-prefix|all> [--no-gif] [--dry-run]
 //   node record.mjs 03          → stories/03-*.story.ts
-//   node record.mjs all         → every story, one after another
+//   node record.mjs all         → every story, then out/solomd-rtl-demo.mp4 joining them in order
+// DEMO_SPEED (default 1.25) speeds up playback at encode time.
 
 import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -20,6 +21,8 @@ const TIMING_DIR = path.join(OUT_DIR, 'timing');
 const STORY_SUFFIX = '.story.ts';
 const MP4_FPS = '30';
 const MP4_CRF = '18';
+const SPEED = Number(process.env.DEMO_SPEED ?? '1.25');
+const FULL_VIDEO = 'solomd-rtl-demo.mp4';
 const GIF_FPS = 12;
 const GIF_WIDTH = 960;
 const USAGE = 'usage: pnpm demo <story-prefix|all> [--no-gif] [--dry-run]';
@@ -74,7 +77,7 @@ function trimSeconds(name) {
 function encodeMp4(video, start, outFile) {
   execFileSync('ffmpeg', [
     '-loglevel', 'error', '-y', '-ss', start.toFixed(2), '-i', video,
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', MP4_CRF, '-pix_fmt', 'yuv420p',
+    '-vf', `setpts=PTS/${SPEED}`, '-c:v', 'libx264', '-preset', 'slow', '-crf', MP4_CRF, '-pix_fmt', 'yuv420p',
     '-r', MP4_FPS, '-movflags', '+faststart', outFile,
   ], { stdio: 'inherit' });
 }
@@ -85,6 +88,16 @@ function encodeGif(mp4, outFile) {
   execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-i', mp4, '-filter_complex', filter, outFile], {
     stdio: 'inherit',
   });
+}
+
+function concatAll(names) {
+  const listFile = path.join(OUT_DIR, 'concat-list.txt');
+  const outFile = path.join(OUT_DIR, FULL_VIDEO);
+  fs.writeFileSync(listFile, names.map((n) => `file '${path.join(OUT_DIR, `${n}.mp4`)}'`).join('\n'));
+  execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', listFile,
+    '-c', 'copy', '-movflags', '+faststart', outFile], { stdio: 'inherit' });
+  fs.rmSync(listFile, { force: true });
+  console.log(`[demo] all stories → ${path.relative(DEMOS_DIR, outFile)}`);
 }
 
 function runStory(file) {
@@ -130,5 +143,6 @@ if (isDryRun) {
 assertFfmpeg();
 fs.rmSync(TIMING_DIR, { recursive: true, force: true });
 const rendered = files.map(recordOne).filter(Boolean).length;
-console.log(`[demo] ${rendered}/${files.length} videos rendered`);
+console.log(`[demo] ${rendered}/${files.length} videos rendered at ${SPEED}x`);
+if (selector === 'all' && rendered === files.length) concatAll(files.map(storyName));
 process.exit(rendered === files.length ? 0 : EXIT_FAILED);
