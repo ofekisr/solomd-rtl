@@ -20,6 +20,7 @@ import { createGateController, type GateMenuAction, type GateNotice } from '../l
 import { useMindmapCanvasActions } from '../composables/useMindmapCanvasActions';
 import { createHoverPan } from '../composables/useMindmapHoverPan';
 import { frameDelta, insetRect, parseTranslate } from '../lib/mindmap-frame';
+import { EMPTY_FRAME_STYLE, readFrameVars, type StripFrameStyle } from '../lib/mindmap-frame-style';
 import MindmapDock from './MindmapDock.vue';
 import MindmapDockButton from './MindmapDockButton.vue';
 import MindmapShortcutHelp from './MindmapShortcutHelp.vue';
@@ -70,6 +71,7 @@ const isReadOnly = ref(false);
 const isGraphView = ref(false);
 const focusId = ref<string | null>(props.focusKey ? getTabFocus(props.focusKey) : null);
 const strip = ref<FreezeStrip | null>(null);
+const frameStyle = ref<StripFrameStyle>(EMPTY_FRAME_STYLE);
 let isApplyingFocus = false;
 let graphBaseline: MindElixirData | null = null;
 let mind: MindElixirInstance | null = null;
@@ -189,6 +191,7 @@ function mount(): void {
   guardRemovedNodes(mind);
   wrapFocus(mind);
   reapplyFocus();
+  refreshFrameStyle();
   activate();
   emit('ready');
 }
@@ -284,6 +287,12 @@ function fullRoot(instance: MindElixirInstance): NodeObj {
 function rememberFocus(id: string | null): void {
   focusId.value = id;
   if (props.focusKey) setTabFocus(props.focusKey, id);
+}
+
+function refreshFrameStyle(): void {
+  if (!mind) return;
+  const computed = getComputedStyle(mind.container);
+  frameStyle.value = { vars: readFrameVars((name) => computed.getPropertyValue(name)), palette: [...mind.theme.palette] };
 }
 
 function refreshStrip(knownRoot?: NodeObj | null): void {
@@ -637,6 +646,7 @@ watch(() => props.locked, (isLocked) => {
 watch(() => settings.theme, () => {
   if (!mind) return;
   mind.changeTheme(themeFor());
+  refreshFrameStyle();
   emit('ready');
 });
 
@@ -673,6 +683,7 @@ defineExpose({
   isReadOnly,
   isGraphView,
   direction,
+  refreshFrameStyle,
   isFocused: computed(() => focusId.value !== null),
   hasMap: computed(() => parseError.value === null),
 });
@@ -686,7 +697,7 @@ defineExpose({
       <button type="button" @click="emit('open-as-text')">{{ t('mindmap.openAsText') }}</button>
     </div>
     <template v-else>
-      <MindmapFreezeStrip v-if="strip && !isGraphView" :strip="strip" :focus-id="focusId" @focus="focusById" />
+      <MindmapFreezeStrip v-if="strip && !isGraphView" :strip="strip" :focus-id="focusId" :frame-style="frameStyle" @focus="focusById" />
       <div ref="stage" class="mindmap-view__stage">
         <div ref="host" class="mindmap-view__canvas" />
         <slot name="rail" />

@@ -195,6 +195,7 @@ const displayApplier = createMapDisplayApplier();
 function applyDisplay(): void {
   const mind = canvas.value?.getMind();
   if (mind) displayApplier.apply(mind, displayOverride.value, settings.mindmapDefaults, themeFamily(settings.theme));
+  canvas.value?.refreshFrameStyle();
 }
 
 function onCanvasReady(): void {

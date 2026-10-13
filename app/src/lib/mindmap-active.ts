@@ -15,6 +15,7 @@ export interface MindmapCanvasApi {
   readonly isReadOnly: boolean;
   readonly isGraphView: boolean;
   readonly direction: number;
+  refreshFrameStyle(): void;
   readonly isFocused: boolean;
   readonly hasMap: boolean;
 }

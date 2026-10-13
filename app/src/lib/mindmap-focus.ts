@@ -1,6 +1,6 @@
 import type { NodeObj } from 'mind-elixir';
 
-export interface StripChip { id: string; topic: string; icons: string[]; tags: string[]; color?: string; background?: string }
+export interface StripChip { id: string; topic: string; icons: string[]; tags: string[]; color?: string; background?: string; branch?: string }
 export interface FreezeStrip { root: StripChip; level2: StripChip[]; activeLevel2Id: string | null; breadcrumb: StripChip[] }
 
 type TagEntry = NonNullable<NodeObj['tags']>[number];
@@ -21,6 +21,7 @@ function chipOf(node: NodeObj): StripChip {
     tags: (node.tags ?? []).map(tagText),
     color: node.style?.color,
     background: node.style?.background,
+    ...(node.branchColor ? { branch: node.branchColor } : {}),
   };
 }
 
