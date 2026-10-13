@@ -212,6 +212,7 @@ export const KEY_ACTIONS: KeyActionDef[] = [
   { id: 'mindmap.lensDoc', label: 'Mindmap: Doc Lens', category: 'mindmap', scope: 'mindmap', defaults: [] },
   { id: 'mindmap.cycleLens', label: 'Mindmap: Cycle Lens', category: 'mindmap', scope: 'mindmap', defaults: [] },
   { id: 'mindmap.togglePanel', label: 'Mindmap: Toggle Side Panel', category: 'mindmap', scope: 'mindmap', defaults: [] },
+  { id: 'mindmap.toggleDetails', label: 'Mindmap: Toggle Node Details Pane', category: 'mindmap', scope: 'mindmap', defaults: ['Mod+Alt+D'] },
   { id: 'mindmap.focusNode', label: 'Mindmap: Focus Node', category: 'mindmap', scope: 'mindmap', defaults: [] },
   { id: 'mindmap.cancelFocus', label: 'Mindmap: Cancel Focus', category: 'mindmap', scope: 'mindmap', defaults: [] },
 ];

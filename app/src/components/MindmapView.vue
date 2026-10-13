@@ -22,6 +22,8 @@ import { buildNodePatch, type NodeField } from '../lib/mindmap-node-style';
 import MindmapCanvas from './MindmapCanvas.vue';
 import MindmapSidePanel from './MindmapSidePanel.vue';
 import MindmapNodeFields from './MindmapNodeFields.vue';
+import MindmapDetailsPane from './MindmapDetailsPane.vue';
+import { fieldsPatch, notePatch, type NodeFieldEntry } from '../lib/mindmap-node-fields';
 import MindmapMapFields from './MindmapMapFields.vue';
 import MindmapOutlineText from './MindmapOutlineText.vue';
 import type { MapDisplay } from '../lib/mindmap-display';
@@ -36,6 +38,8 @@ const SOURCE_LANGUAGE = 'json';
 const JSON_PARSE_DEBOUNCE_MS = 250;
 const FLUSH_CONTENT_EVENT = 'solomd:flush-content-sync';
 const TOGGLE_PANEL_ACTION = 'mindmap.togglePanel';
+const TOGGLE_DETAILS_ACTION = 'mindmap.toggleDetails';
+const VIEW_ACTIONS: readonly string[] = [TOGGLE_PANEL_ACTION, TOGGLE_DETAILS_ACTION];
 const props = defineProps<{ tab: Tab }>();
 const tabs = useTabsStore();
 const toasts = useToastsStore();
@@ -61,6 +65,7 @@ function partOrder(part: CellPart): number {
 
 const isSplit = computed(() => parts.value.length > 1);
 const isPanelVisible = computed(() => has('map') && settings.mindmapPanelOpen);
+const isDetailsVisible = computed(() => has('map') && hasCanvas.value && settings.mindmapDetailsOpen);
 const hasCanvas = computed(() => has('map') && canvas.value?.hasMap !== false);
 const parseSource = ref(props.tab.content);
 let parseTimer: number | null = null;
@@ -90,6 +95,7 @@ const railState = computed<RailState>(() => ({
   hasCanvas: hasCanvas.value,
   direction: canvas.value?.direction ?? MINDMAP_LAYOUT.SIDE,
   isPanelOpen: settings.mindmapPanelOpen,
+  isDetailsOpen: settings.mindmapDetailsOpen,
   isReadOnly: canvas.value?.isReadOnly ?? false,
   isGraphView: canvas.value?.isGraphView ?? false,
   isLocked: isMapLocked.value,
@@ -172,16 +178,37 @@ function applyNodePatch(field: NodeField, value: string | number | boolean | rea
     toasts.error(t('mindmap.fieldUrlInvalid'));
     return;
   }
-  const element = findLiveElement(mind, node.id);
-  if (!element) {
-    selected.value = [];
-    return;
-  }
-  mind.reshapeNode(element, result.patch);
-  selected.value = [{ ...element.nodeObj }];
+  patchNodeById(node.id, result.patch);
 }
 
-function findLiveElement(mind: MindElixirInstance, id: string): Topic | null {
+function patchNodeById(id: string, patch: Partial<NodeObj>): void {
+  const mind = canvas.value?.getMind();
+  if (!mind || !isPanelEditable.value) return;
+  const element = findLiveElement(mind, id);
+  if (!element) {
+    if (singleNode.value?.id === id) selected.value = [];
+    return;
+  }
+  mind.reshapeNode(element, patch);
+  if (singleNode.value?.id === id) selected.value = [{ ...element.nodeObj }];
+}
+
+function onDetailsNote(id: string, text: string): void {
+  const node = findLiveElement(canvas.value?.getMind() ?? null, id)?.nodeObj;
+  if (node && (node.note ?? '') !== text) patchNodeById(id, notePatch(text));
+}
+
+function onDetailsFields(id: string, entries: NodeFieldEntry[]): void {
+  const node = findLiveElement(canvas.value?.getMind() ?? null, id)?.nodeObj;
+  if (node) patchNodeById(id, fieldsPatch(node, entries));
+}
+
+function showDetails(): void {
+  if (!settings.mindmapDetailsOpen) settings.toggleMindmapDetails();
+}
+
+function findLiveElement(mind: MindElixirInstance | null, id: string): Topic | null {
+  if (!mind) return null;
   try {
     return mind.findEle(id) ?? null;
   } catch {
@@ -227,6 +254,10 @@ function runViewAction(actionId: string): boolean {
     settings.toggleMindmapPanel();
     return true;
   }
+  if (actionId === TOGGLE_DETAILS_ACTION) {
+    settings.toggleMindmapDetails();
+    return true;
+  }
   const target = targetLensFor(actionId, lens.value);
   if (target === null) return false;
   setLens(target);
@@ -244,7 +275,7 @@ function activate(): void {
 function onViewKey(e: KeyboardEvent): void {
   const combo = eventToCombo(e);
   const actionId = combo ? resolveBindings(settings.keybindings, 'mindmap').get(combo) : undefined;
-  if (!actionId || !(isLensAction(actionId) || actionId === TOGGLE_PANEL_ACTION)) return;
+  if (!actionId || !(isLensAction(actionId) || VIEW_ACTIONS.includes(actionId))) return;
   e.preventDefault();
   e.stopPropagation();
   runViewAction(actionId);
@@ -301,12 +332,23 @@ defineExpose({ setLens, canvas, lens });
             @open-as-text="openAsText"
             @jump-to-source="onJump"
             @ready="onCanvasReady"
+            @show-details="showDetails"
           >
             <template #rail>
               <MindmapRail :state="railState" @set-lens="setLens" @run="(id) => handle.run(id)" @toggle-panel="settings.toggleMindmapPanel()" />
             </template>
           </MindmapCanvas>
           <MindmapSnippets v-if="canvas?.hasMap !== false" :snippets="snippets" :editable="canEditSnippets" @change="setSnippets" />
+          <MindmapDetailsPane
+            v-if="isDetailsVisible"
+            :node="singleNode"
+            :disabled="!isPanelEditable"
+            :height="settings.mindmapDetailsHeight"
+            @note="onDetailsNote"
+            @fields="onDetailsFields"
+            @resize="settings.setMindmapDetailsHeight"
+            @close="settings.toggleMindmapDetails()"
+          />
         </div>
         <template v-if="has('outlineText')">
           <MindmapOutlineInvalid v-if="outlineError !== null" :error="outlineError" :style="{ order: partOrder('outlineText') }" @switch-to-data="openAsText" />

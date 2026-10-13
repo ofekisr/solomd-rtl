@@ -1,6 +1,7 @@
 import type { MindElixirData, NodeObj } from 'mind-elixir';
 import { parseMapDisplay, type MapDisplay } from './mindmap-display.ts';
 import { sanitizeSnippets, type Snippet } from './mindmap-snippets.ts';
+import { sanitizeMetadata } from './mindmap-node-fields.ts';
 
 export const MMAP_EXTENSION = 'mmap';
 export const XMIND_EXTENSION = 'xmind';
@@ -161,6 +162,9 @@ function sanitizeNode(node: NodeObj): NodeObj {
   const icons = sanitizeIcons(copy.icons);
   if (icons) copy.icons = icons;
   else delete copy.icons;
+  const metadata = sanitizeMetadata(copy.metadata);
+  if (metadata) copy.metadata = metadata;
+  else delete copy.metadata;
   if (copy.children) copy.children = copy.children.map(sanitizeNode);
   return copy;
 }

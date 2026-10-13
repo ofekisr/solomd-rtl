@@ -13,6 +13,7 @@ export interface RailState {
   readonly hasCanvas: boolean;
   readonly direction: number;
   readonly isPanelOpen: boolean;
+  readonly isDetailsOpen: boolean;
   readonly isReadOnly: boolean;
   readonly isGraphView: boolean;
   readonly isLocked: boolean;
@@ -65,6 +66,7 @@ function pickLens(id: string): void {
       <MindmapDockButton icon="graph" :label="t('mindmap.toolbarGraph')" :pressed="state.isGraphView" :disabled="state.isLocked" @click="emit('run', 'mindmap.toggleGraphView')" />
       <MindmapDockButton icon="lock" :label="t('mindmap.toolbarReadOnly')" :pressed="state.isReadOnly" :disabled="state.isLocked" @click="emit('run', 'mindmap.toggleReadOnly')" />
       <MindmapDockButton icon="panel" :label="t('mindmap.toolbarPanel')" :pressed="state.isPanelOpen" @click="emit('toggle-panel')" />
+      <MindmapDockButton icon="details" :label="t('mindmap.toolbarDetails')" :pressed="state.isDetailsOpen" @click="emit('run', 'mindmap.toggleDetails')" />
       <span class="mm-dock-sep" aria-hidden="true" />
       <MindmapDockButton icon="undo" :label="t('mindmap.toolbarUndo')" :disabled="isHistoryBlocked" @click="emit('run', 'mindmap.undo')" />
       <MindmapDockButton icon="redo" :label="t('mindmap.toolbarRedo')" :disabled="isHistoryBlocked" @click="emit('run', 'mindmap.redo')" />

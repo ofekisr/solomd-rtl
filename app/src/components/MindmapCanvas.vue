@@ -58,6 +58,7 @@ const emit = defineEmits<{
   'jump-to-source': [source: MindmapSource];
   selection: [nodes: NodeObj[]];
   ready: [];
+  'show-details': [];
 }>();
 const settings = useSettingsStore();
 const toasts = useToastsStore();
@@ -166,7 +167,7 @@ function mount(): void {
     el: host.value,
     direction: layoutDirectionFor(data),
     editable: canEdit(),
-    contextMenu: { extend: [...gates.menu, { name: t('mindmap.jumpToSourceMenu'), onclick: jumpToSource }, { name: t('mindmap.pinStripRoot'), onclick: pinCurrentAsStripRoot }] },
+    contextMenu: { extend: [...gates.menu, { name: t('mindmap.jumpToSourceMenu'), onclick: jumpToSource }, { name: t('mindmap.pinStripRoot'), onclick: pinCurrentAsStripRoot }, { name: t('mindmap.detailsShow'), onclick: () => emit('show-details') }] },
     before: gates.guards,
     toolBar: false,
     keypress: true,
