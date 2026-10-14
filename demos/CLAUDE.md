@@ -16,7 +16,7 @@ pnpm --dir demos demo all
 | Command | Output (`demos/out/`, gitignored) |
 | --- | --- |
 | `pnpm --dir demos demo 03` | `03-mindmap-new.mp4` (prefix match) |
-| `pnpm --dir demos demo all` | every `NN-*` story + joined `solomd-rtl-demo.mp4` |
+| `pnpm --dir demos demo all` | every `NN-*` story (00–08) + joined `solomd-rtl-demo.mp4` |
 | `pnpm --dir demos demo highlights` | `highlights.mp4` + `highlights.gif` (only gif story) |
 | `pnpm --dir demos typecheck` | `tsc --noEmit` over kit + stories |
 
@@ -47,6 +47,7 @@ DEMO_SHOTS=1 DEMO_TEMPO=0.3 pnpm --dir demos exec playwright test stories/03-min
 
 - Port **1440** must be free; the dev server on 1420 is untouched.
 - A failed story writes **no** video. Debug with `pnpm --dir demos exec playwright show-trace out/raw/<story>-*/trace.zip`.
+- Map context menu (`map.contextItem`) acts on the **selected** node; right-click doesn't select → left-click the node first. Use `map.exactNode()` when one topic is a substring of another (gates render as `⇒ topic`).
 - Headless Chromium ignores OS paste → use `c.paste(text, selector)`.
 - Keep click targets inside 1280×720; long context menus can run off-frame.
 - New story: `stories/NN-name.story.ts` (numbered = included in `all`), sample files in `content/` (Hebrew first). Template in `README.md`.

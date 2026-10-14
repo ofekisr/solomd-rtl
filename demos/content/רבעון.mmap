@@ -1,0 +1,114 @@
+{
+  "format": "solomd-mindmap",
+  "version": 1,
+  "data": {
+    "nodeData": {
+      "id": "root",
+      "topic": "תכנון רבעון",
+      "children": [
+        {
+          "id": "mkt",
+          "topic": "שיווק",
+          "children": [
+            {
+              "id": "mkt-launch",
+              "topic": "קמפיין השקה",
+              "children": []
+            },
+            {
+              "id": "mkt-landing",
+              "topic": "דף נחיתה",
+              "children": [
+                {
+                  "id": "mkt-landing-design",
+                  "topic": "עיצוב",
+                  "children": []
+                },
+                {
+                  "id": "mkt-landing-copy",
+                  "topic": "טקסטים",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": "mkt-news",
+              "topic": "ניוזלטר",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "dev",
+          "topic": "פיתוח",
+          "children": [
+            {
+              "id": "dev-landing",
+              "topic": "דף נחיתה",
+              "children": [
+                {
+                  "id": "dev-landing-design",
+                  "topic": "עיצוב",
+                  "children": []
+                },
+                {
+                  "id": "dev-landing-copy",
+                  "topic": "טקסטים",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": "dev-pay",
+              "topic": "תשתית תשלומים",
+              "children": [
+                {
+                  "id": "dev-pay-gw",
+                  "topic": "ספק סליקה",
+                  "children": []
+                },
+                {
+                  "id": "dev-pay-inv",
+                  "topic": "חשבוניות",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sales",
+          "topic": "מכירות",
+          "children": [
+            {
+              "id": "sales-pricing",
+              "topic": "תמחור",
+              "children": []
+            },
+            {
+              "id": "sales-partners",
+              "topic": "שותפים",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "support",
+          "topic": "תמיכה",
+          "children": [
+            {
+              "id": "support-faq",
+              "topic": "שאלות נפוצות",
+              "children": []
+            },
+            {
+              "id": "support-onboard",
+              "topic": "קליטת לקוחות",
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

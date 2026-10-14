@@ -13,6 +13,7 @@ Captioned showcase videos of solomd-rtl features, recorded by Playwright against
 | `05-mindmap-power` | Freeze strip, focus, ⌥-click pin root, details pane note + fields, Space collapse, paste outline |
 | `06-md-to-mindmap` | Mermaid + live mind map fence inside Markdown, Convert Document to Map, Insert Map Fence from Section |
 | `07-xmind-markdown` | Open a `.xmind` from the folder, edit, export as Markdown, open the RTL outline |
+| `08-mindmap-gates` | Gate nodes: mark target, insert gate, live label on rename, ⌥↵ follow / ⌥← back, merge duplicate into gate, graph view dashed links |
 
 ## Record
 
