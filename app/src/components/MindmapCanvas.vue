@@ -31,6 +31,7 @@ import { findNode, isGate } from '../lib/mindmap-gates';
 import { parsePaste, type PastePayload } from '../lib/mindmap-paste';
 import { buildIdMap, remapArrows, remapGates, remapSummaries } from '../lib/mindmap-paste-remap';
 import { withGateArrows } from '../lib/mindmap-graph';
+import { closingMenuItems, hideContextMenu } from '../lib/mindmap-context-menu';
 import { buildFreezeStrip, canAnchor, getTabFocus, getTabStripRoot, pathTo, setTabFocus, setTabStripRoot, type FreezeStrip } from '../lib/mindmap-focus';
 import MindmapFreezeStrip from './MindmapFreezeStrip.vue';
 
@@ -167,7 +168,7 @@ function mount(): void {
     el: host.value,
     direction: layoutDirectionFor(data),
     editable: canEdit(),
-    contextMenu: { extend: [...gates.menu, { name: t('mindmap.jumpToSourceMenu'), onclick: jumpToSource }, { name: t('mindmap.pinStripRoot'), onclick: pinCurrentAsStripRoot }, { name: t('mindmap.detailsShow'), onclick: () => emit('show-details') }] },
+    contextMenu: { extend: closingMenuItems([...gates.menu, { name: t('mindmap.jumpToSourceMenu'), onclick: jumpToSource }, { name: t('mindmap.pinStripRoot'), onclick: pinCurrentAsStripRoot }, { name: t('mindmap.detailsShow'), onclick: () => emit('show-details') }], () => hideContextMenu(host.value)) },
     before: gates.guards,
     toolBar: false,
     keypress: true,

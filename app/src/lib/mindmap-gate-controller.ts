@@ -2,12 +2,12 @@ import type { MindElixirInstance, NodeObj, Options, Topic } from 'mind-elixir';
 import {
   ancestorIds, canBeGateTarget, canHoldChildren, findNode, gateLabel, isBrokenGate, isGate, makeGateNode, readGate, walkNodes, withGate,
 } from './mindmap-gates.ts';
+import type { ContextMenuItem } from './mindmap-context-menu.ts';
 
 type Before = NonNullable<Options['before']>;
 
 export type GateNotice = 'gateMarked' | 'gateNoTarget' | 'gateTargetIsGate' | 'gateNotGate' | 'gateCannotHoldChildren';
 export type GateMenuAction = 'mindmap.markGateTarget' | 'mindmap.insertGate' | 'mindmap.followGate' | 'mindmap.repairGate' | 'mindmap.removeGate';
-export interface ContextMenuItem { name: string; onclick: () => void }
 export interface GateControllerContext {
   getMind(): MindElixirInstance | null;
   isReadOnly(): boolean;
