@@ -4,6 +4,7 @@ import type { ServerConfig } from './config.ts';
 import { MapStore } from './store.ts';
 import { duplicates, find, node, outline } from './tools/read.ts';
 import { add, edit, gate, move, remove } from './tools/write.ts';
+import { legend, mark } from './tools/meaning.ts';
 
 export const SERVER_NAME = 'solomd-mindmap';
 const VERSION = '0.1.0';
@@ -77,10 +78,27 @@ function registerWrite(server: McpServer, store: MapStore): void {
   }, async (a) => text(await gate(store, a)));
 }
 
+function registerMeaning(server: McpServer, store: MapStore): void {
+  server.registerTool('mmap_legend', {
+    title: 'Map legend', annotations: WRITE,
+    description: 'The meanings a map may use (e.g. blocked, done, risk). Without "set" it lists them; with "set" it replaces the legend. Colours are CSS hex and stay hidden from reads.',
+    inputSchema: z.object({
+      file: fileArg,
+      set: z.array(z.object({ meaning: z.string().min(1).max(40), color: z.string().optional(), background: z.string().optional() })).optional(),
+    }),
+  }, async (a) => text(await legend(store, a)));
+  server.registerTool('mmap_mark', {
+    title: 'Mark node meaning', annotations: WRITE,
+    description: 'Give a node a legend meaning; SoloMD shows its colours. meaning=null clears it. This is the only way to change node appearance.',
+    inputSchema: z.object({ file: fileArg, node: nodeArg, meaning: z.string().nullable() }),
+  }, async (a) => text(await mark(store, a)));
+}
+
 export function createServer(cfg: ServerConfig): McpServer {
   const server = new McpServer({ name: SERVER_NAME, version: VERSION });
   const store = new MapStore(cfg);
   registerRead(server, store);
   registerWrite(server, store);
+  registerMeaning(server, store);
   return server;
 }
