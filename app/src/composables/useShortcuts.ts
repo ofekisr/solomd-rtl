@@ -135,13 +135,17 @@ export function useShortcuts(hooks: Hooks = {}) {
       if (settings.ragEnabled) hooks.openRagSearch?.();
       else hooks.openGlobalSearch?.();
     },
-    // Only the preview pane needs our own find; anywhere else the event must
-    // fall through to CodeMirror's.
+    // The preview pane and mind-map tabs need our own find; anywhere else the
+    // event must fall through to CodeMirror's.
     'editor.find': () => {
+      const detail = { paneId: tiles.focusedPaneId };
+      if (tabs.activeTab?.language === 'mindmap') {
+        if (document.activeElement?.closest('.cm-content')) return false;
+        window.dispatchEvent(new CustomEvent('solomd:editor-find', { detail }));
+        return;
+      }
       if (settings.viewMode !== 'preview' || tabs.activeTab?.language !== 'markdown') return false;
-      window.dispatchEvent(
-        new CustomEvent('solomd:preview-search', { detail: { paneId: tiles.focusedPaneId } }),
-      );
+      window.dispatchEvent(new CustomEvent('solomd:preview-search', { detail }));
     },
     'tab.prev': () => activateTabByOffset(-1),
     'tab.next': () => activateTabByOffset(1),
