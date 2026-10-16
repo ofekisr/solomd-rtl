@@ -87,6 +87,7 @@ import { usePropertiesStore } from './stores/properties';
 import { useRagStore } from './stores/rag';
 import { IS_APP_STORE_BUILD } from './lib/app-build';
 import UiPreview from './components/UiPreview.vue';
+import { FOLDER_SEARCH_EVENT, type FolderSearchPreset, type FolderSearchRequest } from './lib/folder-search';
 
 /* v4.6 dev-only UI gallery. `?uikit` renders ONLY the design-system preview
  * and skips the normal app, so the token layer can be eyeballed in isolation.
@@ -216,6 +217,7 @@ const searchOpen = ref(false);
 // from TagsPanel prefill `#tag` into the search box; the watcher in
 // GlobalSearch refocuses on every prefill change.
 const searchPrefill = ref<string | undefined>(undefined);
+const searchPreset = ref<FolderSearchPreset | undefined>(undefined);
 
 // v4.3.0 PR #75 (beihai23) — right-click context menu on the sidebar gives
 // quick access to per-pane visibility toggles. Toggling off the last
@@ -814,6 +816,16 @@ function onOpenSearchEvent() {
 function onOpenCjkProofreadEvent() {
   cjkProofreadOpen.value = true;
 }
+
+// The editor find bar (scope Folder / All) streams its query here; the pane
+// lists the hits for that root.
+function onFolderSearch(e: Event) {
+  const detail = (e as CustomEvent<FolderSearchRequest>).detail;
+  searchPreset.value = { ...detail, nonce: Date.now() };
+  openGlobalSearchPane();
+}
+window.addEventListener(FOLDER_SEARCH_EVENT, onFolderSearch);
+onBeforeUnmount(() => window.removeEventListener(FOLDER_SEARCH_EVENT, onFolderSearch));
 
 // TagsPanel emits `filter-tag` when the user clicks a tag — open the search
 // pane and prefill `#tag`. If the same tag is clicked while search is
@@ -1885,6 +1897,7 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
               <GlobalSearch
                 v-if="p.id === 'search'"
                 :prefill="searchPrefill"
+                :preset="searchPreset"
                 @close="searchOpen = false"
               />
               <Outline v-if="p.id === 'outline'" :cursor-line="outlineLine" @goto="onOutlineGoto" />
@@ -1951,6 +1964,7 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
               <GlobalSearch
                 v-if="p.id === 'search'"
                 :prefill="searchPrefill"
+                :preset="searchPreset"
                 @close="searchOpen = false"
               />
               <Outline v-if="p.id === 'outline'" :cursor-line="outlineLine" @goto="onOutlineGoto" />

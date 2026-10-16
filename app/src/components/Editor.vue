@@ -5,6 +5,7 @@ import {
   bracketMatching, defaultHighlightStyle, indentOnInput, syntaxHighlighting
 } from '@codemirror/language';
 import {getSearchQuery, openSearchPanel, search, searchKeymap, setSearchQuery} from '@codemirror/search';
+import { createFindPanel } from '../lib/cm-find-panel';
 import {Compartment, EditorState} from '@codemirror/state';
 import {
   crosshairCursor, drawSelection, EditorView, highlightActiveLine, keymap, lineNumbers, rectangularSelection
@@ -3006,7 +3007,7 @@ function buildExtensions() {
           indentOnInput(),
           bracketMatching(),
           highlightActiveLine(),
-          search({ top: true }),
+          search({ top: true, createPanel: createFindPanel(() => props.tab.filePath) }),
           incrementalFindScroll,
           syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
         ]),

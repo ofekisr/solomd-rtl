@@ -15,13 +15,14 @@ import { useGlobalSearch, type SearchHit, type SearchOptions } from '../composab
 import { planTotals, useFolderReplace } from '../composables/useFolderReplace';
 import { useToastsStore } from '../stores/toasts';
 import RegexKeyboard, { type RegexToken } from './RegexKeyboard.vue';
+import type { FolderSearchPreset } from '../lib/folder-search';
 import { useFiles } from '../composables/useFiles';
 import { useTabsStore } from '../stores/tabs';
 import { useTilesStore } from '../stores/tiles';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useI18n } from '../i18n';
 
-const props = defineProps<{ prefill?: string }>();
+const props = defineProps<{ prefill?: string; preset?: FolderSearchPreset }>();
 const emit = defineEmits<{ (e: 'close'): void }>();
 
 const search = useGlobalSearch();
@@ -46,6 +47,9 @@ const options = ref<SearchOptions>({ regex: false, caseSensitive: false });
 const keyboardOpen = ref(false);
 const activeField = ref<'find' | 'replace'>('find');
 const replaceRef = ref<HTMLInputElement | null>(null);
+const rootOverride = ref<string | null>(null);
+const root = computed(() => rootOverride.value ?? workspace.currentFolder);
+const isScoped = computed(() => !!rootOverride.value && rootOverride.value !== workspace.currentFolder);
 const activeFilePath = computed(() => tabs.activeTab?.filePath ?? '');
 
 const SEARCH_DEBOUNCE_MS = 220;
@@ -71,7 +75,20 @@ watch(
   },
 );
 
-watch([query, replacement, replaceOpen, options], () => {
+watch(() => props.preset, (p) => p && applyPreset(p), { immediate: true });
+
+async function applyPreset(p: FolderSearchPreset) {
+  rootOverride.value = p.root;
+  query.value = p.query;
+  options.value = { ...p.options };
+  replacement.value = p.replacement;
+  replaceOpen.value = p.replaceOpen || p.action === 'replaceAll';
+  if (p.action !== 'replaceAll') return;
+  await doSearch();
+  await replaceIn();
+}
+
+watch([query, replacement, replaceOpen, options, rootOverride], () => {
   if (debounceTimer != null) {
     window.clearTimeout(debounceTimer);
   }
@@ -95,7 +112,7 @@ async function doSearch() {
       options: options.value,
       replacement: replaceOpen.value ? replacement.value : undefined,
     };
-    const outcome = await search.run(q, undefined, undefined, extras);
+    const outcome = await search.run(q, root.value ?? undefined, undefined, extras);
     hits.value = outcome.hits;
     error.value = outcome.error;
     selectedIdx.value = 0;
@@ -129,12 +146,12 @@ function toggleOption(key: keyof SearchOptions) {
 }
 
 async function replaceIn(only?: string[]) {
-  const root = workspace.currentFolder;
+  const scopeRoot = root.value;
   const q = effectiveQuery();
-  if (!root || !q.trim() || replacing.value) return;
+  if (!scopeRoot || !q.trim() || replacing.value) return;
   replacing.value = true;
   try {
-    await runReplace({ root, query: q, replacement: replacement.value, options: options.value, only });
+    await runReplace({ root: scopeRoot, query: q, replacement: replacement.value, options: options.value, only });
   } catch (e) {
     toasts.error(t('searchReplace.failed', { error: String(e) }));
   } finally {
@@ -167,7 +184,7 @@ const grouped = computed(() => {
 });
 
 function shortPath(p: string) {
-  const folder = workspace.currentFolder;
+  const folder = root.value;
   if (folder && p.startsWith(folder)) {
     return p.slice(folder.length).replace(/^[\\/]/, '');
   }
@@ -305,7 +322,11 @@ function onKey(e: KeyboardEvent) {
       :target="keyboardTarget"
       @insert="insertToken"
     />
-    <div v-if="!workspace.currentFolder" class="sp__empty">
+    <div v-if="isScoped" class="sp__scope">
+      <span class="sp__scope-label" :title="rootOverride ?? ''">{{ t('searchReplace.scopedTo', { folder: rootOverride ?? '' }) }}</span>
+      <button class="sp__scope-clear" type="button" :title="t('searchReplace.clearScope')" @click="rootOverride = null">×</button>
+    </div>
+    <div v-if="!root" class="sp__empty">
       {{ t('search.openFolder') }}
     </div>
     <div v-else-if="!query.trim()" class="sp__empty">
@@ -444,6 +465,29 @@ function onKey(e: KeyboardEvent) {
 .sp__file-replace:disabled {
   cursor: default;
   opacity: 0.4;
+}
+.sp__scope {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.sp__scope-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: start;
+}
+.sp__scope-clear {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
 }
 .sp__error {
   color: var(--danger, #e5534b);

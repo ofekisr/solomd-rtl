@@ -14,7 +14,7 @@ export interface RegexToken {
   hint: string;
 }
 
-const props = defineProps<{ target: 'find' | 'replace' }>();
+const props = defineProps<{ target: 'find' | 'replace'; exclude?: string[] }>();
 const emit = defineEmits<{ (e: 'insert', token: RegexToken): void }>();
 const { t } = useI18n();
 
@@ -49,10 +49,9 @@ const REPLACE_TOKENS: Array<Omit<RegexToken, 'hint'> & { key: string }> = [
 ];
 
 const tokens = computed<RegexToken[]>(() =>
-  (props.target === 'find' ? FIND_TOKENS : REPLACE_TOKENS).map(({ key, ...tok }) => ({
-    ...tok,
-    hint: t(`searchReplace.tokens.${key}`),
-  })),
+  (props.target === 'find' ? FIND_TOKENS : REPLACE_TOKENS)
+    .filter((tok) => !props.exclude?.includes(tok.label))
+    .map(({ key, ...tok }) => ({ ...tok, hint: t(`searchReplace.tokens.${key}`) })),
 );
 </script>
 

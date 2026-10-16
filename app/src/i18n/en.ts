@@ -1837,6 +1837,25 @@ export const en = {
     hitCount: '{n} hits',
     keyHint: '↑↓ navigate · ↵ open · Esc close',
   },
+  findBar: {
+    find: 'Find',
+    replace: 'Replace',
+    count: '{i} of {n}',
+    matches: '{n} matches',
+    none: 'No results',
+    prev: 'Previous match (⇧↵)',
+    next: 'Next match (↵)',
+    close: 'Close (Esc)',
+    replaceOne: 'Replace',
+    scope: 'Search scope',
+    scopeFile: 'File',
+    scopeFolder: 'Folder',
+    scopeAll: 'All',
+    scopeFileHint: 'Current file',
+    scopeFolderHint: 'Folder of the current file (save the file first)',
+    scopeAllHint: 'Whole workspace (open a folder first)',
+    folderHint: 'Searching “{folder}” — results in the Search pane; Replace all asks to confirm.',
+  },
   searchReplace: {
     toggle: 'Toggle replace',
     placeholder: 'Replace with… ($1, $<name> in regex mode)',
@@ -1849,6 +1868,8 @@ export const en = {
     done: 'Replaced {n} matches in {files} files',
     failed: 'Replace failed: {error}',
     keyboard: 'Regex symbols',
+    scopedTo: 'In: {folder}',
+    clearScope: 'Search the whole workspace',
     tokens: {
       lineStart: 'start of line',
       lineEnd: 'end of line',
@@ -2236,8 +2257,9 @@ type EnglishSettings = EnglishDictionary['settings'];
 
 type EnglishCmd = EnglishDictionary['cmd'];
 
-export type I18n = Omit<EnglishDictionary, 'settings' | 'mindmap' | 'cmd' | 'searchReplace'> & {
+export type I18n = Omit<EnglishDictionary, 'settings' | 'mindmap' | 'cmd' | 'searchReplace' | 'findBar'> & {
   searchReplace?: EnglishDictionary['searchReplace'];
+  findBar?: EnglishDictionary['findBar'];
   cmd: Omit<EnglishCmd, 'mindmap'> & { mindmap?: EnglishCmd['mindmap'] };
   settings: Omit<EnglishSettings, DirectiveCompletionFallbackKey> &
     Partial<Pick<EnglishSettings, DirectiveCompletionFallbackKey>>;
