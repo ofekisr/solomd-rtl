@@ -13,6 +13,9 @@ mod replace;
 #[path = "mmap_text.rs"]
 mod mmap_text;
 
+#[path = "md_code_spans.rs"]
+mod md_code_spans;
+
 #[path = "set_default.rs"]
 mod set_default;
 
