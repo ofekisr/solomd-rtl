@@ -47,6 +47,7 @@ export function updateNode(data: MindElixirData, id: string, patch: NodePatch): 
   const node = findNode(copy.nodeData, id);
   if (!node) return fail(`No node with id "${id}"`);
   Object.assign(node, patch);
+  for (const key of Object.keys(patch) as (keyof NodePatch)[]) if (patch[key] === undefined) delete node[key];
   return { ok: true, data: copy, ids: [id] };
 }
 

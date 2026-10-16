@@ -44,6 +44,14 @@ test('updateNode patches and does not mutate input', () => {
   assert.equal(findNode(input.nodeData, 'b')!.topic, 'B');
 });
 
+test('updateNode with an undefined value removes the field', () => {
+  const input: MindElixirData = { nodeData: { id: 'r', topic: 'Root', children: [{ id: 's', topic: 'S', style: { color: '#000' } }] } };
+  const res = updateNode(input, 's', { style: undefined });
+  assert.ok(res.ok);
+  assert.equal('style' in findNode(res.data.nodeData, 's')!, false);
+  assert.deepEqual(findNode(input.nodeData, 's')!.style, { color: '#000' });
+});
+
 test('moveNode reparents and blocks cycles and root', () => {
   const res = moveNode(map(), 'a', 'b');
   assert.ok(res.ok);
