@@ -1837,6 +1837,45 @@ export const en = {
     hitCount: '{n} hits',
     keyHint: '↑↓ navigate · ↵ open · Esc close',
   },
+  searchReplace: {
+    toggle: 'Toggle replace',
+    placeholder: 'Replace with… ($1, $<name> in regex mode)',
+    caseSensitive: 'Match case',
+    regex: 'Use regular expression ($1 groups in replace)',
+    replaceAll: 'Replace all',
+    replaceFile: 'Replace in this file',
+    nothing: 'Nothing to replace',
+    confirm: 'Replace {n} matches in {files} files?\n\nFiles open in a tab change in the editor (unsaved, undoable). All other files are written to disk.',
+    done: 'Replaced {n} matches in {files} files',
+    failed: 'Replace failed: {error}',
+    keyboard: 'Regex symbols',
+    tokens: {
+      lineStart: 'start of line',
+      lineEnd: 'end of line',
+      anyChar: 'any character',
+      anything: 'anything (any run of characters)',
+      digit: 'digit 0-9',
+      word: 'word character (letters incl. Hebrew/Arabic, digits, _)',
+      space: 'whitespace',
+      boundary: 'word boundary',
+      group: 'capture group → $1, $2… (wraps selection)',
+      named: 'named group → $<name> (wraps selection)',
+      set: 'one of these characters (wraps selection)',
+      or: 'or',
+      oneOrMore: 'one or more',
+      zeroOrMore: 'zero or more',
+      optional: 'optional',
+      lazy: 'one or more, as few as possible',
+      group1: 'text of group 1',
+      group2: 'text of group 2',
+      group3: 'text of group 3',
+      namedRef: 'text of a named group',
+      whole: 'the whole match',
+      newline: 'new line',
+      tab: 'tab',
+      dollar: 'a literal $',
+    },
+  },
   views: {
     heading: 'Views',
     newView: 'New view',
@@ -2197,7 +2236,8 @@ type EnglishSettings = EnglishDictionary['settings'];
 
 type EnglishCmd = EnglishDictionary['cmd'];
 
-export type I18n = Omit<EnglishDictionary, 'settings' | 'mindmap' | 'cmd'> & {
+export type I18n = Omit<EnglishDictionary, 'settings' | 'mindmap' | 'cmd' | 'searchReplace'> & {
+  searchReplace?: EnglishDictionary['searchReplace'];
   cmd: Omit<EnglishCmd, 'mindmap'> & { mindmap?: EnglishCmd['mindmap'] };
   settings: Omit<EnglishSettings, DirectiveCompletionFallbackKey> &
     Partial<Pick<EnglishSettings, DirectiveCompletionFallbackKey>>;

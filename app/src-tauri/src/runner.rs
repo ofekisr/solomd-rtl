@@ -7,6 +7,9 @@ mod image_upload;
 #[path = "search.rs"]
 mod search;
 
+#[path = "replace.rs"]
+mod replace;
+
 #[path = "set_default.rs"]
 mod set_default;
 
@@ -814,6 +817,8 @@ pub fn run_with(initial_file: Option<String>) {
             commands::fs_list_extensions,
             commands::fs_dirs_with_extensions,
             search::search_in_dir,
+            replace::replace_in_dir,
+            replace::replace_in_text,
             drain_pending_opens,
             force_close_window,
             set_menu_language,
