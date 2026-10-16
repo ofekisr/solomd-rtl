@@ -58,7 +58,7 @@ export function unicodeClasses(pattern: string): string {
   return out;
 }
 
-function escapeRegExp(s: string): string {
+export function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 

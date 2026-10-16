@@ -16,9 +16,12 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from '../i18n';
 import { isMacOS } from '../lib/platform';
 
-export type EditorMenuAction = 'cut' | 'copy' | 'paste' | 'selectAll';
+export type EditorMenuAction = 'cut' | 'copy' | 'paste' | 'selectAll' | 'translate';
 
-const props = defineProps<{ x: number; y: number; hasSelection: boolean }>();
+const props = withDefaults(
+  defineProps<{ x: number; y: number; hasSelection: boolean; readOnly?: boolean }>(),
+  { readOnly: false },
+);
 const emit = defineEmits<{
   (e: 'action', id: EditorMenuAction): void;
   (e: 'close'): void;
@@ -29,12 +32,27 @@ const root = ref<HTMLElement | null>(null);
 const pos = ref({ left: props.x, top: props.y });
 const mod = isMacOS() ? '⌘' : 'Ctrl+';
 
-const items = computed(() => [
-  { id: 'cut' as const, label: t('menubar.cut'), key: `${mod}X`, disabled: !props.hasSelection },
-  { id: 'copy' as const, label: t('menubar.copy'), key: `${mod}C`, disabled: !props.hasSelection },
-  { id: 'paste' as const, label: t('menubar.paste'), key: `${mod}V`, disabled: false },
-  { id: 'selectAll' as const, label: t('menubar.selectAll'), key: `${mod}A`, disabled: false, sep: true },
-]);
+interface MenuItem {
+  id: EditorMenuAction;
+  label: string;
+  key: string;
+  disabled: boolean;
+  sep?: boolean;
+}
+
+const items = computed<MenuItem[]>(() => {
+  const all: (MenuItem & { editable?: boolean })[] = [
+    { id: 'cut', label: t('menubar.cut'), key: `${mod}X`, disabled: !props.hasSelection, editable: true },
+    { id: 'copy', label: t('menubar.copy'), key: `${mod}C`, disabled: !props.hasSelection },
+    { id: 'paste', label: t('menubar.paste'), key: `${mod}V`, disabled: false, editable: true },
+    { id: 'selectAll', label: t('menubar.selectAll'), key: `${mod}A`, disabled: false, sep: true },
+  ];
+  const visible: MenuItem[] = all.filter((item) => !(props.readOnly && item.editable));
+  if (props.hasSelection) {
+    visible.push({ id: 'translate', label: t('menubar.googleTranslate'), key: '', disabled: false, sep: true });
+  }
+  return visible;
+});
 
 function run(id: EditorMenuAction, disabled: boolean) {
   if (disabled) return;

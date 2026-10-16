@@ -23,6 +23,7 @@ export const ja: I18n = {
     copy: 'コピー',
     paste: '貼り付け',
     selectAll: 'すべて選択',
+    googleTranslate: 'Google で翻訳',
     toggleTheme: 'テーマ切替',
     toggleFileTree: 'ファイルツリー切替',
     toggleOutline: 'アウトライン切替',
@@ -236,6 +237,9 @@ export const ja: I18n = {
     copyRelPathDone: 'Relative path copied.',
     closeFolder: 'Close folder',
     noRecentFolders: 'No other folders yet — open one to switch later.',
+  },
+  previewFold: {
+    toggle: 'セクションを折りたたむ / 展開',
   },
   statusbar: {
     ln: '行',
@@ -460,6 +464,8 @@ export const ja: I18n = {
     restoreSessionHint: 'オフにすると、毎回空のウィンドウで起動します。',
     startupViewMode: 'View mode on startup',
     startupViewModeHint: 'Pick a fixed view mode for every launch, or "Last used" (default) to resume whatever you left in.',
+    showStatusBarViewModes: 'ステータスバーに表示モードボタンを表示',
+    showStatusBarViewModesHint: 'ツールバーの 編集 / 分割 / ライブ / プレビュー / 閲覧 ボタンをウィンドウ下部にも表示します。',
     startupViewModeLastUsed: 'Last used',
     perWorkspaceTabs: 'Scope tabs to the current folder',
     perWorkspaceTabsHint: 'On (default): each folder remembers its own open tabs, so opening one folder never resurfaces another folder\'s accumulated tabs. Unsaved and untitled tabs always follow you across folders. Off: all tabs share one global list.',

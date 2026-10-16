@@ -12,6 +12,7 @@ import { useWorkspaceStore } from '../stores/workspace';
 import { useI18n } from '../i18n';
 import { parentDir, requestFolderSearch, type FindScope } from '../lib/folder-search';
 import type { FindSpec, FindTarget } from '../lib/find-spec';
+import { applyWrapPreset, WRAP_PRESETS, type WrapPreset } from '../lib/find-wrap-presets';
 
 const props = defineProps<{
   target: FindTarget;
@@ -167,6 +168,14 @@ function insertToken(token: RegexToken) {
   });
 }
 
+function applyPreset(preset: WrapPreset) {
+  const next = applyWrapPreset(spec.value, preset);
+  query.value = next.search;
+  regex.value = next.regexp;
+  replacement.value = next.replace;
+  nextTick(() => replaceRef.value?.focus());
+}
+
 function shortRoot(root: string | null): string {
   if (!root) return '';
   return root.split(/[\\/]/).filter(Boolean).pop() ?? root;
@@ -289,6 +298,20 @@ defineExpose({ focus });
         {{ t('searchReplace.replaceAll') }}
       </button>
     </div>
+    <div v-if="replaceOpen" class="fb__row fb__presets" role="group" :aria-label="t('findBar.wrapPresets')">
+      <span class="fb__presets-label">{{ t('findBar.wrapPresets') }}</span>
+      <button
+        v-for="p in WRAP_PRESETS"
+        :key="p.id"
+        class="fb__btn fb__btn--preset"
+        type="button"
+        :data-preset="p.id"
+        :title="t('findBar.wrapPresetTooltip', { before: p.before, after: p.after })"
+        @click="applyPreset(p)"
+      >
+        {{ p.label }}
+      </button>
+    </div>
     <div v-if="!isFileScope" class="fb__hint">
       {{ t('findBar.folderHint', { folder: shortRoot(scopeRoot) }) }}
     </div>
@@ -391,6 +414,20 @@ defineExpose({ focus });
 .fb__btn:hover {
   border-color: var(--border);
   color: var(--text);
+}
+.fb__presets {
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.fb__presets-label {
+  color: var(--text-faint);
+  font-size: 11px;
+  margin-inline-end: 4px;
+}
+.fb__btn--preset {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  border-color: var(--border);
 }
 .fb__btn--text {
   border-color: var(--border);

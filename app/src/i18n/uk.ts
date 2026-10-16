@@ -23,6 +23,7 @@ export const uk: I18n = {
     copy: 'Копіювати',
     paste: 'Вставити',
     selectAll: 'Вибрати все',
+    googleTranslate: 'Перекласти в Google',
     toggleTheme: 'Перемкнути тему',
     toggleFileTree: 'Перемкнути дерево файлів',
     toggleOutline: 'Перемкнути зміст',
@@ -236,6 +237,9 @@ export const uk: I18n = {
     copyRelPathDone: 'Relative path copied.',
     closeFolder: 'Close folder',
     noRecentFolders: 'No other folders yet — open one to switch later.',
+  },
+  previewFold: {
+    toggle: 'Згорнути / розгорнути розділ',
   },
   statusbar: {
     ln: 'Ряд',
@@ -460,6 +464,8 @@ export const uk: I18n = {
     restoreSessionHint: 'Вимкніть, щоб щоразу починати з порожнього вікна.',
     startupViewMode: 'View mode on startup',
     startupViewModeHint: 'Pick a fixed view mode for every launch, or "Last used" (default) to resume whatever you left in.',
+    showStatusBarViewModes: 'Показувати кнопки режиму перегляду в рядку стану',
+    showStatusBarViewModesHint: 'Дублює кнопки Редагування / Розділити / Live / Перегляд / Читання з панелі інструментів унизу вікна.',
     startupViewModeLastUsed: 'Last used',
     perWorkspaceTabs: 'Scope tabs to the current folder',
     perWorkspaceTabsHint: 'On (default): each folder remembers its own open tabs, so opening one folder never resurfaces another folder\'s accumulated tabs. Unsaved and untitled tabs always follow you across folders. Off: all tabs share one global list.',

@@ -45,6 +45,7 @@ import {
 } from './image-resolve';
 import { renderMarkdown, extractImageRoot } from './markdown';
 import { findHtmlBlockEnd } from './html-live-render';
+import { findInlineFences } from './inline-fence';
 import { plantumlSvgUrl } from './plantuml';
 import { initMermaid } from './mermaid-lazy';
 import 'katex/contrib/mhchem';
@@ -221,17 +222,20 @@ class ImageWidget extends WidgetType {
 }
 
 class TableWidget extends WidgetType {
-  constructor(private readonly source: string) {
+  constructor(
+    private readonly source: string,
+    private readonly variant: 'table' | 'code' = 'table',
+  ) {
     super();
   }
 
   eq(other: TableWidget): boolean {
-    return other.source === this.source;
+    return other.source === this.source && other.variant === this.variant;
   }
 
   toDOM(): HTMLElement {
     const wrap = document.createElement('div');
-    wrap.className = 'cm-live-block cm-live-block--table';
+    wrap.className = `cm-live-block cm-live-block--${this.variant}`;
     // Render the table source through the same markdown pipeline used by the
     // preview pane so we get GFM alignment, inline formatting, etc. for free.
     // We strip everything except the table rows from the rendered output.
@@ -860,6 +864,7 @@ function buildBlockDecorations(state: EditorState, opts: BlockOptions): Decorati
           { length: lastLine },
           (_, index) => doc.line(index + 1).text,
         );
+        const inlineFences = findInlineFences(sourceLines);
         const mindmapFences = mindmapFencesByCmLine(doc);
         const mindmapContext: MindmapBuildContext = { doc, cursorLine, cursorLineEnd, keepSource, opts };
         let i = 1;
@@ -870,6 +875,21 @@ function buildBlockDecorations(state: EditorState, opts: BlockOptions): Decorati
             continue;
           }
           const line = doc.line(i);
+
+          // Single-line fence (```lang; code```): a code block while the
+          // caret is elsewhere, its source line once the caret enters.
+          if (inlineFences.has(i - 1)) {
+            const cursorInside = keepSource || (i >= cursorLine && i <= cursorLineEnd);
+            if (!cursorInside) {
+              builder.add(
+                line.from,
+                line.to,
+                Decoration.replace({ widget: new TableWidget(line.text, 'code'), block: true }),
+              );
+            }
+            i += 1;
+            continue;
+          }
 
           // Raw block HTML (`<div>…</div>`, `<details>`, HTML tables, etc.).
           // Preview.vue has always rendered this through markdown-it, but live
@@ -1355,6 +1375,15 @@ export const liveBlocksTheme = EditorView.theme({
   '.cm-live-block--broken': {
     color: 'var(--text-faint)',
     fontStyle: 'italic',
+  },
+  '.cm-live-block--code pre': {
+    margin: '2px 0',
+    padding: '6px 12px',
+    background: 'var(--code-bg, var(--bg-elev))',
+    borderRadius: '6px',
+    overflowX: 'auto',
+    fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+    fontSize: '0.9em',
   },
   '.cm-live-block--table table': {
     borderCollapse: 'collapse',

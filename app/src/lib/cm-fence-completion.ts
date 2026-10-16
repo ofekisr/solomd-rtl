@@ -1,5 +1,5 @@
 import { EditorView, keymap } from '@codemirror/view';
-import { Prec, type Extension } from '@codemirror/state';
+import { Prec, type ChangeSet, type Extension, type Text } from '@codemirror/state';
 import {
   acceptCompletion,
   completionStatus,
@@ -14,6 +14,10 @@ import {
   isInsideFenceBefore,
   matchFenceOpener,
 } from './fence-languages.ts';
+import { getRecentFenceLanguages, recordFenceLanguage } from './fence-recents.ts';
+
+const RECENT_BOOST_DETAIL = '★';
+const TYPED_OPENER_RE = /^[ \t]*`{3,}:?([A-Za-z0-9_+.#-]+)[ \t]*$/;
 
 /**
  * Issue #297 — the fence-language source for the CodeMirror editor.
@@ -34,11 +38,23 @@ export function fenceLanguageComplete(context: CompletionContext): CompletionRes
   // A closing fence must not offer a language; Enter belongs to the line there.
   if (isInsideFenceBefore(context.state.doc.sliceString(0, line.from))) return null;
 
-  const options = filterFenceLanguages(opener.query).map((lang) => ({
-    label: lang.name,
-    detail: lang.hint,
-    type: lang.special ? 'class' : 'keyword',
-  }));
+  const recents = getRecentFenceLanguages();
+  const options = filterFenceLanguages(opener.query, Number.POSITIVE_INFINITY, recents).map((lang) => {
+    const isRecent = recents.includes(lang.name.toLowerCase());
+    return {
+      label: lang.name,
+      detail: isRecent ? [RECENT_BOOST_DETAIL, lang.hint].filter(Boolean).join(' ') : lang.hint,
+      type: lang.special ? 'class' : 'keyword',
+      apply: (view: EditorView, _c: unknown, from: number, to: number) => {
+        recordFenceLanguage(lang.name);
+        view.dispatch({
+          changes: { from, to, insert: lang.name },
+          selection: { anchor: from + lang.name.length },
+          userEvent: 'input.complete',
+        });
+      },
+    };
+  });
   if (options.length === 0) return null;
 
   return {
@@ -66,6 +82,7 @@ export function fenceLanguageExtension(): Extension {
       if (!update.docChanged || update.view.composing) return;
 
       const view = update.view;
+      recordTypedOpener(update.state.doc, update.changes);
       // Dispatching straight from an update listener is unsupported, so defer
       // a frame — the same deferral the incremental-find listener in Editor.vue
       // uses for the same reason.
@@ -123,4 +140,15 @@ export function fenceLanguageExtension(): Extension {
       ]),
     ),
   ];
+}
+
+/** A language typed by hand counts as used once Enter leaves its opener line. */
+function recordTypedOpener(doc: Text, changes: ChangeSet): void {
+  changes.iterChanges((_fromA, _toA, fromB, _toB, inserted) => {
+    if (inserted.toString() !== '\n') return;
+    const line = doc.lineAt(fromB);
+    const typed = TYPED_OPENER_RE.exec(line.text);
+    if (!typed || isInsideFenceBefore(doc.sliceString(0, line.from))) return;
+    recordFenceLanguage(typed[1]);
+  });
 }

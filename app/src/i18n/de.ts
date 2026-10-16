@@ -23,6 +23,7 @@ export const de: I18n = {
     copy: 'Kopieren',
     paste: 'Einfügen',
     selectAll: 'Alles auswählen',
+    googleTranslate: 'Mit Google übersetzen',
     toggleTheme: 'Design umschalten',
     toggleFileTree: 'Dateibaum umschalten',
     toggleOutline: 'Gliederung umschalten',
@@ -236,6 +237,9 @@ export const de: I18n = {
     copyRelPathDone: 'Relative path copied.',
     closeFolder: 'Close folder',
     noRecentFolders: 'No other folders yet — open one to switch later.',
+  },
+  previewFold: {
+    toggle: 'Abschnitt ein-/ausklappen',
   },
   statusbar: {
     ln: 'Z',
@@ -460,6 +464,8 @@ export const de: I18n = {
     restoreSessionHint: 'Ausschalten, um jedes Mal mit einem leeren Fenster zu starten.',
     startupViewMode: 'View mode on startup',
     startupViewModeHint: 'Pick a fixed view mode for every launch, or "Last used" (default) to resume whatever you left in.',
+    showStatusBarViewModes: 'Ansichtsmodus-Schaltflächen in der Statusleiste anzeigen',
+    showStatusBarViewModesHint: 'Dupliziert die Schaltflächen Bearbeiten / Geteilt / Live / Vorschau / Lesen aus der Werkzeugleiste am unteren Fensterrand.',
     startupViewModeLastUsed: 'Last used',
     perWorkspaceTabs: 'Scope tabs to the current folder',
     perWorkspaceTabsHint: 'On (default): each folder remembers its own open tabs, so opening one folder never resurfaces another folder\'s accumulated tabs. Unsaved and untitled tabs always follow you across folders. Off: all tabs share one global list.',

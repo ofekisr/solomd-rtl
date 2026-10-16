@@ -24,6 +24,7 @@ export const zh: I18n = {
     copy: '复制',
     paste: '粘贴',
     selectAll: '全选',
+    googleTranslate: 'Translate with Google',
     toggleTheme: '切换主题',
     toggleFileTree: '切换文件树',
     toggleOutline: '切换大纲',
@@ -238,6 +239,9 @@ export const zh: I18n = {
     closeFolder: '关闭文件夹',
     recentFolders: '最近打开的文件夹',
     noRecentFolders: '还没有其它文件夹 —— 打开一个之后这里就能直接切换。',
+  },
+  previewFold: {
+    toggle: 'Fold / unfold section',
   },
   statusbar: {
     ln: '行',
@@ -462,6 +466,8 @@ export const zh: I18n = {
     restoreSessionHint: '关闭后，每次启动都是空白，不会自动打开之前的文档。',
     startupViewMode: '启动时的视图模式',
     startupViewModeHint: '指定每次启动固定使用的视图模式，或选「上次使用」（默认）—— 沿用退出时的模式。',
+    showStatusBarViewModes: 'Show view-mode buttons in the status bar',
+    showStatusBarViewModesHint: 'Duplicates the Edit / Split / Live / Preview / Reading buttons from the toolbar at the bottom of the window.',
     startupViewModeLastUsed: '上次使用',
     perWorkspaceTabs: '标签页按文件夹隔离',
     perWorkspaceTabsHint: '开启（默认）：每个文件夹记住自己打开的标签页，打开某文件夹不会再把其他文件夹累积的标签页一并弹出来。未保存和未命名的标签页始终跟随你跨文件夹保留。关闭：所有标签页共用一个全局列表。',

@@ -2022,6 +2022,18 @@ function onSelectPdfFont(v: string) {
           </select>
           <p class="setting-hint">{{ t('settings.startupViewModeHint') }}</p>
         </section>
+        <section data-cat="basics">
+          <label>
+            <input
+              type="checkbox"
+              :checked="settings.showStatusBarViewModes"
+              @change="settings.toggleStatusBarViewModes()"
+            />
+            {{ t('settings.showStatusBarViewModes') }}
+          </label>
+          <p class="setting-hint">{{ t('settings.showStatusBarViewModesHint') }}</p>
+        </section>
+
 
         <section data-cat="advanced">
           <label>

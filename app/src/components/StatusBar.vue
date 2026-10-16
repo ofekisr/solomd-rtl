@@ -11,6 +11,7 @@ import { useI18n } from '../i18n';
 import WritingGoals from './WritingGoals.vue';
 import PomodoroPill from './PomodoroPill.vue';
 import SyncStatusPill from './SyncStatusPill.vue';
+import StatusBarViewModes from './StatusBarViewModes.vue';
 import { usePomodoroStore } from '../stores/pomodoro';
 
 const props = withDefaults(
@@ -116,6 +117,7 @@ function onPillClick() {
     >
       {{ t('inbox.pill') }}
     </button>
+    <StatusBarViewModes />
     <span class="seg seg--wide">{{ enc }}</span>
     <span class="sep sep--wide">·</span>
     <span class="seg seg--lang seg--wide">{{ lang }}</span>

@@ -20,7 +20,10 @@ import { useSettingsStore } from '../stores/settings';
 import { useTabsStore } from '../stores/tabs';
 import { useFiles } from '../composables/useFiles';
 import PreviewSearch from './PreviewSearch.vue';
+import EditorContextMenu, { type EditorMenuAction } from './EditorContextMenu.vue';
+import { openInGoogleTranslate } from '../lib/open-google-translate';
 import { attachCodeCopyButtons as attachSharedCodeCopyButtons } from '../lib/code-copy';
+import { attachPreviewFolds } from '../lib/preview-heading-fold';
 
 const props = withDefaults(
   defineProps<{
@@ -457,6 +460,21 @@ function attachCodeCopyButtons() {
   });
 }
 
+// Fold state per document, kept outside the component so a re-render or a
+// view-mode switch (which remounts the preview) does not unfold everything.
+const previewFoldsByDoc = new Map<string, Set<string>>();
+
+function attachHeadingFolds() {
+  if (!host.value) return;
+  const docKey = props.filePath || props.tabId || '';
+  let folded = previewFoldsByDoc.get(docKey);
+  if (!folded) {
+    folded = new Set<string>();
+    previewFoldsByDoc.set(docKey, folded);
+  }
+  attachPreviewFolds(host.value, { folded, label: t('previewFold.toggle') });
+}
+
 // ── #162: single-diagram PNG export / copy ──────────────────────────
 
 function diagramExportName(): string {
@@ -512,6 +530,7 @@ watch(html, async () => {
   await processMindmaps();
   attachImageOverlayHandlers();
   attachCodeCopyButtons();
+  attachHeadingFolds();
 });
 
 // Toggling PlantUML (or changing the server) must re-render: the markdown
@@ -530,6 +549,7 @@ watch(
     await processMindmaps();
     attachImageOverlayHandlers();
     attachCodeCopyButtons();
+    attachHeadingFolds();
   },
 );
 
@@ -622,6 +642,7 @@ onMounted(async () => {
   await processMindmaps();
   attachImageOverlayHandlers();
   attachCodeCopyButtons();
+  attachHeadingFolds();
   host.value?.addEventListener('click', handleLinkClick);
   host.value?.addEventListener('dblclick', onPreviewDblClick);
 });
@@ -752,11 +773,32 @@ function onPreviewCopy(e: ClipboardEvent) {
   e.preventDefault();
 }
 
+const previewCtx = ref<{ x: number; y: number; text: string } | null>(null);
+
+function onPreviewContextMenu(event: MouseEvent): void {
+  const text = window.getSelection()?.toString() ?? '';
+  if (!text.trim()) return;
+  event.preventDefault();
+  previewCtx.value = { x: event.clientX, y: event.clientY, text };
+}
+
+async function onPreviewMenuAction(id: EditorMenuAction): Promise<void> {
+  const text = previewCtx.value?.text ?? '';
+  previewCtx.value = null;
+  if (id === 'translate') {
+    await openInGoogleTranslate(text);
+  } else if (id === 'copy') {
+    document.execCommand('copy');
+  } else if (id === 'selectAll' && host.value) {
+    window.getSelection()?.selectAllChildren(host.value);
+  }
+}
+
 defineExpose({ scrollToLine, openSearch });
 </script>
 
 <template>
-  <div class="preview-host" :class="{ 'preview-host--reading': skin === 'reading' }" @copy="onPreviewCopy" @scroll.passive="onHostScroll">
+  <div class="preview-host" :class="{ 'preview-host--reading': skin === 'reading' }" @copy="onPreviewCopy" @scroll.passive="onHostScroll" @contextmenu="onPreviewContextMenu">
     <PreviewSearch
       v-if="searchOpen && host"
       ref="searchRef"
@@ -802,6 +844,17 @@ defineExpose({ scrollToLine, openSearch });
         </div>
       </div>
     </template>
+    <Teleport to="body">
+      <EditorContextMenu
+        v-if="previewCtx"
+        :x="previewCtx.x"
+        :y="previewCtx.y"
+        :has-selection="true"
+        read-only
+        @action="onPreviewMenuAction"
+        @close="previewCtx = null"
+      />
+    </Teleport>
   </div>
 </template>
 
@@ -814,6 +867,54 @@ defineExpose({ scrollToLine, openSearch });
   on equal-or-higher specificity.
 -->
 <style>
+.preview-content .preview-fold-hidden {
+  display: none !important;
+}
+.preview-content > :is(h1, h2, h3, h4, h5, h6) {
+  position: relative;
+}
+.preview-content .preview-fold-toggle {
+  position: absolute;
+  inset-inline-start: -1.3em;
+  top: 50%;
+  width: 1.1em;
+  height: 1.1em;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity 0.12s;
+  user-select: none;
+}
+.preview-content .preview-fold-toggle::before {
+  content: '';
+  display: block;
+  width: 0.4em;
+  height: 0.4em;
+  margin: auto;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.12s;
+}
+.preview-content > :is(h1, h2, h3, h4, h5, h6):hover > .preview-fold-toggle,
+.preview-content .preview-heading--folded > .preview-fold-toggle,
+.preview-content .preview-fold-toggle:focus-visible {
+  opacity: 1;
+}
+.preview-content .preview-heading--folded > .preview-fold-toggle::before {
+  transform: rotate(-45deg);
+}
+.preview-content[dir='rtl'] .preview-heading--folded > .preview-fold-toggle::before {
+  transform: rotate(135deg);
+}
+.preview-content .preview-heading--folded::after {
+  content: ' …';
+  color: var(--text-faint);
+}
 .preview-content .preview-flash {
   animation: preview-flash 1.2s ease-out;
   border-radius: 4px;

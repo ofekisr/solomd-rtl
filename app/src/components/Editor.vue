@@ -53,6 +53,8 @@ import {attachCodeCopyButtons} from '../lib/code-copy';
 import {createLanguageExtension} from '../lib/editor-language.ts';
 import {collectLabels, findMathSpanAt} from '../lib/equations';
 import {filterFenceLanguages, isInsideFenceBefore, matchFenceOpener} from '../lib/fence-languages';
+import { getRecentFenceLanguages, recordFenceLanguage } from '../lib/fence-recents';
+import { parseInlineFence } from '../lib/inline-fence';
 import {directiveCompletionManifests} from '../lib/directive-completion-registry';
 import {activeParagraphLines, lineAt} from '../lib/focus-paragraph';
 import {openFormulaEditor} from '../lib/formula-editor-bus';
@@ -84,6 +86,7 @@ import {useToastsStore} from '../stores/toasts';
 import {useWorkspaceIndexStore} from '../stores/workspaceIndex';
 import type {Tab} from '../types';
 import EditorContextMenu, {type EditorMenuAction} from './EditorContextMenu.vue';
+import { openInGoogleTranslate } from '../lib/open-google-translate';
 
 // Incremental find. CoreMirror's search panel only scrolls to a match when you
 // press Enter / click Next — typing in the field just repaints the highlights
@@ -740,6 +743,7 @@ function splitPlainMarkdownBlocks(
     const text = line.text;
     const trimmed = text.trim();
     if (trimmed === '') return 'blank';
+    if (parseInlineFence(text)) return 'inlinefence';
     if (/^(```|~~~)/.test(trimmed)) return 'fence';
     // #250 — a `$$` block is one block, like a code fence. Without this the
     // splitter walked into it line by line and any line indented 4+ spaces
@@ -761,7 +765,7 @@ function splitPlainMarkdownBlocks(
     const line = lines[i];
     const kind = kindFor(line);
 
-    if (kind === 'blank' || kind === 'heading' || kind === 'thematic') {
+    if (kind === 'blank' || kind === 'heading' || kind === 'thematic' || kind === 'inlinefence') {
       pushRange(line.start, line.end);
       i++;
       continue;
@@ -1778,7 +1782,7 @@ function replacePlainAll() {
 // navigate, Enter/Tab insert, Esc dismisses. Reuses the same data the
 // CodeMirror editor uses. ----
 type AcKind = 'slash' | 'wikilink' | 'tag' | 'citation' | 'fence';
-interface AcItem { label: string; hint?: string; insert: string; cursorOffset: number }
+interface AcItem { label: string; hint?: string; insert: string; cursorOffset: number; fenceLanguage?: string }
 const acOpen = ref(false);
 const acItems = ref<AcItem[]>([]);
 const acIndex = ref(0);
@@ -1823,11 +1827,13 @@ function buildAcItems(kind: AcKind, query: string): AcItem[] {
   // ``` fence languages (#297) — the same catalogue the CodeMirror source
   // uses, so both editors offer the same rows in the same order.
   if (kind === 'fence') {
-    return filterFenceLanguages(query, 10).map((lang) => ({
+    const recents = getRecentFenceLanguages();
+    return filterFenceLanguages(query, 10, recents).map((lang) => ({
       label: lang.name,
-      hint: lang.hint,
+      hint: recents.includes(lang.name.toLowerCase()) ? ['★', lang.hint].filter(Boolean).join(' ') : lang.hint,
       insert: lang.name,
       cursorOffset: lang.name.length,
+      fenceLanguage: lang.name,
     }));
   }
   // citation
@@ -1909,6 +1915,7 @@ function maybeOpenPlainAutocomplete(el: HTMLTextAreaElement) {
 }
 
 function applyPlainAutocomplete(item: AcItem) {
+  if (item.fenceLanguage) recordFenceLanguage(item.fenceLanguage);
   if (!plainLiveEnabled.value) {
     // Flat plain editor — no blocks, so edit the whole-document textarea
     // directly and push the result through the same path as normal typing.
@@ -2639,10 +2646,12 @@ function onEditorMouseDownCapture(event: MouseEvent) {
 function onEditorContextMenu(event: MouseEvent) {
   const pointer = (event as PointerEvent).pointerType;
   if (pointer === 'touch' || pointer === 'pen' || isAndroid() || isIOS()) return;
-  // Windows only. There the WebView2 menu lost the selection (#210). The
-  // macOS and Linux menus handle selections fine, and they carry things ours
-  // can't: spelling suggestions, Look Up, Services, writing tools.
-  if (!isWindowsEditorRuntime()) return;
+  // Windows always: the WebView2 menu lost the selection (#210). macOS and
+  // Linux keep the system menu (spelling, Look Up, Services, writing tools)
+  // except over a selection, where ours adds "Translate with Google".
+  if (!isWindowsEditorRuntime()) {
+    if (usePlainWindowsEditor || !view || view.state.selection.main.empty) return;
+  }
   event.preventDefault();
   let hasSelection = false;
   if (!usePlainWindowsEditor) {
@@ -2683,8 +2692,23 @@ async function readClipboard(): Promise<string> {
   }
 }
 
+function editorSelectionText(): string {
+  if (!usePlainWindowsEditor) {
+    const sel = view?.state.selection.main;
+    return view && sel && !sel.empty ? view.state.sliceDoc(sel.from, sel.to) : '';
+  }
+  const el = ctxTextarea ?? plainActiveTextarea();
+  return el ? el.value.slice(el.selectionStart ?? 0, el.selectionEnd ?? 0) : '';
+}
+
 async function onEditorMenuAction(id: EditorMenuAction) {
   editorCtx.value = null;
+  if (id === 'translate') {
+    const text = editorSelectionText();
+    ctxTextarea = null;
+    await openInGoogleTranslate(text);
+    return;
+  }
   if (!usePlainWindowsEditor) {
     const v = view;
     if (!v) return;

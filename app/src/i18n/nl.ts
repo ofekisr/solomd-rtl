@@ -23,6 +23,7 @@ export const nl: I18n = {
     copy: 'Kopiëren',
     paste: 'Plakken',
     selectAll: 'Alles selecteren',
+    googleTranslate: 'Vertalen met Google',
     toggleTheme: 'Thema wisselen',
     toggleFileTree: 'Bestandsboom aan/uit',
     toggleOutline: 'Overzicht aan/uit',
@@ -236,6 +237,9 @@ export const nl: I18n = {
     copyRelPathDone: 'Relative path copied.',
     closeFolder: 'Close folder',
     noRecentFolders: 'No other folders yet — open one to switch later.',
+  },
+  previewFold: {
+    toggle: 'Sectie in-/uitklappen',
   },
   statusbar: {
     ln: 'Rg',
@@ -460,6 +464,8 @@ export const nl: I18n = {
     restoreSessionHint: 'Schakel uit om elke keer met een leeg venster te starten.',
     startupViewMode: 'View mode on startup',
     startupViewModeHint: 'Pick a fixed view mode for every launch, or "Last used" (default) to resume whatever you left in.',
+    showStatusBarViewModes: 'Weergavemodusknoppen in de statusbalk tonen',
+    showStatusBarViewModesHint: 'Dupliceert de knoppen Bewerken / Gesplitst / Live / Voorbeeld / Lezen uit de werkbalk onderaan het venster.',
     startupViewModeLastUsed: 'Last used',
     perWorkspaceTabs: 'Scope tabs to the current folder',
     perWorkspaceTabsHint: 'On (default): each folder remembers its own open tabs, so opening one folder never resurfaces another folder\'s accumulated tabs. Unsaved and untitled tabs always follow you across folders. Off: all tabs share one global list.',

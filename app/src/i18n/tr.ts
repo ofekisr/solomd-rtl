@@ -23,6 +23,7 @@ export const tr: I18n = {
     copy: 'Kopyala',
     paste: 'Yapıştır',
     selectAll: 'Tümünü Seç',
+    googleTranslate: 'Google ile çevir',
     toggleTheme: 'Temayı değiştir',
     toggleFileTree: 'Dosya ağacını aç/kapat',
     toggleOutline: 'Anahattı aç/kapat',
@@ -236,6 +237,9 @@ export const tr: I18n = {
     copyRelPathDone: 'Relative path copied.',
     closeFolder: 'Close folder',
     noRecentFolders: 'No other folders yet — open one to switch later.',
+  },
+  previewFold: {
+    toggle: 'Bölümü daralt / genişlet',
   },
   statusbar: {
     ln: 'Sat',
@@ -460,6 +464,8 @@ export const tr: I18n = {
     restoreSessionHint: 'Her seferinde boş bir pencereyle başlamak için kapatın.',
     startupViewMode: 'View mode on startup',
     startupViewModeHint: 'Pick a fixed view mode for every launch, or "Last used" (default) to resume whatever you left in.',
+    showStatusBarViewModes: 'Görünüm modu düğmelerini durum çubuğunda göster',
+    showStatusBarViewModesHint: 'Araç çubuğundaki Düzenle / Bölünmüş / Canlı / Önizleme / Okuma düğmelerini pencerenin altında da gösterir.',
     startupViewModeLastUsed: 'Last used',
     perWorkspaceTabs: 'Scope tabs to the current folder',
     perWorkspaceTabsHint: 'On (default): each folder remembers its own open tabs, so opening one folder never resurfaces another folder\'s accumulated tabs. Unsaved and untitled tabs always follow you across folders. Off: all tabs share one global list.',

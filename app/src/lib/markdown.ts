@@ -1,5 +1,6 @@
 import MarkdownIt from 'markdown-it';
 import anchor from 'markdown-it-anchor';
+import { inlineFencePlugin } from './inline-fence';
 import hljs from 'highlight.js/lib/common';
 import 'katex/contrib/mhchem';
 // @ts-ignore — types are loose
@@ -97,7 +98,8 @@ export const md = new MarkdownIt({
   .use(katexPlugin, { throwOnError: false })
   .use(footnote)
   .use(mark)
-  .use(cjkFriendly);
+  .use(cjkFriendly)
+  .use(inlineFencePlugin);
 
 // ---- Wikilink rule (`[[X]]`, `[[X|alias]]`, `[[X#heading]]`) ---------------
 // Used by F1 (v2.0). Renders into <a class="md-wikilink" data-wikilink-target="X">…</a>.

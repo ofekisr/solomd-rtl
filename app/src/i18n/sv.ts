@@ -23,6 +23,7 @@ export const sv: I18n = {
     copy: 'Kopiera',
     paste: 'Klistra in',
     selectAll: 'Markera allt',
+    googleTranslate: 'Översätt med Google',
     toggleTheme: 'Växla tema',
     toggleFileTree: 'Växla filträd',
     toggleOutline: 'Växla disposition',
@@ -236,6 +237,9 @@ export const sv: I18n = {
     copyRelPathDone: 'Relative path copied.',
     closeFolder: 'Close folder',
     noRecentFolders: 'No other folders yet — open one to switch later.',
+  },
+  previewFold: {
+    toggle: 'Fäll ihop / fäll ut avsnitt',
   },
   statusbar: {
     ln: 'Rad',
@@ -460,6 +464,8 @@ export const sv: I18n = {
     restoreSessionHint: 'Stäng av för att alltid starta med ett tomt fönster.',
     startupViewMode: 'View mode on startup',
     startupViewModeHint: 'Pick a fixed view mode for every launch, or "Last used" (default) to resume whatever you left in.',
+    showStatusBarViewModes: 'Visa vylägesknappar i statusfältet',
+    showStatusBarViewModesHint: 'Duplicerar knapparna Redigera / Delad / Live / Förhandsgranska / Läsläge från verktygsfältet längst ned i fönstret.',
     startupViewModeLastUsed: 'Last used',
     perWorkspaceTabs: 'Scope tabs to the current folder',
     perWorkspaceTabsHint: 'On (default): each folder remembers its own open tabs, so opening one folder never resurfaces another folder\'s accumulated tabs. Unsaved and untitled tabs always follow you across folders. Off: all tabs share one global list.',

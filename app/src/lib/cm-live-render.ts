@@ -97,6 +97,8 @@ const strongMark = Decoration.mark({ class: 'cm-md-strong' });
 const emMark = Decoration.mark({ class: 'cm-md-em' });
 const strikeMark = Decoration.mark({ class: 'cm-md-strike' });
 const codeMark = Decoration.mark({ class: 'cm-md-code' });
+const codeRevealedMark = Decoration.mark({ class: 'cm-md-code cm-md-code--revealed' });
+const codeTickMark = Decoration.mark({ class: 'cm-md-code-tick' });
 const linkMark = Decoration.mark({ class: 'cm-md-link' });
 const htmlUnderlineMark = Decoration.mark({ class: 'cm-md-html-u' });
 const htmlMarkMark = Decoration.mark({ class: 'cm-md-html-mark' });
@@ -339,6 +341,10 @@ function buildDecorations(view: EditorView, showMarkers = false): DecorationSet 
 
         // ---- Marker hiding (off-line only) ----
         if (HIDDEN_MARK_NODES.has(name)) {
+          const isInlineTick = name === 'CodeMark' && node.node.parent?.name === 'InlineCode';
+          if (isInlineTick && (showMarkers || caretTouches) && nTo > nFrom) {
+            ranges.push(codeTickMark.range(nFrom, nTo));
+          }
           if (showMarkers) {
             // Dimmed, never removed — so the line looks the same whether or
             // not the caret is on it (#353).
@@ -411,7 +417,7 @@ function buildDecorations(view: EditorView, showMarkers = false): DecorationSet 
 
         // ---- Inline code ----
         if (name === 'InlineCode' && nFrom < nTo) {
-          ranges.push(codeMark.range(nFrom, nTo));
+          ranges.push((showMarkers || caretTouches ? codeRevealedMark : codeMark).range(nFrom, nTo));
           return;
         }
 
@@ -707,6 +713,16 @@ const liveEditTheme = EditorView.theme({
     backgroundColor: 'var(--md-code-bg)',
     padding: '0.1em 0.35em',
     borderRadius: '4px',
+  },
+
+  '.cm-md-code--revealed': {
+    paddingLeft: '0.1em',
+    paddingRight: '0.1em',
+  },
+  '.cm-md-code-tick': {
+    display: 'inline-block',
+    width: '0.4em',
+    textAlign: 'center',
   },
 
   '.cm-md-link': {

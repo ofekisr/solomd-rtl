@@ -250,6 +250,7 @@ interface Settings {
   // right of the status bar. Stretch goal — defaults off because most users
   // care about per-doc progress, not workspace-wide.
   showWorkspaceDailyTotal: boolean;
+  showStatusBarViewModes: boolean;
   // v2.5 F3: PDF / print export defaults. When a field is the empty string
   // / `null` we fall back to whatever the webview / jsPDF chose (i.e. the
   // pre-v2.5 behavior). YAML front matter `pdf:` block on a doc overrides
@@ -659,6 +660,7 @@ function defaults(): Settings {
     })(),
     lastNonReadingViewMode: 'edit',
     showWritingStats: true,
+    showStatusBarViewModes: true,
     showWorkspaceDailyTotal: false,
     pdfDefaults: defaultPdfDefaults(),
     mindmapDefaults: {},
@@ -1327,6 +1329,10 @@ export const useSettingsStore = defineStore('settings', {
     },
     toggleWorkspaceDailyTotal() {
       this.showWorkspaceDailyTotal = !this.showWorkspaceDailyTotal;
+      this.persist();
+    },
+    toggleStatusBarViewModes() {
+      this.showStatusBarViewModes = !this.showStatusBarViewModes;
       this.persist();
     },
     /**

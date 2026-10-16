@@ -23,6 +23,7 @@ export const ko: I18n = {
     copy: '복사',
     paste: '붙여넣기',
     selectAll: '모두 선택',
+    googleTranslate: 'Google 번역으로 열기',
     toggleTheme: '테마 전환',
     toggleFileTree: '파일 트리 토글',
     toggleOutline: '개요 토글',
@@ -236,6 +237,9 @@ export const ko: I18n = {
     copyRelPathDone: 'Relative path copied.',
     closeFolder: 'Close folder',
     noRecentFolders: 'No other folders yet — open one to switch later.',
+  },
+  previewFold: {
+    toggle: '섹션 접기 / 펼치기',
   },
   statusbar: {
     ln: '행',
@@ -460,6 +464,8 @@ export const ko: I18n = {
     restoreSessionHint: '꺼두면 매번 빈 창으로 시작합니다.',
     startupViewMode: 'View mode on startup',
     startupViewModeHint: 'Pick a fixed view mode for every launch, or "Last used" (default) to resume whatever you left in.',
+    showStatusBarViewModes: '상태 표시줄에 보기 모드 버튼 표시',
+    showStatusBarViewModesHint: '도구 모음의 편집 / 분할 / 라이브 / 미리보기 / 읽기 버튼을 창 하단에도 표시합니다.',
     startupViewModeLastUsed: 'Last used',
     perWorkspaceTabs: 'Scope tabs to the current folder',
     perWorkspaceTabsHint: 'On (default): each folder remembers its own open tabs, so opening one folder never resurfaces another folder\'s accumulated tabs. Unsaved and untitled tabs always follow you across folders. Off: all tabs share one global list.',

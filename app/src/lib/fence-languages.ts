@@ -162,9 +162,10 @@ function scoreLanguage(lang: FenceLanguage, query: string): number {
 export function filterFenceLanguages(
   query: string,
   limit = Number.POSITIVE_INFINITY,
+  recents: readonly string[] = [],
 ): FenceLanguage[] {
   const q = query.trim().toLowerCase();
-  if (!q) return FENCE_LANGUAGES.slice(0, limit);
+  if (!q) return pinRecents(FENCE_LANGUAGES, recents).slice(0, limit);
 
   const ranked: Array<{ lang: FenceLanguage; score: number; index: number }> = [];
   FENCE_LANGUAGES.forEach((lang, index) => {
@@ -172,7 +173,18 @@ export function filterFenceLanguages(
     if (s > 0) ranked.push({ lang, score: s, index });
   });
   ranked.sort((a, b) => b.score - a.score || a.index - b.index);
-  return ranked.slice(0, limit).map((r) => r.lang);
+  return pinRecents(ranked.map((r) => r.lang), recents).slice(0, limit);
+}
+
+/** Recently used languages float to the top, most recent first, but only the
+ *  ones the current list already contains — a recent never beats the filter. */
+export function pinRecents(langs: readonly FenceLanguage[], recents: readonly string[]): FenceLanguage[] {
+  const pinned: FenceLanguage[] = [];
+  for (const name of recents) {
+    const hit = langs.find((l) => l.name.toLowerCase() === name);
+    if (hit && !pinned.includes(hit)) pinned.push(hit);
+  }
+  return [...pinned, ...langs.filter((l) => !pinned.includes(l))];
 }
 
 export interface FenceOpener {
