@@ -1258,7 +1258,7 @@ export const es: I18n = {
     resetSession: 'Restablecer contador de sesión',
     unitWords: 'palabras',
     unitChars: 'caracteres',
-    unitCjk: '字',
+    unitCjk: 'CJK chars',
   },
   pomodoro: {
     heading: 'Sesión de enfoque',

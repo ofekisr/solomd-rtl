@@ -8,7 +8,7 @@ import { EditorView, type DecorationSet, type ViewUpdate } from '@codemirror/vie
  * Microsoft IME on Windows — any ViewPlugin that rebuilds its decorations on
  * the composing line tears down and re-creates that line's DOM. Windows
  * WebView2 reacts to the mid-composition DOM swap by silently dropping the
- * active composition, which is the "一会能打上一会打不上 / 吃字" symptom users hit
+ * active composition, which is the "sometimes typing works, sometimes it does not / swallowed characters" symptom users hit
  * with Sogou (issue #108).
  *
  * The fix mirrors the existing drag-freeze pattern in cm-drag-aware.ts: while

@@ -17,7 +17,6 @@ import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { openPath, openUrl, revealItemInDir } from '@tauri-apps/plugin-opener';
 import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
-import { useSettingsStore } from '../stores/settings';
 import { useI18n } from '../i18n';
 import McpProfilesSettings from './McpProfilesSettings.vue';
 
@@ -29,18 +28,8 @@ const workspace = useWorkspaceStore();
 const CLI_INSTALL_CMD =
   'curl -fsSL https://raw.githubusercontent.com/zhitongblog/solomd/main/scripts/install-cli.sh | bash';
 
-const settings = useSettingsStore();
-// Locale-aware so a Chinese-language SoloMD links to the Chinese docs.
-const MCP_DOCS_URL = computed(() =>
-  settings.language === 'zh'
-    ? 'https://solomd.app/zh/docs/mcp/'
-    : 'https://solomd.app/docs/mcp/',
-);
-const CLI_DOCS_URL = computed(() =>
-  settings.language === 'zh'
-    ? 'https://solomd.app/zh/docs/cli/'
-    : 'https://solomd.app/docs/cli/',
-);
+const MCP_DOCS_URL = computed(() => 'https://solomd.app/docs/mcp/');
+const CLI_DOCS_URL = computed(() => 'https://solomd.app/docs/cli/');
 
 // ---------------------------------------------------------------------------
 // Backend state

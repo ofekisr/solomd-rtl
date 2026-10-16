@@ -97,8 +97,7 @@ export function useCommands(): Command[] {
     const folderNorm = folder.endsWith(sep) ? folder : folder + sep;
     if (!tab.filePath.startsWith(folderNorm)) return null;
     const rel = tab.filePath.slice(folderNorm.length).split('\\').join('/');
-    const lang = settings.language === 'zh' ? '/zh' : '';
-    return `https://solomd.app${lang}/share/?repo=${m[1]}/${m[2]}&path=${encodeURIComponent(rel)}`;
+    return `https://solomd.app/share/?repo=${m[1]}/${m[2]}&path=${encodeURIComponent(rel)}`;
   }
 
   /**
@@ -333,7 +332,7 @@ export function useCommands(): Command[] {
       id: 'proofread.cjk',
       title: 'CJK Proofread — flag Chinese typos',
       shortcut: kb('proofread.cjk'),
-      hint: 'Half-/full-width punct, 的/地/得 misuse, repeats, spacing',
+      hint: 'Half-/full-width punctuation, de-particle misuse, repeats, spacing',
       run: () => window.dispatchEvent(new CustomEvent('solomd:open-cjk-proofread')),
     },
 
@@ -488,7 +487,7 @@ export function useCommands(): Command[] {
     {
       id: 'editor.insertImageUrl',
       title: 'Image from URL…',
-      hint: 'Insert a Markdown image link for an external image URL (image host / 图床)',
+      hint: 'Insert a Markdown image link for an external image URL (image host)',
       run: () => window.dispatchEvent(new CustomEvent('solomd:open-image-url-dialog')),
     },
 
@@ -689,7 +688,7 @@ export function useCommands(): Command[] {
       hint: 'Open 4 in-memory tutorial tabs (Welcome, Syntax, Slideshow, Shortcuts)',
       run: () => {
         openWelcomeTour();
-        toasts.success(settings.language === 'zh' ? '已打开教程' : 'Welcome tour opened');
+        toasts.success('Welcome tour opened');
       },
     },
     {

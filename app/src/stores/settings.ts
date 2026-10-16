@@ -103,7 +103,7 @@ interface Settings {
    *  forces CodeMirror regardless. Ignored on other platforms. */
   windowsEditorEngine: 'native' | 'codemirror';
   uiFontSize: number;
-  language: 'en' | 'zh' | 'ja' | 'ko' | 'de' | 'fr' | 'es' | 'pt' | 'it' | 'pl' | 'nl' | 'tr' | 'sv' | 'uk' | 'ru';
+  language: 'en' | 'ja' | 'ko' | 'de' | 'fr' | 'es' | 'pt' | 'it' | 'pl' | 'nl' | 'tr' | 'sv' | 'uk' | 'ru';
   autoCheckUpdate: boolean;
   // Preview layout
   previewFitWidth: boolean;
@@ -369,7 +369,7 @@ interface Settings {
   // font fallback and reported the same "space after the apostrophe" bug
   // again. One-time marker that turns it off once for them.
   smartQuotesOptInMigrated: boolean;
-  // Promote plain numbered-section lines (`6.2 出口许可证管理目录`,
+  // Promote plain numbered-section lines (`6.2 Export license management catalog`,
   // `6.2.1 …`) to headings whose level tracks the numbering depth. Off by
   // default — the promotion is heuristic (a line opening with a decimal like
   // `3.14 …` also matches), so CJK-report users opt in.
@@ -396,7 +396,7 @@ interface Settings {
    *    tree if every note has images. Issue: user feedback 2026-05-26.
    */
   attachmentMode: 'shared' | 'per-file' | 'custom';
-  // #7 (顾河) — Typora-style custom path template for `custom` attachment mode.
+  // #7 — Typora-style custom path template for `custom` attachment mode.
   // Supports `${filename}` (the note's name without extension). Relative
   // templates (`./images/${filename}/`, `assets/`) resolve against the note's
   // folder; an absolute path is used as-is. Default mirrors Typora's default.
@@ -405,7 +405,7 @@ interface Settings {
   // only when attachmentMode is 'shared'; per-file mode always uses
   // `<stem>.assets/`. Empty string falls back to `_assets`.
   assetsDirName: string;
-  // ── Image upload / 图床 (external image hosting) ───────────────────────────
+  // ── Image upload (external image hosting) ───────────────────────────
   // Like Typora / MarkText: instead of (or alongside) copying a pasted/dropped
   // image into the local attachments folder, upload it to an image host and
   // insert the returned URL. `none` = current local-only behavior. The actual
@@ -585,7 +585,6 @@ function defaults(): Settings {
       // to one of the 15 shipped UI locales; everything else → 'en'.
       try {
         const nav = typeof navigator !== 'undefined' ? navigator.language || '' : '';
-        if (/^zh/i.test(nav)) return 'zh';
         if (/^ja/i.test(nav)) return 'ja';
         if (/^ko/i.test(nav)) return 'ko';
         if (/^de/i.test(nav)) return 'de';
@@ -601,7 +600,7 @@ function defaults(): Settings {
         if (/^ru/i.test(nav)) return 'ru';
         return 'en';
       } catch { return 'en'; }
-    })() as 'en' | 'zh' | 'ja' | 'ko' | 'de' | 'fr' | 'es' | 'pt' | 'it' | 'pl' | 'nl' | 'tr' | 'sv' | 'uk' | 'ru',
+    })() as 'en' | 'ja' | 'ko' | 'de' | 'fr' | 'es' | 'pt' | 'it' | 'pl' | 'nl' | 'tr' | 'sv' | 'uk' | 'ru',
     previewFitWidth: false,
     previewMaxWidth: 760,
     plantumlEnabled: false,
@@ -660,8 +659,8 @@ function defaults(): Settings {
     })(),
     lastNonReadingViewMode: 'edit',
     showWritingStats: true,
-    showStatusBarViewModes: true,
     showWorkspaceDailyTotal: false,
+    showStatusBarViewModes: true,
     pdfDefaults: defaultPdfDefaults(),
     mindmapDefaults: {},
     mindmapPanelOpen: false,
@@ -769,6 +768,7 @@ function load(): Settings {
       // sub-key (older settings blob) doesn't yield `undefined` and a
       // tampered numeric stays in range.
       merged.pdfDefaults = mergePdfDefaults(parsed.pdfDefaults);
+      if ((merged.language as string) === 'zh') merged.language = 'en';
       merged.mindmapDefaults = parseMapDisplay(parsed.mindmapDefaults);
       merged.mindmapControlStyle = normalizeControlStyle(parsed.mindmapControlStyle);
       // #180 — keybindings is a free-form map, so a tampered or older blob
@@ -916,7 +916,7 @@ export const useSettingsStore = defineStore('settings', {
     },
     setFontSize(n: number) {
       this.fontSize = Math.max(10, Math.min(28, n));
-      // #133 — the Settings "字号 / Font size" slider is the single base size
+      // #133 — the Settings "Font size" slider is the single base size
       // users expect to govern every view. Keep the preview pane in lockstep so
       // changing it visibly resizes the rendered side too (split panes then
       // match). The ⌃⌘+/− preview-zoom axis can still nudge previewFontSize on
@@ -1303,7 +1303,7 @@ export const useSettingsStore = defineStore('settings', {
       this.uiFontSize = Math.max(10, Math.min(20, n));
       this.persist();
     },
-    setLanguage(lang: 'en' | 'zh' | 'ja' | 'ko' | 'de' | 'fr' | 'es' | 'pt' | 'it' | 'pl' | 'nl' | 'tr' | 'sv' | 'uk' | 'ru') {
+    setLanguage(lang: 'en' | 'ja' | 'ko' | 'de' | 'fr' | 'es' | 'pt' | 'it' | 'pl' | 'nl' | 'tr' | 'sv' | 'uk' | 'ru') {
       this.language = lang;
       this.persist();
     },
@@ -1547,7 +1547,7 @@ export const useSettingsStore = defineStore('settings', {
       this.assetsDirName = cleaned || '_assets';
       this.persist();
     },
-    /** Image-upload / 图床 config. One generic patch action — the Settings
+    /** Image-upload config. One generic patch action — the Settings
      *  panel binds each field through it. Only whitelisted keys are accepted so
      *  a stray key can't pollute the persisted blob. */
     setImageUpload(

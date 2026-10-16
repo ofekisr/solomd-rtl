@@ -1,5 +1,5 @@
 /**
- * Page assembly for the built-in PDF export ("导出为 PDF（图片）").
+ * Page assembly for the built-in PDF export ("Export as PDF (image)").
  *
  * `html2pdf.js` rasterises the whole document with html2canvas and hands that
  * one tall image to jsPDF, which slices it at a fixed page height. Those slice
@@ -117,7 +117,7 @@ export function findCleanCut(
  * table carries its vertical borders, so no row inside a table is ever "clean",
  * the search fell back to the nominal boundary and cut straight through a line
  * of cell text. Glyphs fail both tests — text is dark, and even a straight
- * stem ("1", "丨") ends within one line, well short of `reachPx`, which the
+ * stem ("1", "|") ends within one line, well short of `reachPx`, which the
  * caller sets to a full line pitch.
  *
  * `row`, `above` and `below` are single RGBA rows of the same width.
@@ -142,7 +142,7 @@ export function isStructuralRowData(
     const i = start * 4;
     if (end - start >= LONG_RUN_PX) {
       // Background, a zebra stripe, a horizontal rule. Dark long runs are
-      // text strokes (a CJK "一") or a dark code slab, never safe to assume.
+      // text strokes (a CJK horizontal stroke) or a dark code slab, never safe to assume.
       const luma = 0.299 * row[i] + 0.587 * row[i + 1] + 0.114 * row[i + 2];
       if (luma < MIN_BACKGROUND_LUMA) return false;
     } else {

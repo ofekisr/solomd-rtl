@@ -1,7 +1,7 @@
 /**
  * Phone-shaped viewport detection (#168).
  *
- * "在手机上的操作逻辑是 pc 的…所有 UI 都挤到一块了" — the desktop shell puts the
+ * "the interaction logic on a phone is the PC one… all the UI is crammed together" — the desktop shell puts the
  * file tree, the editor and the right sidebar side by side. At 390 CSS px the
  * two side panes leave the editor a sliver, which is the whole complaint.
  *
@@ -11,7 +11,7 @@
  *
  * The flag is a function of the viewport, never of the UA. `isMobile()` is
  * true on iPad and on Android tablets, and routing those to the phone shell
- * would break the one thing the reporter said already worked ("平板挺好").
+ * would break the one thing the reporter said already worked ("tablet is fine").
  * Two cases count as a phone:
  *
  *   - width ≤ 600 — every phone in portrait, and a desktop window dragged

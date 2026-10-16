@@ -156,7 +156,7 @@ export const PROVIDERS: ProviderConfig[] = [
   },
   {
     id: 'qwen',
-    label: '通义千问 Qwen (DashScope)',
+    label: 'Qwen (DashScope)',
     apiFormat: 'openai',
     defaultModel: 'qwen-plus',
     defaultBaseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
@@ -166,7 +166,7 @@ export const PROVIDERS: ProviderConfig[] = [
   },
   {
     id: 'glm',
-    label: '智谱 GLM',
+    label: 'Zhipu GLM',
     apiFormat: 'openai',
     defaultModel: 'glm-5.2',
     defaultBaseUrl: 'https://open.bigmodel.cn/api/paas/v4',
@@ -186,7 +186,7 @@ export const PROVIDERS: ProviderConfig[] = [
   },
   {
     id: 'volcengine',
-    label: '火山方舟 / 豆包 (Volcengine ARK)',
+    label: 'Volcengine ARK / Doubao',
     apiFormat: 'openai',
     defaultModel: 'doubao-seed-2.1-pro',
     defaultBaseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
@@ -196,7 +196,7 @@ export const PROVIDERS: ProviderConfig[] = [
   },
   {
     id: 'siliconflow',
-    label: '硅基流动 SiliconFlow',
+    label: 'SiliconFlow',
     apiFormat: 'openai',
     defaultModel: 'deepseek-ai/DeepSeek-V3',
     defaultBaseUrl: 'https://api.siliconflow.cn/v1',
@@ -219,7 +219,7 @@ export const PROVIDERS: ProviderConfig[] = [
   // ---- Aggregator (one key, hundreds of models) ---------------------
   {
     id: 'openrouter',
-    label: 'OpenRouter (聚合,400+ 模型)',
+    label: 'OpenRouter (aggregator, 400+ models)',
     apiFormat: 'openai',
     defaultModel: 'anthropic/claude-sonnet-4-6',
     defaultBaseUrl: 'https://openrouter.ai/api/v1',
@@ -229,7 +229,7 @@ export const PROVIDERS: ProviderConfig[] = [
   },
   {
     id: 'opencode-go',
-    label: 'OpenCode Go (订阅聚合)',
+    label: 'OpenCode Go (subscription aggregator)',
     apiFormat: 'openai',
     defaultModel: 'deepseek-v4-flash',
     defaultBaseUrl: 'https://opencode.ai/zen/go/v1',
@@ -241,7 +241,7 @@ export const PROVIDERS: ProviderConfig[] = [
   // ---- Local ---------------------------------------------------------
   {
     id: 'ollama',
-    label: 'Ollama (本地 / local)',
+    label: 'Ollama (local)',
     apiFormat: 'ollama',
     // Default to the small/quick preset so a fresh install can hit "Pull
     // recommended" and have something usable in <2 minutes on a typical
@@ -264,7 +264,7 @@ export const PROVIDERS: ProviderConfig[] = [
     // reach such a server was to borrow another provider's slot and store
     // a dummy key, because every non-Ollama provider demanded one.
     id: 'openai-compat',
-    label: 'OpenAI 兼容 / OpenAI-compatible (llama.cpp · LM Studio · vLLM)',
+    label: 'OpenAI-compatible (llama.cpp · LM Studio · vLLM)',
     apiFormat: 'openai',
     // llama-server's default port. LM Studio is 1234, vLLM 8000 — all
     // three print their address on startup and it goes in this field.
@@ -366,7 +366,7 @@ export const ACTIONS: AIAction[] = [
     id: 'translateZh',
     labelKey: 'ai.translateZh',
     system: TRANSLATOR_ROLE,
-    user: '把下面这段文字翻译成自然、流畅的中文。只回复译文,不要其他说明。',
+    user: 'Translate the following text to natural, fluent Chinese. Reply with only the translation.',
   },
   {
     id: 'explain',

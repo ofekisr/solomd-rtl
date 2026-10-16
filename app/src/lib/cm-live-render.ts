@@ -32,7 +32,7 @@
  * syntax tree over `view.visibleRanges` — i.e. O(viewport) not O(doc).
  *
  * CJK note: the lezer-markdown parser emits `EmphasisMark` nodes
- * regardless of full-width punctuation around markers, so `**粗体**`
+ * regardless of full-width punctuation around markers, so `**bold**` in Chinese
  * just works. We don't post-filter on character classes.
  */
 
@@ -575,7 +575,7 @@ const makeLiveRenderPlugin = (showMarkers: boolean) => ViewPlugin.fromClass(
     update(u: ViewUpdate) {
       // IME composition guard (#108) — don't rebuild decorations on the
       // composing line while a Windows IME (Sogou) candidate window is open,
-      // or the mid-composition DOM swap drops the composition ("吃字").
+      // or the mid-composition DOM swap drops the composition ("swallowed characters").
       const frozen = frozenDuringComposition(u, this.decorations);
       if (frozen) {
         this.decorations = frozen;

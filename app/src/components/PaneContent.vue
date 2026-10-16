@@ -104,7 +104,7 @@ function findNearestEntry<T extends { line: number }>(list: T[], line: number): 
 // between the two instead of snapping to the earlier one. Snapping kept the
 // panes level only when an anchor sat exactly at the viewport top; anywhere
 // inside a tall block (a long wrapped paragraph, an image) the panes were off
-// by up to the block height difference — the 双栏内容上下错位 complaint.
+// by up to the block height difference — the split-pane content vertical misalignment complaint.
 function findAnchorIndex<T extends { line: number }>(list: T[], line: number): number {
   let lo = 0, hi = list.length - 1, best = -1;
   while (lo <= hi) {
@@ -455,7 +455,7 @@ function onPreviewSearchEvent(e: Event) {
 </script>
 
 <template>
-  <!-- #279 — "现在都一样看着有点累": side by side, the two panes are the same
+  <!-- #279 — "now they all look the same, which is a bit tiring": side by side, the two panes are the same
        surface, so the split reads as one wide column. The opt-in class lifts
        the preview a shade; it only applies when BOTH panes are on screen,
        because there is nothing to tell apart otherwise. -->

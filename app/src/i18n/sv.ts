@@ -459,7 +459,7 @@ export const sv: I18n = {
     setDefault: '⭐ Sätt SoloMD som standard Markdown-editor',
     settingDefault: 'Sätter…',
     setDefaultHint: 'Registrerar SoloMD som standardapp för .md / .markdown / .mdown / .mkd-filer. På Windows läggs SoloMD också till i menyn "Öppna med". På Linux krävs xdg-utils.',
-    language: 'Språk / 语言',
+    language: 'Språk',
     restoreSession: 'Återställ tidigare flikar och paneler vid start',
     restoreSessionHint: 'Stäng av för att alltid starta med ett tomt fönster.',
     startupViewMode: 'View mode on startup',
@@ -719,7 +719,7 @@ export const sv: I18n = {
     paletteTitle: 'CJK-korrektur — flagga kinesiska typografifel',
     paletteHint: 'Halv-/helbredd skiljetecken, 的/地/得 felanvändning, upprepningar, mellanrum',
     noActive: 'Inget aktivt dokument.',
-    noIssues: 'Inga problem hittades. 文本干净 ✨',
+    noIssues: 'Inga problem hittades. ✨',
     rescan: 'Skanna om',
     applyAll: 'Tillämpa alla',
     applyAllSeverity: 'Tillämpa alla {severity}',
@@ -861,7 +861,7 @@ export const sv: I18n = {
       'solomd-mcp medföljer inte i denna utvecklingsbygge — utdraget använder en platshållarsökväg.',
   },
   // v4.0 Pillar 2 — Agent Recipes (Settings → Integrations panel).
-  // TODO(zh): translate these once the en strings stabilise.
+  // TODO: translate these once the en strings stabilise.
   recipes: {
     heading: 'Agentrecept',
     intro:
@@ -1261,7 +1261,7 @@ export const sv: I18n = {
     resetSession: 'Nollställ sessionsräknare',
     unitWords: 'ord',
     unitChars: 'tecken',
-    unitCjk: '字',
+    unitCjk: 'CJK chars',
   },
   pomodoro: {
     heading: 'Fokussession',

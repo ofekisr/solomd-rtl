@@ -17,7 +17,7 @@ export type CaseMode = 'upper' | 'lower' | 'title';
 /**
  * Title Case: capitalise the first cased character of each word, lowercase the
  * rest. `\p{L}` rather than `[a-z]` so accented Latin behaves; CJK has no case
- * so those runs pass through untouched, which is what a mixed 中英 note wants.
+ * so those runs pass through untouched, which is what a mixed Chinese-English note wants.
  */
 function toTitleCase(text: string): string {
   return text

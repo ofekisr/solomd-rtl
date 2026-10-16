@@ -27,7 +27,7 @@ export type { TldrawFence, TldrawFenceMatch } from './tldraw-markdown';
 export interface BoardThemeTokens {
   /** 'light' | 'dark' — drives tldraw's colorScheme. */
   colorScheme: 'light' | 'dark';
-  /** BCP-47 locale (e.g. 'en', 'zh') for tldraw's UI. */
+  /** BCP-47 locale (e.g. 'en', 'ja') for tldraw's UI. */
   locale: string;
 }
 

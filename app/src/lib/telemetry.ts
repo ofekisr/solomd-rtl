@@ -13,7 +13,7 @@
  *   - Properties are filtered server-side: only short, low-cardinality
  *     strings/numbers/booleans pass the validator (see
  *     web/functions/api/track.ts). Anything PII-shaped is dropped.
- *   - The user can opt out at any time via Settings → 发送匿名使用数据.
+ *   - The user can opt out at any time via Settings → Send anonymous usage data.
  *
  * Network model:
  *   - Fire-and-forget POST. Endpoint returns 204 in all cases (success
@@ -78,16 +78,11 @@ function detectOs(): 'mac' | 'windows' | 'linux' | 'ipad' | 'web' {
   }
 }
 
-function detectLocale(): 'en' | 'zh' {
+function detectLocale(): string {
   try {
-    const settings = useSettingsStore();
-    return settings.language === 'zh' ? 'zh' : 'en';
+    return useSettingsStore().language;
   } catch {
-    try {
-      return /^zh/i.test(navigator.language || '') ? 'zh' : 'en';
-    } catch {
-      return 'en';
-    }
+    return 'en';
   }
 }
 

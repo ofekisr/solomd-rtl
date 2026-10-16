@@ -105,22 +105,7 @@ export function applyTemplate(
  * Keep it short so it doesn't feel imposing. The H1 uses {{date}} so the
  * filename and heading stay in sync if the user renames the file later.
  */
-export function defaultDailyTemplate(lang: 'en' | 'zh'): string {
-  if (lang === 'zh') {
-    return [
-      '# {{date}}（{{day}}）',
-      '',
-      '> 上一篇：{{previous}} · 下一篇：{{next}}',
-      '',
-      '## 今日要事',
-      '- ',
-      '',
-      '## 笔记',
-      '',
-      '## 复盘',
-      '',
-    ].join('\n');
-  }
+export function defaultDailyTemplate(): string {
   return [
     '# {{date}} ({{day}})',
     '',

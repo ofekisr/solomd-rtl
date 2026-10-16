@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * "Image from URL" dialog — insert a markdown image link for an external URL
- * (图床 already-hosted image or any web image) without uploading or copying.
+ * (already-hosted image or any web image) without uploading or copying.
  * Mirrors Typora's insert-image-by-URL. Driven by App.vue via a `solomd:open-
  * image-url-dialog` event; emits `confirm` with the URL + alt text.
  */

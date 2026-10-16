@@ -28,7 +28,7 @@ use std::process::Command;
 /// Build a `Command` that never flashes a console window on Windows.
 /// Without `CREATE_NO_WINDOW` (0x08000000) every probe (`where`, `solomd
 /// --version`, …) pops a black cmd window for a frame — very visible when the
-/// Integrations settings tab runs its status checks (顾河 report). No-op off
+/// Integrations settings tab runs its status checks (user report). No-op off
 /// Windows.
 fn no_window_command(program: impl AsRef<std::ffi::OsStr>) -> Command {
     #[allow(unused_mut)]

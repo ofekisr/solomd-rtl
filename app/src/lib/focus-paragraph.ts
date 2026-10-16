@@ -1,5 +1,5 @@
 /**
- * focus-paragraph.ts — which lines 专注模式 keeps lit.
+ * focus-paragraph.ts — which lines focus mode keeps lit.
  *
  * The CodeMirror extension (`cm-focus-mode.ts`) dims every line except the
  * paragraph the cursor sits in, where a paragraph is a run of contiguous

@@ -12,17 +12,16 @@ const emit = defineEmits<{ (e: 'close'): void }>();
 type Tab = 'syntax' | 'shortcuts' | 'cli';
 const activeTab = ref<Tab>('syntax');
 const helpTabs = [
-  { value: 'syntax', label: 'Markdown 语法' },
-  { value: 'shortcuts', label: '快捷键' },
+  { value: 'syntax', label: 'Markdown syntax' },
+  { value: 'shortcuts', label: 'Shortcuts' },
   { value: 'cli', label: 'CLI' },
 ];
 const query = ref('');
 const today = new Date().toISOString().slice(0, 10);
-const cliExampleNew = `solomd new "daily-${today}" "今日待办："`;
+const cliExampleNew = `solomd new "daily-${today}" "Today's to-dos:"`;
 
 interface Shortcut {
   keys: string;
-  zh: string;
   en: string;
 }
 const macChord = isMacOS();
@@ -58,7 +57,7 @@ function liveKeys(a: KeyActionDef): string {
 const builtinRows = computed(() => {
   const q = query.value.trim().toLowerCase();
   return BUILTIN_KEYS
-    .filter((it) => !q || `${it.keys} ${it.zh} ${it.en}`.toLowerCase().includes(q));
+    .filter((it) => !q || `${it.keys} ${it.en}`.toLowerCase().includes(q));
 });
 function changeShortcuts(): void {
   emit('close');
@@ -67,34 +66,32 @@ function changeShortcuts(): void {
 
 /** Keys that are not bindable actions, so no table knows about them. */
 const BUILTIN_KEYS: Shortcut[] = [
-  { keys: 'Cmd/Ctrl + click [[link]]', zh: '跳转到双链目标', en: 'Open the target of a [[wikilink]]' },
-  { keys: 'Tab', zh: '增加缩进 / 跨表格列', en: 'Indent / table column nav' },
-  { keys: 'Shift+Tab', zh: '减少缩进', en: 'Outdent' },
+  { keys: 'Cmd/Ctrl + click [[link]]', en: 'Open the target of a [[wikilink]]' },
+  { keys: 'Tab', en: 'Indent / table column nav' },
+  { keys: 'Shift+Tab', en: 'Outdent' },
 ];
 
 interface Item {
-  /** Bilingual category label, e.g. "标题 / Headings" */
+  /** Category label, e.g. "Headings" */
   category: string;
   syntax: string;
   example: string;
-  /** Chinese description */
-  zh: string;
   /** English description */
   en: string;
 }
 
 const C = {
-  headings: '标题 / Headings',
-  emphasis: '强调 / Emphasis',
-  lists: '列表 / Lists',
-  links: '链接与图片 / Links & Images',
-  code: '代码 / Code',
-  quotes: '引用 / Quotes',
-  tables: '表格 / Tables',
-  math: '数学公式 / Math (KaTeX)',
-  diagrams: '图表 / Diagrams',
-  extras: '扩展语法 / Extras',
-  other: '其他 / Other',
+  headings: 'Headings',
+  emphasis: 'Emphasis',
+  lists: 'Lists',
+  links: 'Links & Images',
+  code: 'Code',
+  quotes: 'Quotes',
+  tables: 'Tables',
+  math: 'Math (KaTeX)',
+  diagrams: 'Diagrams',
+  extras: 'Extras',
+  other: 'Other',
 };
 
 const items: Item[] = [
@@ -103,7 +100,6 @@ const items: Item[] = [
     category: C.headings,
     syntax: '# Heading',
     example: '# H1\n## H2\n### H3',
-    zh: '一到六级标题，# 的数量决定级别',
     en: 'Headings 1–6, the number of # is the level',
   },
 
@@ -112,35 +108,30 @@ const items: Item[] = [
     category: C.emphasis,
     syntax: '**bold**',
     example: '**bold text**',
-    zh: '加粗文字',
     en: 'Bold text',
   },
   {
     category: C.emphasis,
     syntax: '*italic*',
     example: '*italic text*',
-    zh: '斜体文字',
     en: 'Italic text',
   },
   {
     category: C.emphasis,
     syntax: '~~strike~~',
     example: '~~deleted~~',
-    zh: '删除线',
     en: 'Strikethrough',
   },
   {
     category: C.emphasis,
     syntax: '`code`',
     example: '`inline code`',
-    zh: '行内代码',
     en: 'Inline code',
   },
   {
     category: C.emphasis,
     syntax: '==mark==',
     example: '==highlighted==',
-    zh: '高亮（GFM 扩展）',
     en: 'Highlight (GFM extension)',
   },
 
@@ -149,28 +140,24 @@ const items: Item[] = [
     category: C.lists,
     syntax: '- item',
     example: '- Apple\n- Banana\n- Cherry',
-    zh: '无序列表（- 或 * 都行）',
     en: 'Unordered list (- or * works)',
   },
   {
     category: C.lists,
     syntax: '1. item',
     example: '1. First\n2. Second\n3. Third',
-    zh: '有序列表',
     en: 'Ordered list',
   },
   {
     category: C.lists,
     syntax: '- [ ] task',
     example: '- [ ] Todo\n- [x] Done',
-    zh: '任务列表，可点击切换状态',
     en: 'Task list, click checkbox to toggle',
   },
   {
     category: C.lists,
     syntax: '  - nested',
     example: '- Outer\n  - Inner\n    - Deeper',
-    zh: '缩进 2 个空格 = 嵌套一层',
     en: 'Indent 2 spaces to nest deeper',
   },
 
@@ -179,35 +166,30 @@ const items: Item[] = [
     category: C.links,
     syntax: '[text](url)',
     example: '[Google](https://google.com)',
-    zh: '链接：[显示文字](网址)',
     en: 'Link: [text](url)',
   },
   {
     category: C.links,
     syntax: '![alt](url)',
     example: '![Logo](./logo.png)',
-    zh: '图片：和链接一样，前面加 !',
     en: 'Image: same as link, prefixed with !',
   },
   {
     category: C.links,
     syntax: '<url>',
     example: '<https://example.com>',
-    zh: '自动链接',
     en: 'Autolink',
   },
   {
     category: C.links,
     syntax: '[text][ref]',
     example: 'See [the docs][1].\n\n[1]: https://example.com',
-    zh: '引用式链接，便于复用 URL',
     en: 'Reference-style link, reuse the URL',
   },
   {
     category: C.links,
     syntax: '[[note]]',
     example: '[[Welcome]]\n[[Welcome|home page]]\n[[Welcome#Get started]]',
-    zh: '双链：跳转工作区中同名笔记。Cmd/Ctrl+点击打开。开 `[[` 自动补全。',
     en: 'Wikilink to a note in the workspace folder. Cmd/Ctrl+click to open. Type `[[` for autocomplete. Optional `|alias` and `#heading`.',
   },
 
@@ -216,14 +198,12 @@ const items: Item[] = [
     category: C.code,
     syntax: '```lang',
     example: '```js\nconsole.log("hi")\n```',
-    zh: '代码块，可指定语言名启用语法高亮（js/python/rust/...）',
     en: 'Fenced code block, set the language for syntax highlighting',
   },
   {
     category: C.code,
     syntax: '    indent',
     example: '    indented code',
-    zh: '4 空格缩进也是代码块',
     en: 'Indenting 4 spaces also makes a code block',
   },
 
@@ -232,14 +212,12 @@ const items: Item[] = [
     category: C.quotes,
     syntax: '> quote',
     example: '> Knowledge is power.\n> — Bacon',
-    zh: '引用块，可多行',
     en: 'Blockquote, can span multiple lines',
   },
   {
     category: C.quotes,
     syntax: '> > nested',
     example: '> outer\n> > inner',
-    zh: '嵌套引用',
     en: 'Nested blockquote',
   },
 
@@ -248,7 +226,6 @@ const items: Item[] = [
     category: C.tables,
     syntax: '| h1 | h2 |',
     example: '| Name | Age |\n|------|-----|\n| Ada  | 36  |\n| Bob  | 24  |',
-    zh: '表格：第二行 --- 必须有，对齐用 :--- :---: ---:',
     en: 'Table: second row of --- is required; alignment with :--- :---: ---:',
   },
 
@@ -257,14 +234,12 @@ const items: Item[] = [
     category: C.math,
     syntax: '$inline$',
     example: '$E = mc^2$',
-    zh: '行内数学公式',
     en: 'Inline math',
   },
   {
     category: C.math,
     syntax: '$$block$$',
     example: '$$\n\\int_0^\\infty e^{-x^2} dx\n$$',
-    zh: '块级数学公式',
     en: 'Block math',
   },
 
@@ -273,7 +248,6 @@ const items: Item[] = [
     category: C.diagrams,
     syntax: '```mermaid',
     example: '```mermaid\nflowchart LR\nA --> B\nB --> C\n```',
-    zh: '流程图（mermaid 代码块），支持 flowchart / sequence / gantt 等',
     en: 'Diagram via Mermaid: flowchart / sequence / gantt etc.',
   },
 
@@ -282,14 +256,12 @@ const items: Item[] = [
     category: C.extras,
     syntax: '[^1]',
     example: 'See note[^1].\n\n[^1]: This is the note.',
-    zh: '脚注：正文标记 + 底部定义',
     en: 'Footnote: marker in text + definition at bottom',
   },
   {
     category: C.extras,
     syntax: '---\nkey: val\n---',
     example: '---\ntitle: My Doc\nauthor: Alex\n---\n\n# body',
-    zh: 'YAML front-matter（文档元数据，必须在首行）',
     en: 'YAML front-matter (document metadata, must be at line 1)',
   },
 
@@ -298,21 +270,18 @@ const items: Item[] = [
     category: C.other,
     syntax: '---',
     example: 'Above\n\n---\n\nBelow',
-    zh: '水平分隔线（也可用 *** 或 ___）',
     en: 'Horizontal rule (--- or *** or ___)',
   },
   {
     category: C.other,
     syntax: '\\*escape',
     example: '\\*literal asterisk\\*',
-    zh: '反斜杠转义特殊字符',
     en: 'Backslash to escape special characters',
   },
   {
     category: C.other,
     syntax: '  ↵',
     example: 'line one  \nline two',
-    zh: '行尾两个空格 = 强制换行',
     en: 'Two trailing spaces = hard line break',
   },
 ];
@@ -333,7 +302,7 @@ const filtered = computed(() => {
   const q = query.value.trim().toLowerCase();
   if (!q) return items;
   return items.filter((it) => {
-    const hay = `${it.category} ${it.syntax} ${it.example} ${it.zh} ${it.en}`.toLowerCase();
+    const hay = `${it.category} ${it.syntax} ${it.example} ${it.en}`.toLowerCase();
     return q.split(/\s+/).every((tok) => hay.includes(tok));
   });
 });
@@ -368,7 +337,7 @@ async function copyExample(text: string) {
           :model-value="query"
           size="sm"
           class="help__search"
-          :placeholder="activeTab === 'syntax' ? '搜索语法 / Search syntax…' : t('settings.keysSearch')"
+          :placeholder="activeTab === 'syntax' ? 'Search syntax…' : t('settings.keysSearch')"
           @update:model-value="query = $event"
         />
       </div>
@@ -380,12 +349,11 @@ async function copyExample(text: string) {
             <div class="help__grid">
               <div v-for="(it, i) in itemsOf(cat)" :key="i" class="help__item">
                 <div class="help__syntax">{{ it.syntax }}</div>
-                <div class="help__desc help__desc--zh">{{ it.zh }}</div>
                 <div class="help__desc help__desc--en">{{ it.en }}</div>
                 <pre
                   class="help__example"
                   @click="copyExample(it.example)"
-                  title="Click to copy / 点击复制"
+                  title="Click to copy"
                 >{{ it.example }}</pre>
               </div>
             </div>
@@ -419,8 +387,7 @@ async function copyExample(text: string) {
               <tr v-for="(s, i) in builtinRows" :key="i">
                 <td class="help__keys-key"><kbd>{{ s.keys }}</kbd></td>
                 <td class="help__keys-desc">
-                  <div>{{ s.zh }}</div>
-                  <div class="help__keys-en">{{ s.en }}</div>
+                  <div>{{ s.en }}</div>
                 </td>
               </tr>
               </tbody>
@@ -431,49 +398,48 @@ async function copyExample(text: string) {
 
         <template v-if="activeTab === 'cli'">
           <p class="help__lead">
-            SoloMD 自带一个 <code>solomd</code> 命令行工具，方便从终端开 / 建 / 搜笔记。
+            SoloMD ships with a <code>solomd</code> command-line tool for opening, creating and searching notes from the terminal.
           </p>
           <section class="help__section">
-            <h3>安装 / Install</h3>
+            <h3>Install</h3>
             <pre class="help__code" @click="copyExample('curl -fsSL https://raw.githubusercontent.com/zhitongblog/solomd/main/scripts/install-cli.sh | bash')" title="Click to copy">curl -fsSL https://raw.githubusercontent.com/zhitongblog/solomd/main/scripts/install-cli.sh | bash</pre>
             <p class="help__hint">
-              脚本会装到 <code>/usr/local/bin/solomd</code>（或 <code>~/.local/bin</code>）。装完直接 <code>solomd help</code>。
+              The script installs to <code>/usr/local/bin/solomd</code> (or <code>~/.local/bin</code>). Then run <code>solomd help</code>.
             </p>
           </section>
           <section class="help__section">
-            <h3>子命令 / Commands</h3>
+            <h3>Commands</h3>
             <table class="help__keys">
               <tbody>
-              <tr><td class="help__keys-key"><code>solomd open &lt;title|path&gt;</code></td><td class="help__keys-desc"><div>在 SoloMD 中打开指定笔记</div><div class="help__keys-en">Open note in SoloMD</div></td></tr>
-              <tr><td class="help__keys-key"><code>solomd new &lt;title&gt; [text]</code></td><td class="help__keys-desc"><div>在笔记目录创建新笔记并打开</div><div class="help__keys-en">Create + open new note</div></td></tr>
-              <tr><td class="help__keys-key"><code>solomd list [folder]</code></td><td class="help__keys-desc"><div>列出文件夹内的 markdown 文件</div><div class="help__keys-en">List markdown files in a folder</div></td></tr>
-              <tr><td class="help__keys-key"><code>solomd search &lt;query&gt;</code></td><td class="help__keys-desc"><div>在笔记目录搜索文本（自动用 ripgrep）</div><div class="help__keys-en">Search markdown content (uses ripgrep if available)</div></td></tr>
-              <tr><td class="help__keys-key"><code>solomd cat &lt;title|path&gt;</code></td><td class="help__keys-desc"><div>在终端打印笔记内容</div><div class="help__keys-en">Print note content to stdout</div></td></tr>
-              <tr><td class="help__keys-key"><code>solomd help</code></td><td class="help__keys-desc"><div>显示帮助</div><div class="help__keys-en">Show help</div></td></tr>
+              <tr><td class="help__keys-key"><code>solomd open &lt;title|path&gt;</code></td><td class="help__keys-desc"><div>Open note in SoloMD</div></td></tr>
+              <tr><td class="help__keys-key"><code>solomd new &lt;title&gt; [text]</code></td><td class="help__keys-desc"><div>Create + open new note</div></td></tr>
+              <tr><td class="help__keys-key"><code>solomd list [folder]</code></td><td class="help__keys-desc"><div>List markdown files in a folder</div></td></tr>
+              <tr><td class="help__keys-key"><code>solomd search &lt;query&gt;</code></td><td class="help__keys-desc"><div>Search markdown content (uses ripgrep if available)</div></td></tr>
+              <tr><td class="help__keys-key"><code>solomd cat &lt;title|path&gt;</code></td><td class="help__keys-desc"><div>Print note content to stdout</div></td></tr>
+              <tr><td class="help__keys-key"><code>solomd help</code></td><td class="help__keys-desc"><div>Show help</div></td></tr>
               </tbody>
             </table>
           </section>
           <section class="help__section">
-            <h3>笔记目录 / Notes directory</h3>
+            <h3>Notes directory</h3>
             <p class="help__hint">
-              默认 <code>~/Documents/SoloMD</code>。用环境变量 <code>SOLOMD_NOTES</code> 改：
+              Defaults to <code>~/Documents/SoloMD</code>. Change it with the <code>SOLOMD_NOTES</code> environment variable:
             </p>
             <pre class="help__code" @click="copyExample('export SOLOMD_NOTES=$HOME/Notes')" title="Click to copy">export SOLOMD_NOTES=$HOME/Notes</pre>
             <p class="help__hint">
-              <code>title</code> 参数会自动解析为 <code>$SOLOMD_NOTES/&lt;title&gt;.md</code>；如果带 <code>/</code> 或 <code>.md</code>/<code>.txt</code> 后缀，则按路径处理。
+              A <code>title</code> argument resolves to <code>$SOLOMD_NOTES/&lt;title&gt;.md</code>; if it contains <code>/</code> or ends in <code>.md</code>/<code>.txt</code>, it is treated as a path.
             </p>
           </section>
           <section class="help__section">
-            <h3>常用范例 / Examples</h3>
+            <h3>Examples</h3>
             <pre class="help__code" @click="copyExample(cliExampleNew)" title="Click to copy">{{ cliExampleNew }}</pre>
-            <pre class="help__code" @click="copyExample('solomd search 重要')" title="Click to copy">solomd search 重要</pre>
+            <pre class="help__code" @click="copyExample('solomd search important')" title="Click to copy">solomd search important</pre>
             <pre class="help__code" @click="copyExample('solomd open ./my-doc.md')" title="Click to copy">solomd open ./my-doc.md</pre>
           </section>
         </template>
       </div>
     <template #footer>
       <div class="help__footer">
-        点击代码块可复制 · 按 <kbd>Esc</kbd> 或点击外部关闭<br />
         Click any code block to copy · Press <kbd>Esc</kbd> or click outside to close
       </div>
     </template>
@@ -545,9 +511,6 @@ async function copyExample(text: string) {
 .help__desc {
   font-size: 11px;
   line-height: 1.4;
-}
-.help__desc--zh {
-  color: var(--text);
 }
 .help__desc--en {
   color: var(--text-muted);

@@ -80,20 +80,18 @@ async function visit(url: string) {
       <div class="about__version">v{{ VERSION }}</div>
 
       <p class="about__tagline">
-        One file. One window. Just write.<br />
-        <span class="about__tagline-zh">一个文件,一个窗口,专心写作。</span>
+        One file. One window. Just write.
       </p>
 
       <p class="about__desc">
-        A lightweight, cross-platform Markdown + plain text editor.<br />
-        <span class="about__desc-zh">一款轻量、跨平台的 Markdown 与纯文本编辑器。</span>
+        A lightweight, cross-platform Markdown + plain text editor.
       </p>
 
       <div class="about__links">
         <button class="about__link" @click="visit(links.website)">
           <span class="about__link-icon">🌐</span>
           <div>
-            <div class="about__link-title">Website / 官网</div>
+            <div class="about__link-title">Website</div>
             <div class="about__link-url">solomd.app</div>
           </div>
         </button>
@@ -107,21 +105,21 @@ async function visit(url: string) {
         <button class="about__link" @click="visit(links.releases)">
           <span class="about__link-icon">📦</span>
           <div>
-            <div class="about__link-title">What's New / 更新日志</div>
+            <div class="about__link-title">What's New</div>
             <div class="about__link-url">solomd.app/whats-new</div>
           </div>
         </button>
         <button class="about__link" @click="visit(links.sponsor)">
           <span class="about__link-icon">❤️</span>
           <div>
-            <div class="about__link-title">Sponsor / 赞助</div>
+            <div class="about__link-title">Sponsor</div>
             <div class="about__link-url">GitHub · Alipay · WeChat</div>
           </div>
         </button>
       </div>
 
       <div v-if="sponsors.length" class="about__sponsors">
-        <div class="about__sponsors-title">Thanks to our sponsors / 感谢赞助者</div>
+        <div class="about__sponsors-title">Thanks to our sponsors</div>
         <div class="about__sponsors-names">{{ sponsors.join(' · ') }}</div>
       </div>
 
@@ -169,17 +167,11 @@ async function visit(url: string) {
   margin: 0 0 6px;
   line-height: 1.6;
 }
-.about__tagline-zh {
-  color: var(--text-muted);
-}
 .about__desc {
   font-size: 12px;
   color: var(--text-muted);
   margin: 0 0 22px;
   line-height: 1.6;
-}
-.about__desc-zh {
-  color: var(--text-faint);
 }
 
 .about__links {

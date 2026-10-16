@@ -1,5 +1,5 @@
 /**
- * Image-upload (图床 / external image hosting) helpers.
+ * Image-upload (external image hosting) helpers.
  *
  * Translates the flat `imageUploader*` / `s3*` / `ghImage*` settings into the
  * tagged `UploaderConfig` object that the Rust `upload_image` command expects,

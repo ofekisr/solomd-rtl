@@ -232,7 +232,7 @@ export function livePreviewExtension(opts: { showMarkers?: boolean } = {}) {
 // highlighting inside fenced code, which is genuinely code). This keeps the
 // source ↔ live toggle meaningfully distinct: "off" is plain editing, "on" is
 // a rendered preview — instead of both looking like a preview. (User ask,
-// 2026-06-20: "没打开实时预览时标题还是被预览了 / 两个按钮等于一样了".)
+// 2026-06-20: "headings were still rendered when live preview was off / the two buttons were effectively the same".)
 export const markdownPlainStyle = HighlightStyle.define([
   { tag: t.heading1, color: 'var(--md-h1)' },
   { tag: t.heading2, color: 'var(--md-h2)' },

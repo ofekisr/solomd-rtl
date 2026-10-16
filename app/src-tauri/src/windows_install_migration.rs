@@ -119,7 +119,7 @@ fn lnk_references_legacy_install(bytes: &[u8]) -> bool {
     hay.windows(wide.len()).any(|w| w == wide.as_slice())
 }
 
-/// The taskbar-pin gap behind "任务栏图标空白": the NSIS uninstaller that
+/// The taskbar-pin gap behind "blank taskbar icon": the NSIS uninstaller that
 /// `migrate_legacy_nsis_install` runs removes files and Start-Menu
 /// shortcuts, but Windows offers it no way to remove a taskbar pin. A pin
 /// created against the retired `%LOCALAPPDATA%` install therefore survives

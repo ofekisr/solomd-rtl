@@ -79,7 +79,7 @@ const currentProviderConfig = computed(() => providerById(props.provider));
 /**
  * Parse the provider's modelHint into a flat list of model ids for the
  * <datalist> dropdown. Hints look like:
- *   "旗舰: deepseek-v4-pro · 通用: deepseek-v4-flash · (旧版即将下线: deepseek-chat / deepseek-reasoner)"
+ *   "Flagship: deepseek-v4-pro · General: deepseek-v4-flash · (legacy, retiring: deepseek-chat / deepseek-reasoner)"
  * — split by both `·` and `/`, drop the category labels (anything before `:`),
  * trim parens / whitespace, dedupe, and front-load the defaultModel.
  */
@@ -94,7 +94,7 @@ const modelChoices = computed<string[]>(() => {
   const hint = cfg.modelHint || '';
   for (const segment of hint.split('·')) {
     let s = segment.trim().replace(/^\(/, '').replace(/\)$/, '');
-    // Drop the "标准:" / "推理:" / "Coding:" label.
+    // Drop the "Standard:" / "Reasoning:" / "Coding:" label.
     const colonIdx = s.indexOf(':');
     if (colonIdx >= 0) s = s.slice(colonIdx + 1);
     for (const m of s.split('/')) {

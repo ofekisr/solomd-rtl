@@ -1258,7 +1258,7 @@ export const fr: I18n = {
     resetSession: 'Réinitialiser le compteur de session',
     unitWords: 'mots',
     unitChars: 'caractères',
-    unitCjk: '字',
+    unitCjk: 'CJK chars',
   },
   pomodoro: {
     heading: 'Session de focus',

@@ -379,7 +379,7 @@ button:disabled {
 /* ============================================================
  * #168 — phone layout.
  *
- * "在手机上的操作逻辑是 pc 的…所有 UI 都挤到一块了": the desktop chrome is
+ * "the interaction logic on a phone is the PC one… all the UI is crammed together": the desktop chrome is
  * built for a 1440px window and at 390px every part of it competes for the
  * same width. The shell (side panes → drawers) is handled in App.vue; the
  * rules below thin out what's left.
@@ -474,7 +474,7 @@ button:disabled {
    the modals, and pushing the document down for a moment reads fine here.
 
    #282 — this is no longer phone-only. Any window too narrow for the whole
-   strip gets the same sheet, which is what "工具栏显示不完全" actually needs:
+   strip gets the same sheet, which is what "the toolbar is not fully shown" actually needs:
    the row stops being silently clipped and every control shows up with a
    label. The phone keeps its own extra rules below (bigger tap targets, and
    the folded state that hides all but a handful of buttons); the sheet
@@ -512,7 +512,7 @@ button:disabled {
 /* The desktop sheet is the SAME strip on two rows, so the flexible spacer
    that centres the view-mode group in one row becomes a hole: measured 378px
    of nothing in the middle of row two at 1366px, which is most of what #309
-   called "工具栏显示错乱". Nothing needs pushing apart once the row wraps. */
+   called "the toolbar display is garbled". Nothing needs pushing apart once the row wraps. */
 :root .toolbar.toolbar--sheet .toolbar__spacer {
   display: none;
 }
@@ -546,11 +546,11 @@ button:disabled {
 
 /* ── The desktop sheet: same buttons, same size, just wrapped ──────────────
    #282's reporter tried the labelled version on a 1366×768 screen and asked
-   for this instead: "个人认为图标和文字描述占据了过多的高度…如果按照原来
-   （单行）的图标大小，再增加一行就应该 ok 了。文字描述可以在鼠标悬停的时候
-   再显示。" He is right. A 56px-tall labelled tile turned a 36px bar into a
+   for this instead: "In my opinion the icons and text labels take up too much height… keeping the original
+   (single-row) icon size and adding one more row should be fine. The text labels can show
+   on mouse hover." He is right. A 56px-tall labelled tile turned a 36px bar into a
    195px one — a quarter of his screen height — and every label was clipped
-   mid-word anyway ("打开文件 (Ctrl+…") because `attr(title)` carries the
+   mid-word anyway ("Open File (Ctrl+…") because `attr(title)` carries the
    shortcut. Two rows of the icons he already recognises cost 72px and read
    as the toolbar he knows, and the names are still one hover away: every one
    of these buttons already carries a `title`, which is the tooltip the
@@ -924,7 +924,7 @@ mark {
   }
   /* #337 — the shell rule `html, body, #app { height: 100%; overflow: hidden }`
    * makes the printed document exactly one page tall: everything below the
-   * first page was clipped, so "导出 PDF（文字）" came out as one page whatever
+   * first page was clipped, so "Export PDF (text)" came out as one page whatever
    * the length. Paper has to grow with the content. */
   html.solomd-printing,
   html.solomd-printing body.solomd-printing {

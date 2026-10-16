@@ -79,7 +79,7 @@ export function measureLineHeights(el: HTMLTextAreaElement, text: string): numbe
     // Fractional heights matter: line-height is usually a non-integer px value
     // (14px × 1.6 = 22.4px), and the integer offsetHeight rounds each row down.
     // The rounding error compounds line by line, so by line ~30 the gutter
-    // numbers sit half a row above their text (#203 行号错乱).
+    // numbers sit half a row above their text (#203 line-number misalignment).
     const lh = lineHeightPx(el);
     return Array.from(mirror.children).map((c) => {
       const h = (c as HTMLElement).getBoundingClientRect().height;
@@ -140,7 +140,7 @@ export interface CaretPoint {
 
 /**
  * Where to draw a caret of our own. The native <textarea> caret always
- * blinks — no CSS turns that off — so 实心光标 (#316) hides it and paints a
+ * blinks — no CSS turns that off — so the solid cursor (#316) hides it and paints a
  * non-blinking bar at these coordinates, the same 2px accent bar that
  * CodeMirror's drawSelection() gives the other editor path.
  *

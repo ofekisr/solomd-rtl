@@ -365,7 +365,7 @@ export function useExport() {
    * `renderMarkdown()` leaves a mermaid fence as a plain
    * `<pre><code class="language-mermaid">` — the Preview pane and the image
    * PDF path (`markdownToPdfBlob`) each turn that into an SVG afterwards, but
-   * the text PDF path never did, so "导出为 PDF（文字）" printed the diagram
+   * the text PDF path never did, so "Export as PDF (text)" printed the diagram
    * source verbatim. Same treatment as those two, and it must finish BEFORE
    * the print dialog opens or the platform captures a half-rendered overlay.
    *

@@ -5,7 +5,7 @@
  * It renders a long, adversarial markdown document through the *real* export
  * pipeline (`capturePdfRaster`), then answers the only question that matters:
  * does a page boundary ever land on a row with ink in it? A boundary with ink
- * on both sides is a sheared line of text — the "导出 PDF 跨页被截断" bug.
+ * on both sides is a sheared line of text — the "PDF export clipped across pages" bug.
  *
  * It reports jsPDF's own cut lines (the old behaviour) next to the ones the
  * export now chooses, and draws a strip of each page break so the difference
@@ -63,22 +63,22 @@ function isSheared(canvas: HTMLCanvasElement, y: number): boolean {
  * the boundary, a code block and a table.
  */
 function fixture(repeats: number): string {
-  const blocks: string[] = ['# 结算对账说明 / Settlement reconciliation\n'];
+  const blocks: string[] = ['# Settlement reconciliation\n'];
   for (let i = 1; i <= repeats; i++) {
     blocks.push(`
-## ${i}. 渠道流水与银行入账
+## ${i}. Channel ledger and bank deposits
 
-试算会把同一笔交易的两条流水放在一起比对，「应计」来自渠道，「实收」来自银行账单。
-下面几条是最常见的差异原因，每一条都要能追到原始流水：
+The trial balance matches the two ledger lines of a single transaction side by side; "accrued" comes from the channel, "received" from the bank statement.
+The following are the most common causes of differences, and each one must be traceable to the original ledger line:
 
-- Stripe 流水中 \`currency=CNY\` 的金额主体为 \`requires_payment_method\`（尚未完成支付），
-  因此不计入收入；这类流水在 \`status\` 字段上停留的时间通常不超过 24 小时。
-- 银行入账头寸的日期与 Stripe 的 \`created\` 时间相差一个自然日时，归属期会被算到次日；
-  这是会计期间差异，不是错账，冲销会让账更乱。
-- 手续费在渠道侧先行扣除、银行侧按净额入账，所以两边永远对不上毛额，只能对净额。
+- A Stripe ledger line with \`currency=CNY\` whose amount subject is \`requires_payment_method\` (payment not yet completed)
+  is not counted as revenue; such lines usually stay in that \`status\` for no more than 24 hours.
+- When the bank deposit date and Stripe's \`created\` time are one calendar day apart, the period is attributed to the next day;
+  this is an accounting-period difference, not a booking error, and a reversal would only make the books messier.
+- Fees are deducted on the channel side first and deposited net on the bank side, so the two never agree on gross, only on net.
 
-> 备注：\`payout\` 到账之后，还要 T+1 才会出现在银行流水里，所以月末最后两天的
-> 流水一定要留出观察窗口，否则会被误判成漏账。
+> Note: after a \`payout\` arrives, it takes T+1 to appear in the bank ledger, so the ledger lines of the
+> last two days of the month need an observation window, otherwise they are misjudged as missing.
 
 \`\`\`ts
 export function reconcile(rows: Row[]): Row[] {
@@ -86,13 +86,13 @@ export function reconcile(rows: Row[]): Row[] {
 }
 \`\`\`
 
-| 字段 | 含义 | 备注 |
+| Field | Meaning | Note |
 | --- | --- | --- |
-| \`amount\` | 以最小货币单位计 | CNY 用「分」 |
-| \`fee\` | 渠道手续费 | 含税，不参与分成 |
-| \`status\` | 渠道状态 | 与银行状态不同源 |
+| \`amount\` | In the smallest currency unit | CNY uses fen |
+| \`fee\` | Channel fee | Tax included, excluded from revenue share |
+| \`status\` | Channel status | Not the same source as the bank status |
 
-正文段落用来把版面推到下一页：${'这一段是用于撑满版面的说明文字，重复出现以便让文档跨出多页。'.repeat(4)}
+Body paragraph that pushes the layout onto the next page: ${'This paragraph is filler text that repeats to make the document run across several pages. '.repeat(4)}
 `);
   }
   // A single unbroken paragraph longer than a page. The pagebreak plugin's
@@ -100,9 +100,9 @@ export function reconcile(rows: Row[]): Row[] {
   // would fit in — so the boundary lands wherever the fixed grid puts it, which
   // is exactly where the old export sheared a line in half.
   blocks.push(`
-## 附录：一段没有空行的长正文
+## Appendix: a long body with no blank lines
 
-${'对账口径必须逐笔可追溯，任何无法落到原始流水的差额都要单独挂账并写明原因。'.repeat(90)}
+${'Every reconciled figure must be traceable line by line; any difference that cannot be tied to an original ledger line is booked separately with the reason stated. '.repeat(90)}
 `);
   return blocks.join('\n');
 }

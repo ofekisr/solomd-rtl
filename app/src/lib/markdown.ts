@@ -26,7 +26,7 @@ import { documentDirection } from './doc-direction';
 
 const katexPlugin: any = (katex as any).default ?? katex;
 
-// CJK-friendly emphasis (#262 / Gitee IKA1A0). `**限制：**硬链接` renders as
+// CJK-friendly emphasis (#262 / Gitee IKA1A0). `**Limit:**hard link` (full-width colon) renders as
 // literal asterisks under stock CommonMark, and that shape is everywhere in
 // Chinese writing: a bold run ending in a full-width colon, immediately
 // followed by a Han character — no space, because CJK doesn't use one. The
@@ -459,7 +459,7 @@ md.core.ruler.before('source_line_map', 'table_of_contents', (state) => {
 // Raw HTML blocks render their content verbatim — attrJoin above never reaches
 // the output, so documents built around `<div>…<img>…</div>` containers had no
 // sync anchors at all and the split panes drifted apart across those regions
-// (#203 双栏错位). Wrap the raw block in a neutral div carrying the line.
+// (#203 split-pane misalignment). Wrap the raw block in a neutral div carrying the line.
 const defaultHtmlBlock = md.renderer.rules.html_block;
 md.renderer.rules.html_block = function (tokens, idx, options, env, self) {
   const html = defaultHtmlBlock
@@ -481,7 +481,7 @@ md.renderer.rules.html_block = function (tokens, idx, options, env, self) {
 // #271 — short table cells don't wrap. The browser's table layout promises a
 // column only its min-content width, which for Chinese is ONE character, so a
 // short label beside a long column was squeezed until it read top to bottom
-// ("定/时/任/务…"). A cell whose text is short — up to ~12 CJK characters or
+// ("one character per line"). A cell whose text is short — up to ~12 CJK characters or
 // ~24 Latin ones — is kept on one line; longer cells wrap as before, so a
 // wide table still fits its page.
 const SHORT_CELL_WIDTH = 24;
@@ -1007,13 +1007,13 @@ export function setMarkdownSmartQuotes(on: boolean): void {
 }
 
 // ---- Numbered-section auto-headings (opt-in setting) ----------------------
-// Chinese reports / 公文 often write section numbers as plain text —
-// `6.2 出口许可证管理目录` — with no `#`, so neither markdown-it nor Typora
+// Chinese reports and official documents often write section numbers as plain text —
+// `6.2 Export license management catalog` — with no `#`, so neither markdown-it nor Typora
 // treat them as headings (a heading needs `#` + space; a bare number is just
 // text). When the `markdownAutoNumberHeadings` setting is on we promote such
 // lines to headings whose level tracks the numbering depth (`6.2` → h2,
 // `6.2.1` → h3). Default OFF because auto-promotion is inherently heuristic
-// (a line like `3.14 是圆周率` starts with a decimal too), so the user opts in.
+// (a line like `3.14 is pi` starts with a decimal too), so the user opts in.
 let autoNumberHeadings = false;
 
 /** Sync the numbered-heading toggle from the settings store. */
@@ -1022,7 +1022,7 @@ export function setMarkdownAutoNumberHeadings(on: boolean): void {
 }
 
 // Require ≥2 dot-joined numeric segments (`6.2`, `6.2.1`) so single-number
-// sentences ("6 个要点") and ordered-list markers (`1.`) are never touched.
+// sentences ("6 key points") and ordered-list markers (`1.`) are never touched.
 const NUMBERED_HEADING_RE = /^(\d+(?:\.\d+)+)\.?[ \t]+(\S.*?)\s*$/;
 // Lines whose text ends in sentence punctuation are prose that merely opens
 // with a decimal, not a section title — leave them alone.

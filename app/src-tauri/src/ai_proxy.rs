@@ -548,7 +548,7 @@ fn truncate(s: &str, n: usize) -> String {
 /// both local runtimes. Unlike `ai_verify_key` this never returns `Err` —
 /// the failure text rides along in `error` so the panel can show *why*
 /// ("HTTP 404", "connection refused") instead of a bare red dot. That
-/// message is the whole point: a self-hosted server that "似乎不成功" is
+/// message is the whole point: a self-hosted server that "seems unsuccessful" is
 /// almost always a wrong path or a wrong port, and the user can't tell
 /// which without seeing the server's own answer.
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]

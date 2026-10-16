@@ -216,7 +216,7 @@ async function send() {
   // failure (ollama 404 on a missing model) emits `ai-error` before the
   // `await invoke(...)` resolves — without a pre-set `currentRunId`, the
   // error listener's id-match check drops the event and the panel hangs
-  // on "生成回复中…" with the Stop button stuck on.
+  // on "Generating reply…" with the Stop button stuck on.
   const requestId =
     typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()

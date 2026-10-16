@@ -24,7 +24,7 @@ function markdownExt(): LanguageSupport {
   // Use `markdownLanguage` as the base so GFM features (including task
   // list parsing with TaskMarker nodes) are enabled.
   // `cjkFriendlyEmphasis` keeps live edit in step with the preview on
-  // `**限制：**硬链接`-shaped CJK bold (#262); without it the two panes
+  // `**Limit:**hard link`-shaped (full-width colon) CJK bold (#262); without it the two panes
   // disagree about the same document.
   return markdown({
     base: markdownLanguage,

@@ -717,7 +717,7 @@ export const ru: I18n = {
     paletteTitle: 'Корректура CJK — отметить опечатки в китайском тексте',
     paletteHint: 'Полу- и полноширинная пунктуация, ошибки в 的/地/得, повторы, пробелы',
     noActive: 'Нет активного документа.',
-    noIssues: 'Проблем не найдено. 文本干净 ✨',
+    noIssues: 'Проблем не найдено. ✨',
     rescan: 'Проверить снова',
     applyAll: 'Применить все',
     applyAllSeverity: 'Применить все ({severity})',
@@ -1253,7 +1253,7 @@ export const ru: I18n = {
     resetSession: 'Сбросить счётчик сеанса',
     unitWords: 'слов',
     unitChars: 'симв.',
-    unitCjk: '字',
+    unitCjk: 'CJK chars',
   },
   pomodoro: {
     heading: 'Сеанс фокусировки',

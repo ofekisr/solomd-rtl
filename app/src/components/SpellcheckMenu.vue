@@ -21,10 +21,10 @@
  * The menu closes on Escape, on outside click, or when any action is
  * dispatched (parent should also call `emit('close')` after handling).
  *
- * i18n keys used (parent must add these to `i18n/en.ts` + `i18n/zh.ts`):
- *   - `spellcheck.suggestions`   — "Suggestions" / "拼写建议"
- *   - `spellcheck.addToDict`     — "Add to dictionary" / "添加到词典"
- *   - `spellcheck.ignoreOnce`    — "Ignore once" / "本次忽略"
+ * i18n keys used (parent must add these to `i18n/en.ts`):
+ *   - `spellcheck.suggestions`   — "Suggestions"
+ *   - `spellcheck.addToDict`     — "Add to dictionary"
+ *   - `spellcheck.ignoreOnce`    — "Ignore once"
  */
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from '../i18n';

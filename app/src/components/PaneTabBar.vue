@@ -254,8 +254,8 @@ function onPointerUp(e: PointerEvent) {
 
 // ---- #218 — every open tab one click away ----
 // With many files open the strip overflows. It scrolls (wheel, middle-drag;
-// #106), but its scrollbar is hidden, so nothing says so — "根本没办法切换，
-// 显示不全". While the strip overflows, a "⌄" button lists every open tab.
+// #106), but its scrollbar is hidden, so nothing says so — "there is no way to switch at all,
+// not everything is shown". While the strip overflows, a "⌄" button lists every open tab.
 const tabsOverflow = ref(false);
 function measureTabsOverflow() {
   const el = tabsEl.value;

@@ -135,7 +135,7 @@ async function requestAndroidStorage() {
     localStorage.setItem('solomd:android-storage-pending', '1');
     await invoke('android_request_all_files_access');
     toasts.info(
-      '打开「允许管理所有文件 / All files access」后返回,App 会自动重启以让权限生效。',
+      'Enable "Allow management of all files / All files access", then come back. The app will restart automatically to apply the permission.',
     );
   } catch (e) {
     toasts.error(String(e));
@@ -188,7 +188,7 @@ const selectionText = ref('');
 const paletteOpen = ref(false);
 const quickSwitcherOpen = ref(false);
 const settingsOpen = ref(false);
-// "Image from URL" dialog (网络图片). Opened via the `solomd:open-image-url-
+// "Image from URL" dialog (web image). Opened via the `solomd:open-image-url-
 // dialog` window event (toolbar Insert menu / command palette); on confirm it
 // dispatches `solomd:insert-image-url` to the focused pane's editor.
 const imageUrlDialogOpen = ref(false);
@@ -366,7 +366,7 @@ let lastWheelZoomAt = 0;
 // fires. The old code stepped on any `deltaY !== 0`, so on macOS — where Cmd
 // is held constantly for ⌘S, ⌘Tab, ⌘-click — a trackpad resting under a
 // drifting finger emits deltas of well under 1 and silently rescaled the whole
-// app ("有时候鼠标、触摸板没有滚动也容易引起缩放"). Rate-throttling alone could
+// app ("sometimes the mouse or trackpad zooms even without scrolling"). Rate-throttling alone could
 // not fix that: it caps how often a step fires, not how little input it takes.
 const WHEEL_ZOOM_STEP_DELTA = 12;
 let wheelZoomAccum = 0;
@@ -904,7 +904,7 @@ function dispatchMenuAction(id: string) {
       });
       break;
     case 'file.exit':
-      // #221 — the Windows in-app menubar dropped the native menu's 退出 item.
+      // #221 — the Windows in-app menubar dropped the native menu's Exit item.
       // Routes through Tauri's close-requested flow → unsaved-tabs confirm,
       // same as the caption ✕ button.
       void getCurrentWindow().close();
@@ -1203,7 +1203,7 @@ onMounted(async () => {
   // start. Entries left behind by a force-quit (onCloseRequested never fires)
   // or by a since-deleted/temp file were never pruned, so a "ghost" window
   // reappeared on every launch — even for paths that no longer exist (user
-  // report: "每次打开都冒出一个额外窗口"). Closed windows now stay closed.
+  // report: "an extra window pops up on every launch"). Closed windows now stay closed.
   //
   // On the main window we also clear any stale registry entries so users
   // already affected by the old behavior stop seeing the ghost window after
@@ -2134,14 +2134,14 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
          this process; a restart re-mounts shared storage. -->
     <div v-if="androidRestartNeeded" class="arn-backdrop">
       <div class="arn">
-        <div class="arn__title">重启一次即可读取文件夹</div>
+        <div class="arn__title">Restart once to read folders</div>
         <p class="arn__body">
-          文件访问权限已开启 ✅。安卓要求 App 重启后才能真正读取手机存储。<br /><br />
-          点「关闭 SoloMD」→ 从后台任务里划掉 → 重新打开 App,再点「打开文件夹」就能选你的笔记文件夹了。
+          File access is enabled ✅. Android requires an app restart before phone storage can actually be read.<br /><br />
+          Tap "Close SoloMD", swipe it away from recent apps, reopen the app, then tap "Open Folder" to pick your notes folder.
         </p>
         <div class="arn__foot">
-          <button class="arn__btn" @click="androidRestartNeeded = false">稍后</button>
-          <button class="arn__btn arn__btn--primary" @click="doAndroidRestart">关闭 SoloMD</button>
+          <button class="arn__btn" @click="androidRestartNeeded = false">Later</button>
+          <button class="arn__btn arn__btn--primary" @click="doAndroidRestart">Close SoloMD</button>
         </div>
       </div>
     </div>
@@ -2221,7 +2221,7 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
  *
  * The desktop shell is three columns in a row: file tree | editor |
  * right sidebar. At 390 CSS px that leaves the editor a sliver, which is
- * exactly the reported "所有 UI 都挤到一块了". On a narrow viewport the two
+ * exactly the reported "all the UI is crammed together". On a narrow viewport the two
  * side panes stop being columns and float over the editor as drawers, so
  * the editor always has the full width and one tap puts it back.
  *

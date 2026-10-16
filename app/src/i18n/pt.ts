@@ -1260,7 +1260,7 @@ export const pt: I18n = {
     resetSession: 'Resetar contador de sessão',
     unitWords: 'palavras',
     unitChars: 'caracteres',
-    unitCjk: '字',
+    unitCjk: 'CJK chars',
   },
   pomodoro: {
     heading: 'Sessão de foco',

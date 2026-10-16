@@ -434,8 +434,8 @@ watch(
 );
 
 // ---------------------------------------------------------------------------
-// #282 — "文件树可否增加文件格式过滤，例如我只想显示该文件夹下面的 txt 或者是
-// md 文档". The checkbox list offers what the vault actually contains, not a
+// #282 — "can the file tree get a file-format filter, e.g. I only want to show txt or
+// md documents under this folder". The checkbox list offers what the vault actually contains, not a
 // canned list of twenty formats.
 //
 // The filter persists, which makes a hidden filter the obvious failure mode:

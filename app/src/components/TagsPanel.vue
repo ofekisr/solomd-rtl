@@ -10,7 +10,7 @@
  *   - "Today" → open / create today's daily note (uses useDailyNotes).
  *   - "Yesterday" / "Tomorrow" — same composable, smaller affordance.
  *
- * i18n keys (must exist in en.ts + zh.ts; see SUMMARY.md):
+ * i18n keys (must exist in en.ts; see SUMMARY.md):
  *   tags.heading        — panel header label
  *   tags.empty          — shown when the index has no tags
  *   tags.openFolder     — shown when no folder is open

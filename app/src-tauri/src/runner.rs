@@ -169,7 +169,8 @@ fn apply_macos_language(lang: &str) {
     use objc2::rc::autoreleasepool;
     use objc2_foundation::{NSArray, NSString, NSUserDefaults};
 
-    let apple_lang = if lang == "zh" { "zh-Hans" } else { "en" };
+    let _ = lang;
+    let apple_lang = "en";
     autoreleasepool(|_| unsafe {
         let defaults = NSUserDefaults::standardUserDefaults();
         let code = NSString::from_str(apple_lang);
@@ -188,7 +189,7 @@ fn read_saved_language() -> String {
     std::fs::read_to_string(&path)
         .ok()
         .map(|s| s.trim().to_string())
-        .filter(|s| s == "en" || s == "zh")
+        .filter(|s| s == "en")
         .unwrap_or_else(|| "en".to_string())
 }
 
@@ -220,7 +221,7 @@ fn force_close_window(window: tauri::Window) {
     window.close().ok();
 }
 
-/// Localized menu strings. Two languages for now: "en" and "zh".
+/// Menu strings (English only).
 #[cfg(not(target_os = "windows"))]
 struct MenuStrings {
     file: &'static str,
@@ -264,81 +265,42 @@ struct MenuStrings {
 }
 
 #[cfg(not(target_os = "windows"))]
-fn strings_for(lang: &str) -> MenuStrings {
-    if lang == "zh" {
-        MenuStrings {
-            file: "文件",
-            edit: "编辑",
-            view: "视图",
-            help: "帮助",
-            new_md: "新建 Markdown",
-            new_txt: "新建纯文本",
-            open_file: "打开文件…",
-            open_folder: "打开文件夹…",
-            import_docs: "导入文档…",
-            save: "保存",
-            save_as: "另存为…",
-            print_item: "打印…",
-            close_tab: "关闭标签页",
-            new_window: "新建窗口",
-            open_external: "用外部编辑器打开",
-            toggle_theme: "切换主题",
-            toggle_sidebar: "切换文件树",
-            toggle_outline: "切换大纲",
-            cycle_view: "切换视图模式 (编辑/分栏/预览)",
-            ui_zoom_in: "整体界面：放大",
-            ui_zoom_out: "整体界面：缩小",
-            ui_zoom_reset: "整体界面：复位",
-            editor_zoom_in: "编辑器：放大字号",
-            editor_zoom_out: "编辑器：缩小字号",
-            editor_zoom_reset: "编辑器：复位字号",
-            preview_zoom_in: "预览：放大字号",
-            preview_zoom_out: "预览：缩小字号",
-            preview_zoom_reset: "预览：复位字号",
-            palette: "命令面板",
-            global_search: "在文件夹中搜索…",
-            settings_menu: "设置…",
-            md_help: "Markdown 速查",
-            about: "关于 SoloMD",
-            exit: "退出",
-        }
-    } else {
-        MenuStrings {
-            file: "File",
-            edit: "Edit",
-            view: "View",
-            help: "Help",
-            new_md: "New Markdown",
-            new_txt: "New Plain Text",
-            open_file: "Open File…",
-            open_folder: "Open Folder…",
-            import_docs: "Import Documents…",
-            save: "Save",
-            save_as: "Save As…",
-            print_item: "Print…",
-            close_tab: "Close Tab",
-            new_window: "New Window",
-            open_external: "Open in External Editor",
-            toggle_theme: "Toggle Theme",
-            toggle_sidebar: "Toggle File Tree",
-            toggle_outline: "Toggle Outline",
-            cycle_view: "Cycle Edit/Split/Preview",
-            ui_zoom_in: "UI: Zoom In",
-            ui_zoom_out: "UI: Zoom Out",
-            ui_zoom_reset: "UI: Reset Zoom",
-            editor_zoom_in: "Editor: Zoom In",
-            editor_zoom_out: "Editor: Zoom Out",
-            editor_zoom_reset: "Editor: Reset Zoom",
-            preview_zoom_in: "Preview: Zoom In",
-            preview_zoom_out: "Preview: Zoom Out",
-            preview_zoom_reset: "Preview: Reset Zoom",
-            palette: "Command Palette",
-            global_search: "Search in Folder…",
-            settings_menu: "Settings…",
-            md_help: "Markdown Cheatsheet",
-            about: "About SoloMD",
-            exit: "Exit",
-        }
+fn strings_for(_lang: &str) -> MenuStrings {
+    MenuStrings {
+        file: "File",
+        edit: "Edit",
+        view: "View",
+        help: "Help",
+        new_md: "New Markdown",
+        new_txt: "New Plain Text",
+        open_file: "Open File…",
+        open_folder: "Open Folder…",
+        import_docs: "Import Documents…",
+        save: "Save",
+        save_as: "Save As…",
+        print_item: "Print…",
+        close_tab: "Close Tab",
+        new_window: "New Window",
+        open_external: "Open in External Editor",
+        toggle_theme: "Toggle Theme",
+        toggle_sidebar: "Toggle File Tree",
+        toggle_outline: "Toggle Outline",
+        cycle_view: "Cycle Edit/Split/Preview",
+        ui_zoom_in: "UI: Zoom In",
+        ui_zoom_out: "UI: Zoom Out",
+        ui_zoom_reset: "UI: Reset Zoom",
+        editor_zoom_in: "Editor: Zoom In",
+        editor_zoom_out: "Editor: Zoom Out",
+        editor_zoom_reset: "Editor: Reset Zoom",
+        preview_zoom_in: "Preview: Zoom In",
+        preview_zoom_out: "Preview: Zoom Out",
+        preview_zoom_reset: "Preview: Reset Zoom",
+        palette: "Command Palette",
+        global_search: "Search in Folder…",
+        settings_menu: "Settings…",
+        md_help: "Markdown Cheatsheet",
+        about: "About SoloMD",
+        exit: "Exit",
     }
 }
 
@@ -529,7 +491,7 @@ fn build_app_menu<R: tauri::Runtime>(
         let app_about_meta = AboutMetadata {
             name: Some("SoloMD".into()),
             version: Some(env!("CARGO_PKG_VERSION").into()),
-            credits: Some("Made by 智通 / xiangdong li".into()),
+            credits: Some("Made by Zhitong / xiangdong li".into()),
             authors: Some(vec!["xiangdong li".into()]),
             comments: Some("Lightweight, cross-platform Markdown editor.".into()),
             website: Some("https://solomd.app".into()),
@@ -550,7 +512,7 @@ fn build_app_menu<R: tauri::Runtime>(
             .item(&PredefinedMenuItem::quit(app, None)?)
             .build()?;
 
-        let window_submenu = SubmenuBuilder::new(app, if lang == "zh" { "窗口" } else { "Window" })
+        let window_submenu = SubmenuBuilder::new(app, "Window")
             .item(&PredefinedMenuItem::minimize(app, None)?)
             .item(&PredefinedMenuItem::maximize(app, None)?)
             .separator()

@@ -469,7 +469,7 @@ export const en = {
     setDefault: '⭐ Set SoloMD as default Markdown editor',
     settingDefault: 'Setting…',
     setDefaultHint: 'Registers SoloMD as the default app for .md / .markdown / .mdown / .mkd files. On Windows, also adds SoloMD to the "Open with" menu. On Linux requires xdg-utils.',
-    language: 'Language / 语言',
+    language: 'Language',
     restoreSession: 'Restore previous tabs and panes on startup',
     restoreSessionHint: 'Turn off to start with a blank window every time.',
     startupViewMode: 'View mode on startup',
@@ -729,7 +729,7 @@ export const en = {
     paletteTitle: 'CJK Proofread — flag Chinese typos',
     paletteHint: 'Half-/full-width punct, 的/地/得 misuse, repeats, spacing',
     noActive: 'No active document.',
-    noIssues: 'No issues found. 文本干净 ✨',
+    noIssues: 'No issues found. ✨',
     rescan: 'Rescan',
     applyAll: 'Apply all',
     applyAllSeverity: 'Apply all {severity}',
@@ -870,7 +870,7 @@ export const en = {
       'solomd-mcp not bundled in this dev build — the snippet uses a placeholder path.',
   },
   // v4.0 Pillar 2 — Agent Recipes (Settings → Integrations panel).
-  // TODO(zh): translate these once the en strings stabilise.
+  // TODO: translate these once the en strings stabilise.
   recipes: {
     heading: 'Agent recipes',
     intro:
@@ -1274,7 +1274,7 @@ export const en = {
     resetSession: 'Reset session counter',
     unitWords: 'words',
     unitChars: 'chars',
-    unitCjk: '字',
+    unitCjk: 'CJK chars',
   },
   pomodoro: {
     heading: 'Focus session',

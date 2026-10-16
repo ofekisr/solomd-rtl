@@ -1,5 +1,5 @@
 /**
- * Dev harness for the text PDF ("导出为 PDF（文字）") — open
+ * Dev harness for the text PDF ("Export as PDF (text)") — open
  * `/print-harness.html` from the Vite dev server and print the page (Chromium's
  * print-to-PDF is the engine WebView2 prints with on Windows).
  *
@@ -43,20 +43,20 @@ const params = new URLSearchParams(location.search);
 const rows = Number(params.get('rows') || 120);
 
 function fixture(): string {
-  const parts: string[] = ['# 打印分页测试 / Print pagination\n'];
+  const parts: string[] = ['# Print pagination test\n'];
   for (let i = 1; i <= 6; i++) {
     parts.push(
-      `## ${i}. 段落\n\n` +
-        '试算会把同一笔交易的两条流水放在一起比对，「应计」来自渠道，「实收」来自银行账单。'.repeat(6) +
+      `## ${i}. Paragraph\n\n` +
+        'The trial balance matches the two ledger lines of a single transaction side by side; "accrued" comes from the channel, "received" from the bank statement. '.repeat(6) +
         '\n',
     );
   }
-  parts.push('## 长表格 / Long table\n');
-  parts.push('| 序号 | 名称 | 说明 |\n| --- | --- | --- |');
+  parts.push('## Long table\n');
+  parts.push('| No. | Name | Description |\n| --- | --- | --- |');
   for (let r = 1; r <= rows; r++) {
-    parts.push(`| ${r} | 条目 ${r} | 第 ${r} 行的说明文字，用来占满单元格宽度 row ${r} |`);
+    parts.push(`| ${r} | Item ${r} | Description text for row ${r}, filling the cell width, row ${r} |`);
   }
-  parts.push('\n## 结尾 / End\n\nLAST-LINE-MARKER');
+  parts.push('\n## End\n\nLAST-LINE-MARKER');
   return parts.join('\n');
 }
 
@@ -78,7 +78,7 @@ const mounted = mountPrintOverlay(renderMarkdown(source), 'light', css);
 // `__printHarness.pagination.toc` lists "page title" per TOC entry.
 if (params.get('pages') === '1') {
   const box = printableBox(opts.pageSizeMm, opts.marginMm);
-  const nav = decoratePrintToc(mounted.content, params.get('lang') === 'en' ? 'Contents' : '目录');
+  const nav = decoratePrintToc(mounted.content, 'Contents');
   if (box) {
     (window as any).__printHarness.pagination = withPrintPagination(
       mounted.overlay,

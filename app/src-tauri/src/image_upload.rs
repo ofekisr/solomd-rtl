@@ -1,4 +1,4 @@
-//! Image-bed (图床) upload backend for the SoloMD editor.
+//! Image-bed upload backend for the SoloMD editor.
 //!
 //! Exposes a single async Tauri command, [`upload_image`], that takes a
 //! tagged [`UploaderConfig`] (chosen + filled out in Settings → Image Bed on

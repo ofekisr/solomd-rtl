@@ -346,7 +346,7 @@ pub fn fs_delete(path: String) -> Result<(), String> {
     if !p.exists() {
         return Ok(()); // idempotent — already gone is fine
     }
-    // #112 — on desktop, deleting moves to the OS trash (Finder 废纸篓 /
+    // #112 — on desktop, deleting moves to the OS trash (Finder Trash /
     // Windows recycle bin / XDG trash) so a mis-click is recoverable; a user
     // permanently lost a file to the old unlink behavior. Fall back to the
     // permanent path only if the trash service errors (e.g. a filesystem
@@ -934,8 +934,8 @@ pub struct ExtensionCount {
     pub count: usize,
 }
 
-/// Every file extension in the vault, most common first (#282 — "只想显示该
-/// 文件夹下面的 txt 或者是 md 文档").
+/// Every file extension in the vault, most common first (#282 — "I only want to show
+/// the txt or md documents under this folder").
 ///
 /// The picker offers what the vault actually contains rather than a canned
 /// list: a vault of `.md` + `.canvas` and one of `.txt` + `.org` should not
@@ -1193,8 +1193,8 @@ pub fn entry_times(meta: &fs::Metadata) -> (Option<u64>, Option<u64>) {
 /// a separate `GetFileInformationByHandle` syscall **per entry**. On a
 /// folder with a few thousand notes that's the difference between
 /// "instant" and "10 seconds with the antivirus also doing on-access
-/// scanning". Reported by user 2026-04-26 as "Win 下打开一个文件比较多
-/// 的目录还是有些卡顿".
+/// scanning". Reported by user 2026-04-26 as "on Windows, opening a directory with many
+/// files is still somewhat laggy".
 pub fn list_dir_inner(path: String, show_hidden: bool) -> Result<Vec<DirEntry>, String> {
     list_dir_with(path, show_hidden, false)
 }

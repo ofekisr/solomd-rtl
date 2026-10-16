@@ -6,7 +6,7 @@
  * @lezer/markdown syntax tree — so without this the same document renders
  * bold in the preview pane and stays literal `**…**` while editing.
  *
- * `**限制：**硬链接` is the shape that breaks: a bold run ending in a
+ * `**Limit:**hard link` (full-width colon) is the shape that breaks: a bold run ending in a
  * full-width colon, immediately followed by a Han character. CommonMark says
  * the closing run isn't right-flanking (preceded by punctuation, followed by
  * a letter), so it can't close. The CommonMark CJK amendment

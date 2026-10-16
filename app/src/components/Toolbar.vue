@@ -64,8 +64,8 @@ function toggleSheet(): void {
 //
 // #282 — on a desktop window it must NOT collapse. The expanded strip there
 // costs one extra row (36px measured at 1366), and auto-collapsing meant
-// re-opening "⋯" before every single formatting action: "如果需要频繁的去
-// 点击…按钮的话，也是挺消耗耐心的". The row behaves like a toolbar now,
+// re-opening "⋯" before every single formatting action: "having to click the … button
+// over and over wears on your patience". The row behaves like a toolbar now,
 // not like a menu: it
 // stays until the "✕" that opened it is pressed again.
 function onToolbarActivate(e: Event): void {
@@ -75,7 +75,7 @@ function onToolbarActivate(e: Event): void {
   if (el?.closest('button, [role="menuitem"], a')) sheetOpen.value = false;
 }
 
-// #282 — "在显示器（分辨率)比较小的时候，顶部工具栏和菜单栏会显示不完全".
+// #282 — "on a small monitor (low resolution) the top toolbar and menu bar are not fully shown".
 //
 // The strip has scrolled horizontally since #134, so nothing was ever
 // unreachable — but a silently clipped row still reads as broken, and you
@@ -403,7 +403,7 @@ async function pickAndInsertImage() {
   );
 }
 
-// Insert an image by external URL (网络图片) — opens the dialog mounted in App.vue.
+// Insert an image by external URL (web image) — opens the dialog mounted in App.vue.
 function openImageUrlDialog() {
   insertOpen.value = false;
   window.dispatchEvent(new CustomEvent('solomd:open-image-url-dialog'));
@@ -1405,7 +1405,7 @@ onBeforeUnmount(() => {
 .ai-rewrite-label { letter-spacing: 0.04em; }
 .ai-rewrite-spark { font-size: 11px; opacity: 0.85; margin-left: 2px; }
 
-/* v2.5 F6 — CJK proofread toolbar button. Uses the literal "中"
+/* v2.5 F6 — CJK proofread toolbar button. Uses the literal CJK glyph
  * glyph instead of an SVG icon: it telegraphs the feature's CJK
  * scope at a glance and matches Spell-check (a small icon-as-mark
  * style sits in the same toolbar group). */
@@ -1425,11 +1425,11 @@ onBeforeUnmount(() => {
    title (VSCode / macOS Notes style). flex-shrink:1 lets it ellipsis-shrink
    on narrow windows instead of pushing tool groups off the right edge
    (overrides `.toolbar > * { flex-shrink: 0 }`).
-   #309 — "左侧界面文件名被遮挡". It was the ONLY shrinkable item in the row,
+   #309 — "the file name in the left panel is covered". It was the ONLY shrinkable item in the row,
    so on a window too narrow for the strip it absorbed the entire squeeze
    before anything else gave: measured 8px wide at 1366 with Windows chrome,
    which renders as a single clipped glyph ("U" for Untitled.md, "c" for
-   codex快捷键.md — both visible in the reporters' screenshots) and reads as
+   codex-shortcuts.md — both visible in the reporters' screenshots) and reads as
    the filename being covered up. A floor stops the shrink while the text is
    still a name; past that the strip overflows, which is honest and is
    exactly the case the "⋯" control already announces. */

@@ -26,7 +26,7 @@ export interface ImagePasteOptions {
   getDocContent?: () => string;
   /** Override temp directory (mainly for tests). */
   tempDir?: string;
-  /** 图床 / image-host uploader resolved for a target filename, or null to
+  /** image-host uploader resolved for a target filename, or null to
    *  save locally only. When present and `.onPaste` is true, pasted/dropped
    *  images are uploaded and the returned URL is inserted (with a local
    *  fallback on failure). */
@@ -45,7 +45,7 @@ export interface ImagePasteOptions {
   /** #88 — folder name for the `shared` attachment mode (default `_assets`).
    *  `per-file` mode always uses `<stem>.assets/` regardless of this. */
   getAssetsDirName?: () => string;
-  /** #7 (顾河) — Typora-style path template for the `custom` attachment mode.
+  /** #7 — Typora-style path template for the `custom` attachment mode.
    *  Supports `${filename}` (note stem). Relative templates resolve against
    *  the note's folder; absolute paths are used as-is. */
   getCustomPath?: () => string;

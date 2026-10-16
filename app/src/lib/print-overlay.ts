@@ -1,5 +1,5 @@
 /**
- * The DOM the text PDF ("导出为 PDF（文字）") prints from.
+ * The DOM the text PDF ("Export as PDF (text)") prints from.
  *
  * `exportPdfPrint` mounts a print-only overlay next to `#app`, flips the body
  * into print mode and asks the native print sheet to snapshot the page. The
@@ -47,7 +47,7 @@ export function mountPrintOverlay(
   // The shell is `height: 100%; overflow: hidden` all the way up (html, body,
   // #app) so the app never scrolls as a page. Paper is the one place that has
   // to: printed under those rules the document is one page tall and
-  // everything past it is clipped — "只能打印 1 页" (#337). The @media print
+  // everything past it is clipped — "only 1 page prints" (#337). The @media print
   // rules in main.css release them while this class is on <html>.
   document.documentElement.classList.add('solomd-printing');
 

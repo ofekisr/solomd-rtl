@@ -163,7 +163,7 @@ fn embed(text: &str) -> Vec<f32> {
         .collect::<String>();
     let chars: Vec<char> = normalized.chars().collect();
     // Char bigrams + trigrams — bigrams matter for short CJK queries
-    // ("翻译" is 2 chars, no trigram fits) and for short morphological
+    // ("translate" in Chinese is 2 chars, no trigram fits) and for short morphological
     // overlap ("en", "yp", etc.).
     add_char_ngrams(&chars, 2, 0.5, &mut v);
     add_char_ngrams(&chars, 3, 1.0, &mut v);

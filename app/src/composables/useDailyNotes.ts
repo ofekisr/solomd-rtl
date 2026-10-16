@@ -24,7 +24,6 @@ import { useFiles } from './useFiles';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
-import { useI18n } from '../i18n';
 import {
   formatDailyFilename,
   applyTemplate,
@@ -94,7 +93,6 @@ export function useDailyNotes() {
   const files = useFiles();
   const workspace = useWorkspaceStore();
   const toasts = useToastsStore();
-  const { lang } = useI18n();
 
   /**
    * Resolve `(folder, fullPath, filename)` for a given date based on current
@@ -131,7 +129,7 @@ export function useDailyNotes() {
     const cfg = readDailySettings();
     const tmpl = cfg.dailyNotesTemplate.trim()
       ? cfg.dailyNotesTemplate
-      : defaultDailyTemplate(lang.value === 'zh' ? 'zh' : 'en');
+      : defaultDailyTemplate();
 
     const prevStem = stem(formatDailyFilename(shiftDate(date, -1), cfg.dailyNotesFormat));
     const nextStem = stem(formatDailyFilename(shiftDate(date, 1), cfg.dailyNotesFormat));

@@ -459,7 +459,7 @@ export const uk: I18n = {
     setDefault: '⭐ Зробити SoloMD типовим редактором Markdown',
     settingDefault: 'Налаштовується…',
     setDefaultHint: 'Реєструє SoloMD як типовий застосунок для файлів .md / .markdown / .mdown / .mkd. У Windows також додає SoloMD до меню «Відкрити за допомогою». У Linux потрібен xdg-utils.',
-    language: 'Мова / 语言',
+    language: 'Мова',
     restoreSession: 'Відновлювати попередні вкладки та панелі при запуску',
     restoreSessionHint: 'Вимкніть, щоб щоразу починати з порожнього вікна.',
     startupViewMode: 'View mode on startup',
@@ -719,7 +719,7 @@ export const uk: I18n = {
     paletteTitle: 'Коректура CJK — позначати помилки китайської',
     paletteHint: 'Знаки повної/половинної ширини, плутанина 的/地/得, повтори, проміжки',
     noActive: 'Немає активного документа.',
-    noIssues: 'Помилок не знайдено. 文本干净 ✨',
+    noIssues: 'Помилок не знайдено. ✨',
     rescan: 'Сканувати знову',
     applyAll: 'Застосувати всі',
     applyAllSeverity: 'Застосувати всі {severity}',
@@ -861,7 +861,7 @@ export const uk: I18n = {
       'solomd-mcp не включено в цю dev-збірку — фрагмент використовує заповнювач шляху.',
   },
   // v4.0 Pillar 2 — Agent Recipes (Settings → Integrations panel).
-  // TODO(zh): translate these once the en strings stabilise.
+  // TODO: translate these once the en strings stabilise.
   recipes: {
     heading: 'Рецепти агентів',
     intro:
@@ -1261,7 +1261,7 @@ export const uk: I18n = {
     resetSession: 'Скинути лічильник сесії',
     unitWords: 'слів',
     unitChars: 'симв.',
-    unitCjk: '字',
+    unitCjk: 'CJK chars',
   },
   pomodoro: {
     heading: 'Сесія фокусу',

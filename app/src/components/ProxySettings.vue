@@ -4,7 +4,7 @@
  *
  * Conceptually network-level, not GitHub-specific — covers any
  * libgit2-backed remote (GitHub / GitLab / Gitea / custom). Lives at
- * the top of the 同步 (Sync) category so users hitting "Operation
+ * the top of the Sync category so users hitting "Operation
  * timed out" find it before they think to dig into a sub-panel.
  *
  * Today this only affects libgit2 push/pull. If we ever route AI /

@@ -719,7 +719,7 @@ export const pl: I18n = {
     paletteTitle: 'Korekta CJK — wykrywaj chińskie literówki',
     paletteHint: 'Interpunkcja połówkowa/pełna, mylenie 的/地/得, powtórzenia, odstępy',
     noActive: 'Brak aktywnego dokumentu.',
-    noIssues: 'Nie znaleziono problemów. 文本干净 ✨',
+    noIssues: 'Nie znaleziono problemów. ✨',
     rescan: 'Skanuj ponownie',
     applyAll: 'Zastosuj wszystkie',
     applyAllSeverity: 'Zastosuj wszystkie {severity}',
@@ -861,7 +861,7 @@ export const pl: I18n = {
       'solomd-mcp nie został dołączony do tej wersji deweloperskiej — fragment używa zastępczej ścieżki.',
   },
   // v4.0 Pillar 2 — Agent Recipes (Settings → Integrations panel).
-  // TODO(zh): translate these once the en strings stabilise.
+  // TODO: translate these once the en strings stabilise.
   recipes: {
     heading: 'Przepisy agenta',
     intro:
@@ -1261,7 +1261,7 @@ export const pl: I18n = {
     resetSession: 'Resetuj licznik sesji',
     unitWords: 'słów',
     unitChars: 'znaków',
-    unitCjk: '字',
+    unitCjk: 'CJK chars',
   },
   pomodoro: {
     heading: 'Sesja skupienia',

@@ -459,7 +459,7 @@ export function writerPresetActive(
 
 /**
  * Search over the bindable actions — by name (in the UI language *and* in
- * English, so "bold" finds 加粗), by id, or by the chord itself ("⌘B",
+ * English, so "bold" finds its translated name), by id, or by the chord itself ("⌘B",
  * "ctrl shift k"). One implementation for the help sheet and the settings
  * list, so the two can never disagree about what a query matches.
  */

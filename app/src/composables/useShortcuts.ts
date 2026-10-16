@@ -21,7 +21,7 @@ interface Hooks {
   openRagSearch?: () => void;
   /** v2.5: open the VSCode-style ⌘P quick file switcher. */
   openQuickSwitcher?: () => void;
-  /** v2.5 F6: open the CJK proofread panel (⌘⇧J — J for "句"/sentence). */
+  /** v2.5 F6: open the CJK proofread panel (⌘⇧J — J for "ju", sentence). */
   openCjkProofread?: () => void;
 }
 

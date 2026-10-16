@@ -28,7 +28,7 @@ import { untitledFileName } from '../lib/file-language';
 // can't reliably express "all files" via filters on macOS.)
 /** #160 — pre-fill the Save dialog from the document's first heading. A
  *  never-saved tab still carries the default "Untitled" name, so a note that
- *  opens with `# 会议纪要` saves as `会议纪要.md` without retyping. Inert
+ *  opens with `# Meeting notes` saves as `Meeting notes.md` without retyping. Inert
  *  once the tab has a real path or a user-chosen name. */
 export function deriveNameFromHeading(tab: Pick<Tab, 'filePath' | 'fileName' | 'content' | 'language'>): string | null {
   if (tab.filePath || !/^Untitled(\.(md|txt))?$/i.test(tab.fileName ?? '')) return null;
@@ -628,8 +628,8 @@ export function useFiles() {
    *  - Windows' picker falls back to the shell's *Desktop root* when it is
    *    given no starting folder. That root is a namespace item, not a
    *    directory — it has no filesystem path — so pressing OK on it makes the
-   *    shell answer "no object for moniker" (MK_E_UNAVAILABLE, zh: "没有供标
-   *    记使用的对象") and refuse to close the dialog. "Open Folder" then reads
+   *    shell answer "no object for moniker" (MK_E_UNAVAILABLE, localized: "no object available for
+   *    the moniker") and refuse to close the dialog. "Open Folder" then reads
    *    as a dead button and the Desktop itself cannot be chosen.
    *  - rfd silently drops a starting folder it cannot resolve
    *    (`SHCreateItemFromParsingName` fails → `SetFolder` is skipped), so a

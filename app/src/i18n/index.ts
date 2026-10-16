@@ -6,7 +6,6 @@
 import { computed } from 'vue';
 import { useSettingsStore } from '../stores/settings';
 import { en } from './en';
-import { zh } from './zh';
 import { ja } from './ja';
 import { ko } from './ko';
 import { de } from './de';
@@ -21,7 +20,7 @@ import { sv } from './sv';
 import { uk } from './uk';
 import { ru } from './ru';
 
-const dicts = { en, zh, ja, ko, de, fr, es, pt, it, pl, nl, tr, sv, uk, ru } as const;
+const dicts = { en, ja, ko, de, fr, es, pt, it, pl, nl, tr, sv, uk, ru } as const;
 type Lang = keyof typeof dicts;
 
 /** The raw dictionaries, for features that search translations (#352 settings
@@ -47,7 +46,7 @@ export function useI18n() {
     const parts = key.split('.');
     // v4.3.5: try active language first, then fall back to English, then to
     // the raw key. Previously missing keys returned the key itself, which
-    // made any partially-translated feature look broken in non-en/zh locales.
+    // made any partially-translated feature look broken in non-en locales.
     // The English fallback means new strings ship in 14 langs immediately
     // (as English) and the proper translations can land in the next minor.
     let str = lookup(dict.value, parts) ?? lookup(en, parts) ?? key;

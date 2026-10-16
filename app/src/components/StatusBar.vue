@@ -84,14 +84,14 @@ function onPillClick() {
     <span class="sep sep--wide">·</span>
     <span class="seg">{{ wordCount }} {{ t('statusbar.words') }}</span>
     <span v-if="cjkCount > 0" class="seg seg--cjk" :title="`${cjkCount} CJK characters`">
-      ({{ cjkCount }} 字)
+      ({{ cjkCount }} {{ t('statusbar.cjk') }})
     </span>
     <span class="sep sep--wide">·</span>
     <span class="seg seg--wide">{{ charCount }} {{ t('statusbar.chars') }}</span>
     <span v-if="selStats" class="seg seg--selection" :title="t('statusBar.selectionTooltip')">
       ·
       {{ t('statusBar.selection', { words: String(selStats.total), chars: String(selStats.chars) }) }}
-      <span v-if="selStats.cjk > 0" class="seg--cjk">({{ selStats.cjk }} 字)</span>
+      <span v-if="selStats.cjk > 0" class="seg--cjk">({{ selStats.cjk }} {{ t('statusbar.cjk') }})</span>
     </span>
     <WritingGoals v-if="settings.showWritingStats" />
     <span class="spacer"></span>

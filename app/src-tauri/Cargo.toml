@@ -165,7 +165,7 @@ tauri-plugin-window-state = "2"
 # shortcut to register on a phone, and the mobile permission resolver would
 # choke on a plugin the build never loads.
 tauri-plugin-global-shortcut = "2"
-# #112 — fs_delete moves to the OS trash (Finder 废纸篓 / recycle bin) instead
+# #112 — fs_delete moves to the OS trash (Finder Trash / recycle bin) instead
 # of permanently unlinking; desktop only (mobile has no user-visible trash).
 trash = "5"
 

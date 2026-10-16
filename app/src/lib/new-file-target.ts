@@ -3,7 +3,7 @@
  *
  * "New file" used to open the OS save dialog wherever that dialog happened to
  * remember last — unrelated to what the user was looking at, so a note meant
- * for `00 需求问题管理/` could land next to the vault root or in whatever
+ * for `00 Requirements/` could land next to the vault root or in whatever
  * folder was saved to an hour earlier. The Explorer publishes its current
  * selection here instead (a folder → the folder itself, a file → the file's
  * folder) and the file layer uses it as the dialog's starting folder.

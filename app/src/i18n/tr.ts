@@ -459,7 +459,7 @@ export const tr: I18n = {
     setDefault: '⭐ SoloMD\'yi varsayılan Markdown düzenleyici yap',
     settingDefault: 'Ayarlanıyor…',
     setDefaultHint: 'SoloMD\'yi .md / .markdown / .mdown / .mkd dosyaları için varsayılan uygulama olarak kaydeder. Windows\'ta SoloMD\'yi "Birlikte aç" menüsüne de ekler. Linux\'ta xdg-utils gerektirir.',
-    language: 'Dil / 语言',
+    language: 'Dil',
     restoreSession: 'Başlangıçta önceki sekmeleri ve panelleri geri yükle',
     restoreSessionHint: 'Her seferinde boş bir pencereyle başlamak için kapatın.',
     startupViewMode: 'View mode on startup',
@@ -719,7 +719,7 @@ export const tr: I18n = {
     paletteTitle: 'CJK Denetimi — Çince yazım hatalarını işaretle',
     paletteHint: 'Yarım/tam genişlik noktalama, 的/地/得 yanlış kullanımı, tekrarlar, aralık',
     noActive: 'Etkin belge yok.',
-    noIssues: 'Sorun bulunamadı. 文本干净 ✨',
+    noIssues: 'Sorun bulunamadı. ✨',
     rescan: 'Yeniden tara',
     applyAll: 'Tümünü uygula',
     applyAllSeverity: 'Tüm {severity} olanları uygula',
@@ -861,7 +861,7 @@ export const tr: I18n = {
       'Bu geliştirme yapısında solomd-mcp pakete dahil değil — parçacık yer tutucu bir yol kullanır.',
   },
   // v4.0 Pillar 2 — Agent Recipes (Settings → Integrations panel).
-  // TODO(zh): translate these once the en strings stabilise.
+  // TODO: translate these once the en strings stabilise.
   recipes: {
     heading: 'Aracı tarifleri',
     intro:
@@ -1261,7 +1261,7 @@ export const tr: I18n = {
     resetSession: 'Oturum sayacını sıfırla',
     unitWords: 'kelime',
     unitChars: 'karakter',
-    unitCjk: '字',
+    unitCjk: 'CJK chars',
   },
   pomodoro: {
     heading: 'Odak oturumu',

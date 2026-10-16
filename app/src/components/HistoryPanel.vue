@@ -12,7 +12,7 @@
  *   - Folder not under git → "Initialize git history" button
  *   - Folder under git but file never committed → "No commits yet"
  *
- * i18n keys (must exist in en.ts + zh.ts; see SUMMARY.md):
+ * i18n keys (must exist in en.ts; see SUMMARY.md):
  *   history.heading, history.empty, history.notInitialized,
  *   history.initBtn, history.restore, history.confirmRestore,
  *   history.justNow, history.savedSnapshot, history.commitFailed

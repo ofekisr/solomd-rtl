@@ -1258,7 +1258,7 @@ export const de: I18n = {
     resetSession: 'Sitzungszähler zurücksetzen',
     unitWords: 'Wörter',
     unitChars: 'Zeichen',
-    unitCjk: '字',
+    unitCjk: 'CJK chars',
   },
   pomodoro: {
     heading: 'Fokus-Sitzung',

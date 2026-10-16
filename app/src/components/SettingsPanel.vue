@@ -602,13 +602,13 @@ const fontFamilies = [
   { label: 'Source Han Sans', value: 'Source Han Sans SC' },
   { label: 'Source Han Serif', value: 'Source Han Serif SC' },
   // Writing-friendly CJK faces (open source, install separately if missing)
-  { label: 'LXGW WenKai 霞鹜文楷', value: 'LXGW WenKai' },
-  { label: 'LXGW Bright 霞鹜新晨宋', value: 'LXGW Bright' },
-  { label: 'TsangerJinKai 仓耳今楷', value: 'TsangerJinKai03 W04' },
+  { label: 'LXGW WenKai', value: 'LXGW WenKai' },
+  { label: 'LXGW Bright', value: 'LXGW Bright' },
+  { label: 'TsangerJinKai', value: 'TsangerJinKai03 W04' },
 ];
 const fontFamilyPresetValues = new Set(fontFamilies.map((f) => f.value));
 // Track custom-mode independently of settings.fontFamily so selecting
-// "自定义…" reveals the input even before user types anything.
+// "Custom…" reveals the input even before user types anything.
 const inCustomMode = ref(!fontFamilyPresetValues.has(settings.fontFamily));
 const customFontFamily = ref(
   inCustomMode.value ? settings.fontFamily : ''
@@ -733,10 +733,9 @@ function onSelectPdfFont(v: string) {
           <label>{{ t('settings.language') }}</label>
           <select
             :value="settings.language"
-            @change="settings.setLanguage(($event.target as HTMLSelectElement).value as 'en' | 'zh' | 'ja' | 'ko' | 'de' | 'fr' | 'es' | 'pt' | 'it' | 'pl' | 'nl' | 'tr' | 'sv' | 'uk' | 'ru')"
+            @change="settings.setLanguage(($event.target as HTMLSelectElement).value as 'en' | 'ja' | 'ko' | 'de' | 'fr' | 'es' | 'pt' | 'it' | 'pl' | 'nl' | 'tr' | 'sv' | 'uk' | 'ru')"
           >
             <option value="en">English</option>
-            <option value="zh">中文</option>
             <option value="ja">日本語</option>
             <option value="ko">한국어</option>
             <option value="de">Deutsch</option>
@@ -1594,7 +1593,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.attachmentCustomPathHint') }}</p>
         </section>
 
-        <!-- 图床 / image upload (external image hosting) — like Typora / MarkText.
+        <!-- image upload (external image hosting) — like Typora / MarkText.
              Instead of (or alongside) copying a pasted image locally, upload it
              to an image host and insert the returned URL. -->
         <section data-cat="writing">
@@ -2022,6 +2021,7 @@ function onSelectPdfFont(v: string) {
           </select>
           <p class="setting-hint">{{ t('settings.startupViewModeHint') }}</p>
         </section>
+
         <section data-cat="basics">
           <label>
             <input
@@ -2033,7 +2033,6 @@ function onSelectPdfFont(v: string) {
           </label>
           <p class="setting-hint">{{ t('settings.showStatusBarViewModesHint') }}</p>
         </section>
-
 
         <section data-cat="advanced">
           <label>
@@ -2490,7 +2489,7 @@ section > label:not(:has(input)) {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
-/* Image-upload (图床) text/password fields — match the inline-styled inputs
+/* Image-upload text/password fields — match the inline-styled inputs
    used elsewhere in this panel. */
 .img-field {
   padding: 6px 8px;

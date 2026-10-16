@@ -1,6 +1,6 @@
 pub mod app_build;
 pub mod commands;
-// Image-bed (图床) upload: PicGo / shell command / sm.ms / S3-compatible / GitHub.
+// Image-bed upload: PicGo / shell command / sm.ms / S3-compatible / GitHub.
 pub mod directive_completions;
 pub mod image_upload;
 pub mod search;

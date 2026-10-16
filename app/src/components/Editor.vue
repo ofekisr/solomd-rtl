@@ -91,8 +91,8 @@ import { openInGoogleTranslate } from '../lib/open-google-translate';
 // Incremental find. CoreMirror's search panel only scrolls to a match when you
 // press Enter / click Next — typing in the field just repaints the highlights
 // in place. On a long document the nearest match stays off-screen, so it looks
-// like find "found nothing" even though it did (reported: "Ctrl+F 弹出来的搜索框
-// 不会定位到文本所在的位置"). Browsers, VS Code and Typora all scroll to the first
+// like find "found nothing" even though it did (reported: "the search box that Ctrl+F opens
+// does not jump to where the text is"). Browsers, VS Code and Typora all scroll to the first
 // match as you type; this restores that. We only scroll the match into view —
 // the editor selection is left untouched so we never fight the caret or an
 // in-progress IME composition, and pressing Enter afterwards still walks matches
@@ -154,7 +154,7 @@ const toasts = useToastsStore();
 const { t } = useI18n();
 
 /** Shared image paste/drop/insert options — file context + the configured
- *  image-host uploader (图床) + toast surface. Used by the CodeMirror paste
+ *  image-host uploader + toast surface. Used by the CodeMirror paste
  *  extension, the plain-textarea paste path, and `insertImageFromPath`. */
 function imagePasteOpts(): ImagePasteOptions {
   return {
@@ -321,7 +321,7 @@ const plainBlockEditors = ref<Record<number, HTMLTextAreaElement | null>>({});
 const plainText = ref(props.tab.content || '');
 const plainActiveBlock = ref(0);
 // Select-all in the block live editor (user feedback, 4.8.10): native Ctrl+A
-// inside the active block's <textarea> can only reach that block, so "全选"
+// inside the active block's <textarea> can only reach that block, so "Select All"
 // was impossible in live edit. While this flag is on, plainBlocks collapses
 // the document into a single active block (see the computed below).
 const plainSelectAll = ref(false);
@@ -344,7 +344,7 @@ const plainEditorStyle = computed(() => ({
 }));
 
 // #161 — line-number gutter for the plain-textarea path. CodeMirror's
-// lineNumbers() never runs on Windows, so the 显示行号 setting silently did
+// lineNumbers() never runs on Windows, so the Show Line Numbers setting silently did
 // nothing there. Numbers get mirror-measured logical-line heights so they
 // stay aligned under soft wrap, and the gutter follows the textarea's
 // scrollTop via a translateY.
@@ -733,7 +733,7 @@ function splitPlainMarkdownBlocks(
     // The editable text must NOT carry the block-separating trailing newline.
     // Keeping it created a phantom empty last line in the active <textarea>:
     // the caret could land after it and typed/IME-committed text dropped onto a
-    // fresh line ("每输入一个换一行"). start/end still cover the full range so the
+    // fresh line ("every keystroke starts a new line"). start/end still cover the full range so the
     // separator is reconstructed in updatePlainBlock.
     const raw = src.slice(start, end);
     const hasTrailingNewline = raw.endsWith('\n');
@@ -963,7 +963,7 @@ function maybeTypewriterScroll() {
   });
 }
 
-// ---- #316 — 专注模式 / 实心光标 on the plain <textarea> path ----
+// ---- #316 — Focus mode / solid cursor on the plain <textarea> path ----
 // Both ship as CodeMirror extensions (focusModeExtension, and drawSelection
 // with cursorBlinkRate 0), so on Windows with Vim mode off — where there is
 // no CodeMirror at all — the two switches silently did nothing. Same shape of
@@ -1312,7 +1312,7 @@ function handlePlainInput(event: Event) {
   emitPlainCursorAndSelection();
   // Gitee IK6JCC — the / ⁠[[ # @ autocomplete used to be wired only to the
   // live-edit *block* editor, so on Windows (which is on this plain-textarea
-  // path unless Vim mode is on) it silently did nothing in 仅编辑 / 分栏 mode.
+  // path unless Vim mode is on) it silently did nothing in Edit-only / Split mode.
   // Same trigger the block editor uses.
   maybeOpenPlainAutocomplete(el);
   if (!plainComposing.value) noteTypedInTextarea(el, event);
@@ -2217,7 +2217,7 @@ function handlePlainBlockKeydown(index: number, event: KeyboardEvent) {
   // Block-boundary Backspace / Delete. Each block is a standalone <textarea>, so
   // native Backspace at offset 0 (or Delete at the end) can't reach the
   // neighbouring block — it silently no-ops at every block edge, which users
-  // experience as Backspace/Delete "时灵时不灵". We fold the deletion onto the
+  // experience as Backspace/Delete "works only intermittently". We fold the deletion onto the
   // full source instead: deleting the single separator char before/after the
   // block transparently removes a blank line or joins two paragraphs, exactly
   // as a single whole-document <textarea> would. (Plain key only — let the
@@ -3954,7 +3954,7 @@ async function insertImageFromPath(srcPath: string): Promise<void> {
   await cmInsertImageFromPath(view, srcPath, imagePasteOpts());
 }
 
-/** Insert a markdown image link for a user-supplied URL (网络图片) at the
+/** Insert a markdown image link for a user-supplied URL (web image) at the
  *  cursor — no upload, no local copy. Used by the "Image from URL…" dialog. */
 function insertImageUrl(url: string, alt = ''): void {
   const clean = (url || '').trim();
@@ -4639,7 +4639,7 @@ const cls = computed(() => ({
   pointer-events: none;
   transition: opacity 0.12s ease;
 }
-/* #316 — the non-blinking caret drawn for 实心光标, matching the 2px accent
+/* #316 — the non-blinking caret drawn for the solid cursor, matching the 2px accent
    bar of CodeMirror's .cm-cursor. */
 .plain-caret {
   position: absolute;
@@ -4776,7 +4776,7 @@ const cls = computed(() => ({
   overflow: visible;
   /* #143 — rendered (non-focused) blocks must use the SAME user-configured
      editor font as the focused textarea block, or live-edit looks like two
-     different documents (only the focused line honored 字体/字号). Fall back
+     different documents (only the focused line honored font / font size). Fall back
      to the old values for safety. */
   font-family: var(--plain-editor-font-family, var(--font-ui));
   font-size: var(--plain-editor-font-size, 15px);

@@ -145,13 +145,13 @@ let activeConfig: SlashCommandsConfig | null = null;
  * rebuilt on each ArrowDown. Two visible consequences, both reported:
  *
  *   - `scrollTop` went back to 0 on every state change, so a list the user
- *     had scrolled snapped straight back to the top ("鼠标拖下去会自动回弹")
+ *     had scrolled snapped straight back to the top ("dragging the mouse down springs back automatically")
  *   - the `update()` path below — which reuses the rows and scrolls the
  *     active one into view — never ran at all. `create` ran instead, and the
  *     scrollIntoView inside it fires against a popup that is not in the
  *     document yet, so it does nothing. The highlight walked off the bottom
- *     edge and appeared to stop at the last visible row ("键盘是到分割线后
- *     没有自动列表上移"), leaving everything below it — 白板 included —
+ *     edge and appeared to stop at the last visible row ("with the keyboard, after reaching the divider
+ *     the list does not scroll up automatically"), leaving everything below it — Whiteboard included —
  *     unreachable by keyboard.
  *
  * Reading the state here rather than closing over it is what makes the

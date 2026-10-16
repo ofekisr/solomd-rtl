@@ -459,7 +459,7 @@ export const nl: I18n = {
     setDefault: '⭐ SoloMD als standaard Markdown-editor instellen',
     settingDefault: 'Instellen…',
     setDefaultHint: 'Registreert SoloMD als standaard-app voor .md / .markdown / .mdown / .mkd-bestanden. Op Windows wordt SoloMD ook toegevoegd aan het "Openen met"-menu. Op Linux is xdg-utils vereist.',
-    language: 'Taal / 语言',
+    language: 'Taal',
     restoreSession: 'Vorige tabbladen en panelen herstellen bij opstarten',
     restoreSessionHint: 'Schakel uit om elke keer met een leeg venster te starten.',
     startupViewMode: 'View mode on startup',
@@ -719,7 +719,7 @@ export const nl: I18n = {
     paletteTitle: 'CJK-correctie — Chinese typfouten markeren',
     paletteHint: 'Half-/volledige-breedte leestekens, 的/地/得-misbruik, herhalingen, spatiëring',
     noActive: 'Geen actief document.',
-    noIssues: 'Geen problemen gevonden. 文本干净 ✨',
+    noIssues: 'Geen problemen gevonden. ✨',
     rescan: 'Opnieuw scannen',
     applyAll: 'Alles toepassen',
     applyAllSeverity: 'Alle {severity} toepassen',
@@ -861,7 +861,7 @@ export const nl: I18n = {
       'solomd-mcp niet meegeleverd in deze dev-build — het fragment gebruikt een tijdelijk pad.',
   },
   // v4.0 Pillar 2 — Agent Recipes (Settings → Integrations panel).
-  // TODO(zh): translate these once the en strings stabilise.
+  // TODO: translate these once the en strings stabilise.
   recipes: {
     heading: 'Agent-recepten',
     intro:
@@ -1261,7 +1261,7 @@ export const nl: I18n = {
     resetSession: 'Sessieteller resetten',
     unitWords: 'woorden',
     unitChars: 'tekens',
-    unitCjk: '字',
+    unitCjk: 'CJK chars',
   },
   pomodoro: {
     heading: 'Focussessie',
