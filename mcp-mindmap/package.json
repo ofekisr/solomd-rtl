@@ -1,0 +1,21 @@
+{
+  "name": "solomd-mcp-mindmap",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": { "solomd-mcp-mindmap": "src/index.ts" },
+  "engines": { "node": ">=22.18" },
+  "scripts": {
+    "start": "node src/index.ts",
+    "test": "node --test --experimental-strip-types test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.3.1",
+    "zod": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.6.0"
+  }
+}
