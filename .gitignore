@@ -70,3 +70,4 @@ dist/
 # Python bytecode from the release scripts
 __pycache__/
 *.pyc
+.solomd/
