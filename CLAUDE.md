@@ -8,6 +8,8 @@ Fork of SoloMD (Vue + CodeMirror + Tauri Markdown editor) with Hebrew/Arabic RTL
 | --- | --- |
 | `app/` | The editor (Vue/Vite web build + `src-tauri/` desktop shell) |
 | `demos/` | Playwright story-driven demo videos — see `demos/CLAUDE.md` |
+| `mcp-mindmap/` | Stdio MCP server for `.mmap` (TS, imports `app/src/lib`) — `pnpm --dir mcp-mindmap test` |
+| `plugin/` | Claude Code plugin: mindmap MCP + skill + session-id hook |
 | `.claude/launch.json` | Dev servers: `solomd-web` (1420), `solomd-web-alt` (1430) |
 
 ## Commands

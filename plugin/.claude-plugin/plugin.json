@@ -1,0 +1,5 @@
+{
+  "name": "solomd-mindmap",
+  "version": "0.1.0",
+  "description": "Read and edit SoloMD .mmap mind maps from Claude Code; bind sessions to nodes"
+}
