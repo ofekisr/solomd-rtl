@@ -1,7 +1,7 @@
 import type { NodeObj } from 'mind-elixir';
 import { parsePaste } from '../../../app/src/lib/mindmap-paste.ts';
 import { insertNodes, moveNode, newNodeId, removeNode, updateNode, type EditResult } from '../../../app/src/lib/mindmap-edit.ts';
-import { canBeGateTarget, makeGateNode } from '../../../app/src/lib/mindmap-gates.ts';
+import { canBeGateTarget, isGate, makeGateNode } from '../../../app/src/lib/mindmap-gates.ts';
 import { mergeIntoGate } from '../../../app/src/lib/mindmap-duplicates.ts';
 import { fieldsPatch, notePatch, type NodeFieldEntry } from '../../../app/src/lib/mindmap-node-fields.ts';
 import { requireNode, type MapDoc, type MapStore } from '../store.ts';
@@ -84,8 +84,31 @@ async function merge(store: MapStore, a: Extract<GateArgs, { action: 'merge' }>)
   return `Merged [^${dup.id}] into [^${keep.id}]; [^${dup.id}] is now a gate`;
 }
 
-export async function gate(store: MapStore, a: GateArgs): Promise<string> {
+export interface GateInput {
+  file: string; action: 'link' | 'unlink' | 'merge';
+  parent?: string; target?: string; gate?: string; keep?: string; duplicate?: string;
+}
+
+const GATE_REQUIRED = { link: ['parent', 'target'], unlink: ['gate'], merge: ['keep', 'duplicate'] } as const;
+
+function toGateArgs(a: GateInput): GateArgs {
+  const needed = GATE_REQUIRED[a.action];
+  if (needed.some((key) => !a[key])) {
+    throw new Error(`mmap_gate action "${a.action}" needs ${needed.map((key) => `"${key}"`).join(' and ')}`);
+  }
+  return a as GateArgs;
+}
+
+async function unlink(store: MapStore, a: Extract<GateArgs, { action: 'unlink' }>): Promise<string> {
+  const doc = await writable(store, a.file);
+  const node = requireNode(doc, a.gate);
+  if (!isGate(node)) throw new Error(`"${node.topic}" is not a gate; use mmap_remove to delete regular nodes`);
+  return remove(store, { file: a.file, node: node.id });
+}
+
+export async function gate(store: MapStore, input: GateInput): Promise<string> {
+  const a = toGateArgs(input);
   if (a.action === 'link') return link(store, a);
   if (a.action === 'merge') return merge(store, a);
-  return remove(store, { file: a.file, node: a.gate });
+  return unlink(store, a);
 }

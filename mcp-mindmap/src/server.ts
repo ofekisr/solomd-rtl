@@ -66,13 +66,14 @@ function registerWrite(server: McpServer, store: MapStore): void {
     inputSchema: z.object({ file: fileArg, node: nodeArg }),
   }, async (a) => text(await remove(store, a)));
   server.registerTool('mmap_gate', {
-    title: 'Gates (cross-links)', annotations: WRITE,
+    title: 'Gates (cross-links)', annotations: DESTRUCTIVE,
     description: 'link: add a gate under "parent" pointing at "target". unlink: delete gate node "gate". merge: fold "duplicate" into "keep" and leave a gate.',
-    inputSchema: z.discriminatedUnion('action', [
-      z.object({ file: fileArg, action: z.literal('link'), parent: nodeArg, target: nodeArg }),
-      z.object({ file: fileArg, action: z.literal('unlink'), gate: nodeArg }),
-      z.object({ file: fileArg, action: z.literal('merge'), keep: nodeArg, duplicate: nodeArg }),
-    ]),
+    inputSchema: z.object({
+      file: fileArg,
+      action: z.enum(['link', 'unlink', 'merge']),
+      parent: nodeArg.optional(), target: nodeArg.optional(), gate: nodeArg.optional(),
+      keep: nodeArg.optional(), duplicate: nodeArg.optional(),
+    }),
   }, async (a) => text(await gate(store, a)));
 }
 

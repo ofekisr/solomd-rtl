@@ -37,3 +37,17 @@ test('writes refused without --allow-write', async () => {
   const { store } = await workspace(false);
   await assert.rejects(edit(store, { file: F, node: 'b', topic: 'x' }), /--allow-write/);
 });
+
+test('gate names the missing argument per action', async () => {
+  const { store } = await workspace();
+  await assert.rejects(gate(store, { file: F, action: 'link', parent: 'Plan' }), /action "link" needs "parent" and "target"/);
+  await assert.rejects(gate(store, { file: F, action: 'unlink' }), /action "unlink" needs "gate"/);
+  await assert.rejects(gate(store, { file: F, action: 'merge', keep: 'a1' }), /action "merge" needs "keep" and "duplicate"/);
+});
+
+test('gate unlink removes a gate but refuses regular nodes', async () => {
+  const { store } = await workspace();
+  await assert.rejects(gate(store, { file: F, action: 'unlink', gate: 'b' }), /"Design" is not a gate; use mmap_remove/);
+  await gate(store, { file: F, action: 'merge', keep: 'a1', duplicate: 'b' });
+  assert.match(await gate(store, { file: F, action: 'unlink', gate: 'b' }), /Removed \[\^b\]/);
+});
