@@ -6,6 +6,7 @@ import { duplicates, find, node, outline } from './tools/read.ts';
 import { add, edit, gate, move, remove } from './tools/write.ts';
 import { legend, mark } from './tools/meaning.ts';
 import { bindSession, sessionNodes } from './tools/session.ts';
+import { create, exportMap, reveal } from './tools/file.ts';
 
 export const SERVER_NAME = 'solomd-mindmap';
 const VERSION = '0.1.0';
@@ -110,6 +111,24 @@ function registerSession(server: McpServer, store: MapStore): void {
   }, async (a) => text(await sessionNodes(store, a)));
 }
 
+function registerFile(server: McpServer, store: MapStore): void {
+  server.registerTool('mmap_create', {
+    title: 'Create map', annotations: WRITE,
+    description: 'New .mmap from a "- Topic" outline or from markdown headings/lists. Refuses to overwrite.',
+    inputSchema: z.object({ file: fileArg, from: z.enum(['outline', 'markdown']), source: z.string().min(1), root: z.string().optional().describe('Root topic; defaults to the file name') }),
+  }, async (a) => text(await create(store, a)));
+  server.registerTool('mmap_export', {
+    title: 'Export map as text', annotations: READ,
+    description: 'outline (with ids), markdown, headings, mermaid or adjacency. Returns the text; write it with your own file tools if needed.',
+    inputSchema: z.object({ file: fileArg, format: z.enum(['outline', 'markdown', 'headings', 'mermaid', 'adjacency']) }),
+  }, async (a) => text(await exportMap(store, a)));
+  server.registerTool('mmap_reveal', {
+    title: 'Show in SoloMD', annotations: { ...READ, openWorldHint: true, idempotentHint: false },
+    description: 'Open the map in the SoloMD app (macOS), optionally at a node.',
+    inputSchema: z.object({ file: fileArg, node: nodeArg.optional() }),
+  }, async (a) => text(await reveal(store, a)));
+}
+
 export function createServer(cfg: ServerConfig): McpServer {
   const server = new McpServer({ name: SERVER_NAME, version: VERSION });
   const store = new MapStore(cfg);
@@ -117,5 +136,6 @@ export function createServer(cfg: ServerConfig): McpServer {
   registerWrite(server, store);
   registerMeaning(server, store);
   registerSession(server, store);
+  registerFile(server, store);
   return server;
 }
