@@ -12,6 +12,7 @@
 import { initMermaid } from './mermaid-lazy';
 import { renderMarkdown, extractImageRoot } from './markdown';
 import { rewriteImageUrls } from './image-resolve';
+import { terminalExportCss } from './terminal-block';
 
 export interface ImageExportOptions {
   /** When true, append a "Created with SoloMD · solomd.app" footer.
@@ -138,7 +139,7 @@ export async function markdownToImageBlob(
   const html = rewriteImageUrls(rawHtml, extractImageRoot(source || ''), filePath);
 
   const styleEl = document.createElement('style');
-  styleEl.textContent = IMAGE_CSS;
+  styleEl.textContent = IMAGE_CSS + terminalExportCss('.img-page');
 
   const root = document.createElement('div');
   root.style.position = 'fixed';

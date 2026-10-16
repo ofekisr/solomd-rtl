@@ -1,6 +1,9 @@
 import MarkdownIt from 'markdown-it';
 import anchor from 'markdown-it-anchor';
 import { inlineFencePlugin } from './inline-fence';
+import { isTerminalLang, renderTerminalBlock } from './terminal-block';
+import type Token from 'markdown-it/lib/token.mjs';
+import type Renderer from 'markdown-it/lib/renderer.mjs';
 import hljs from 'highlight.js/lib/common';
 import 'katex/contrib/mhchem';
 // @ts-ignore — types are loose
@@ -208,8 +211,24 @@ const BLOCK_OPEN_TYPES = new Set([
 // `cb-numbered` class added to <pre> here and `cb-numbered-on` on the
 // `.preview-content` root — so flipping the setting is a pure-CSS swap,
 // no re-render needed.
+function highlightShell(command: string): string {
+  return hljs.highlight(command, { language: 'bash', ignoreIllegals: true }).value;
+}
+
+function renderTerminalFence(tok: Token, self: Renderer): string | null {
+  const [lang = '', ...titleWords] = (tok.info || '').trim().split(/\s+/);
+  if (!isTerminalLang(lang)) return null;
+  return renderTerminalBlock(tok.content, {
+    title: titleWords.join(' '),
+    highlight: highlightShell,
+    attrs: self.renderAttrs(tok),
+  });
+}
+
 const defaultFenceRenderer = md.renderer.rules.fence;
 md.renderer.rules.fence = function (tokens, idx, options, env, self) {
+  const terminal = renderTerminalFence(tokens[idx], self);
+  if (terminal) return terminal;
   const rendered = defaultFenceRenderer
     ? defaultFenceRenderer(tokens, idx, options, env, self)
     : self.renderToken(tokens, idx, options);

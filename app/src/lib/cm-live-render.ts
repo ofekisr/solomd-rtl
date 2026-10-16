@@ -66,6 +66,7 @@ import {
   type LiveInlineHtmlKind,
 } from './html-live-render';
 import { copyPlainText, dedentFenced, dedentIndented } from './code-copy';
+import { isTerminalLang, terminalCommands } from './terminal-block';
 
 // ---------------------------------------------------------------------------
 // Marker nodes that we hide off-line. Brackets/parens for links and
@@ -295,8 +296,11 @@ export function codeBlockClipboardText(
   for (let n = bodyStart; n <= bodyEnd; n += 1) lines.push(doc.line(n).text);
   const text = lines.join('\n');
   if (!isFenced) return dedentIndented(text);
-  const fenceIndent = /^[ \t]*/.exec(doc.line(startLine).text)?.[0] ?? '';
-  return dedentFenced(text, fenceIndent);
+  const opening = doc.line(startLine).text;
+  const fenceIndent = /^[ \t]*/.exec(opening)?.[0] ?? '';
+  const body = dedentFenced(text, fenceIndent);
+  const lang = /^[ \t]*(?:`{3,}|~{3,})\s*(\S*)/.exec(opening)?.[1] ?? '';
+  return isTerminalLang(lang) ? terminalCommands(body) : body;
 }
 
 // Heading nodes 1..6 → level

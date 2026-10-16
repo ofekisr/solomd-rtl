@@ -11,6 +11,7 @@ import { renderMarkdown, extractImageRoot } from './markdown';
 import { inlineLocalImages, rewriteLinkUrls, rewriteImageUrls, type BinaryReader } from './image-resolve';
 import { inlineDiagramsInHtml } from './diagram-export';
 import { hasKatex, standaloneKatexCss } from './katex-standalone';
+import { terminalExportCss } from './terminal-block';
 
 export const HTML_TEMPLATE = (title: string, body: string, headCss = '') => `<!doctype html>
 <html lang="en">
@@ -140,6 +141,7 @@ ${headCss ? `<style>${headCss}</style>\n` : ''}<style>
   }
   /* #271 — short cells stay on one line (see markdown.ts table_short_cells). */
   .cell-nowrap { white-space: nowrap; }
+${terminalExportCss()}
   thead th {
     background: var(--thead-bg);
     color: var(--ink);

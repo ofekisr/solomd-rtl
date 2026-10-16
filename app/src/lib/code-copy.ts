@@ -99,6 +99,16 @@ export function dedentIndented(text: string): string {
     .join('\n');
 }
 
+/**
+ * A terminal block (see terminal-block.ts) copies only its commands — the
+ * prompts and the output would break a paste into a shell.
+ */
+function codeClipboardText(code: HTMLElement): string {
+  const inputs = code.querySelectorAll('.term-cmd .term-input');
+  if (!inputs.length) return code.textContent || '';
+  return Array.from(inputs, (el) => el.textContent || '').join('\n');
+}
+
 export interface CodeCopyOptions {
   /** Button label, e.g. `t('toolbar.copy')`. */
   label: string;
@@ -144,7 +154,7 @@ export function attachCodeCopyButtons(
       ev.preventDefault();
       ev.stopPropagation();
       try {
-        await copyPlainText(code.textContent || '');
+        await copyPlainText(codeClipboardText(code));
         button.textContent = '✓';
         window.setTimeout(() => {
           if (button.isConnected) button.textContent = label;

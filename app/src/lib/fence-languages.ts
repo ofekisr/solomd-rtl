@@ -67,6 +67,13 @@ const SPECIAL_FENCES: FenceLanguage[] = [
     special: true,
     keywords: ['uml', 'diagram', 'sequence', 'class'],
   },
+  {
+    name: 'terminal',
+    aliases: ['console', 'shell-session'],
+    hint: 'session',
+    special: true,
+    keywords: ['session', 'prompt', 'output', 'command'],
+  },
 ];
 
 /** `LanguageDescription.of()` appends the name to `alias`, so drop it here —

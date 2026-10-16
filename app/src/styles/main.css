@@ -1177,3 +1177,95 @@ pre[dir="rtl"] {
   direction: rtl;
   text-align: right;
 }
+
+/* ```terminal / ```console / ```shell-session — a shell session rendered as a
+   terminal window (lib/terminal-block.ts). Always dark, whatever the theme, so
+   it reads as a terminal; the --syn-* tokens are remapped for that surface. */
+.terminal-block {
+  --term-bg: #16181d;
+  --term-bar: #24272e;
+  --term-fg: #e6e6e6;
+  --term-out: #a9b1bd;
+  --term-prompt: #5fd38d;
+  --syn-comment: #6b7280;
+  --syn-function: #82aaff;
+  --syn-keyword: #c792ea;
+  --syn-number: #f78c6c;
+  --syn-operator: #89ddff;
+  --syn-property: #ffcb6b;
+  --syn-string: #c3e88d;
+  --syn-type: #ffcb6b;
+  --syn-variable: #f07178;
+  margin: 1em 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--term-bg);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  direction: ltr;
+  text-align: left;
+}
+.terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 30px;
+  padding: 0 12px;
+  background: var(--term-bar);
+  user-select: none;
+}
+.terminal-dots {
+  display: inline-flex;
+  gap: 6px;
+}
+.terminal-dots i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #ff5f57;
+}
+.terminal-dots i:nth-child(2) {
+  background: #febc2e;
+}
+.terminal-dots i:nth-child(3) {
+  background: #28c840;
+}
+.terminal-title {
+  flex: 1;
+  margin-right: 50px;
+  overflow: hidden;
+  color: var(--term-out);
+  font: 12px/1 var(--font-ui);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.terminal-block .code-block-shell {
+  margin: 0;
+}
+.terminal-block pre.terminal-body {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 0;
+  background: var(--term-bg);
+  color: var(--term-fg);
+  font-family: var(--font-mono);
+  line-height: 1.45;
+  overflow-x: auto;
+}
+.terminal-block .code-copy-button {
+  top: 6px;
+  background: var(--term-bar);
+  color: var(--term-out);
+  border-color: #3a3f4b;
+}
+.terminal-block .term-prompt {
+  color: var(--term-prompt);
+  font-weight: 600;
+  user-select: none;
+}
+.terminal-block .term-input {
+  color: var(--term-fg);
+}
+.terminal-block .term-out {
+  color: var(--term-out);
+}
