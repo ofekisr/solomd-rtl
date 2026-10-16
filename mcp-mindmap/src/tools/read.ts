@@ -14,8 +14,12 @@ export async function outline(store: MapStore, args: { file: string; node?: stri
   return outlineOf(doc.data.nodeData, from, args.depth);
 }
 
+function tagText(tag: NonNullable<NodeObj['tags']>[number]): string {
+  return typeof tag === 'string' ? tag : tag.text;
+}
+
 function haystack(node: NodeObj, by: FindBy): string[] {
-  if (by === 'tag') return (node.tags ?? []).map(String);
+  if (by === 'tag') return (node.tags ?? []).map(tagText);
   if (by === 'field') return readFields(node).flatMap((f) => [f.key, f.value]);
   if (by === 'note') return [node.note ?? ''];
   return [node.topic];

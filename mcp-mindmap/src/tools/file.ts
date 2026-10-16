@@ -58,6 +58,6 @@ export async function reveal(store: MapStore, a: { file: string; node?: string }
   const doc = await store.load(a.file);
   const node = a.node ? requireNode(doc, a.node) : undefined;
   await opener(['-a', APP_NAME, abs]);
-  const where = node ? ` at [^${node.id}] ${pathOf(doc.data.nodeData, node.id)}` : '';
-  return `Opened ${a.file} in ${APP_NAME}${where}. Node focus link: ${revealUrl(abs, node?.id)}`;
+  const focus = node ? `. Node focus is not supported yet; the node is [^${node.id}] ${pathOf(doc.data.nodeData, node.id)}` : '';
+  return `Opened ${a.file} in ${APP_NAME}${focus}`;
 }

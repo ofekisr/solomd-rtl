@@ -20,11 +20,13 @@ test('export formats', async () => {
   assert.match(await exportMap(store, { file: 'plan.mmap', format: 'headings' }), /# Plan/);
 });
 
-test('reveal opens the file and builds a node deep link', async () => {
+test('reveal opens the file and reports the node without a link', async () => {
   const { store, dir } = await workspace();
   const calls: string[][] = [];
   const res = await reveal(store, { file: 'plan.mmap', node: 'Plan/Phase 2' }, async (args) => { calls.push(args); });
   assert.equal(calls[0].at(-1), `${dir}/plan.mmap`);
-  assert.match(res, /\[\^a\]/);
+  assert.equal(res, 'Opened plan.mmap in SoloMD. Node focus is not supported yet; the node is [^a] Plan/Phase 2');
+  assert.doesNotMatch(res, /solomd:\/\//);
+  assert.equal((await reveal(store, { file: 'plan.mmap' }, async () => {})), 'Opened plan.mmap in SoloMD');
   assert.equal(revealUrl('/x/p.mmap', 'a'), 'solomd://open?path=%2Fx%2Fp.mmap&node=a');
 });

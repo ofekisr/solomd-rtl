@@ -1,8 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { workspace } from './fixtures.ts';
+import { SID, workspace } from './fixtures.ts';
 import { add, edit, gate, move, remove } from '../src/tools/write.ts';
-import { outline } from '../src/tools/read.ts';
+import { node, outline } from '../src/tools/read.ts';
+import { sessionNodes } from '../src/tools/session.ts';
 
 const F = 'plan.mmap';
 
@@ -50,4 +51,12 @@ test('gate unlink removes a gate but refuses regular nodes', async () => {
   await assert.rejects(gate(store, { file: F, action: 'unlink', gate: 'b' }), /"Design" is not a gate; use mmap_remove/);
   await gate(store, { file: F, action: 'merge', keep: 'a1', duplicate: 'b' });
   assert.match(await gate(store, { file: F, action: 'unlink', gate: 'b' }), /Removed \[\^b\]/);
+});
+
+test('edit with fields keeps the bound Claude session', async () => {
+  const { store } = await workspace();
+  await edit(store, { file: F, node: 'a', fields: [{ key: 'owner', value: 'x' }] });
+  assert.match(await sessionNodes(store, { session: SID }), /\[\^a\]/);
+  const keys = (await node(store, { file: F, node: 'a' })).fields.map((f) => f.key);
+  assert.deepEqual(keys.sort(), ['claude-session', 'owner']);
 });

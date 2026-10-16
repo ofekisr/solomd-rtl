@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { workspace } from './fixtures.ts';
+import { legendEntryArg } from '../src/server.ts';
 import { duplicates, find, node, outline } from '../src/tools/read.ts';
 
 test('outline from root and from a path with depth', async () => {
@@ -24,4 +25,19 @@ test('node summary and unknown refs', async () => {
 test('duplicates groups same-topic nodes', async () => {
   const { store } = await workspace();
   assert.match(await duplicates(store, { file: 'plan.mmap' }), /\[\^a1\].*\[\^b\]/);
+});
+
+test('find by tag matches object tags', async () => {
+  const { store } = await workspace();
+  const doc = await store.load('plan.mmap');
+  doc.data.nodeData.children![1].tags = [{ text: 'ux' }];
+  await store.save('plan.mmap', doc);
+  assert.equal(await find(store, { file: 'plan.mmap', query: 'ux', by: 'tag' }), '[^b] Plan/Design');
+});
+
+test('legend schema rejects unsafe colours', () => {
+  assert.ok(legendEntryArg.safeParse({ meaning: 'risk', color: '#fde2e2' }).success);
+  const bad = legendEntryArg.safeParse({ meaning: 'risk', background: 'url(javascript:x)' });
+  assert.ok(!bad.success);
+  assert.match(bad.error.issues[0].message, /CSS colour/);
 });

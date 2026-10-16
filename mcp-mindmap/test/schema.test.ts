@@ -13,12 +13,16 @@ function listTools(workspaceDir: string): Promise<ToolInfo[]> {
   const send = (message: object): void => { child.stdin.write(`${JSON.stringify(message)}\n`); };
   return new Promise((resolve, reject) => {
     let buffer = '';
+    let hasListed = false;
     child.on('error', reject);
     child.stdout.on('data', (chunk: Buffer) => {
       buffer += chunk;
-      for (const line of buffer.split('\n').filter(Boolean)) {
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+      for (const line of lines.filter(Boolean)) {
         const message = JSON.parse(line);
-        if (message.id === 1) {
+        if (message.id === 1 && !hasListed) {
+          hasListed = true;
           send({ jsonrpc: '2.0', method: 'notifications/initialized' });
           send({ jsonrpc: '2.0', id: 2, method: 'tools/list' });
         }

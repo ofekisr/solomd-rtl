@@ -21,6 +21,11 @@ Maps are `.mmap` files. Never read or write their JSON directly: always use the 
 
 | Want | Tool |
 | --- | --- |
+| New map | `mmap_create` from an outline or markdown |
+| Locate a node | `mmap_find` before pulling a full outline |
+| Reparent a node | `mmap_move` |
+| Text export | `mmap_export` |
+| Remove a cross-link | `mmap_gate` action `unlink` with the gate node's id (not the target) |
 | New children / subtree | `mmap_add` with "- Topic" lines, 2 spaces per level |
 | Rename, note, tags, key/value fields | `mmap_edit` (lists replace, so read first with `mmap_node`) |
 | Same idea in two places | `mmap_gate` action `link` (a gate is a cross-link, shown `⇒ Topic → [^target]`) instead of duplicating |
@@ -31,6 +36,8 @@ Maps are `.mmap` files. Never read or write their JSON directly: always use the 
 
 ## Rules
 
+- Prefer node ids for writes; paths pick the first matching sibling.
+- If no `claude-session-id` is in your context, skip session lookup/binding and tell the user the session hook isn't active.
 - Don't style nodes. Appearance changes only through legend meanings.
 - Before `mmap_remove` on a node with children, say what will go and confirm.
 - Keep topics short (≤ 8 words). Put detail in the note.

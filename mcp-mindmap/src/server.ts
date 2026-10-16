@@ -6,6 +6,7 @@ import { duplicates, find, node, outline } from './tools/read.ts';
 import { add, edit, gate, move, remove } from './tools/write.ts';
 import { legend, mark } from './tools/meaning.ts';
 import { bindSession, sessionNodes } from './tools/session.ts';
+import { isSafeColor } from '../../app/src/lib/mindmap-display.ts';
 import { create, exportMap, reveal } from './tools/file.ts';
 
 export const SERVER_NAME = 'solomd-mindmap';
@@ -23,6 +24,10 @@ const DESTRUCTIVE = { ...WRITE, destructiveHint: true } as const;
 const FIELD_KEY_MAX = 64;
 const FIELD_VALUE_MAX = 2000;
 const fieldArg = z.object({ key: z.string().min(1).max(FIELD_KEY_MAX), value: z.string().max(FIELD_VALUE_MAX) });
+
+const COLOR_MESSAGE = 'must be a CSS colour such as #fde2e2';
+const colorArg = z.string().refine(isSafeColor, { message: COLOR_MESSAGE }).optional();
+export const legendEntryArg = z.object({ meaning: z.string().min(1).max(40), color: colorArg, background: colorArg });
 
 function registerRead(server: McpServer, store: MapStore): void {
   server.registerTool('mmap_outline', {
@@ -55,7 +60,7 @@ function registerWrite(server: McpServer, store: MapStore): void {
   }, async (a) => text(await add(store, a)));
   server.registerTool('mmap_edit', {
     title: 'Edit node', annotations: WRITE,
-    description: 'Change topic, note, tags or fields. Passing fields or tags replaces the whole list. Never sets style: use mmap_mark.',
+    description: 'Change topic, note, tags or fields. Passing fields replaces the list (the bound Claude session is kept; unbind with mmap_bind_session). Passing tags replaces the tags. Never sets style: use mmap_mark.',
     inputSchema: z.object({ file: fileArg, node: nodeArg, topic: z.string().min(1).optional(), note: z.string().optional(), tags: z.array(z.string()).optional(), fields: z.array(fieldArg).optional() }),
   }, async (a) => text(await edit(store, a)));
   server.registerTool('mmap_move', {
@@ -86,7 +91,7 @@ function registerMeaning(server: McpServer, store: MapStore): void {
     description: 'The meanings a map may use (e.g. blocked, done, risk). Without "set" it lists them; with "set" it replaces the legend. Colours are CSS hex and stay hidden from reads.',
     inputSchema: z.object({
       file: fileArg,
-      set: z.array(z.object({ meaning: z.string().min(1).max(40), color: z.string().optional(), background: z.string().optional() })).optional(),
+      set: z.array(legendEntryArg).optional(),
     }),
   }, async (a) => text(await legend(store, a)));
   server.registerTool('mmap_mark', {
@@ -124,7 +129,7 @@ function registerFile(server: McpServer, store: MapStore): void {
   }, async (a) => text(await exportMap(store, a)));
   server.registerTool('mmap_reveal', {
     title: 'Show in SoloMD', annotations: { ...READ, openWorldHint: true, idempotentHint: false },
-    description: 'Open the map in the SoloMD app (macOS), optionally at a node.',
+    description: 'Open the map in the SoloMD app (macOS). Node focus is not supported yet; with "node" it only reports the node id and path.',
     inputSchema: z.object({ file: fileArg, node: nodeArg.optional() }),
   }, async (a) => text(await reveal(store, a)));
 }

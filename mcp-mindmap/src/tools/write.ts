@@ -3,7 +3,7 @@ import { parsePaste } from '../../../app/src/lib/mindmap-paste.ts';
 import { insertNodes, moveNode, newNodeId, removeNode, updateNode, type EditResult } from '../../../app/src/lib/mindmap-edit.ts';
 import { canBeGateTarget, isGate, makeGateNode } from '../../../app/src/lib/mindmap-gates.ts';
 import { mergeIntoGate } from '../../../app/src/lib/mindmap-duplicates.ts';
-import { fieldsPatch, notePatch, type NodeFieldEntry } from '../../../app/src/lib/mindmap-node-fields.ts';
+import { CLAUDE_SESSION_KEY, fieldsPatch, notePatch, readFields, type NodeFieldEntry } from '../../../app/src/lib/mindmap-node-fields.ts';
 import { requireNode, type MapDoc, type MapStore } from '../store.ts';
 
 type GateArgs =
@@ -35,12 +35,18 @@ export async function add(store: MapStore, a: { file: string; parent: string; ou
   return `Added ${ids.length} node(s) under [^${parent.id}]: ${idList(ids)}`;
 }
 
+function withBoundSession(node: NodeObj, fields: NodeFieldEntry[]): NodeFieldEntry[] {
+  if (fields.some((f) => f.key === CLAUDE_SESSION_KEY)) return fields;
+  const bound = readFields(node).filter((f) => f.key === CLAUDE_SESSION_KEY);
+  return [...fields, ...bound];
+}
+
 function editPatch(node: NodeObj, a: EditArgs): Partial<NodeObj> {
   return {
     ...(a.topic !== undefined ? { topic: a.topic } : {}),
     ...(a.note !== undefined ? notePatch(a.note) : {}),
     ...(a.tags !== undefined ? { tags: a.tags.length > 0 ? a.tags : undefined } : {}),
-    ...(a.fields !== undefined ? fieldsPatch(node, a.fields) : {}),
+    ...(a.fields !== undefined ? fieldsPatch(node, withBoundSession(node, a.fields)) : {}),
   };
 }
 
