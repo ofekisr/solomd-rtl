@@ -5,6 +5,7 @@ import { MapStore } from './store.ts';
 import { duplicates, find, node, outline } from './tools/read.ts';
 import { add, edit, gate, move, remove } from './tools/write.ts';
 import { legend, mark } from './tools/meaning.ts';
+import { bindSession, sessionNodes } from './tools/session.ts';
 
 export const SERVER_NAME = 'solomd-mindmap';
 const VERSION = '0.1.0';
@@ -94,11 +95,27 @@ function registerMeaning(server: McpServer, store: MapStore): void {
   }, async (a) => text(await mark(store, a)));
 }
 
+const sessionArg = z.string().describe('Claude session UUID; your own is the "claude-session-id" in your context');
+
+function registerSession(server: McpServer, store: MapStore): void {
+  server.registerTool('mmap_bind_session', {
+    title: 'Bind Claude session to node', annotations: WRITE,
+    description: 'Store a Claude session on a node so SoloMD can resume it ("claude --resume"). session=null unbinds. A node holds one session.',
+    inputSchema: z.object({ file: fileArg, node: nodeArg, session: sessionArg.nullable() }),
+  }, async (a) => text(await bindSession(store, a)));
+  server.registerTool('mmap_session_nodes', {
+    title: 'Nodes bound to a session', annotations: READ,
+    description: 'Which node(s) a session is bound to, across the workspace or one file. Use at session start to find "your" node.',
+    inputSchema: z.object({ session: sessionArg, file: fileArg.optional() }),
+  }, async (a) => text(await sessionNodes(store, a)));
+}
+
 export function createServer(cfg: ServerConfig): McpServer {
   const server = new McpServer({ name: SERVER_NAME, version: VERSION });
   const store = new MapStore(cfg);
   registerRead(server, store);
   registerWrite(server, store);
   registerMeaning(server, store);
+  registerSession(server, store);
   return server;
 }

@@ -32,7 +32,7 @@ function listTools(workspaceDir: string): Promise<ToolInfo[]> {
 test('every tool schema is a plain object without top-level combinators', async () => {
   const { dir } = await workspace();
   const tools = await listTools(dir);
-  assert.equal(tools.length, 11);
+  assert.equal(tools.length, 13);
   for (const tool of tools) {
     assert.equal(tool.inputSchema.type, 'object', tool.name);
     for (const key of FORBIDDEN_KEYS) assert.ok(!(key in tool.inputSchema), `${tool.name} has ${key}`);
