@@ -31,6 +31,7 @@ const query = ref(props.external.search);
 const replacement = ref(props.external.replace);
 const caseSensitive = ref(props.external.caseSensitive);
 const regex = ref(props.external.regexp);
+const skipCode = ref(!!props.external.skipCode);
 const replaceOpen = ref(!!props.external.replace);
 const keyboardOpen = ref(false);
 const scope = ref<FindScope>('file');
@@ -47,6 +48,7 @@ const scopeRoot = computed(() => {
   return null;
 });
 const isFileScope = computed(() => scope.value === 'file');
+const canSkipCode = computed(() => !isFileScope.value || !!props.target.supportsSkipCode);
 const keyboardTarget = computed(() => (replaceOpen.value ? activeField.value : 'find'));
 const hiddenTokens = computed(() =>
   isFileScope.value && !props.target.supportsNamedGroups ? NAMED_GROUP_TOKENS : [],
@@ -57,6 +59,7 @@ const spec = computed<FindSpec>(() => ({
   replace: replacement.value,
   caseSensitive: caseSensitive.value,
   regexp: regex.value,
+  skipCode: skipCode.value,
 }));
 
 const counter = computed(() => {
@@ -85,6 +88,7 @@ watch(() => props.external, (s) => {
   replacement.value = s.replace;
   caseSensitive.value = s.caseSensitive;
   regex.value = s.regexp;
+  skipCode.value = !!s.skipCode;
 });
 
 function scheduleFolderSync(delay = FOLDER_SYNC_DEBOUNCE_MS) {
@@ -99,7 +103,7 @@ function sendToFolderPane(action?: 'replaceAll') {
   requestFolderSearch({
     root,
     query: query.value,
-    options: { regex: regex.value, caseSensitive: caseSensitive.value },
+    options: { regex: regex.value, caseSensitive: caseSensitive.value, skipCode: skipCode.value },
     replacement: replacement.value,
     replaceOpen: replaceOpen.value,
     action,
@@ -173,6 +177,7 @@ function applyPreset(preset: WrapPreset) {
   query.value = next.search;
   regex.value = next.regexp;
   replacement.value = next.replace;
+  skipCode.value = !!next.skipCode;
   nextTick(() => replaceRef.value?.focus());
 }
 
@@ -229,6 +234,16 @@ defineExpose({ focus });
           :aria-pressed="regex"
           @click="regex = !regex"
         >.*</button>
+        <button
+          v-if="canSkipCode"
+          class="fb__opt"
+          type="button"
+          data-opt="skip-code"
+          :class="{ 'fb__opt--on': skipCode }"
+          :title="t('findBar.skipCode')"
+          :aria-pressed="skipCode"
+          @click="skipCode = !skipCode"
+        >{ }</button>
         <button
           class="fb__opt"
           type="button"

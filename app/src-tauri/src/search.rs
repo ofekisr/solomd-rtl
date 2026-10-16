@@ -16,7 +16,8 @@ use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 use super::mmap_text::{is_mmap, text_fields};
-use super::replace::{apply_to_line, Replacement};
+use super::md_code_spans::{code_ranges_by_line, overlaps, ByteRange};
+use super::replace::{apply_to_line_masked, Replacement};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SearchHit {
@@ -45,6 +46,9 @@ pub struct SearchOptions {
     pub regex: bool,
     #[serde(default)]
     pub case_sensitive: bool,
+    /// Leave Markdown code (inline spans and fenced blocks) untouched.
+    #[serde(default)]
+    pub skip_code: bool,
 }
 
 /// File extensions we are willing to open and scan. Anything else is skipped
@@ -149,7 +153,7 @@ pub fn search_in_dir_with(
             continue;
         };
         let file = path.to_string_lossy().to_string();
-        let ctx = HitContext { re: &re, rep: rep.as_ref(), file: &file, max_results };
+        let ctx = HitContext { re: &re, rep: rep.as_ref(), file: &file, max_results, skip_code: opts.skip_code };
         if is_mmap(&path) {
             ctx.collect_mmap(&content, &mut hits);
         } else {
@@ -165,15 +169,18 @@ struct HitContext<'a> {
     rep: Option<&'a Replacement>,
     file: &'a str,
     max_results: usize,
+    skip_code: bool,
 }
 
 impl HitContext<'_> {
     fn collect_lines(&self, content: &str, hits: &mut Vec<SearchHit>) {
+        let code = if self.skip_code { code_ranges_by_line(content) } else { Vec::new() };
         for (i, line) in content.lines().enumerate() {
             if hits.len() >= self.max_results {
                 return;
             }
-            if let Some(hit) = line_hit(self.re, self.rep, self.file, i + 1, line) {
+            let mask = code.get(i).map(Vec::as_slice).unwrap_or(&[]);
+            if let Some(hit) = line_hit(self.re, self.rep, self.file, i + 1, line, mask) {
                 hits.push(hit);
             }
         }
@@ -186,7 +193,7 @@ impl HitContext<'_> {
                 if hits.len() >= self.max_results {
                     return;
                 }
-                if let Some(mut hit) = line_hit(self.re, self.rep, self.file, ordinal + 1, line) {
+                if let Some(mut hit) = line_hit(self.re, self.rep, self.file, ordinal + 1, line, &[]) {
                     hit.node_id = field.node_id.clone();
                     hit.field = Some(field.key.to_string());
                     hits.push(hit);
@@ -202,15 +209,16 @@ fn line_hit(
     file: &str,
     line_no: usize,
     line: &str,
+    code: &[ByteRange],
 ) -> Option<SearchHit> {
-    if !re.is_match(line) {
+    if !re.find_iter(line).any(|m| !overlaps(code, m.start(), m.end())) {
         return None;
     }
     // Cap snippet length so a single giant line can't blow up the IPC payload.
     let snippet: String = line.chars().take(SNIPPET_MAX_CHARS).collect();
-    let ranges = utf16_ranges(re, line, snippet.len());
+    let ranges = utf16_ranges(re, line, snippet.len(), code);
     let preview = rep.map(|r| {
-        let (replaced, _) = apply_to_line(re, line, r);
+        let (replaced, _) = apply_to_line_masked(re, line, r, code);
         replaced.chars().take(SNIPPET_MAX_CHARS).collect()
     });
     Some(SearchHit {
@@ -226,10 +234,10 @@ fn line_hit(
 
 /// Non-empty match spans that start inside the first `limit` bytes, converted
 /// to UTF-16 offsets and clipped to that limit.
-fn utf16_ranges(re: &Regex, line: &str, limit: usize) -> Vec<[usize; 2]> {
+fn utf16_ranges(re: &Regex, line: &str, limit: usize, code: &[ByteRange]) -> Vec<[usize; 2]> {
     let to_u16 = |byte: usize| line[..byte].encode_utf16().count();
     re.find_iter(line)
-        .filter(|m| m.start() < limit && m.end() > m.start())
+        .filter(|m| m.start() < limit && m.end() > m.start() && !overlaps(code, m.start(), m.end()))
         .map(|m| [to_u16(m.start()), to_u16(m.end().min(limit))])
         .collect()
 }
@@ -239,7 +247,7 @@ mod tests {
     use super::*;
 
     fn opts(regex: bool, case_sensitive: bool) -> SearchOptions {
-        SearchOptions { regex, case_sensitive }
+        SearchOptions { regex, case_sensitive, skip_code: false }
     }
 
     fn vault(files: &[(&str, &str)]) -> tempfile::TempDir {

@@ -1845,6 +1845,7 @@ export const en = {
   },
   findBar: {
     wrapPresets: 'Wrap match:',
+    skipCode: 'Skip code (inline `spans` and ``` blocks)',
     wrapPresetTooltip: 'Replace each match with {before}match{after}',
     find: 'Find',
     replace: 'Replace',

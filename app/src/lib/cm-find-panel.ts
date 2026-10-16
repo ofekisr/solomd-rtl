@@ -7,6 +7,8 @@
 import { createApp, h, shallowRef } from 'vue';
 import { getActivePinia } from 'pinia';
 import type { EditorView, Panel, ViewUpdate } from '@codemirror/view';
+import type { EditorState } from '@codemirror/state';
+import { syntaxTree } from '@codemirror/language';
 import {
   SearchQuery,
   closeSearchPanel,
@@ -22,17 +24,40 @@ import { unicodeClasses, type FindCounter, type FindSpec, type FindTarget } from
 
 const MAX_COUNTED_MATCHES = 9999;
 
+const CODE_NODES = new Set(['InlineCode', 'FencedCode', 'CodeBlock']);
+
+function touchesCode(state: EditorState, from: number, to: number): boolean {
+  const tree = syntaxTree(state);
+  for (const [pos, side] of [[from, 1], [to, -1]] as const) {
+    for (let node: ReturnType<typeof tree.resolveInner> | null = tree.resolveInner(pos, side); node; node = node.parent) {
+      if (CODE_NODES.has(node.name)) return true;
+    }
+  }
+  return false;
+}
+
+/** One function instance, so `SearchQuery.eq` sees two skip-code queries as equal. */
+const outsideCode = (_match: string, state: EditorState, from: number, to: number): boolean =>
+  !touchesCode(state, from, to);
+
 function toQuery(spec: FindSpec): SearchQuery {
   return new SearchQuery({
     search: spec.regexp ? unicodeClasses(spec.search) : spec.search,
     replace: spec.replace,
     caseSensitive: spec.caseSensitive,
     regexp: spec.regexp,
+    test: spec.skipCode ? outsideCode : undefined,
   });
 }
 
 function toSpec(q: SearchQuery): FindSpec {
-  return { search: q.search, replace: q.replace, caseSensitive: q.caseSensitive, regexp: q.regexp };
+  return {
+    search: q.search,
+    replace: q.replace,
+    caseSensitive: q.caseSensitive,
+    regexp: q.regexp,
+    skipCode: q.test === outsideCode,
+  };
 }
 
 function countMatches(view: EditorView, q: SearchQuery): FindCounter {
@@ -50,6 +75,7 @@ function countMatches(view: EditorView, q: SearchQuery): FindCounter {
 
 class CodeMirrorFindTarget implements FindTarget {
   readonly supportsNamedGroups = false;
+  readonly supportsSkipCode = true;
   lastSet: SearchQuery | null = null;
 
   constructor(private readonly view: EditorView) {}

@@ -18,6 +18,7 @@ export interface SearchHit {
 export interface SearchOptions {
   regex: boolean;
   caseSensitive: boolean;
+  skipCode?: boolean;
 }
 
 export interface SearchExtras {

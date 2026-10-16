@@ -6,6 +6,7 @@ pub mod image_upload;
 pub mod search;
 pub mod replace;
 pub mod mmap_text;
+pub mod md_code_spans;
 pub mod workspace_index;
 pub mod spellcheck;
 // #102 — cross-platform AI key storage (OS keyring + Android encrypted-file

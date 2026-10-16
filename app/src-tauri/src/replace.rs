@@ -16,6 +16,7 @@ use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use super::md_code_spans::{code_ranges_by_line, overlaps, ByteRange};
 use super::mmap_text::{is_mmap, replace_fields};
 use super::search::{build_matcher, is_text_file, text_files, SearchOptions};
 
@@ -89,13 +90,15 @@ pub fn replace_in_text(
     let re = build_matcher(&query, opts)?;
     let rep = Replacement::new(&replacement, opts.regex);
     let is_map = file_path.as_deref().map(Path::new).is_some_and(is_mmap);
-    let (text, count) = apply_to_file_text(is_map, &re, &text, &rep);
+    let (text, count) = apply_to_file_text(is_map, &re, &text, &rep, opts.skip_code);
     Ok(TextReplaceResult { text, count })
 }
 
-fn apply_to_file_text(is_map: bool, re: &Regex, text: &str, rep: &Replacement) -> (String, usize) {
+fn apply_to_file_text(is_map: bool, re: &Regex, text: &str, rep: &Replacement, skip_code: bool) -> (String, usize) {
     if is_map {
         apply_to_mmap(re, text, rep)
+    } else if skip_code {
+        apply_to_text_skipping_code(re, text, rep)
     } else {
         apply_to_text(re, text, rep)
     }
@@ -126,7 +129,7 @@ pub fn replace_in_dir_inner(req: &ReplaceRequest) -> Result<ReplaceSummary, Stri
         if exclude.contains(&canonical(&path)) {
             continue;
         }
-        replace_file(&path, &re, &rep, req.dry_run, &mut summary);
+        replace_file(&path, &re, &rep, req.dry_run, req.options.skip_code, &mut summary);
     }
     Ok(summary)
 }
@@ -142,11 +145,11 @@ fn targets(req: &ReplaceRequest, root: &Path) -> Vec<PathBuf> {
     }
 }
 
-fn replace_file(path: &Path, re: &Regex, rep: &Replacement, dry_run: bool, summary: &mut ReplaceSummary) {
+fn replace_file(path: &Path, re: &Regex, rep: &Replacement, dry_run: bool, skip_code: bool, summary: &mut ReplaceSummary) {
     let Ok(content) = fs::read_to_string(path) else {
         return;
     };
-    let (updated, count) = apply_to_file_text(is_mmap(path), re, &content, rep);
+    let (updated, count) = apply_to_file_text(is_mmap(path), re, &content, rep, skip_code);
     if count == 0 || updated == content {
         return;
     }
@@ -178,6 +181,48 @@ pub fn apply_to_text(re: &Regex, text: &str, rep: &Replacement) -> (String, usiz
         total += count;
     }
     (out, total)
+}
+
+/// `apply_to_text`, leaving matches that touch Markdown code unchanged.
+pub fn apply_to_text_skipping_code(re: &Regex, text: &str, rep: &Replacement) -> (String, usize) {
+    let code = code_ranges_by_line(text);
+    let mut out = String::with_capacity(text.len());
+    let mut total = 0;
+    for (i, segment) in text.split_inclusive('\n').enumerate() {
+        let (body, eol) = split_eol(segment);
+        let mask = code.get(i).map(Vec::as_slice).unwrap_or(&[]);
+        let (replaced, count) = apply_to_line_masked(re, body, rep, mask);
+        out.push_str(&replaced);
+        out.push_str(eol);
+        total += count;
+    }
+    (out, total)
+}
+
+/// Replace matches outside `code`; matches overlapping it stay as they are.
+pub fn apply_to_line_masked(re: &Regex, line: &str, rep: &Replacement, code: &[ByteRange]) -> (String, usize) {
+    if code.is_empty() {
+        return apply_to_line(re, line, rep);
+    }
+    let mut out = String::with_capacity(line.len());
+    let mut last = 0;
+    let mut count = 0;
+    for caps in re.captures_iter(line) {
+        let m = caps.get(0).expect("group 0 always matches");
+        if overlaps(code, m.start(), m.end()) {
+            continue;
+        }
+        out.push_str(&line[last..m.start()]);
+        if rep.expand {
+            caps.expand(&rep.text, &mut out);
+        } else {
+            out.push_str(&rep.text);
+        }
+        last = m.end();
+        count += 1;
+    }
+    out.push_str(&line[last..]);
+    (out, count)
 }
 
 pub fn apply_to_line(re: &Regex, line: &str, rep: &Replacement) -> (String, usize) {
@@ -278,7 +323,7 @@ mod tests {
     use super::*;
 
     fn regex_opts() -> SearchOptions {
-        SearchOptions { regex: true, case_sensitive: true }
+        SearchOptions { regex: true, case_sensitive: true, skip_code: false }
     }
 
     fn run(text: &str, query: &str, replacement: &str, opts: SearchOptions) -> (String, usize) {
@@ -312,7 +357,7 @@ mod tests {
 
     #[test]
     fn literal_mode_inserts_dollar_signs_verbatim() {
-        let opts = SearchOptions { regex: false, case_sensitive: false };
+        let opts = SearchOptions { regex: false, case_sensitive: false, skip_code: false };
         let (out, n) = run("price: X, x", "x", "$1", opts);
         assert_eq!(out, "price: $1, $1");
         assert_eq!(n, 2);
@@ -423,5 +468,16 @@ mod tests {
         assert_eq!(read(&dir, "sub/b.txt"), "x\n");
         assert_eq!(fs::read_to_string(&stray).unwrap(), "v9\n");
         assert_eq!(read(&dir, "a.md"), "v1 v2\n");
+    }
+
+    #[test]
+    fn skip_code_leaves_inline_and_fenced_code_alone() {
+        let opts = SearchOptions { regex: true, case_sensitive: true, skip_code: true };
+        let re = build_matcher("find", opts).unwrap();
+        let rep = Replacement::new("`$&`", true);
+        let text = "find `find` x\n```\nfind\n```\n```sh; find```\nfind\n";
+        let (out, count) = apply_to_text_skipping_code(&re, text, &rep);
+        assert_eq!(out, "`find` `find` x\n```\nfind\n```\n```sh; find```\n`find`\n");
+        assert_eq!(count, 2);
     }
 }

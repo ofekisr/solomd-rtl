@@ -24,6 +24,7 @@ export function applyWrapPreset(spec: FindSpec, preset: WrapPreset): FindSpec {
     ...spec,
     search: spec.regexp ? spec.search : escapeRegExp(spec.search),
     regexp: true,
+    skipCode: true,
     replace: `${preset.before}${WHOLE_MATCH}${preset.after}`,
   };
 }

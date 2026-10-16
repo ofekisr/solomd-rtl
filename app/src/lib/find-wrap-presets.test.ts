@@ -25,3 +25,7 @@ test('regex search is kept as-is', () => {
   const spec = applyWrapPreset(base({ search: '\\d+', regexp: true }), preset('quote'));
   assert.equal(wrapAll(spec, 'x 12 y 3'), 'x "12" y "3"');
 });
+
+test('wrap presets skip Markdown code', () => {
+  assert.equal(applyWrapPreset(base({ search: 'x' }), preset('code')).skipCode, true);
+});

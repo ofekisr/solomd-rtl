@@ -10,6 +10,8 @@ export interface FindSpec {
   replace: string;
   caseSensitive: boolean;
   regexp: boolean;
+  /** Leave Markdown code alone: inline `spans` and fenced blocks. */
+  skipCode?: boolean;
 }
 
 export interface FindCounter {
@@ -20,6 +22,8 @@ export interface FindCounter {
 /** What the find bar drives: CodeMirror in a text tab, the canvas in a map tab. */
 export interface FindTarget {
   readonly supportsNamedGroups: boolean;
+  /** Honours `FindSpec.skipCode` (Markdown text targets). */
+  readonly supportsSkipCode?: boolean;
   setSpec(spec: FindSpec): void;
   isValid(spec: FindSpec): boolean;
   counter(spec: FindSpec): FindCounter;

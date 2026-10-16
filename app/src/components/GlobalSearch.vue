@@ -297,6 +297,15 @@ function onKey(e: KeyboardEvent) {
       <button
         class="sp__opt"
         type="button"
+        data-opt="skip-code"
+        :class="{ 'sp__opt--on': options.skipCode }"
+        :title="t('findBar.skipCode')"
+        :aria-pressed="!!options.skipCode"
+        @click="toggleOption('skipCode')"
+      >{ }</button>
+      <button
+        class="sp__opt"
+        type="button"
         :class="{ 'sp__opt--on': keyboardOpen }"
         :title="t('searchReplace.keyboard')"
         :aria-pressed="keyboardOpen"

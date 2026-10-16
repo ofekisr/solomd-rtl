@@ -709,6 +709,7 @@ const liveEditTheme = EditorView.theme({
 
   '.cm-md-code': {
     fontFamily: 'var(--font-mono)',
+    wordSpacing: '-0.25em',
     color: 'var(--md-code)',
     backgroundColor: 'var(--md-code-bg)',
     padding: '0.1em 0.35em',
