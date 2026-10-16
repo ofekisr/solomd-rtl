@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { themeFamily } from '../lib/themes';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
+import FindBar from './FindBar.vue';
+import { MindmapFindTarget, revealNode } from '../lib/mindmap-find';
+import { MINDMAP_REVEAL_EVENT, claimMindmapReveal } from '../lib/mindmap-reveal';
+import type { FindSpec } from '../lib/find-spec';
 import type { MindElixirInstance, NodeObj } from 'mind-elixir';
 import type { Topic } from 'mind-elixir';
 import type { Tab, ViewMode } from '../types';
@@ -229,6 +233,14 @@ function onCanvasReady(): void {
   snippets.value = [...(canvas.value?.getSnippets() ?? [])];
   displayOverride.value = canvas.value?.getDisplayOverride() ?? {};
   applyDisplay();
+  revealPending();
+}
+
+function revealPending(): void {
+  const mind = canvas.value?.getMind();
+  if (!mind) return;
+  const id = claimMindmapReveal(props.tab.filePath);
+  if (id) revealNode(mind, id);
 }
 
 function setOverride(patch: MapDisplay): void {
@@ -273,6 +285,7 @@ function activate(): void {
 }
 
 function onViewKey(e: KeyboardEvent): void {
+  if ((e.target as HTMLElement | null)?.closest?.('.fb')) return;
   const combo = eventToCombo(e);
   const actionId = combo ? resolveBindings(settings.keybindings, 'mindmap').get(combo) : undefined;
   if (!actionId || !(isLensAction(actionId) || VIEW_ACTIONS.includes(actionId))) return;
@@ -283,6 +296,40 @@ function onViewKey(e: KeyboardEvent): void {
 
 function onUpdate(text: string): void {
   tabs.setContent(props.tab.id, text);
+  refreshFind();
+}
+
+const EMPTY_FIND: FindSpec = { search: '', replace: '', caseSensitive: false, regexp: false };
+const findOpen = ref(false);
+const findExternal = shallowRef<FindSpec>(EMPTY_FIND);
+const findTick = shallowRef(0);
+const findBar = ref<InstanceType<typeof FindBar> | null>(null);
+const findTarget = new MindmapFindTarget({
+  getMind: () => canvas.value?.getMind() ?? null,
+  canEdit: () => isPanelEditable.value,
+  markChanged: () => canvas.value?.markChanged(),
+  close: () => {
+    findOpen.value = false;
+  },
+});
+
+function refreshFind(): void {
+  if (!findOpen.value) return;
+  findTick.value++;
+  nextTick(() => findTarget.refresh());
+}
+
+/** ⌘F in a map tab searches node text. Inside the JSON source split, the
+ *  source editor's own find bar handles it instead. */
+function openFind(): void {
+  if (document.activeElement?.closest('.mindmap-shell__source') || !has('map')) return;
+  if (findOpen.value) {
+    findBar.value?.focus();
+    return;
+  }
+  const topic = singleNode.value?.topic;
+  if (topic && !topic.includes('\n')) findExternal.value = { ...EMPTY_FIND, search: topic };
+  findOpen.value = true;
 }
 
 function onJump(source: MindmapSource): void {
@@ -296,16 +343,18 @@ function onJump(source: MindmapSource): void {
 let removeViewGuard: (() => void) | null = null;
 
 onMounted(() => {
+  window.addEventListener(MINDMAP_REVEAL_EVENT, revealPending);
   migrateLegacyMode();
   removeViewGuard = addViewModeGuard(guardViewChange);
   activate();
 });
 onBeforeUnmount(() => {
+  window.removeEventListener(MINDMAP_REVEAL_EVENT, revealPending);
   if (parseTimer !== null) window.clearTimeout(parseTimer);
   removeViewGuard?.();
   clearActiveMindmap(handle);
 });
-defineExpose({ setLens, canvas, lens });
+defineExpose({ setLens, canvas, lens, openFind });
 </script>
 
 <template>
@@ -318,6 +367,15 @@ defineExpose({ setLens, canvas, lens });
           <Editor :key="`${tab.id}-source`" :tab="sourceTab" />
         </div>
         <div v-if="has('map')" class="mindmap-shell__map" :style="{ order: partOrder('map') }">
+          <FindBar
+            v-if="findOpen"
+            ref="findBar"
+            class="mindmap-shell__find"
+            :target="findTarget"
+            :external="findExternal"
+            :tick="findTick"
+            :get-file-path="() => tab.filePath"
+          />
           <MindmapCanvas
             ref="canvas"
             class="mindmap-shell__canvas"
@@ -328,7 +386,7 @@ defineExpose({ setLens, canvas, lens });
             :locked="isMapLocked"
             :focus-key="tab.id"
             @update:content="onUpdate"
-            @selection="(nodes) => (selected = nodes.map((n) => ({ ...n })))"
+            @selection="(nodes) => { selected = nodes.map((n) => ({ ...n })); refreshFind(); }"
             @open-as-text="openAsText"
             @jump-to-source="onJump"
             @ready="onCanvasReady"
@@ -381,6 +439,8 @@ defineExpose({ setLens, canvas, lens });
 .mindmap-shell__cell--split { gap: 1px; background: var(--border); }
 .mindmap-shell__cell--split > * { background: var(--bg); }
 .mindmap-shell__map { display: flex; flex-direction: column; min-height: 0; }
+.mindmap-shell__find { flex: none; }
+:global(.me-find-hit) { outline: 2px solid var(--accent, #ff9f40); outline-offset: 2px; }
 .mindmap-shell__canvas { flex: 1; min-height: 0; }
 .mindmap-shell__source { display: flex; flex-direction: column; }
 .mindmap-shell__error { padding: 6px 12px; font-size: 12px; background: var(--bg-elev); color: var(--text); border-block-end: 1px solid var(--border); }

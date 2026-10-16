@@ -6,6 +6,7 @@ export interface MindmapHandle { run(actionId: string): boolean }
 
 export interface MindmapCanvasApi {
   flush(): void;
+  markChanged(): void;
   run(actionId: string): boolean;
   getMind(): MindElixirInstance | null;
   getDisplayOverride(): MapDisplay;

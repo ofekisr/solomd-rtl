@@ -719,6 +719,7 @@ function setSnippets(next: readonly Snippet[]): void {
 
 defineExpose({
   flush: flushPendingSync,
+  markChanged: scheduleSync,
   run: (actionId: string) => handle.run(actionId),
   getMind: () => mind,
   getDisplayOverride: () => displayOverride,

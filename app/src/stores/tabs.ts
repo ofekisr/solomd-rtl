@@ -111,7 +111,7 @@ function isDirty(t: Tab): boolean {
 
 /** True when `filePath` lives inside `folder`. Separator- and (on Windows)
  *  case-insensitive so OneDrive / drive-letter paths compare correctly. */
-function inFolder(filePath: string | undefined, folder: string | null): boolean {
+export function inFolder(filePath: string | undefined, folder: string | null): boolean {
   if (!filePath || !folder) return false;
   const norm = (s: string) => s.replace(/\\/g, '/').replace(/\/+$/, '');
   const root = norm(folder);

@@ -4,6 +4,8 @@ pub mod commands;
 pub mod directive_completions;
 pub mod image_upload;
 pub mod search;
+pub mod replace;
+pub mod mmap_text;
 pub mod workspace_index;
 pub mod spellcheck;
 // #102 — cross-platform AI key storage (OS keyring + Android encrypted-file
@@ -208,6 +210,8 @@ pub fn run() {
             commands::fs_list_extensions,
             commands::fs_dirs_with_extensions,
             search::search_in_dir,
+            replace::replace_in_dir,
+            replace::replace_in_text,
             workspace_index::workspace_index_init,
             workspace_index::workspace_index_files,
             workspace_index::workspace_index_backlinks,

@@ -4968,6 +4968,7 @@ dependencies = [
  "pdf-extract",
  "quick-xml 0.37.5",
  "rand 0.8.6",
+ "regex",
  "regex-lite",
  "reqwest 0.12.28",
  "rusqlite",
