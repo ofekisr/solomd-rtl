@@ -4,11 +4,21 @@ import { isSafeColor } from './mindmap-display.ts';
 import { updateNode, type EditResult } from './mindmap-edit.ts';
 
 const MEANING_MAX = 40;
+const MARK_STYLE_KEYS: readonly string[] = ['color', 'background'];
 
 export interface LegendEntry { meaning: string; color?: string; background?: string }
 type Meta = Record<string, unknown>;
+type NodeStyle = Record<string, string>;
 
 const metaOf = (node: NodeObj): Meta => (node.metadata && typeof node.metadata === 'object' ? { ...(node.metadata as Meta) } : {});
+
+function emptyToUndefined<T extends object>(value: T): T | undefined {
+  return Object.keys(value).length > 0 ? value : undefined;
+}
+
+function readStyle(style: NodeObj['style']): NodeStyle {
+  return Object.fromEntries(Object.entries(style ?? {}).filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
+}
 
 function cleanEntry(value: unknown): LegendEntry | null {
   if (!value || typeof value !== 'object') return null;
@@ -36,21 +46,31 @@ export function withLegend(data: MindElixirData, entries: readonly LegendEntry[]
   return copy;
 }
 
-function styleFor(entry: LegendEntry): NodeObj['style'] {
-  return { ...(entry.color ? { color: entry.color } : {}), ...(entry.background ? { background: entry.background } : {}) };
+function withoutMarkStyle(style: NodeObj['style']): NodeStyle | undefined {
+  return emptyToUndefined(Object.fromEntries(Object.entries(readStyle(style)).filter(([key]) => !MARK_STYLE_KEYS.includes(key))));
 }
 
-function emptyToUndefined<T extends object>(value: T): T | undefined {
-  return Object.keys(value).length > 0 ? value : undefined;
+function markedStyle(style: NodeObj['style'], entry: LegendEntry): NodeStyle | undefined {
+  return emptyToUndefined({ ...withoutMarkStyle(style), ...(entry.color ? { color: entry.color } : {}), ...(entry.background ? { background: entry.background } : {}) });
+}
+
+function applyMark(data: MindElixirData, id: string, node: NodeObj, meaning: string): EditResult {
+  const legend = readLegend(data.nodeData);
+  const entry = legend.find((e) => e.meaning === meaning);
+  if (!entry) return { ok: false, error: `Unknown meaning "${meaning}". Legend has: ${legend.map((e) => e.meaning).join(', ') || '(empty, set one with mmap_legend)'}` };
+  const { mark: _old, ...meta } = metaOf(node);
+  return updateNode(data, id, { metadata: { ...meta, mark: meaning }, style: markedStyle(node.style, entry) });
+}
+
+function clearMark(data: MindElixirData, id: string, node: NodeObj): EditResult {
+  if (!('mark' in metaOf(node))) return { ok: true, data: structuredClone(data), ids: [id] };
+  const { mark: _old, ...meta } = metaOf(node);
+  return updateNode(data, id, { metadata: emptyToUndefined(meta), style: withoutMarkStyle(node.style) });
 }
 
 export function markNode(data: MindElixirData, id: string, meaning: string | null): EditResult {
   const node = findNode(data.nodeData, id);
   if (!node) return { ok: false, error: `No node with id "${id}"` };
-  const { mark: _old, ...meta } = metaOf(node);
-  if (meaning === null) return updateNode(data, id, { metadata: emptyToUndefined(meta), style: undefined });
-  const legend = readLegend(data.nodeData);
-  const entry = legend.find((e) => e.meaning === meaning);
-  if (!entry) return { ok: false, error: `Unknown meaning "${meaning}". Legend has: ${legend.map((e) => e.meaning).join(', ') || '(empty, set one with mmap_legend)'}` };
-  return updateNode(data, id, { metadata: { ...meta, mark: meaning }, style: emptyToUndefined(styleFor(entry) ?? {}) });
+  if (meaning === null) return clearMark(data, id, node);
+  return applyMark(data, id, node, meaning.trim());
 }

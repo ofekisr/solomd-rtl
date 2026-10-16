@@ -43,3 +43,27 @@ test('legend and marks survive the SoloMD codec round-trip', () => {
   assert.equal(readLegend(back.data.nodeData)[0].meaning, 'done');
   assert.equal((findNode(back.data.nodeData, 'a')!.metadata as { mark: string }).mark, 'done');
 });
+
+const styled = (style: Record<string, string>): MindElixirData => ({ nodeData: { id: 'r', topic: 'Root', children: [{ id: 'a', topic: 'A', style }] } });
+
+test('clearing an unmarked node leaves its manual style untouched', () => {
+  const res = markNode(styled({ fontSize: '20', color: '#111111' }), 'a', null);
+  assert.ok(res.ok);
+  assert.deepEqual(findNode(res.data.nodeData, 'a')!.style, { fontSize: '20', color: '#111111' });
+});
+
+test('marking merges legend colours into manual style and clearing keeps other keys', () => {
+  const data = withLegend(styled({ fontSize: '20' }), [{ meaning: 'done', background: '#dcfce7' }]);
+  const marked = markNode(data, 'a', 'done');
+  assert.ok(marked.ok);
+  assert.deepEqual(findNode(marked.data.nodeData, 'a')!.style, { fontSize: '20', background: '#dcfce7' });
+  const cleared = markNode(marked.data, 'a', null);
+  assert.ok(cleared.ok);
+  assert.deepEqual(findNode(cleared.data.nodeData, 'a')!.style, { fontSize: '20' });
+});
+
+test('markNode trims the meaning before the legend lookup', () => {
+  const res = markNode(withLegend(map(), [{ meaning: 'done', background: '#dcfce7' }]), 'a', ' done ');
+  assert.ok(res.ok);
+  assert.equal((findNode(res.data.nodeData, 'a')!.metadata as { mark: string }).mark, 'done');
+});
