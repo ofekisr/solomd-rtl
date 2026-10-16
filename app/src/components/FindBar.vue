@@ -1,51 +1,41 @@
 <script setup lang="ts">
 /**
- * IDE-style find / replace bar, mounted as CodeMirror's search panel by
- * `lib/cm-find-panel.ts`. Scope "file" drives CodeMirror's own search; scopes
- * "folder" (the open file's directory) and "all" (the workspace) stream the
- * same query live to the Search-in-Folder pane, which lists the hits.
+ * IDE-style find / replace bar. It drives a `FindTarget`: CodeMirror in a text
+ * tab (`lib/cm-find-panel.ts`) or the canvas in a mind-map tab
+ * (`lib/mindmap-find.ts`). Scopes "folder" (the open file's directory) and
+ * "all" (the workspace) stream the same query live to the Search-in-Folder
+ * pane, which lists the hits.
  */
-import { computed, nextTick, onMounted, ref, watch, type ShallowRef } from 'vue';
-import type { EditorView } from '@codemirror/view';
-import {
-  SearchQuery,
-  closeSearchPanel,
-  findNext,
-  findPrevious,
-  replaceAll,
-  replaceNext,
-  setSearchQuery,
-} from '@codemirror/search';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import RegexKeyboard, { type RegexToken } from './RegexKeyboard.vue';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useI18n } from '../i18n';
 import { parentDir, requestFolderSearch, type FindScope } from '../lib/folder-search';
+import type { FindSpec, FindTarget } from '../lib/find-spec';
 
 const props = defineProps<{
-  view: EditorView;
-  external: ShallowRef<SearchQuery>;
-  tick: ShallowRef<number>;
+  target: FindTarget;
+  external: FindSpec;
+  tick: number;
   getFilePath: () => string | undefined;
 }>();
 
 const workspace = useWorkspaceStore();
 const { t } = useI18n();
 
-const MAX_COUNTED_MATCHES = 9999;
 const FOLDER_SYNC_DEBOUNCE_MS = 200;
-const FILE_ONLY_REPLACE_TOKENS = ['$<n>'];
+const NAMED_GROUP_TOKENS = ['$<n>'];
 
-const query = ref(props.external.value.search);
-const replacement = ref(props.external.value.replace);
-const caseSensitive = ref(props.external.value.caseSensitive);
-const regex = ref(props.external.value.regexp);
-const replaceOpen = ref(!!props.external.value.replace);
+const query = ref(props.external.search);
+const replacement = ref(props.external.replace);
+const caseSensitive = ref(props.external.caseSensitive);
+const regex = ref(props.external.regexp);
+const replaceOpen = ref(!!props.external.replace);
 const keyboardOpen = ref(false);
 const scope = ref<FindScope>('file');
 const activeField = ref<'find' | 'replace'>('find');
 const findRef = ref<HTMLInputElement | null>(null);
 const replaceRef = ref<HTMLInputElement | null>(null);
-let committed = props.external.value;
 let syncTimer: number | null = null;
 
 const filePath = computed(() => props.getFilePath());
@@ -57,30 +47,20 @@ const scopeRoot = computed(() => {
 });
 const isFileScope = computed(() => scope.value === 'file');
 const keyboardTarget = computed(() => (replaceOpen.value ? activeField.value : 'find'));
-
-const currentQuery = computed(
-  () =>
-    new SearchQuery({
-      search: query.value,
-      replace: replacement.value,
-      caseSensitive: caseSensitive.value,
-      regexp: regex.value,
-    }),
+const hiddenTokens = computed(() =>
+  isFileScope.value && !props.target.supportsNamedGroups ? NAMED_GROUP_TOKENS : [],
 );
 
+const spec = computed<FindSpec>(() => ({
+  search: query.value,
+  replace: replacement.value,
+  caseSensitive: caseSensitive.value,
+  regexp: regex.value,
+}));
+
 const counter = computed(() => {
-  void props.tick.value;
-  const q = currentQuery.value;
-  if (!q.search || !q.valid) return { index: 0, total: 0 };
-  const caret = props.view.state.selection.main.from;
-  const cursor = q.getCursor(props.view.state);
-  let total = 0;
-  let index = 0;
-  for (let r = cursor.next(); !r.done && total < MAX_COUNTED_MATCHES; r = cursor.next()) {
-    total++;
-    if (r.value.from <= caret) index = total;
-  }
-  return { index, total };
+  void props.tick;
+  return props.target.counter(spec.value);
 });
 
 const counterLabel = computed(() => {
@@ -90,29 +70,20 @@ const counterLabel = computed(() => {
   return t('findBar.count', { i: index, n: total });
 });
 
-const isInvalid = computed(() => !!query.value && !currentQuery.value.valid);
+const isInvalid = computed(() => !!query.value && !props.target.isValid(spec.value));
 
-function commit() {
-  const q = currentQuery.value;
-  if (q.eq(committed)) return;
-  committed = q;
-  props.view.dispatch({ effects: setSearchQuery.of(q) });
-}
-
-watch(currentQuery, () => {
-  commit();
+watch(spec, (s) => {
+  props.target.setSpec(s);
   scheduleFolderSync();
-});
+}, { immediate: true });
 
 watch(scope, () => scheduleFolderSync(0));
 
-watch(props.external, (q) => {
-  if (q.eq(committed)) return;
-  committed = q;
-  query.value = q.search;
-  replacement.value = q.replace;
-  caseSensitive.value = q.caseSensitive;
-  regex.value = q.regexp;
+watch(() => props.external, (s) => {
+  query.value = s.search;
+  replacement.value = s.replace;
+  caseSensitive.value = s.caseSensitive;
+  regex.value = s.regexp;
 });
 
 function scheduleFolderSync(delay = FOLDER_SYNC_DEBOUNCE_MS) {
@@ -134,34 +105,32 @@ function sendToFolderPane(action?: 'replaceAll') {
   });
 }
 
-function run(command: (view: EditorView) => boolean) {
-  commit();
-  command(props.view);
-}
-
 function next() {
-  if (isFileScope.value) run(findNext);
+  if (isFileScope.value) props.target.next();
   else sendToFolderPane();
 }
 
+function prev() {
+  props.target.prev();
+}
+
 function replaceOne() {
-  run(replaceNext);
+  props.target.replaceOne();
 }
 
 function replaceEverything() {
-  if (isFileScope.value) run(replaceAll);
+  if (isFileScope.value) props.target.replaceAll();
   else sendToFolderPane('replaceAll');
 }
 
 function close() {
-  closeSearchPanel(props.view);
-  props.view.focus();
+  props.target.close();
 }
 
 function onFindKey(e: KeyboardEvent) {
   if (e.key === 'Enter') {
     e.preventDefault();
-    if (e.shiftKey && isFileScope.value) run(findPrevious);
+    if (e.shiftKey && isFileScope.value) prev();
     else next();
   } else if (e.key === 'Escape') {
     e.preventDefault();
@@ -203,9 +172,13 @@ function shortRoot(root: string | null): string {
   return root.split(/[\\/]/).filter(Boolean).pop() ?? root;
 }
 
-onMounted(() => {
+function focus() {
+  findRef.value?.focus();
   findRef.value?.select();
-});
+}
+
+onMounted(focus);
+defineExpose({ focus });
 </script>
 
 <template>
@@ -260,8 +233,8 @@ onMounted(() => {
         {{ counterLabel }}
       </span>
       <template v-if="isFileScope">
-        <button class="fb__btn" type="button" :title="t('findBar.prev')" @click="run(findPrevious)">↑</button>
-        <button class="fb__btn" type="button" :title="t('findBar.next')" @click="run(findNext)">↓</button>
+        <button class="fb__btn" type="button" :title="t('findBar.prev')" @click="prev">↑</button>
+        <button class="fb__btn" type="button" :title="t('findBar.next')" @click="next">↓</button>
       </template>
       <div class="fb__scope" role="radiogroup" :aria-label="t('findBar.scope')">
         <button
@@ -322,7 +295,7 @@ onMounted(() => {
     <RegexKeyboard
       v-if="keyboardOpen"
       :target="keyboardTarget"
-      :exclude="isFileScope ? FILE_ONLY_REPLACE_TOKENS : []"
+      :exclude="hiddenTokens"
       @insert="insertToken"
     />
   </div>

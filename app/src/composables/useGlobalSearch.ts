@@ -10,6 +10,9 @@ export interface SearchHit {
   ranges: Array<[number, number]>;
   /** `snippet` with the replacement applied, when one was requested. */
   preview?: string | null;
+  /** `.mmap` hits: the matching node and field (`topic` / `note`). */
+  nodeId?: string | null;
+  field?: string | null;
 }
 
 export interface SearchOptions {

@@ -16,6 +16,7 @@ use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use super::mmap_text::{is_mmap, replace_fields};
 use super::search::{build_matcher, is_text_file, text_files, SearchOptions};
 
 const UTF8_LABEL: &str = "UTF-8";
@@ -74,17 +75,41 @@ pub async fn replace_in_dir(request: ReplaceRequest) -> Result<ReplaceSummary, S
         .map_err(|e| format!("join: {e}"))?
 }
 
+/// `file_path` only picks the format: `.mmap` buffers get node-text
+/// replacement, everything else plain line-by-line.
 #[tauri::command]
 pub fn replace_in_text(
     text: String,
     query: String,
     replacement: String,
     options: Option<SearchOptions>,
+    file_path: Option<String>,
 ) -> Result<TextReplaceResult, String> {
     let opts = options.unwrap_or_default();
     let re = build_matcher(&query, opts)?;
-    let (text, count) = apply_to_text(&re, &text, &Replacement::new(&replacement, opts.regex));
+    let rep = Replacement::new(&replacement, opts.regex);
+    let is_map = file_path.as_deref().map(Path::new).is_some_and(is_mmap);
+    let (text, count) = apply_to_file_text(is_map, &re, &text, &rep);
     Ok(TextReplaceResult { text, count })
+}
+
+fn apply_to_file_text(is_map: bool, re: &Regex, text: &str, rep: &Replacement) -> (String, usize) {
+    if is_map {
+        apply_to_mmap(re, text, rep)
+    } else {
+        apply_to_text(re, text, rep)
+    }
+}
+
+/// Replace inside node `topic` / `note` values only.
+pub fn apply_to_mmap(re: &Regex, json: &str, rep: &Replacement) -> (String, usize) {
+    let mut total = 0;
+    let updated = replace_fields(json, |field| {
+        let (value, count) = apply_to_text(re, &field.value, rep);
+        total += count;
+        (count > 0).then_some(value)
+    });
+    (updated.unwrap_or_else(|| json.to_string()), total)
 }
 
 pub fn replace_in_dir_inner(req: &ReplaceRequest) -> Result<ReplaceSummary, String> {
@@ -121,7 +146,7 @@ fn replace_file(path: &Path, re: &Regex, rep: &Replacement, dry_run: bool, summa
     let Ok(content) = fs::read_to_string(path) else {
         return;
     };
-    let (updated, count) = apply_to_text(re, &content, rep);
+    let (updated, count) = apply_to_file_text(is_mmap(path), re, &content, rep);
     if count == 0 || updated == content {
         return;
     }
@@ -302,7 +327,7 @@ mod tests {
 
     #[test]
     fn replace_text_command_returns_count() {
-        let res = replace_in_text("aa\nba".into(), "a".into(), "z".into(), None).unwrap();
+        let res = replace_in_text("aa\nba".into(), "a".into(), "z".into(), None, None).unwrap();
         assert_eq!(res, TextReplaceResult { text: "zz\nbz".into(), count: 3 });
     }
 
@@ -349,6 +374,27 @@ mod tests {
         let summary = replace_in_dir_inner(&req).unwrap();
         assert_eq!((summary.files_changed, summary.replacements), (2, 3));
         assert_eq!(read(&dir, "a.md"), "v1 v2\n");
+    }
+
+    #[test]
+    fn mmap_replace_touches_node_text_only() {
+        let dir = tempfile::tempdir().unwrap();
+        let map = "{\n  \"format\": \"solomd-mindmap\",\n  \"data\": {\"nodeData\": {\"id\": \"r\", \"topic\": \"format v1\"}}\n}";
+        fs::write(dir.path().join("m.mmap"), map).unwrap();
+        let summary = replace_in_dir_inner(&request(dir.path(), "format", "layout")).unwrap();
+        assert_eq!(summary.replacements, 1);
+        let out = read(&dir, "m.mmap");
+        assert!(out.contains("\"format\": \"solomd-mindmap\""));
+        assert!(out.contains("\"topic\": \"layout v1\""));
+    }
+
+    #[test]
+    fn replace_in_text_uses_mmap_mode_for_mmap_paths() {
+        let map = r#"{"format":"x","data":{"nodeData":{"id":"r","topic":"x"}}}"#;
+        let res = replace_in_text(map.into(), "x".into(), "y".into(), None, Some("/a/b.mmap".into())).unwrap();
+        assert_eq!(res.count, 1);
+        assert!(res.text.contains(r#""format":"x""#));
+        assert!(res.text.contains(r#""topic":"y""#));
     }
 
     #[test]

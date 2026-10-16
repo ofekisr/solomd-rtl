@@ -15,6 +15,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
+use super::mmap_text::{is_mmap, text_fields};
 use super::replace::{apply_to_line, Replacement};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -29,6 +30,12 @@ pub struct SearchHit {
     /// `snippet` with the replacement applied, when one was requested.
     #[serde(default)]
     pub preview: Option<String>,
+    /// `.mmap` only: the node whose text matched, and which field
+    /// (`topic` / `note`). `line` is then the field's ordinal in the file.
+    #[serde(default, rename = "nodeId")]
+    pub node_id: Option<String>,
+    #[serde(default)]
+    pub field: Option<String>,
 }
 
 #[derive(Deserialize, Debug, Clone, Copy, Default)]
@@ -42,7 +49,7 @@ pub struct SearchOptions {
 
 /// File extensions we are willing to open and scan. Anything else is skipped
 /// without even opening the file, so binary assets won't slow the walker.
-const ALLOWED_EXT: &[&str] = &["md", "markdown", "mdown", "mkd", "txt"];
+const ALLOWED_EXT: &[&str] = &["md", "markdown", "mdown", "mkd", "txt", "mmap"];
 
 /// Directory names that should never be descended into. We match by name
 /// (not full path), which is enough for the usual suspects.
@@ -142,17 +149,51 @@ pub fn search_in_dir_with(
             continue;
         };
         let file = path.to_string_lossy().to_string();
+        let ctx = HitContext { re: &re, rep: rep.as_ref(), file: &file, max_results };
+        if is_mmap(&path) {
+            ctx.collect_mmap(&content, &mut hits);
+        } else {
+            ctx.collect_lines(&content, &mut hits);
+        }
+    }
+
+    Ok(hits)
+}
+
+struct HitContext<'a> {
+    re: &'a Regex,
+    rep: Option<&'a Replacement>,
+    file: &'a str,
+    max_results: usize,
+}
+
+impl HitContext<'_> {
+    fn collect_lines(&self, content: &str, hits: &mut Vec<SearchHit>) {
         for (i, line) in content.lines().enumerate() {
-            if hits.len() >= max_results {
-                break;
+            if hits.len() >= self.max_results {
+                return;
             }
-            if let Some(hit) = line_hit(&re, rep.as_ref(), &file, i + 1, line) {
+            if let Some(hit) = line_hit(self.re, self.rep, self.file, i + 1, line) {
                 hits.push(hit);
             }
         }
     }
 
-    Ok(hits)
+    /// Node text only — never the JSON around it.
+    fn collect_mmap(&self, content: &str, hits: &mut Vec<SearchHit>) {
+        for (ordinal, field) in text_fields(content).iter().enumerate() {
+            for line in field.value.lines() {
+                if hits.len() >= self.max_results {
+                    return;
+                }
+                if let Some(mut hit) = line_hit(self.re, self.rep, self.file, ordinal + 1, line) {
+                    hit.node_id = field.node_id.clone();
+                    hit.field = Some(field.key.to_string());
+                    hits.push(hit);
+                }
+            }
+        }
+    }
 }
 
 fn line_hit(
@@ -178,6 +219,8 @@ fn line_hit(
         snippet,
         ranges,
         preview,
+        node_id: None,
+        field: None,
     })
 }
 
@@ -271,6 +314,17 @@ mod tests {
         fs::write(dir.path().join(".hidden/b.md"), "needle\n").unwrap();
         let hits = search_in_dir_with(&root(&dir), "needle", 10, opts(false, false), None).unwrap();
         assert_eq!(hits.len(), 1);
+    }
+
+    #[test]
+    fn mmap_search_matches_node_text_not_json() {
+        let map = r#"{"format":"solomd-mindmap","data":{"nodeData":{"id":"r","topic":"Plan","children":[{"id":"k","topic":"x","note":"see format docs"}]}}}"#;
+        let dir = vault(&[("m.mmap", map)]);
+        let hits = search_in_dir_with(&root(&dir), "format", 10, opts(false, false), None).unwrap();
+        assert_eq!(hits.len(), 1);
+        assert_eq!(hits[0].node_id.as_deref(), Some("k"));
+        assert_eq!(hits[0].field.as_deref(), Some("note"));
+        assert_eq!(hits[0].snippet, "see format docs");
     }
 
     #[test]

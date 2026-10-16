@@ -72,9 +72,10 @@ export function useFolderReplace() {
     });
   }
 
-  async function planBuffer(input: ReplaceInput, tabId: string, text: string): Promise<BufferEdit> {
+  async function planBuffer(input: ReplaceInput, tabId: string, text: string, filePath: string): Promise<BufferEdit> {
     const res = await invoke<{ text: string; count: number }>('replace_in_text', {
       text,
+      filePath,
       query: input.query,
       replacement: input.replacement,
       options: input.options,
@@ -86,7 +87,7 @@ export function useFolderReplace() {
     window.dispatchEvent(new Event(FLUSH_CONTENT_EVENT));
     const open = openTabsInScope(input);
     const openFiles = open.map((t) => t.filePath!);
-    const edits = await Promise.all(open.map((t) => planBuffer(input, t.id, t.content)));
+    const edits = await Promise.all(open.map((t) => planBuffer(input, t.id, t.content, t.filePath!)));
     const disk = await runOnDisk(input, openFiles, true);
     return { input, openFiles, buffers: edits.filter((e) => e.count > 0), disk };
   }

@@ -22,6 +22,7 @@ const settings = useSettingsStore();
 const tiles = useTilesStore();
 
 const editorRef = ref<InstanceType<typeof Editor> | null>(null);
+const mindmapRef = ref<{ openFind?: () => void } | null>(null);
 const previewRef = ref<InstanceType<typeof Preview> | null>(null);
 
 const MindmapView = defineAsyncComponent(() => import('./MindmapView.vue'));
@@ -409,6 +410,10 @@ function onEditorFindEvent(e: Event) {
   // No paneId → the focused pane handles it.
   if (paneId && paneId !== props.paneId) return;
   if (!paneId && !isFocused.value) return;
+  if (isMindmap.value) {
+    mindmapRef.value?.openFind?.();
+    return;
+  }
   const ed = editorRef.value as unknown as { openFind?: () => void } | null;
   ed?.openFind?.();
 }
@@ -461,7 +466,7 @@ function onPreviewSearchEvent(e: Event) {
     }"
   >
     <div class="pane pane--mindmap" v-if="isMindmap && tab">
-      <MindmapView :key="tab.id" :tab="tab" />
+      <MindmapView :key="tab.id" ref="mindmapRef" :tab="tab" />
     </div>
     <div class="pane pane--editor" v-if="showEditor && tab">
       <Editor

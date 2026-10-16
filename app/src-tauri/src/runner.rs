@@ -10,6 +10,9 @@ mod search;
 #[path = "replace.rs"]
 mod replace;
 
+#[path = "mmap_text.rs"]
+mod mmap_text;
+
 #[path = "set_default.rs"]
 mod set_default;
 

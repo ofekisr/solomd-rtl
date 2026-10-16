@@ -16,6 +16,7 @@ import { planTotals, useFolderReplace } from '../composables/useFolderReplace';
 import { useToastsStore } from '../stores/toasts';
 import RegexKeyboard, { type RegexToken } from './RegexKeyboard.vue';
 import type { FolderSearchPreset } from '../lib/folder-search';
+import { requestMindmapReveal } from '../lib/mindmap-reveal';
 import { useFiles } from '../composables/useFiles';
 import { useTabsStore } from '../stores/tabs';
 import { useTilesStore } from '../stores/tiles';
@@ -194,6 +195,10 @@ function shortPath(p: string) {
 async function openHit(hit: SearchHit) {
   try {
     await files.openPath(hit.file);
+    if (hit.nodeId) {
+      requestMindmapReveal(hit.file, hit.nodeId);
+      return;
+    }
     nextTick(() => {
       window.dispatchEvent(
         new CustomEvent('solomd:outline-goto', {
@@ -353,14 +358,14 @@ function onKey(e: KeyboardEvent) {
           >⇄</button>
         </div>
         <div
-          v-for="hit in fileHits"
-          :key="hit.line"
+          v-for="(hit, i) in fileHits"
+          :key="i"
           class="sp__hit"
           :class="{ 'sp__hit--active': hits.indexOf(hit) === selectedIdx }"
           @click="openHit(hit)"
           @mouseenter="selectedIdx = hits.indexOf(hit)"
         >
-          <span class="sp__lineno">L{{ hit.line }}</span>
+          <span class="sp__lineno">{{ hit.field ?? `L${hit.line}` }}</span>
           <span class="sp__lines">
             <span
               class="sp__snippet"
