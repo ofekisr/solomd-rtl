@@ -1,5 +1,5 @@
-import { readdir, readFile, rename, writeFile } from 'node:fs/promises';
-import { isAbsolute, join, relative, resolve } from 'node:path';
+import { readdir, readFile, realpath, rename, unlink, writeFile } from 'node:fs/promises';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import type { MindElixirData, NodeObj } from 'mind-elixir';
 import { MMAP_EXTENSION, parseMindmap, rootTopicFromFileName, serializeMindmap } from '../../app/src/lib/mindmap-format.ts';
 import type { MapDisplay } from '../../app/src/lib/mindmap-display.ts';
@@ -10,11 +10,24 @@ import type { ServerConfig } from './config.ts';
 export interface MapDoc { data: MindElixirData; display: MapDisplay; snippets: Snippet[] }
 
 const TMP_SUFFIX = '.mcp-tmp';
+const NOT_FOUND = 'ENOENT';
+const PARENT = '..';
+let tmpCounter = 0;
+
+function isOutside(root: string, target: string): boolean {
+  const rel = relative(root, target);
+  return rel === PARENT || rel.startsWith(PARENT + sep) || isAbsolute(rel);
+}
+
+function errorCode(error: unknown): string | undefined {
+  return (error as NodeJS.ErrnoException).code;
+}
 const MAX_SCAN_DEPTH = 6;
 
 export class MapStore {
   private readonly cfg: ServerConfig;
   private readonly root: string;
+  private realRootPromise?: Promise<string>;
 
   constructor(cfg: ServerConfig) {
     this.cfg = cfg;
@@ -23,24 +36,59 @@ export class MapStore {
 
   resolve(file: string): string {
     const abs = resolve(this.root, file);
-    const rel = relative(this.root, abs);
-    if (rel.startsWith('..') || isAbsolute(rel)) throw new Error(`"${file}" must be inside the workspace ${this.root}`);
+    if (isOutside(this.root, abs)) throw this.outside(file);
     if (!abs.endsWith(`.${MMAP_EXTENSION}`)) throw new Error(`"${file}" is not a .${MMAP_EXTENSION} file`);
     return abs;
   }
 
-  async load(file: string): Promise<MapDoc> {
+  private outside(file: string): Error {
+    return new Error(`"${file}" must be inside the workspace ${this.root}`);
+  }
+
+  private async realRoot(): Promise<string> {
+    this.realRootPromise ??= realpath(this.root);
+    return this.realRootPromise;
+  }
+
+  async resolveReal(file: string): Promise<string> {
     const abs = this.resolve(file);
-    const parsed = parseMindmap(await readFile(abs, 'utf8'), rootTopicFromFileName(abs));
+    const root = await this.realRoot();
+    try {
+      if (isOutside(root, await realpath(abs))) throw this.outside(file);
+    } catch (error) {
+      if (errorCode(error) !== NOT_FOUND) throw error;
+      if (isOutside(root, await realpath(dirname(abs)))) throw this.outside(file);
+    }
+    return abs;
+  }
+
+  private async readMap(file: string, abs: string): Promise<string> {
+    try {
+      return await readFile(abs, 'utf8');
+    } catch (error) {
+      if (errorCode(error) === NOT_FOUND) throw new Error(`Map not found: ${file}`);
+      throw error;
+    }
+  }
+
+  async load(file: string): Promise<MapDoc> {
+    const abs = await this.resolveReal(file);
+    const parsed = parseMindmap(await this.readMap(file, abs), rootTopicFromFileName(abs));
     if (!parsed.ok) throw new Error(`${file}: ${parsed.error}`);
     return { data: parsed.data, display: parsed.display, snippets: parsed.snippets };
   }
 
   async save(file: string, doc: MapDoc): Promise<void> {
     this.assertWritable();
-    const abs = this.resolve(file);
-    await writeFile(abs + TMP_SUFFIX, serializeMindmap(doc.data, doc.display, doc.snippets));
-    await rename(abs + TMP_SUFFIX, abs);
+    const abs = await this.resolveReal(file);
+    const tmp = `${abs}.${process.pid}.${tmpCounter++}${TMP_SUFFIX}`;
+    try {
+      await writeFile(tmp, serializeMindmap(doc.data, doc.display, doc.snippets), { flag: 'wx' });
+      await rename(tmp, abs);
+    } catch (error) {
+      await unlink(tmp).catch(() => undefined);
+      throw error;
+    }
   }
 
   assertWritable(): void {
