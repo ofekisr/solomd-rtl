@@ -4,7 +4,7 @@ import { inlineFencePlugin } from './inline-fence';
 import { isTerminalLang, renderTerminalBlock } from './terminal-block';
 import type Token from 'markdown-it/lib/token.mjs';
 import type Renderer from 'markdown-it/lib/renderer.mjs';
-import hljs from 'highlight.js/lib/common';
+import hljs from './hljs-languages';
 import 'katex/contrib/mhchem';
 // @ts-ignore — types are loose
 import katex from '@vscode/markdown-it-katex';

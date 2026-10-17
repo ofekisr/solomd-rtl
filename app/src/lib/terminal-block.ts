@@ -16,8 +16,11 @@
 export const TERMINAL_LANGS: ReadonlySet<string> = new Set(['terminal', 'console', 'shell-session']);
 
 const DEFAULT_TITLE = 'Terminal';
-const CONTINUATION_RE = /\\\s*$/;
-const PROMPT_RE = /^((?:[\w.-]+@[\w.-]+(?::\S*)?\s?)?[$%#❯➜]|PS(?: [^>\n]*)?>)(\s|$)(.*)$/;
+export const CONTINUATION_RE = /\\\s*$/;
+const PROMPT_SOURCE = String.raw`((?:[\w.-]+@[\w.-]+(?::\S*)?\s?)?[$%#❯➜]|PS(?: [^>\n]*)?>)(\s|$)`;
+/** Just the prompt (and the space after it), for the code editor's stream mode. */
+export const PROMPT_HEAD_RE = new RegExp(`^${PROMPT_SOURCE}`);
+const PROMPT_RE = new RegExp(`^${PROMPT_SOURCE}(.*)$`);
 
 export type TerminalLine =
   | { kind: 'command'; prompt: string; text: string }

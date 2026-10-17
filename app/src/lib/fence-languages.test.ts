@@ -3,7 +3,7 @@ import { test } from 'node:test';
 
 import { CompletionContext } from '@codemirror/autocomplete';
 import { EditorState } from '@codemirror/state';
-import hljs from 'highlight.js/lib/common';
+import hljs from './hljs-languages.ts';
 
 import { fenceLanguageComplete } from './cm-fence-completion.ts';
 import { codeLanguages } from './code-languages.ts';
@@ -45,11 +45,22 @@ test('no row lists its own name as an alias', () => {
 test('the preview-only rows are languages highlight.js really resolves', () => {
   const core = new Set(codeLanguages.map((l) => l.name));
   const extra = FENCE_LANGUAGES.filter((l) => !l.special && !core.has(l.name));
-  assert.ok(extra.length >= 15, 'expected the preview-only group to be present');
+  assert.ok(extra.length >= 3, 'expected the preview-only group to be present');
   for (const lang of extra) {
     assert.ok(hljs.getLanguage(lang.name), `highlight.js cannot render ${lang.name}`);
     for (const alias of lang.aliases) {
       assert.ok(hljs.getLanguage(alias), `highlight.js cannot render ${alias} (${lang.name})`);
+    }
+  }
+});
+
+const NO_HLJS_GRAMMAR = new Set(['terminal', 'hcl', 'pug', 'sparql', 'cypher']);
+
+test('every editor language also highlights in the preview', () => {
+  for (const lang of codeLanguages) {
+    if (NO_HLJS_GRAMMAR.has(lang.name)) continue;
+    for (const spelling of [lang.name, ...lang.alias]) {
+      assert.ok(hljs.getLanguage(spelling), `highlight.js cannot render ${spelling} (${lang.name})`);
     }
   }
 });

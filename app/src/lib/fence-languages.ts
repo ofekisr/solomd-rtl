@@ -78,7 +78,9 @@ const SPECIAL_FENCES: FenceLanguage[] = [
 
 /** `LanguageDescription.of()` appends the name to `alias`, so drop it here —
  *  otherwise the hint for python would read "py, python". */
-const CODE_LANGUAGES: FenceLanguage[] = codeLanguages.map((lang) => {
+const SPECIAL_NAMES = new Set(SPECIAL_FENCES.map((fence) => fence.name));
+
+const CODE_LANGUAGES: FenceLanguage[] = codeLanguages.filter((lang) => !SPECIAL_NAMES.has(lang.name)).map((lang) => {
   const aliases = (lang.alias ?? []).filter((a) => a !== lang.name);
   return {
     name: lang.name,
@@ -88,30 +90,14 @@ const CODE_LANGUAGES: FenceLanguage[] = codeLanguages.map((lang) => {
   };
 });
 
-/** Checked against `highlight.js/lib/common` (36 languages): every name and
- *  alias below resolves there, and `fence-languages.test.ts` keeps it that way
- *  so the picker cannot start promising languages the preview silently
- *  ignores. */
+/** highlight.js languages the code editor has no grammar for. Every name and
+ *  alias below resolves in `hljs-languages.ts`, and `fence-languages.test.ts`
+ *  keeps it that way so the picker cannot start promising languages the
+ *  preview silently ignores. */
 const PREVIEW_ONLY: Array<[string, string[]]> = [
-  ['csharp', ['cs']],
-  ['diff', []],
-  ['graphql', ['gql']],
-  ['ini', ['toml']],
-  ['kotlin', ['kt']],
-  ['less', []],
-  ['lua', []],
   ['makefile', ['make']],
   ['markdown', ['md']],
-  ['objectivec', ['objc']],
-  ['perl', ['pl']],
-  ['php', []],
   ['plaintext', ['text', 'txt']],
-  ['r', []],
-  ['ruby', ['rb']],
-  ['scss', []],
-  ['swift', []],
-  ['vbnet', ['vb']],
-  ['wasm', []],
 ];
 
 export const FENCE_LANGUAGES: FenceLanguage[] = [
