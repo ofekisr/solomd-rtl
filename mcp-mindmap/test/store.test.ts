@@ -6,9 +6,10 @@ import { join } from 'node:path';
 import { workspace } from './fixtures.ts';
 import { parseArgs } from '../src/config.ts';
 
-test('parseArgs reads workspace and allow-write', () => {
+test('parseArgs reads workspace and allow-write, defaulting to cwd', () => {
   assert.deepEqual(parseArgs(['--workspace', '/w', '--allow-write']), { workspace: '/w', allowWrite: true });
-  assert.throws(() => parseArgs([]), /--workspace/);
+  assert.deepEqual(parseArgs(['--allow-write'], '/proj'), { workspace: '/proj', allowWrite: true });
+  assert.throws(() => parseArgs(['--workspace']), /--workspace/);
 });
 
 test('resolve refuses escapes and non-mmap files', async () => {

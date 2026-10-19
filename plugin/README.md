@@ -10,13 +10,13 @@ pnpm --dir mcp-mindmap install
 claude --plugin-dir ./plugin
 ```
 
-Requires Node ≥ 22.18. Set `SOLOMD_WORKSPACE` to your notes folder (default: the project dir).
+Requires Node ≥ 22.18. The workspace is the folder you start `claude` in, like opening a folder in VS Code.
 
 ## Configuration
 
 `.mcp.json` configures the MCP server connection:
 
-- `--workspace`: folder containing `.mmap` files
+- `--workspace <dir>`: optional; pin the server to one folder instead of the current one
 - `--allow-write`: enables create/edit/remove/mark/legend/bind tools (read-only if omitted)
 
 The plugin works from this repo checkout (`--plugin-dir`), not from a copied marketplace install, because `.mcp.json` references `../mcp-mindmap`.

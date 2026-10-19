@@ -4,8 +4,6 @@
       "command": "node",
       "args": [
         "${CLAUDE_PLUGIN_ROOT}/../mcp-mindmap/src/index.ts",
-        "--workspace",
-        "${SOLOMD_WORKSPACE:-${CLAUDE_PROJECT_DIR}}",
         "--allow-write"
       ]
     }
