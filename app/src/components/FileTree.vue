@@ -1475,7 +1475,7 @@ onBeforeUnmount(() => {
       @mousedown="onResizeStart"
     />
     <div class="ftree__header">
-      <span>{{ t('explorer.heading') }}</span>
+      <span class="ftree__header-title">{{ t('explorer.heading') }}</span>
       <div class="ftree__header-btns">
         <button
           class="ftree__hbtn"
@@ -2098,12 +2098,26 @@ export const FileTreeNode = defineComponent({
   color: var(--text-muted);
   border-bottom: 1px solid var(--border);
 }
+.ftree__header {
+  gap: 6px;
+  padding-inline: 10px 8px;
+}
+.ftree__header-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .ftree__header-btns {
   display: flex;
-  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  max-width: 100%;
+  gap: 1px;
 }
 .ftree__hbtn {
-  padding: 0 6px;
+  padding: 0 4px;
   font-size: 13px;
   color: var(--text-muted);
   background: transparent;
