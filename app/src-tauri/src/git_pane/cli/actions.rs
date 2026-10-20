@@ -1715,6 +1715,8 @@ async fn route_action(
                 if created.exit_code != Some(0) {
                     run(vec![s_arg("checkout"), s_arg(t)]).await?;
                 }
+            } else if meta_bool(meta, "force") {
+                run(vec![s_arg("checkout"), s_arg("-f"), s_arg(t)]).await?;
             } else {
                 run(vec![s_arg("checkout"), s_arg(t)]).await?;
             }

@@ -133,3 +133,25 @@ async fn valid_revisions_still_work_with_end_of_options() {
     let rebase = fetch_rebase_commits(dir.path(), "HEAD~1").await.unwrap();
     assert_eq!(rebase.commits.len(), 1);
 }
+
+#[tokio::test]
+async fn forced_checkout_discards_conflicting_local_changes() {
+    let dir = temp_repo();
+    git(dir.path(), &["checkout", "-q", "-b", "other"]);
+    std::fs::write(dir.path().join("a.md"), "other\n").unwrap();
+    git(dir.path(), &["commit", "-qam", "other change"]);
+    git(dir.path(), &["checkout", "-q", "main"]);
+    std::fs::write(dir.path().join("a.md"), "dirty\n").unwrap();
+    let plain = run(dir.path(), "checkout", Some("other"), serde_json::json!({})).await;
+    assert!(!plain.ok);
+    let forced = run(dir.path(), "checkout", Some("other"), serde_json::json!({ "force": true })).await;
+    assert!(forced.ok, "{}", forced.message);
+    assert_eq!(git(dir.path(), &["rev-parse", "--abbrev-ref", "HEAD"]).trim(), "other");
+}
+
+#[tokio::test]
+async fn forced_checkout_rejects_option_like_target() {
+    let dir = temp_repo();
+    let env = run(dir.path(), "checkout", Some("--orphan=x"), serde_json::json!({ "force": true })).await;
+    assert!(!env.ok);
+}
