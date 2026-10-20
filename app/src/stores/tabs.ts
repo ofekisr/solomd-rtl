@@ -6,6 +6,8 @@ import { useTilesStore } from './tiles';
 import { useWritingSessionStore } from './writingSession';
 import { useWindowsStore } from './windows';
 import { stampGoalSetAtIfMissing } from '../composables/useWritingGoals';
+import { compactTabs, expandTabs, setItemWithEviction } from '../lib/tab-persistence';
+import { sessionKey } from '../lib/cm-session-restore';
 
 // Legacy / global key (used when per-workspace tabs is OFF, and as the
 // migration source on first upgrade).
@@ -96,6 +98,28 @@ function currentWorkspaceFolder(): string | null {
   return null;
 }
 
+function recentWorkspaceFolders(): string[] {
+  try {
+    const w = JSON.parse(localStorage.getItem('solomd.workspace.v1') || 'null');
+    if (w && Array.isArray(w.recentFolders)) return w.recentFolders.filter((f: unknown) => typeof f === 'string');
+  } catch {}
+  return [];
+}
+
+function writeBucket(key: string, state: PersistedState): void {
+  setItemWithEviction(
+    localStorage,
+    key,
+    JSON.stringify({ tabs: compactTabs(state.tabs), activeId: state.activeId }),
+    {
+      bucketPrefix: LS_BUCKET_PREFIX,
+      sessionPrefix: sessionKey(''),
+      recentBucketKeys: recentWorkspaceFolders().map(bucketKey),
+      liveTabIds: new Set(state.tabs.map((t) => t.id)),
+    },
+  );
+}
+
 /** localStorage key for a workspace's tab bucket. Falls back to the single
  *  global key when per-workspace scoping is off. Auxiliary windows (#103)
  *  get a per-window suffix so they don't share a bucket with the main window
@@ -127,7 +151,7 @@ function readBucket(key: string): PersistedState | null {
     const raw = localStorage.getItem(key);
     if (raw) {
       const data = JSON.parse(raw) as PersistedState;
-      if (Array.isArray(data.tabs)) return { tabs: data.tabs, activeId: data.activeId || '' };
+      if (Array.isArray(data.tabs)) return { tabs: expandTabs(data.tabs), activeId: data.activeId || '' };
     }
   } catch {}
   return null;
@@ -393,12 +417,7 @@ export const useTabsStore = defineStore('tabs', {
       if (value) useSettingsStore().ensureRightSidebarVisible();
     },
     persist() {
-      try {
-        localStorage.setItem(
-          bucketKey(currentWorkspaceFolder()),
-          JSON.stringify({ tabs: this.tabs, activeId: this.activeId }),
-        );
-      } catch {}
+      writeBucket(bucketKey(currentWorkspaceFolder()), { tabs: this.tabs, activeId: this.activeId });
     },
     /** #103 — when this is an auxiliary window, record it in the shared
      *  windows registry so the main window re-spawns it on the next launch.
@@ -419,12 +438,7 @@ export const useTabsStore = defineStore('tabs', {
      *  leaving a workspace, so it's remembered when the user returns). */
     persistToFolder(folder: string | null) {
       if (!perWorkspaceTabsEnabled()) return this.persist();
-      try {
-        localStorage.setItem(
-          bucketKey(folder),
-          JSON.stringify({ tabs: this.tabs, activeId: this.activeId }),
-        );
-      } catch {}
+      writeBucket(bucketKey(folder), { tabs: this.tabs, activeId: this.activeId });
     },
     /** Called by the workspace store when the active folder changes. Saves
      *  the current view into the previous workspace's bucket, then swaps in
