@@ -17,6 +17,13 @@ let refreshTimer: ReturnType<typeof setTimeout> | null = null
 let generation = 0
 let runQueue: Promise<unknown> = Promise.resolve()
 
+function enqueue(job: () => Promise<boolean>): Promise<boolean> {
+  const gen = generation
+  const result = runQueue.then(() => (gen === generation ? job() : false))
+  runQueue = result.catch(() => undefined)
+  return result
+}
+
 function svc(): GitPaneService {
   service ??= getGitPaneService()
   return service
@@ -129,9 +136,7 @@ export const useGitPaneStore = defineStore('gitPane', {
       }
     },
     run(action: GitPaneAction): Promise<boolean> {
-      const result = runQueue.then(() => this.execute(action))
-      runQueue = result.catch(() => undefined)
-      return result
+      return enqueue(() => this.execute(action))
     },
     async execute(action: GitPaneAction): Promise<boolean> {
       this.busyOp = action.kind
@@ -152,23 +157,28 @@ export const useGitPaneStore = defineStore('gitPane', {
       }
     },
     async stageIncluded(): Promise<boolean> {
-      for (const path of this.included) {
+      const gen = generation
+      for (const path of [...this.included]) {
+        if (gen !== generation) return false
         const isAlreadyStaged = this.stagedFiles.some((f) => f.path === path)
-        if (!isAlreadyStaged && !(await this.run({ kind: 'stage', target: path }))) return false
+        if (!isAlreadyStaged && !(await this.execute({ kind: 'stage', target: path }))) return false
       }
       return true
     },
-    async commit(opts: { push: boolean; force?: boolean }): Promise<boolean> {
-      if (!this.canCommit) return false
-      if (!(await this.stageIncluded())) return false
+    commit(opts: { push: boolean; force?: boolean }): Promise<boolean> {
+      if (!this.canCommit) return Promise.resolve(false)
       const kind: GitPaneActionKind = opts.push ? (opts.force ? 'commit-and-force-push' : 'commit-and-push') : (this.amend ? 'amend' : 'commit')
-      const ok = await this.run({ kind, meta: { message: this.message.trim(), amend: this.amend } })
-      if (ok) {
-        this.message = ''
-        this.amend = false
-        this.included = []
-      }
-      return ok
+      const meta = { message: this.message.trim(), amend: this.amend }
+      return enqueue(async () => {
+        if (!(await this.stageIncluded())) return false
+        const ok = await this.execute({ kind, meta })
+        if (ok) {
+          this.message = ''
+          this.amend = false
+          this.included = []
+        }
+        return ok
+      })
     },
     async selectCommit(sha: string | null): Promise<void> {
       this.selectedSha = sha

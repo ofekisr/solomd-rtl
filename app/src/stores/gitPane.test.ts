@@ -163,3 +163,26 @@ test('selectCommit and loadMoreCommits record errors instead of throwing', async
   await store.loadMoreCommits()
   assert.ok(store.lastError)
 })
+
+test('a queued run is dropped when the folder changes before it starts', async () => {
+  const { store, svc } = storeWith()
+  await store.open('/repo')
+  const stale = store.run({ kind: 'push' })
+  const reopen = store.open('/b')
+  assert.equal(await stale, false)
+  await reopen
+  assert.deepEqual(svc.calls, [])
+  assert.equal(store.busyOp, null)
+  assert.equal(store.lastError, null)
+})
+
+test('commit runs stage + commit as one unit before later queued actions', async () => {
+  const { store, svc } = storeWith()
+  await store.open('/repo')
+  store.toggleIncluded('README.md')
+  store.message = 'docs: x'
+  const commit = store.commit({ push: false })
+  const other = store.run({ kind: 'fetch' })
+  assert.deepEqual(await Promise.all([commit, other]), [true, true])
+  assert.deepEqual(svc.calls.map((c) => c.kind), ['stage', 'commit', 'fetch'])
+})
