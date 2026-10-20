@@ -37,6 +37,7 @@ import { useGithubSyncStore } from '../stores/githubSync';
 import { useGithubSync } from './useGithubSync';
 import { IS_APP_STORE_BUILD } from '../lib/app-build';
 import { hasGitBackend } from '../lib/platform';
+import { useGitPaneStore } from '../stores/gitPane';
 
 export interface Command {
   id: string;
@@ -255,6 +256,11 @@ export function useCommands(): Command[] {
     { id: 'view.toggleTypesPanel', title: 'View: Toggle Types Pane', hint: 'Type-driven sidebar — notes with `type:<Name>` grouped into collapsible first-class sections (types-as-lenses)', run: () => settings.toggleTypesPanel() },
     { id: 'type.create', title: 'Types: New Type…', hint: 'Create a type-definition note (`type: Type`) so its members get a first-class sidebar section', run: () => { if (!settings.showTypesPanel) settings.toggleTypesPanel(); window.dispatchEvent(new CustomEvent('solomd:create-type')); } },
     { id: 'view.toggleHistoryPanel', title: 'View: Toggle History Pane', hint: 'Show / hide the per-note version history pane (does not disable Auto-Git)', run: () => settings.toggleHistoryPanel() },
+    { id: 'git.toggleCommit', title: 'Git: Toggle Commit Panel', hint: 'Changed files, commit message, Commit / Commit and Push', shortcut: kb('git.toggleCommit'), run: () => settings.toggleGitCommit() },
+    { id: 'git.toggleLog', title: 'Git: Toggle Log', hint: 'Branches, commit graph and commit details in the bottom dock', shortcut: kb('git.toggleLog'), run: () => settings.toggleGitLog() },
+    { id: 'git.push', title: 'Git: Push…', hint: 'Push the current branch to its upstream', shortcut: kb('git.push'), run: () => window.dispatchEvent(new CustomEvent('gitpane:open-push')) },
+    { id: 'git.update', title: 'Git: Update Project', hint: 'Pull the current branch', shortcut: kb('git.update'), run: () => { void useGitPaneStore().run({ kind: 'pull' }); } },
+    { id: 'git.fetch', title: 'Git: Fetch', hint: 'Fetch all remotes', run: () => { void useGitPaneStore().run({ kind: 'fetch' }); } },
     { id: 'view.toggleInspector', title: 'View: Toggle Properties Inspector', shortcut: kb('view.toggleInspector'), hint: 'Edit the active note’s YAML frontmatter as typed properties (text / number / date / status / tags / relation)', run: () => settings.toggleInspector() },
     { id: 'view.resetSidebarPanes', title: 'View: Reset Sidebar Pane Heights', hint: 'Clear stored per-pane heights so the right sidebar returns to even-share flex layout', run: () => settings.clearRightSidebarPaneHeights() },
     { id: 'view.toggleWrap', title: 'View: Toggle Word Wrap', run: () => settings.toggleWordWrap() },
@@ -797,10 +803,12 @@ export function useCommands(): Command[] {
   // Quick capture is a desktop window opened by an OS-level hotkey; neither
   // half exists on a phone, so the command would only ever fail there.
   const desktopOnly = isMobile() ? built.filter((c) => c.id !== 'capture.quick') : built;
+  const isGitPaneAvailable = hasGitBackend() && settings.enableGitPane;
+  const visible = isGitPaneAvailable ? desktopOnly : desktopOnly.filter((c) => !c.id.startsWith('git.'));
   if (!hasGitBackend()) {
-    return desktopOnly.filter(
+    return visible.filter(
       (c) => !c.id.startsWith('history.') && !c.id.startsWith('sync.'),
     );
   }
-  return desktopOnly;
+  return visible;
 }

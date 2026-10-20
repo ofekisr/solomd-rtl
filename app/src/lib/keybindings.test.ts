@@ -94,3 +94,11 @@ test('mindmap rebinds that hit a Mind Elixir built-in are conflicts', () => {
   assert.equal(conflictFor('Mod+Z', 'mindmap.toggleNode', {}), MINDMAP_BUILTIN_OWNER);
   assert.notEqual(conflictFor('Tab', 'file.new', {}), MINDMAP_BUILTIN_OWNER);
 });
+
+test('git shortcuts do not collide with existing defaults', () => {
+  for (const id of ['git.toggleCommit', 'git.toggleLog', 'git.push', 'git.update']) {
+    const action = KEY_ACTIONS.find((a) => a.id === id);
+    assert.ok(action, id);
+    for (const combo of action.defaults) assert.equal(conflictFor(combo, id, {}), null, `${id} ${combo}`);
+  }
+});

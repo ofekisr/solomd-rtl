@@ -22,7 +22,7 @@ import { MINDMAP_BUILTIN_COMBOS } from './mindmap-keymap.ts';
 
 export type KeyCombo = string;
 
-export type KeyScope = 'global' | 'mindmap';
+export type KeyScope = 'global' | 'mindmap' | 'gitCommit';
 
 export interface KeyActionDef {
   /** Stable id — matches the command registry's id where one exists. */
@@ -148,6 +148,11 @@ export const KEY_ACTIONS: KeyActionDef[] = [
   { id: 'view.toggleOutline', label: 'Toggle Outline', category: 'view', defaults: ['Mod+Shift+O'] },
   { id: 'view.toggleInspector', label: 'Toggle Properties Inspector', category: 'view', defaults: ['Mod+Shift+I'] },
   { id: 'view.toggleToolbar', label: 'Show / Hide Toolbar Buttons', category: 'view', defaults: ['Mod+Alt+Shift+T'] },
+  { id: 'git.toggleCommit', label: 'Git: Commit Panel', category: 'view', defaults: ['Mod+0'] },
+  { id: 'git.toggleLog', label: 'Git: Log', category: 'view', defaults: ['Mod+9'] },
+  { id: 'git.commit', label: 'Git: Commit', category: 'tools', scope: 'gitCommit', defaults: ['Mod+Enter'] },
+  { id: 'git.push', label: 'Git: Push…', category: 'tools', defaults: ['Mod+Shift+U'] },
+  { id: 'git.update', label: 'Git: Update Project', category: 'tools', defaults: ['Mod+Alt+U'] },
   { id: 'view.slideshow', label: 'Slideshow', category: 'view', defaults: ['Mod+Alt+P'] },
   // Folding. The chords mirror CodeMirror's own fold keymap so the muscle
   // memory carries over — but they are handled at app level, which is what

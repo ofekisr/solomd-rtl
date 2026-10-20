@@ -222,6 +222,10 @@ interface Settings {
    *  during conflict resolution). Defaults to true so existing AutoGit
    *  users see no behavior change. */
   showHistoryPanel: boolean;
+  enableGitPane: boolean;
+  showGitCommit: boolean;
+  showGitLog: boolean;
+  gitDockHeight: number;
   /** v4.6 F1 — show the Properties inspector pane (frontmatter editor) in the
    *  right sidebar. Toggled via ⌘⇧I / command palette. */
   showInspector: boolean;
@@ -649,6 +653,10 @@ function defaults(): Settings {
     autoGitEnabled: false,
     autoGitDebounceSeconds: 30,
     showHistoryPanel: true,
+    enableGitPane: true,
+    showGitCommit: false,
+    showGitLog: false,
+    gitDockHeight: 280,
     showInspector: false,
     rightSidebarPaneHeights: {},
     ragEnabled: false,
@@ -1283,6 +1291,18 @@ export const useSettingsStore = defineStore('settings', {
     toggleHistoryPanel() {
       this.showHistoryPanel = !this.showHistoryPanel;
       if (this.showHistoryPanel) this.ensureRightSidebarVisible();
+      this.persist();
+    },
+    toggleGitCommit() {
+      this.showGitCommit = !this.showGitCommit;
+      this.persist();
+    },
+    toggleGitLog() {
+      this.showGitLog = !this.showGitLog;
+      this.persist();
+    },
+    setGitDockHeight(px: number) {
+      this.gitDockHeight = Math.round(px);
       this.persist();
     },
     /** v4.6 F1 — toggle the Properties inspector pane (⌘⇧I). */
