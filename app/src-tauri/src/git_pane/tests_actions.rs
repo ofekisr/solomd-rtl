@@ -122,7 +122,14 @@ async fn valid_revisions_still_work_with_end_of_options() {
     assert!(!diff.hunks.is_empty());
     let commit = fetch_diff(dir.path(), &diff_request(DiffSource::Commit, "HEAD")).await.unwrap();
     assert!(!commit.hunks.is_empty());
-    assert!(fetch_blame(dir.path(), &DiffSource::Commit, "a.md", Some("HEAD"), None).await.is_ok());
-    assert!(!fetch_compare_files(dir.path(), "HEAD~1", "HEAD").await.unwrap().is_empty());
-    assert!(fetch_rebase_commits(dir.path(), "HEAD~1").await.is_ok());
+    let blame = fetch_blame(dir.path(), &DiffSource::Commit, "a.md", Some("HEAD"), None).await.unwrap();
+    assert_eq!(blame.lines.len(), 1);
+    assert_eq!(blame.lines[0].content, "two");
+    let old_blame = fetch_blame(dir.path(), &DiffSource::Commit, "a.md", Some("HEAD~1"), None).await.unwrap();
+    assert_eq!(old_blame.lines[0].content, "one");
+    let files = fetch_compare_files(dir.path(), "HEAD~1", "HEAD").await.unwrap();
+    assert_eq!(files.len(), 1);
+    assert_eq!(files[0].path, "a.md");
+    let rebase = fetch_rebase_commits(dir.path(), "HEAD~1").await.unwrap();
+    assert_eq!(rebase.commits.len(), 1);
 }

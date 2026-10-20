@@ -5,14 +5,13 @@ use std::path::Path;
 
 use crate::git_pane::cli::actions::checked_rev;
 
-const END_OF_OPTIONS: &str = "--end-of-options";
-
 use crate::git_pane::cli::git::{
     BlameResult, ConflictBlock, ConflictResult, ConflictVersions, DiffHunk, DiffLine, DiffLineType,
     DiffResult, FileHistoryEntry, FileHistoryResult, GitError, RebaseCommitEntry,
     RebaseCommitsResult, SearchCommitHit, SearchResults, WireBlameLine, WireWorkingTreeFile,
 };
 use crate::git_pane::cli::refs::parse_numstat;
+use crate::git_pane::cli::git::END_OF_OPTIONS;
 
 pub const REBASE_LOG_FORMAT: &str = "%H\x1f%h\x1f%s\x1f%an\x1f%at\x1e";
 
@@ -741,14 +740,20 @@ pub async fn fetch_blame(
         ),
     };
     let mut args = head;
-    if let Some(rev) = middle {
-        args.push(END_OF_OPTIONS.to_string());
-        args.push(rev);
+    // After --end-of-options blame no longer accepts `--`, so the path follows the rev directly.
+    match middle {
+        Some(rev) => {
+            args.push(END_OF_OPTIONS.to_string());
+            args.push(rev);
+        }
+        None => args.push("--".to_string()),
     }
-    args.push("--".to_string());
     args.push(safe_path.clone());
     let arg_refs: Vec<&str> = args.iter().map(String::as_str).collect();
-    let (_, stdout, _) = git_text(cwd, &arg_refs).await?;
+    let (ok, stdout, stderr) = git_text(cwd, &arg_refs).await?;
+    if !ok {
+        return Err(GitError::unknown(format!("git blame failed: {}", stderr.trim())));
+    }
     Ok(BlameResult {
         path: safe_path.clone(),
         language: guess_language(&safe_path),
@@ -919,10 +924,15 @@ pub async fn fetch_commit_files(
     let numstat_refs: Vec<&str> = numstat_args.iter().map(String::as_str).collect();
     let (name_status, numstat) =
         tokio::join!(git_text(cwd, &tree_refs), git_text(cwd, &numstat_refs));
-    Ok(parse_commit_files(
-        &name_status.unwrap_or_default().1,
-        &numstat.unwrap_or_default().1,
-    ))
+    let (name_ok, name_status, name_err) = name_status?;
+    let (numstat_ok, numstat, numstat_err) = numstat?;
+    if !name_ok || !numstat_ok {
+        return Err(GitError::unknown(format!(
+            "git diff failed: {}",
+            format!("{name_err}{numstat_err}").trim()
+        )));
+    }
+    Ok(parse_commit_files(&name_status, &numstat))
 }
 
 pub async fn fetch_compare_files(
@@ -937,10 +947,15 @@ pub async fn fetch_compare_files(
     let numstat_args = ["diff", "--numstat", "-z", END_OF_OPTIONS, &from_sha, &to_sha];
     let (name_status, numstat) =
         tokio::join!(git_text(cwd, &tree_args), git_text(cwd, &numstat_args));
-    Ok(parse_commit_files(
-        &name_status.unwrap_or_default().1,
-        &numstat.unwrap_or_default().1,
-    ))
+    let (name_ok, name_status, name_err) = name_status?;
+    let (numstat_ok, numstat, numstat_err) = numstat?;
+    if !name_ok || !numstat_ok {
+        return Err(GitError::unknown(format!(
+            "git diff failed: {}",
+            format!("{name_err}{numstat_err}").trim()
+        )));
+    }
+    Ok(parse_commit_files(&name_status, &numstat))
 }
 
 pub async fn fetch_rebase_commits(cwd: &Path, base: &str) -> Result<RebaseCommitsResult, GitError> {

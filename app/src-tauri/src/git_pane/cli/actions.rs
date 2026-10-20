@@ -279,6 +279,7 @@ pub async fn run_git(
     let stderr = String::from_utf8_lossy(&err_handle.await.unwrap_or_default()).into_owned();
 
     if killed {
+        tracing::debug!(target: "git_pane", argv = ?full, exit = ?None::<i32>, elapsed_ms = started.elapsed().as_millis() as u64, "git");
         return Err(if matches!(wait_end, WaitEnd::TimedOut) {
             GitError::unknown("Git command timed out.".to_string())
         } else {
