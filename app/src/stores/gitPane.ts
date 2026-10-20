@@ -14,6 +14,8 @@ const NO_REPO_CODES = new Set(['RepositoryNotFound', 'NotARepository'])
 let service: GitPaneService | null = null
 let unsubscribe: (() => void) | null = null
 let refreshTimer: ReturnType<typeof setTimeout> | null = null
+let generation = 0
+let runQueue: Promise<unknown> = Promise.resolve()
 
 function svc(): GitPaneService {
   service ??= getGitPaneService()
@@ -78,41 +80,60 @@ export const useGitPaneStore = defineStore('gitPane', {
       this.status = 'ready'
     },
     async open(folder: string | null): Promise<void> {
+      const gen = ++generation
+      if (refreshTimer) clearTimeout(refreshTimer)
+      refreshTimer = null
       this.$reset()
       if (!folder) return
       this.status = 'loading'
-      if (!(await svc().version())) {
-        this.status = 'no-git'
-        return
-      }
       try {
+        const version = await svc().version()
+        if (gen !== generation) return
+        if (!version) {
+          this.status = 'no-git'
+          return
+        }
         const res = await svc().open(folder)
+        if (gen !== generation) return
         if (res.ok && res.snapshot) return this.applySnapshot(res.snapshot)
         this.status = res.error && NO_REPO_CODES.has(res.error.code) ? 'no-repo' : 'error'
         this.lastError = res.error ? new GitPaneError(res.error.code, res.error.message) : null
       } catch (e) {
+        if (gen !== generation) return
         this.status = 'error'
         this.lastError = toGitPaneError(e)
       }
     },
     async refresh(): Promise<void> {
       if (this.status !== 'ready') return
+      const gen = generation
       try {
-        this.applySnapshot(await svc().snapshot())
+        const snap = await svc().snapshot()
+        if (gen === generation) this.applySnapshot(snap)
       } catch (e) {
-        this.lastError = toGitPaneError(e)
+        if (gen === generation) this.lastError = toGitPaneError(e)
       }
     },
     async loadMoreCommits(): Promise<void> {
       const oldest = this.commits[this.commits.length - 1]?.sha
       if (!oldest || !this.hasMoreCommits) return
-      const res = await svc().commitPage({ beforeSha: oldest, limit: PAGE_SIZE, graphScope: 'all', skip: this.commits.length })
-      const known = new Set(this.commits.map((c) => c.sha))
-      this.commits = [...this.commits, ...res.commits.filter((c) => !known.has(c.sha))]
-      this.hasMoreCommits = res.page.hasMore
+      const gen = generation
+      try {
+        const res = await svc().commitPage({ beforeSha: oldest, limit: PAGE_SIZE, graphScope: 'all', skip: this.commits.length })
+        if (gen !== generation) return
+        const known = new Set(this.commits.map((c) => c.sha))
+        this.commits = [...this.commits, ...res.commits.filter((c) => !known.has(c.sha))]
+        this.hasMoreCommits = res.page.hasMore
+      } catch (e) {
+        if (gen === generation) this.lastError = toGitPaneError(e)
+      }
     },
-    async run(action: GitPaneAction): Promise<boolean> {
-      if (this.busyOp) return false
+    run(action: GitPaneAction): Promise<boolean> {
+      const result = runQueue.then(() => this.execute(action))
+      runQueue = result.catch(() => undefined)
+      return result
+    },
+    async execute(action: GitPaneAction): Promise<boolean> {
       this.busyOp = action.kind
       this.lastError = null
       try {
@@ -126,8 +147,8 @@ export const useGitPaneStore = defineStore('gitPane', {
         this.lastError = toGitPaneError(e)
         return false
       } finally {
-        this.busyOp = null
         await this.refresh()
+        this.busyOp = null
       }
     },
     async stageIncluded(): Promise<boolean> {
@@ -151,7 +172,17 @@ export const useGitPaneStore = defineStore('gitPane', {
     },
     async selectCommit(sha: string | null): Promise<void> {
       this.selectedSha = sha
-      this.selectedFiles = sha ? await svc().commitFiles(sha) : []
+      if (!sha) {
+        this.selectedFiles = []
+        return
+      }
+      const gen = generation
+      try {
+        const files = await svc().commitFiles(sha)
+        if (gen === generation && this.selectedSha === sha) this.selectedFiles = files
+      } catch (e) {
+        if (gen === generation && this.selectedSha === sha) this.lastError = toGitPaneError(e)
+      }
     },
     toggleIncluded(path: string): void {
       this.included = this.included.includes(path) ? this.included.filter((p) => p !== path) : [...this.included, path]

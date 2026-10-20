@@ -83,3 +83,83 @@ test('changed event triggers refresh', async () => {
   await new Promise((r) => setTimeout(r, 400))
   assert.ok(store.stagedFiles.some((f) => f.path === 'README.md'))
 })
+
+test('late response for a previous folder does not overwrite the current one', async () => {
+  const { store, svc } = storeWith()
+  const realOpen = svc.open.bind(svc)
+  svc.open = async (folder: string) => {
+    if (folder === '/a') await new Promise((r) => setTimeout(r, 60))
+    const res = await realOpen(folder)
+    if (res.snapshot) res.snapshot.repository.path = folder
+    return res
+  }
+  const first = store.open('/a')
+  const second = store.open('/b')
+  await Promise.all([first, second])
+  assert.equal(store.repoRoot, '/b')
+  assert.equal(store.status, 'ready')
+})
+
+test('open cancels a pending scheduled refresh', async () => {
+  const { store, svc } = storeWith()
+  await store.open('/repo')
+  svc.emitChanged()
+  await store.open(null)
+  await new Promise((r) => setTimeout(r, 400))
+  assert.equal(store.status, 'idle')
+  assert.equal(store.snapshot, null)
+})
+
+test('concurrent run calls are queued in order and both succeed', async () => {
+  const { store, svc } = storeWith()
+  await store.open('/repo')
+  const a = store.run({ kind: 'stage', target: 'README.md' })
+  const b = store.run({ kind: 'unstage', target: 'notes/todo.md' })
+  assert.deepEqual(await Promise.all([a, b]), [true, true])
+  assert.deepEqual(svc.calls.map((c) => c.kind), ['stage', 'unstage'])
+  assert.equal(store.busyOp, null)
+})
+
+test('busyOp stays set until the post-write refresh completes', async () => {
+  const { store, svc } = storeWith()
+  await store.open('/repo')
+  let busyDuringRefresh: string | null = null
+  const realSnapshot = svc.snapshot.bind(svc)
+  svc.snapshot = async () => {
+    busyDuringRefresh = store.busyOp
+    return realSnapshot()
+  }
+  await store.run({ kind: 'stage', target: 'README.md' })
+  assert.equal(busyDuringRefresh, 'stage')
+  assert.equal(store.busyOp, null)
+})
+
+test('selectCommit keeps the latest selection when responses arrive out of order', async () => {
+  const { store, svc } = storeWith()
+  await store.open('/repo')
+  const real = svc.commitFiles.bind(svc)
+  svc.commitFiles = async (sha: string) => {
+    if (sha === 'slow') await new Promise((r) => setTimeout(r, 60))
+    const files = await real(sha)
+    return sha === 'slow' ? [] : files
+  }
+  const sha = store.commits[0].sha
+  const slow = store.selectCommit('slow')
+  const fast = store.selectCommit(sha)
+  await Promise.all([slow, fast])
+  assert.equal(store.selectedSha, sha)
+  assert.ok(store.selectedFiles.length > 0)
+})
+
+test('selectCommit and loadMoreCommits record errors instead of throwing', async () => {
+  const { store, svc } = storeWith()
+  await store.open('/repo')
+  svc.commitFiles = async () => { throw new Error('boom') }
+  svc.commitPage = async () => { throw new Error('boom') }
+  await store.selectCommit(store.commits[0].sha)
+  assert.ok(store.lastError)
+  store.lastError = null
+  store.hasMoreCommits = true
+  await store.loadMoreCommits()
+  assert.ok(store.lastError)
+})
