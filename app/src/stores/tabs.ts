@@ -465,8 +465,12 @@ export const useTabsStore = defineStore('tabs', {
      *  the current view into the previous workspace's bucket, then swaps in
      *  the new workspace's remembered tabs. Unsaved (dirty) and untitled
      *  tabs are always carried across so no in-progress work is ever lost. */
+    closeGitDiffTabs() {
+      for (const tab of this.tabs.filter((t) => t.language === 'git-diff')) this.closeTab(tab.id);
+    },
     onWorkspaceSwitched(prevFolder: string | null, newFolder: string | null) {
       const settings = useSettingsStore();
+      this.closeGitDiffTabs();
       if (!settings.perWorkspaceTabs) return;
       // Remember what was open in the workspace we're leaving.
       this.persistToFolder(prevFolder);

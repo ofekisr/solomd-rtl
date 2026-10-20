@@ -21,12 +21,17 @@ import { useTabsStore } from '../stores/tabs';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
 import { hasGitBackend } from '../lib/platform';
+import { isDiffPath } from '../lib/git-pane/diffTab';
 
 export function useAutoCommit() {
   const settings = useSettingsStore();
   const workspace = useWorkspaceStore();
   const gh = useGitHistoryStore();
   const tabs = useTabsStore();
+  const activeRealFilePath = (): string | undefined => {
+    const path = tabs.activeTab?.filePath;
+    return path && !isDiffPath(path) ? path : undefined;
+  };
   const toasts = useToastsStore();
   const { t } = useI18n();
 
@@ -61,7 +66,7 @@ export function useAutoCommit() {
     busy = true;
     try {
       if (!(await ensureInitialized(folder))) return;
-      const filePath = tabs.activeTab?.filePath ?? undefined;
+      const filePath = activeRealFilePath();
       try {
         const sha = await gh.commit(folder, filePath);
         if (sha) {
@@ -122,7 +127,7 @@ export function useAutoCommit() {
       return;
     }
     if (!(await ensureInitialized(folder))) return;
-    const filePath = tabs.activeTab?.filePath ?? undefined;
+    const filePath = activeRealFilePath();
     try {
       const sha = await gh.commit(folder, filePath);
       if (sha) {

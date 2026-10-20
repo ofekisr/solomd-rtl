@@ -18,6 +18,7 @@
  *   history.justNow, history.savedSnapshot, history.commitFailed
  */
 import { computed, onMounted, ref, watch } from 'vue';
+import { isDiffPath } from '../lib/git-pane/diffTab';
 import { useTabsStore } from '../stores/tabs';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useGitHistoryStore, type CommitMeta, type DiffResult } from '../stores/gitHistory';
@@ -38,7 +39,10 @@ const { t } = useI18n();
 
 const emit = defineEmits<{ close: [] }>();
 
-const activeFile = computed(() => tabs.activeTab?.filePath ?? null);
+const activeFile = computed(() => {
+  const path = tabs.activeTab?.filePath;
+  return path && !isDiffPath(path) ? path : null;
+});
 const folder = computed(() => workspace.currentFolder);
 
 const commits = ref<CommitMeta[]>([]);
