@@ -125,6 +125,7 @@ async function visit(url: string) {
 
       <div class="about__footer">
         © 2026 xiangdong li · MIT License<br />
+        Git pane based on <a class="about__credit-link" href="#" @click.prevent="visit('https://github.com/ftuyama/git-light')">git-light</a> by ftuyama · MIT License<br />
         Tauri 2 · Vue 3 · CodeMirror 6 · Rust
       </div>
     </div>
@@ -230,5 +231,9 @@ async function visit(url: string) {
   font-size: 10px;
   color: var(--text-faint);
   line-height: 1.7;
+}
+.about__credit-link {
+  color: inherit;
+  text-decoration: underline;
 }
 </style>
