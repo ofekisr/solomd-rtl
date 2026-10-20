@@ -10,6 +10,8 @@ const LOGIN_SHELL_TIMEOUT: Duration = Duration::from_secs(3);
 #[cfg(unix)]
 const EXECUTABLE_BITS: u32 = 0o111;
 const FALLBACK_SHELL: &str = "/bin/zsh";
+#[cfg(windows)]
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
 pub struct GitEnv {
     pub git_path: Option<PathBuf>,
@@ -22,7 +24,15 @@ pub fn global() -> &'static GitEnv {
     GIT_ENV.get_or_init(resolve)
 }
 
-/// Repo-local config is untrusted: it must not be able to spawn programs.
+pub async fn warm() {
+    if GIT_ENV.get().is_none() {
+        let _ = tokio::task::spawn_blocking(global).await;
+    }
+}
+
+/// Only fsmonitor and the `ext::` transport are disabled here. Other
+/// program-spawning repo config (filters, hooks path, ssh command, credential
+/// helpers, gpg program, includes) is gated by the trust scan in `trust.rs`.
 const HARDENING_ARGS: [&str; 4] = ["-c", "core.fsmonitor=false", "-c", "protocol.ext.allow=never"];
 
 pub fn git_command() -> Result<tokio::process::Command, GitError> {
@@ -36,6 +46,8 @@ fn command_for(env: &GitEnv) -> Result<tokio::process::Command, GitError> {
         .ok_or_else(|| GitError::new("GitNotFound", "git is not installed.".to_string()))?;
     let mut cmd = tokio::process::Command::new(program);
     cmd.args(HARDENING_ARGS);
+    #[cfg(windows)]
+    cmd.creation_flags(CREATE_NO_WINDOW);
     for (key, value) in &env.vars {
         cmd.env(key, value);
     }
@@ -135,7 +147,8 @@ fn resolve() -> GitEnv {
         .or_else(|| std::env::var("PATH").ok())
         .unwrap_or_default();
     let xcode_ok = !cfg!(target_os = "macos") || xcode_select_ok();
-    let git_path = find_executable("git", &path_var, |path| is_xcode_stub(path, xcode_ok));
+    let binary = format!("git{}", std::env::consts::EXE_SUFFIX);
+    let git_path = find_executable(&binary, &path_var, |path| is_xcode_stub(path, xcode_ok));
     GitEnv { git_path, vars }
 }
 
@@ -169,6 +182,7 @@ mod tests {
         assert!(!is_xcode_stub(Path::new("/opt/homebrew/bin/git"), false));
     }
 
+    #[cfg(unix)]
     fn write_git(dir: &Path, mode: u32) -> PathBuf {
         use std::os::unix::fs::PermissionsExt;
         let git = dir.join("git");
@@ -177,10 +191,12 @@ mod tests {
         git.canonicalize().unwrap()
     }
 
+    #[cfg(unix)]
     fn path_of(dirs: &[&Path]) -> String {
         std::env::join_paths(dirs).unwrap().into_string().unwrap()
     }
 
+    #[cfg(unix)]
     #[test]
     fn finds_git_on_path() {
         let dir = tempfile::tempdir().unwrap();
@@ -188,6 +204,7 @@ mod tests {
         assert_eq!(find_executable("git", &path_of(&[dir.path()]), |_| false), Some(git));
     }
 
+    #[cfg(unix)]
     #[test]
     fn skips_relative_path_entries() {
         let dir = tempfile::tempdir().unwrap();
@@ -196,6 +213,7 @@ mod tests {
         assert_eq!(find_executable("git", &path_of(&[relative]), |_| false), None);
     }
 
+    #[cfg(unix)]
     #[test]
     fn skips_non_executable_git() {
         let dir = tempfile::tempdir().unwrap();
@@ -203,6 +221,7 @@ mod tests {
         assert_eq!(find_executable("git", &path_of(&[dir.path()]), |_| false), None);
     }
 
+    #[cfg(unix)]
     #[test]
     fn continues_past_rejected_candidate() {
         let first = tempfile::tempdir().unwrap();
