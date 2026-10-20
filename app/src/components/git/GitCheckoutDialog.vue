@@ -18,33 +18,34 @@ const pending = ref<CheckoutTarget | null>(null);
 const reason = ref('');
 const stashBtn = ref<HTMLButtonElement | null>(null);
 
-async function attempt(name: string, remote?: string, force = false): Promise<void> {
+async function attempt(name: string, remote?: string, force = false): Promise<boolean> {
   const meta: Record<string, unknown> = {};
   if (remote) meta.remote = remote;
   if (force) meta.force = true;
   const ok = await git.run({ kind: 'checkout', target: name, meta });
   if (ok) {
     pending.value = null;
-    return;
+    return true;
   }
   const error = git.lastError;
-  if (!error) return;
+  if (!error) return false;
   if (!DIRTY_CODES.has(error.code)) {
     pending.value = null;
-    toasts.error(error.message);
-    return;
+    return false;
   }
   reason.value = error.message;
   pending.value = { name, remote };
   void nextTick(() => stashBtn.value?.focus());
+  return false;
 }
 
 async function stashAndCheckout(): Promise<void> {
   if (!pending.value) return;
   const { name, remote } = pending.value;
   const isStashed = await git.run({ kind: 'stash', meta: { message: `SoloMD: before checkout ${name}` } });
-  if (isStashed) await attempt(name, remote);
-  else if (git.lastError) toasts.error(git.lastError.message);
+  if (!isStashed) return;
+  const isDone = await attempt(name, remote);
+  if (!isDone) toasts.info(t('git.stashLeft'));
 }
 
 function forceCheckout(): void {
@@ -74,7 +75,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div v-if="pending" class="git-modal" @click.self="pending = null">
-    <div class="git-modal__card" role="dialog" aria-modal="true" :aria-label="t('git.dirtyCheckoutTitle')">
+    <div class="git-modal__card" role="dialog" aria-modal="true" :aria-label="t('git.dirtyCheckoutTitle', { branch: pending.name })">
       <h3 dir="auto">{{ t('git.dirtyCheckoutTitle', { branch: pending.name }) }}</h3>
       <p dir="auto">{{ reason }}</p>
       <div class="git-commit-actions">

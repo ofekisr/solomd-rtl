@@ -85,7 +85,7 @@ async function onMenuSelect(id: string): Promise<void> {
   if (id === 'checkout') checkout(node);
   else if (id === 'new-branch') await createBranchFrom(node.branch?.tipSha ?? node.tag?.sha ?? '');
   else if (id === 'delete') await deleteBranch(node);
-  else if (id === 'push') await git.run({ kind: 'push' });
+  else if (id === 'push') window.dispatchEvent(new CustomEvent('gitpane:open-push'));
   else if (id === 'update') await git.run({ kind: 'pull' });
 }
 

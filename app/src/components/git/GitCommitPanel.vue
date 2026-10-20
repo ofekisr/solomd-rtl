@@ -124,7 +124,6 @@ async function commit(push: boolean): Promise<void> {
   const count = git.stagedFiles.length + git.included.length;
   const ok = await git.commit({ push: false });
   if (ok) toasts.success(t('git.committed', { count }));
-  else if (git.lastError) toasts.error(git.lastError.message);
 }
 
 function onMessageKey(e: KeyboardEvent): void {

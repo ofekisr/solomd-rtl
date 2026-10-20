@@ -70,3 +70,16 @@ test('remote branch origin/feature/x nests origin, feature, x', () => {
   assert.equal(origin.children[0].label, 'feature')
   assert.equal(origin.children[0].children[0].label, 'x')
 })
+
+import { formatGitErrorToast } from './formatError.ts'
+
+test('formatGitErrorToast appends the credential hint for Authentication', () => {
+  const text = formatGitErrorToast({ code: 'Authentication', message: 'Auth failed.' })
+  assert.ok(text.startsWith('Auth failed. '))
+  assert.ok(text.includes('ssh-add -l'))
+})
+
+test('formatGitErrorToast falls back to the default message and skips hints for other codes', () => {
+  assert.ok(formatGitErrorToast({ code: 'Network', message: '' }).includes('network error'))
+  assert.equal(formatGitErrorToast({ code: 'RemoteRejected', message: 'Rejected' }), 'Rejected')
+})

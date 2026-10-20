@@ -81,6 +81,7 @@ const GitPromptDialog = defineAsyncComponent(() => import('./components/git/GitP
 import { useGitPaneStore } from './stores/gitPane';
 import { isGitMockActive } from './lib/git-pane/serviceFactory';
 import { useGitPaneAvailable } from './composables/useGitPaneAvailable';
+import { useGitErrorToasts } from './composables/useGitErrorToasts';
 import { useViewport } from './composables/useViewport';
 import { nativeMenuAccelerators } from './lib/keybindings';
 import { useI18n } from './i18n';
@@ -113,6 +114,7 @@ const workspace = useWorkspaceStore();
 
 const gitPane = useGitPaneStore();
 const isGitPaneAvailable = useGitPaneAvailable();
+useGitErrorToasts();
 const showGitCommit = computed(() => isGitPaneAvailable.value && settings.showGitCommit);
 const showGitLog = computed(() => isGitPaneAvailable.value && settings.showGitLog);
 const gitCommitRef = ref<InstanceType<typeof GitCommitPanel> | null>(null);

@@ -1951,7 +1951,8 @@ export const en = {
     stashAndCheckout: 'Stash and Checkout',
     forceCheckout: 'Force Checkout',
     confirmForceCheckout: 'Force checkout discards your local changes. This cannot be undone.',
-    conflictsBanner: '{count} files have merge conflicts',
+    conflictsBanner: 'Conflicts in {count} files',
+    stashLeft: 'Checkout failed; your changes remain in the stash.',
     openInEditor: 'Open in editor',
   },
   findBar: {

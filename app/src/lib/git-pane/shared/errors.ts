@@ -57,7 +57,7 @@ export class GitError extends Error {
   }
 }
 
-const DEFAULT_MESSAGES: Record<GitErrorCode, string> = {
+export const DEFAULT_MESSAGES: Record<GitErrorCode, string> = {
   MergeConflict: 'The operation produced merge conflicts that need to be resolved.',
   Authentication: 'Authentication failed. Check your SSH keys or credential manager.',
   RepositoryNotFound: 'The repository could not be found.',

@@ -35,8 +35,6 @@ async function push(): Promise<void> {
   if (ok) {
     isOpen.value = false;
     toasts.success(t('git.pushed'));
-  } else if (git.lastError) {
-    toasts.error(git.lastError.message);
   }
 }
 
