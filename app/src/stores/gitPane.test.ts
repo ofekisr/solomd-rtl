@@ -186,3 +186,23 @@ test('commit runs stage + commit as one unit before later queued actions', async
   assert.deepEqual(await Promise.all([commit, other]), [true, true])
   assert.deepEqual(svc.calls.map((c) => c.kind), ['stage', 'commit', 'fetch'])
 })
+
+test('commit does not run against a new folder opened during staging', async () => {
+  const { store, svc } = storeWith()
+  await store.open('/repo')
+  store.toggleIncluded('README.md')
+  store.message = 'docs: x'
+  const realExecute = svc.execute.bind(svc)
+  svc.execute = async (action) => {
+    const res = await realExecute(action)
+    if (action.kind === 'stage') {
+      await store.open('/b')
+      store.message = 'typed in b'
+    }
+    return res
+  }
+  store.message = 'docs: x'
+  assert.equal(await store.commit({ push: false }), false)
+  assert.deepEqual(svc.calls.map((c) => c.kind), ['stage'])
+  assert.equal(store.message, 'typed in b')
+})
