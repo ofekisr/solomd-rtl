@@ -192,6 +192,7 @@ pub async fn run_git(
     cancel: Option<watch::Receiver<()>>,
     on_progress_line: Option<&(dyn Fn(&str) + Send + Sync)>,
 ) -> Result<RunResult, GitError> {
+    let started = std::time::Instant::now();
     let full = base_argv(&args);
     let mut cmd = crate::git_pane::env::git_command()?;
     cmd.args(&full)
@@ -288,6 +289,7 @@ pub async fn run_git(
         WaitEnd::Exited(code) => code,
         _ => None,
     };
+    tracing::debug!(target: "git_pane", argv = ?full, exit = ?exit_code, elapsed_ms = started.elapsed().as_millis() as u64, "git");
     {
         let ok = exit_code == Some(0);
 
@@ -1055,7 +1057,7 @@ fn checked_meta<'a>(
 
 /// A rev spec is valid when it is short, has no whitespace/control chars,
 /// and does not look like a CLI flag. Git itself is the final validator.
-fn checked_rev(value: &str, what: &str) -> Result<String, GitError> {
+pub(crate) fn checked_rev(value: &str, what: &str) -> Result<String, GitError> {
     let trimmed = value.trim();
     reject_option_like(trimmed, what)?;
     if trimmed.len() > 256 || trimmed.contains(char::is_whitespace) || trimmed.contains('\0') {
@@ -1181,6 +1183,16 @@ async fn route_action(
         async move {
             let argv_copy = args.clone();
             let res = run_git(cwd, args, RunOptions::default(), Some(cancel_c), None).await;
+            record_result(command_log, argv_copy, &res);
+            res
+        }
+    };
+    let run_input = |args: Vec<String>, input: Option<String>| {
+        let cancel_c = cancel.clone();
+        async move {
+            let argv_copy = args.clone();
+            let opts = RunOptions { input, ..RunOptions::default() };
+            let res = run_git(cwd, args, opts, Some(cancel_c), None).await;
             record_result(command_log, argv_copy, &res);
             res
         }
@@ -1601,35 +1613,33 @@ async fn route_action(
                     "Commit message is required.".to_string(),
                 ));
             }
-            let mut args = vec![s_arg("commit"), s_arg("-m"), s_arg(title)];
-            if let Some(body) = meta_str(meta, "body")
-                .map(str::trim)
-                .filter(|s| !s.is_empty())
-            {
-                args.push(s_arg("-m"));
-                args.push(s_arg(body));
-            }
+            let full_message = match meta_str(meta, "body").map(str::trim).filter(|s| !s.is_empty()) {
+                Some(body) => format!("{title}\n\n{body}"),
+                None => meta_str(meta, "message").unwrap_or("").trim_end().to_string(),
+            };
+            let mut args = vec![s_arg("commit"), s_arg("--cleanup=verbatim"), s_arg("-F"), s_arg("-")];
             if meta_bool(meta, "signOff") {
                 args.push(s_arg("--signoff"));
             }
             if meta_bool(meta, "sign") {
                 args.push(s_arg("-S"));
             }
-            run(args).await?;
+            run_input(args, Some(full_message)).await?;
             Ok("Created commit".to_string())
         }
         "amend" => {
             let title = meta_str(meta, "message").map(str::trim).unwrap_or("");
-            let mut args = vec![s_arg("commit"), s_arg("--amend"), s_arg("--no-edit")];
-            if !title.is_empty() {
-                args = vec![s_arg("commit"), s_arg("--amend"), s_arg("-m"), s_arg(title)];
-                if let Some(body) = meta_str(meta, "body")
-                    .map(str::trim)
-                    .filter(|s| !s.is_empty())
-                {
-                    args.push(s_arg("-m"));
-                    args.push(s_arg(body));
-                }
+            let mut args = vec![s_arg("commit"), s_arg("--amend")];
+            let mut input = None;
+            if title.is_empty() {
+                args.push(s_arg("--no-edit"));
+            } else {
+                let full_message = match meta_str(meta, "body").map(str::trim).filter(|s| !s.is_empty()) {
+                    Some(body) => format!("{title}\n\n{body}"),
+                    None => title.to_string(),
+                };
+                args.extend([s_arg("--cleanup=verbatim"), s_arg("-F"), s_arg("-")]);
+                input = Some(full_message);
             }
             if meta_bool(meta, "signOff") {
                 args.push(s_arg("--signoff"));
@@ -1637,7 +1647,7 @@ async fn route_action(
             if meta_bool(meta, "sign") {
                 args.push(s_arg("-S"));
             }
-            run(args).await?;
+            run_input(args, input).await?;
             Ok("Amended commit".to_string())
         }
         "commit-and-push" | "commit-and-force-push" => {
@@ -1729,6 +1739,7 @@ async fn route_action(
                 }
                 None => checked_target(target, "branch name")?.to_string(),
             };
+            crate::git_pane::refname::validate_branch_name(cwd, &name).await?;
             if let Some(start) = meta_str(meta, "startPoint") {
                 let start = checked_rev(start, "start point")?;
                 run(vec![
