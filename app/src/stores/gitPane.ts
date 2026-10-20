@@ -104,7 +104,7 @@ export const useGitPaneStore = defineStore('gitPane', {
       }
     },
     async loadMoreCommits(): Promise<void> {
-      const oldest = this.commits.at(-1)?.sha
+      const oldest = this.commits[this.commits.length - 1]?.sha
       if (!oldest || !this.hasMoreCommits) return
       const res = await svc().commitPage({ beforeSha: oldest, limit: PAGE_SIZE, graphScope: 'all', skip: this.commits.length })
       const known = new Set(this.commits.map((c) => c.sha))
