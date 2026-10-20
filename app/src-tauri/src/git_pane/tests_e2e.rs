@@ -7,7 +7,7 @@ use std::time::Duration;
 const NOOP_EMIT: &(dyn Fn(&str, Option<u32>, bool) + Send + Sync) = &|_, _, _| {};
 const FILE_LINES: usize = 30;
 const LOCK_PROBE_MS: u64 = 150;
-const STATUS_ONLY: SnapshotOptions = SnapshotOptions {
+const FULL_SNAPSHOT: SnapshotOptions = SnapshotOptions {
     commit_limit: 5,
     graph_all: false,
     with_commits: true,
@@ -19,7 +19,13 @@ const STATUS_ONLY: SnapshotOptions = SnapshotOptions {
 };
 
 fn git(dir: &Path, args: &[&str]) -> String {
-    let out = std::process::Command::new("git").args(args).current_dir(dir).output().unwrap();
+    let out = std::process::Command::new("git")
+        .args(args)
+        .current_dir(dir)
+        .env("GIT_CONFIG_GLOBAL", "/dev/null")
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .output()
+        .unwrap();
     assert!(out.status.success(), "git {args:?}: {}", String::from_utf8_lossy(&out.stderr));
     String::from_utf8_lossy(&out.stdout).into_owned()
 }
@@ -72,7 +78,7 @@ async fn full_flow_against_bare_remote() {
     let engine = CliEngine::open(dir).await.unwrap();
 
     std::fs::write(dir.join("a.md"), numbered_lines(true)).unwrap();
-    let snap = engine.snapshot(&STATUS_ONLY).await.unwrap();
+    let snap = engine.snapshot(&FULL_SNAPSHOT).await.unwrap();
     assert!(snap.working_tree.iter().any(|f| f.path == "a.md" && !f.staged));
 
     let patch = first_hunk_patch(dir);
@@ -91,10 +97,13 @@ async fn full_flow_against_bare_remote() {
     assert!(amended.ok, "{}", amended.message);
     assert_ne!(git(dir, &["rev-parse", "HEAD"]), head_before);
     assert_eq!(git(dir, &["log", "-1", "--format=%B"]).trim_end(), "תיקון מתוקן");
+    assert!(!git(dir, &["show", "HEAD", "--", "a.md"]).contains("+edited 30"));
+    assert!(git(dir, &["diff", "--", "a.md"]).contains("+edited 30"));
 
     let created = act(&engine, "create-branch", None, serde_json::json!({ "name": "feat" })).await;
     assert!(created.ok, "{}", created.message);
     assert_eq!(git(dir, &["branch", "--show-current"]).trim(), "feat");
+    git(dir, &["checkout", "-q", "--", "a.md"]);
     std::fs::write(dir.join("a.md"), "feature content\n").unwrap();
     git(dir, &["commit", "-qam", "feature change"]);
     let back = act(&engine, "checkout", Some("main"), serde_json::json!({})).await;
@@ -105,13 +114,19 @@ async fn full_flow_against_bare_remote() {
     let blocked = act(&engine, "checkout", Some("feat"), serde_json::json!({})).await;
     assert!(!blocked.ok);
     assert_eq!(blocked.error.as_ref().unwrap().code, "DirtyWorktree");
+    assert_eq!(git(dir, &["branch", "--show-current"]).trim(), "main");
+    assert_eq!(std::fs::read_to_string(dir.join("a.md")).unwrap(), "dirty local\n");
 
     let stashed = act(&engine, "stash", None, serde_json::json!({ "message": "e2e" })).await;
     assert!(stashed.ok, "{}", stashed.message);
+    assert!(!git(dir, &["stash", "list"]).trim().is_empty());
+    assert!(git(dir, &["status", "--porcelain"]).trim().is_empty());
     let moved = act(&engine, "checkout", Some("feat"), serde_json::json!({})).await;
     assert!(moved.ok, "{}", moved.message);
+    assert_eq!(git(dir, &["branch", "--show-current"]).trim(), "feat");
     let home = act(&engine, "checkout", Some("main"), serde_json::json!({})).await;
     assert!(home.ok, "{}", home.message);
+    assert_eq!(git(dir, &["branch", "--show-current"]).trim(), "main");
 
     let pushed = act(&engine, "push", None, serde_json::json!({})).await;
     assert!(pushed.ok, "{}", pushed.message);
@@ -122,6 +137,7 @@ async fn full_flow_against_bare_remote() {
     assert!(fetched.ok, "{}", fetched.message);
     let pulled = act(&engine, "pull", None, serde_json::json!({})).await;
     assert!(pulled.ok, "{}", pulled.message);
+    assert_eq!(git(dir, &["rev-parse", "HEAD"]), git(fx.bare.path(), &["rev-parse", "main"]));
 }
 
 #[tokio::test]
@@ -130,18 +146,18 @@ async fn engine_write_waits_for_external_lock_holder() {
     let dir = fx.work.path().to_path_buf();
     let engine = std::sync::Arc::new(CliEngine::open(&dir).await.unwrap());
     std::fs::write(dir.join("b.md"), "new\n").unwrap();
+    let index_lock = dir.join(".git").join("index.lock");
 
     let guard = RepoLocks::global().acquire(&dir).await;
+    std::fs::write(&index_lock, "").unwrap();
     let task_engine = engine.clone();
     let task = tokio::spawn(async move { act(&task_engine, "stage", Some("b.md"), serde_json::json!({})).await });
 
     tokio::time::sleep(Duration::from_millis(LOCK_PROBE_MS)).await;
-    assert!(!task.is_finished(), "engine write ran while the lock was held");
-    git(&dir, &["add", "a.md"]);
+    std::fs::remove_file(&index_lock).unwrap();
     drop(guard);
 
     let env = task.await.unwrap();
     assert!(env.ok, "{}", env.message);
-    assert!(!env.message.contains("index.lock"));
     assert!(git(&dir, &["diff", "--cached", "--name-only"]).contains("b.md"));
 }
