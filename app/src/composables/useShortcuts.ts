@@ -118,6 +118,10 @@ export function useShortcuts(hooks: Hooks = {}) {
     'view.toggleFileTree': () => settings.toggleFileTree(),
     // Mirrors the file-tree toggle on the right: hides / shows the Outline /
     // Backlinks / Tags / History / Agent strip wholesale.
+    'git.toggleCommit': () => runById('git.toggleCommit'),
+    'git.toggleLog': () => runById('git.toggleLog'),
+    'git.push': () => runById('git.push'),
+    'git.update': () => runById('git.update'),
     'view.toggleRightSidebar': () => settings.toggleRightSidebar(),
     'view.toggleOutline': () => runById('view.toggleOutline'),
     'view.toggleInspector': () => settings.toggleInspector(),

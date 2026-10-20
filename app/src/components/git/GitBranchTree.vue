@@ -57,16 +57,20 @@ function toggle(id: string): void {
   collapsed.value = next;
 }
 
-async function checkout(node: BranchTreeNode): Promise<void> {
+function requestCheckout(name: string, remote?: string): void {
+  window.dispatchEvent(new CustomEvent('gitpane:checkout', { detail: { name, remote } }));
+}
+
+function checkout(node: BranchTreeNode): void {
   const branch = node.branch;
   if (!branch || branch.isCurrent) return;
   if (branch.kind === 'local') {
-    await git.run({ kind: 'checkout', target: branch.name });
+    requestCheckout(branch.name);
     return;
   }
   const remote = branch.remote ?? branch.name.split('/')[0] ?? '';
   const shortName = branch.name.startsWith(`${remote}/`) ? branch.name.slice(remote.length + 1) : branch.name;
-  await git.run({ kind: 'checkout', target: shortName, meta: { remote } });
+  requestCheckout(shortName, remote);
 }
 
 function onContext(node: BranchTreeNode, ev: MouseEvent): void {
@@ -78,7 +82,7 @@ async function onMenuSelect(id: string): Promise<void> {
   const node = menu.value?.node;
   menu.value = null;
   if (!node) return;
-  if (id === 'checkout') await checkout(node);
+  if (id === 'checkout') checkout(node);
   else if (id === 'new-branch') await createBranchFrom(node.branch?.tipSha ?? node.tag?.sha ?? '');
   else if (id === 'delete') await deleteBranch(node);
   else if (id === 'push') await git.run({ kind: 'push' });

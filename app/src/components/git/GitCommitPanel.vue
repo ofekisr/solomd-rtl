@@ -11,6 +11,7 @@ import type { WireWorkingTreeFile } from '../../lib/git-pane/shared/models';
 import { getGitPaneService } from '../../lib/git-pane/serviceFactory';
 import GitChangeRow from './GitChangeRow.vue';
 import GitEmptyState from './GitEmptyState.vue';
+import GitConflictBanner from './GitConflictBanner.vue';
 import GitMenu, { type GitMenuItem } from './GitMenu.vue';
 
 const GROUP_LABEL: Record<ChangeGroupId, string> = {
@@ -41,9 +42,13 @@ function openDiff(file: WireWorkingTreeFile): void {
   tabs.openGitDiff({ path: file.path, side: file.staged ? 'index' : 'worktree' });
 }
 
-function openFile(file: WireWorkingTreeFile): void {
+function openRelPath(relPath: string): void {
   if (!git.repoRoot) return;
-  void files.openPath(`${git.repoRoot}/${file.path}`);
+  void files.openPath(`${git.repoRoot}/${relPath}`);
+}
+
+function openFile(file: WireWorkingTreeFile): void {
+  openRelPath(file.path);
 }
 
 function toggle(file: WireWorkingTreeFile): void {
@@ -155,6 +160,7 @@ defineExpose({ focusMessage: () => messageEl.value?.focus() });
       {{ t('git.busy', { op: git.busyOp }) }}
       <button :title="t('git.cancel')" :aria-label="t('git.cancel')" @click="getGitPaneService().cancel()">✕</button>
     </div>
+    <GitConflictBanner @open-file="openRelPath" />
     <GitEmptyState v-if="emptyStatus" :status="emptyStatus" @init="initRepo" />
     <div v-else class="git-groups">
       <div v-for="group in groups" :key="group.id">

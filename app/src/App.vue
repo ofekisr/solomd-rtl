@@ -72,12 +72,15 @@ import { useExport } from './composables/useExport';
 import { useShortcuts } from './composables/useShortcuts';
 import { useFileWatcher } from './composables/useFileWatcher';
 import { loadCustomTheme } from './lib/custom-theme';
-import { isIOS, isMacOS, isAndroid, isMobile, isTauri, hasGitBackend } from './lib/platform';
+import { isIOS, isMacOS, isAndroid, isMobile } from './lib/platform';
 import GitCommitPanel from './components/git/GitCommitPanel.vue';
 const GitBottomDock = defineAsyncComponent(() => import('./components/git/GitBottomDock.vue'));
+const GitPushDialog = defineAsyncComponent(() => import('./components/git/GitPushDialog.vue'));
+const GitCheckoutDialog = defineAsyncComponent(() => import('./components/git/GitCheckoutDialog.vue'));
 const GitPromptDialog = defineAsyncComponent(() => import('./components/git/GitPromptDialog.vue'));
 import { useGitPaneStore } from './stores/gitPane';
 import { isGitMockActive } from './lib/git-pane/serviceFactory';
+import { useGitPaneAvailable } from './composables/useGitPaneAvailable';
 import { useViewport } from './composables/useViewport';
 import { nativeMenuAccelerators } from './lib/keybindings';
 import { useI18n } from './i18n';
@@ -109,9 +112,7 @@ const exporter = useExport();
 const workspace = useWorkspaceStore();
 
 const gitPane = useGitPaneStore();
-const isGitPaneAvailable = computed(
-  () => (isTauri() && hasGitBackend() && settings.enableGitPane) || isGitMockActive(),
-);
+const isGitPaneAvailable = useGitPaneAvailable();
 const showGitCommit = computed(() => isGitPaneAvailable.value && settings.showGitCommit);
 const showGitLog = computed(() => isGitPaneAvailable.value && settings.showGitLog);
 const gitCommitRef = ref<InstanceType<typeof GitCommitPanel> | null>(null);
@@ -1975,6 +1976,10 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           </div>
           <GitBottomDock v-if="showGitLog" />
           <GitPromptDialog v-if="isGitPaneAvailable" />
+          <template v-if="isGitPaneAvailable">
+            <GitPushDialog />
+            <GitCheckoutDialog />
+          </template>
         </div>
         <aside
           v-if="showRightSidebar && settings.outlineSide !== 'left'"

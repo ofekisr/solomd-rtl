@@ -8,6 +8,8 @@ import { useWritingSessionStore } from '../stores/writingSession';
 import { cjkWordCount } from '../lib/chinese';
 import { useInbox } from '../composables/useInbox';
 import { useI18n } from '../i18n';
+import { useGitPaneAvailable } from '../composables/useGitPaneAvailable';
+import GitBranchWidget from './git/GitBranchWidget.vue';
 import WritingGoals from './WritingGoals.vue';
 import PomodoroPill from './PomodoroPill.vue';
 import SyncStatusPill from './SyncStatusPill.vue';
@@ -24,6 +26,7 @@ const writingSession = useWritingSessionStore();
 const inbox = useInbox();
 const pomodoro = usePomodoroStore();
 const { t } = useI18n();
+const isGitPaneAvailable = useGitPaneAvailable();
 // #180 — the chord in this sentence comes from the user's bindings, not from
 // a literal baked into the translation.
 const macChord = isMacOS();
@@ -95,6 +98,7 @@ function onPillClick() {
     </span>
     <WritingGoals v-if="settings.showWritingStats" />
     <span class="spacer"></span>
+    <GitBranchWidget v-if="isGitPaneAvailable" />
     <span
       v-if="showTodayTotal"
       class="seg seg--today"

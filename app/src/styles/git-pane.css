@@ -90,3 +90,18 @@
 .git-dialog__title { font-weight: 600; }
 .git-dialog__input { padding-inline: 8px; padding-block: 5px; background: var(--bg); color: var(--text); border: var(--bd); border-radius: 4px; font: inherit; }
 .git-dialog__actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+.git-modal { position: fixed; inset: 0; background: rgb(0 0 0 / .35); display: grid; place-items: center; z-index: 10000; }
+.git-modal__card { background: var(--bg-elev); color: var(--text); border: var(--bd); border-radius: 8px; padding-inline: 14px; padding-block: 12px; inline-size: min(520px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 8px; box-shadow: 0 10px 30px rgb(0 0 0 / .35); }
+.git-modal__card h3 { margin: 0; font-size: 14px; }
+.git-modal__list { max-block-size: 240px; overflow: auto; border: var(--bd); border-radius: 4px; }
+.git-modal__empty { padding: 8px; color: var(--text-muted); }
+.git-branch-widget { position: relative; display: inline-flex; }
+.git-branch-widget__btn { background: none; border: 0; color: inherit; font: inherit; cursor: pointer; display: inline-flex; gap: 4px; padding-inline: 4px; }
+.git-branch-widget__btn:hover { background: var(--bg-hover); }
+.git-popup__scrim { position: fixed; inset: 0; z-index: 899; }
+.git-popup { position: absolute; inset-block-end: 100%; inset-inline-start: 0; min-inline-size: 240px; max-block-size: 360px; overflow: auto; background: var(--bg-elev); border: var(--bd); border-radius: 6px; box-shadow: 0 6px 24px rgb(0 0 0 / .25); display: flex; flex-direction: column; padding-block: 4px; z-index: 900; }
+.git-popup__item { background: none; border: 0; text-align: start; padding-inline: 10px; padding-block: 4px; color: var(--text); font: inherit; cursor: pointer; }
+.git-popup__item:hover { background: var(--bg-hover); }
+.git-conflicts { padding-inline: 8px; padding-block: 6px; background: color-mix(in srgb, var(--git-conflict) 15%, transparent); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.git-conflicts__file { display: inline-flex; gap: 4px; align-items: center; }
