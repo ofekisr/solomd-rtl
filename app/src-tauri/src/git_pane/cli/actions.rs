@@ -193,7 +193,7 @@ pub async fn run_git(
     on_progress_line: Option<&(dyn Fn(&str) + Send + Sync)>,
 ) -> Result<RunResult, GitError> {
     let full = base_argv(&args);
-    let mut cmd = crate::git_pane::env::git_command();
+    let mut cmd = crate::git_pane::env::git_command()?;
     cmd.args(&full)
         .current_dir(cwd)
         .stdin(Stdio::piped())
