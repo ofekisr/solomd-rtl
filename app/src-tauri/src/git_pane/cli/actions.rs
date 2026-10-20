@@ -868,6 +868,34 @@ pub struct ExecutedGitCommand {
 /// balloons renderer memory.
 pub const MAX_COMMAND_LOG_CHARS: usize = 8 * 1024;
 
+const CHECKOUT_END_OF_PATHS: &str = "--";
+const GLOB_SPECIALS: [char; 5] = ['[', ']', '*', '?', '\\'];
+
+fn checkout_base(is_forced: bool) -> Vec<String> {
+    let mut base = vec!["checkout".to_string()];
+    if is_forced {
+        base.push("-f".to_string());
+    }
+    base
+}
+
+fn checkout_args(base: &[String], rest: &[&str]) -> Vec<String> {
+    let mut argv = base.to_vec();
+    argv.extend(rest.iter().map(|arg| arg.to_string()));
+    argv.push(CHECKOUT_END_OF_PATHS.to_string());
+    argv
+}
+
+pub(crate) fn escape_glob(path: &str) -> String {
+    path.chars().fold(String::with_capacity(path.len()), |mut out, c| {
+        if GLOB_SPECIALS.contains(&c) {
+            out.push('\\');
+        }
+        out.push(c);
+        out
+    })
+}
+
 fn format_git_command(argv: &[String]) -> String {
     let mut out = String::from("git");
     for a in argv {
@@ -1426,19 +1454,13 @@ async fn route_action(
             ])
             .await;
             if let Err(error) = attempt {
-                // Untracked files are unknown to git — restore fails with a
-                // pathspec error, so delete them from disk instead.
                 let msg = error.message.to_lowercase();
                 if msg.contains("did not match any file") && msg.contains("known to git") {
-                    let full = cwd.join(&safe);
-                    let _ = if full.is_dir() {
-                        std::fs::remove_dir_all(&full)
-                    } else {
-                        std::fs::remove_file(&full)
-                    };
-                } else {
-                    return Err(error);
+                    return Err(GitError::unknown(format!(
+                        "{t} is untracked; delete it from the file tree instead."
+                    )));
                 }
+                return Err(error);
             }
             Ok(format!("Discarded changes in {t}"))
         }
@@ -1485,7 +1507,7 @@ async fn route_action(
             let mut apply_args = vec![
                 s_arg("apply"),
                 s_arg("--cached"),
-                s_arg(&format!("--include={safe}")),
+                s_arg(&format!("--include={}", escape_glob(&safe))),
             ];
             if kind == "unstage-patch" {
                 apply_args.push(s_arg("-R"));
@@ -1529,7 +1551,7 @@ async fn route_action(
                 let argv_copy = vec![
                     s_arg("apply"),
                     s_arg("-R"),
-                    s_arg(&format!("--include={safe}")),
+                    s_arg(&format!("--include={}", escape_glob(&safe))),
                 ];
                 let res = run_git(
                     cwd,
@@ -1701,24 +1723,17 @@ async fn route_action(
 
         "checkout" => {
             let t = checked_target(target, "branch")?;
+            let base = checkout_base(meta_bool(meta, "force"));
             if let Some(remote) = meta_str(meta, "remote") {
                 let remote = remote.trim();
                 reject_option_like(remote, "remote")?;
                 let remote_ref = format!("{remote}/{t}");
-                let created = run_allow(vec![
-                    s_arg("checkout"),
-                    s_arg("-b"),
-                    s_arg(t),
-                    s_arg(&remote_ref),
-                ])
-                .await?;
+                let created = run_allow(checkout_args(&base, &["-b", t, &remote_ref])).await?;
                 if created.exit_code != Some(0) {
-                    run(vec![s_arg("checkout"), s_arg(t)]).await?;
+                    run(checkout_args(&base, &[t])).await?;
                 }
-            } else if meta_bool(meta, "force") {
-                run(vec![s_arg("checkout"), s_arg("-f"), s_arg(t)]).await?;
             } else {
-                run(vec![s_arg("checkout"), s_arg(t)]).await?;
+                run(checkout_args(&base, &[t])).await?;
             }
             Ok(format!("Checked out {t}"))
         }
@@ -2564,12 +2579,18 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn discards_untracked_file_from_disk() {
+    async fn keeps_untracked_file_on_discard() {
         let h = Harness::new().await;
         std::fs::write(h.cwd.join("junk.txt"), "x\n").unwrap();
         let env = h.exec("discard-file", Some("junk.txt"), &null_meta()).await;
-        assert!(env.ok, "{}", env.message);
-        assert!(!h.cwd.join("junk.txt").exists());
+        assert!(!env.ok);
+        assert!(h.cwd.join("junk.txt").exists());
+    }
+
+    #[test]
+    fn escapes_glob_specials() {
+        assert_eq!(escape_glob("app/[id]/*?.tsx"), "app/\\[id\\]/\\*\\?.tsx");
+        assert_eq!(escape_glob("a\\b"), "a\\\\b");
     }
 
     #[tokio::test]

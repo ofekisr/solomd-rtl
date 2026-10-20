@@ -700,6 +700,7 @@ async fn ensure_intent_to_add(cwd: &Path, path: &str) {
     if matches!(tracked, Ok((true, _, _))) {
         return;
     }
+    let _guard = crate::git_pane::lock::RepoLocks::global().acquire(cwd).await;
     let _ = git_text(cwd, &["add", "-N", "--", path]).await;
 }
 
