@@ -5,6 +5,8 @@ mod linux_a11y;
 mod runner;
 mod windows_install_migration;
 
+// The bin re-includes this module; phase-2 features are reached only from the lib and tests.
+#[allow(dead_code)]
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[path = "git_pane/mod.rs"]
 mod git_pane;

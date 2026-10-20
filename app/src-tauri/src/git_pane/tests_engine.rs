@@ -61,3 +61,32 @@ async fn not_a_repo_is_typed_error() {
     let err = CliEngine::open(dir.path()).await.err().unwrap();
     assert_eq!(err.code, "RepositoryNotFound");
 }
+
+#[tokio::test]
+async fn repo_config_cannot_spawn_fsmonitor() {
+    let dir = repo_with_commits(1);
+    let marker = dir.path().join("fsmonitor-ran");
+    let hook = dir.path().join("hook.sh");
+    std::fs::write(&hook, format!("#!/bin/sh\ntouch '{}'\n", marker.display())).unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&hook, std::fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    git(dir.path(), &["config", "core.fsmonitor", hook.to_str().unwrap()]);
+    std::fs::remove_file(&marker).ok();
+    let engine = CliEngine::open(dir.path()).await.unwrap();
+    engine.snapshot(&ALL_SCOPES).await.unwrap();
+    assert!(!marker.exists());
+}
+
+#[tokio::test]
+async fn linked_worktree_resolves_common_dir() {
+    let dir = repo_with_commits(1);
+    let wt = tempfile::tempdir().unwrap();
+    let wt_path = wt.path().join("wt");
+    git(dir.path(), &["worktree", "add", "-q", "-b", "w", wt_path.to_str().unwrap()]);
+    let engine = CliEngine::open(&wt_path).await.unwrap();
+    assert!(engine.common_dir().join("refs").is_dir());
+    assert_ne!(engine.common_dir(), engine.git_dir());
+}

@@ -6,7 +6,7 @@ use super::cli::git::{
 };
 use super::cli::log;
 use std::collections::HashSet;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub struct LogPage {
     pub commits: Vec<WireCommit>,
@@ -41,6 +41,7 @@ pub trait GitEngine {
 
 pub struct CliEngine {
     info: RepoInfo,
+    common_dir: PathBuf,
     journal: tokio::sync::Mutex<Journal>,
     operations: tokio::sync::Mutex<Operations>,
 }
@@ -54,8 +55,10 @@ impl CliEngine {
             )
         })?;
         let info = git::validate_repo(&root).await?;
+        let common_dir = resolve_common_dir(&info).await;
         Ok(Self {
             info,
+            common_dir,
             journal: tokio::sync::Mutex::new(Journal::default()),
             operations: tokio::sync::Mutex::new(Operations::default()),
         })
@@ -63,6 +66,21 @@ impl CliEngine {
 
     pub fn git_dir(&self) -> &Path {
         &self.info.git_dir
+    }
+
+    pub fn common_dir(&self) -> &Path {
+        &self.common_dir
+    }
+}
+
+async fn resolve_common_dir(info: &RepoInfo) -> PathBuf {
+    let fallback = info.git_dir.clone();
+    match git::git_text(&info.path, &["rev-parse", "--git-common-dir"]).await {
+        Ok((true, out, _)) if !out.trim().is_empty() => {
+            let raw = PathBuf::from(out.trim());
+            if raw.is_absolute() { raw } else { info.path.join(raw) }
+        }
+        _ => fallback,
     }
 }
 

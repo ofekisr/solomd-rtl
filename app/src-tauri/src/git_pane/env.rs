@@ -22,6 +22,9 @@ pub fn global() -> &'static GitEnv {
     GIT_ENV.get_or_init(resolve)
 }
 
+/// Repo-local config is untrusted: it must not be able to spawn programs.
+const HARDENING_ARGS: [&str; 4] = ["-c", "core.fsmonitor=false", "-c", "protocol.ext.allow=never"];
+
 pub fn git_command() -> Result<tokio::process::Command, GitError> {
     command_for(global())
 }
@@ -32,6 +35,7 @@ fn command_for(env: &GitEnv) -> Result<tokio::process::Command, GitError> {
         .as_ref()
         .ok_or_else(|| GitError::new("GitNotFound", "git is not installed.".to_string()))?;
     let mut cmd = tokio::process::Command::new(program);
+    cmd.args(HARDENING_ARGS);
     for (key, value) in &env.vars {
         cmd.env(key, value);
     }

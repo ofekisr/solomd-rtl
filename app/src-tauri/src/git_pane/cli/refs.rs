@@ -803,8 +803,8 @@ pub async fn fetch_working_tree(cwd: &Path) -> Result<Vec<WireWorkingTreeFile>, 
     use crate::git_pane::cli::git::git_text;
     let (status_out, staged_out, unstaged_out) = tokio::join!(
         git_text(cwd, &["status", "--porcelain=v2", "-z", "-uall"]),
-        git_text(cwd, &["diff", "--cached", "--numstat", "-z"]),
-        git_text(cwd, &["diff", "--numstat", "-z"]),
+        git_text(cwd, &["diff", "--cached", "--numstat", "--no-ext-diff", "--no-textconv", "-z"]),
+        git_text(cwd, &["diff", "--numstat", "--no-ext-diff", "--no-textconv", "-z"]),
     );
     let (ok, porcelain, _) = status_out?;
     if !ok {

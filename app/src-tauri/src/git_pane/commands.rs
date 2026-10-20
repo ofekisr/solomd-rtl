@@ -2,7 +2,7 @@ use super::cli::diff::{DiffFetch, DiffSource};
 use super::cli::git::{CommitPageInfo, DiffResult, GitError, SnapshotOptions, WireCommit, WireSnapshot, WireWorkingTreeFile};
 use super::cli::actions::ActionEnvelope;
 use super::engine::{CliEngine, GitEngine};
-use super::watcher::RepoWatcher;
+use super::watcher::{RepoWatcher, CHANGED_EVENT};
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, State};
 
@@ -77,6 +77,11 @@ pub async fn gitpane_version() -> Result<VersionInfo, GitError> {
     })
 }
 
+#[derive(serde::Serialize, Clone)]
+struct ChangedPayload {
+    path: String,
+}
+
 #[derive(serde::Serialize)]
 pub struct OpenEnvelope {
     ok: bool,
@@ -96,9 +101,19 @@ pub async fn gitpane_open(app: AppHandle, state: State<'_, GitPaneState>, path: 
         Ok(snapshot) => snapshot,
         Err(error) => return Ok(OpenEnvelope { ok: false, snapshot: None, error: Some(error) }),
     };
-    let watcher = RepoWatcher::start(app, engine.root(), engine.git_dir());
+    let emitter = app.clone();
+    let payload = engine.root().to_string_lossy().into_owned();
+    let watcher = RepoWatcher::start(
+        move || {
+            let _ = emitter.emit(CHANGED_EVENT, ChangedPayload { path: payload.clone() });
+        },
+        engine.git_dir(),
+        engine.common_dir(),
+    );
+    let mut slot = state.engine.write().await;
     *state.watcher.lock().unwrap_or_else(|e| e.into_inner()) = watcher;
-    *state.engine.write().await = Some(engine);
+    *slot = Some(engine);
+    drop(slot);
     Ok(OpenEnvelope { ok: true, snapshot: Some(snapshot), error: None })
 }
 

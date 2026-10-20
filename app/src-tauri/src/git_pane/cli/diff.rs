@@ -672,6 +672,7 @@ pub async fn fetch_diff(cwd: &Path, req: &DiffFetch) -> Result<DiffResult, GitEr
         }
     };
     let mut args: Vec<String> = args;
+    args.splice(1..1, ["--no-ext-diff".to_string(), "--no-textconv".to_string()]);
     if req.ignore_whitespace {
         args.insert(1, "-w".to_string());
     }
@@ -715,7 +716,7 @@ pub async fn fetch_blame(
         DiffSource::Index => (
             vec![
                 "blame".to_string(),
-                "--line-porcelain".to_string(),
+                "--line-porcelain".to_string(), "--no-textconv".to_string(),
                 "--cached".to_string(),
             ],
             None,
@@ -723,19 +724,19 @@ pub async fn fetch_blame(
         DiffSource::Commit => {
             let sha = checked_rev(sha.unwrap_or("HEAD"), "revision")?;
             (
-                vec!["blame".to_string(), "--line-porcelain".to_string()],
+                vec!["blame".to_string(), "--line-porcelain".to_string(), "--no-textconv".to_string()],
                 Some(sha),
             )
         }
         DiffSource::Range => {
             let sha = checked_rev(to_sha.or(sha).unwrap_or("HEAD"), "revision")?;
             (
-                vec!["blame".to_string(), "--line-porcelain".to_string()],
+                vec!["blame".to_string(), "--line-porcelain".to_string(), "--no-textconv".to_string()],
                 Some(sha),
             )
         }
         DiffSource::Worktree => (
-            vec!["blame".to_string(), "--line-porcelain".to_string()],
+            vec!["blame".to_string(), "--line-porcelain".to_string(), "--no-textconv".to_string()],
             None,
         ),
     };
@@ -868,7 +869,7 @@ pub async fn fetch_commit_files(
                 "diff-tree",
                 "--root",
                 "--no-commit-id",
-                "--numstat",
+                "--numstat", "--no-ext-diff", "--no-textconv",
                 "-z",
                 "-r",
                 END_OF_OPTIONS,
@@ -885,7 +886,7 @@ pub async fn fetch_commit_files(
                 .into_iter()
                 .map(|s: &str| s.to_string())
                 .collect(),
-            vec!["diff", "--numstat", "-z", END_OF_OPTIONS, &parents[0], sha]
+            vec!["diff", "--numstat", "--no-ext-diff", "--no-textconv", "-z", END_OF_OPTIONS, &parents[0], sha]
                 .into_iter()
                 .map(|s: &str| s.to_string())
                 .collect(),
@@ -908,7 +909,7 @@ pub async fn fetch_commit_files(
             vec![
                 "diff-tree",
                 "--no-commit-id",
-                "--numstat",
+                "--numstat", "--no-ext-diff", "--no-textconv",
                 "-z",
                 "-r",
                 "-m",
@@ -944,7 +945,7 @@ pub async fn fetch_compare_files(
     let from_sha = checked_rev(from_sha, "revision")?;
     let to_sha = checked_rev(to_sha, "revision")?;
     let tree_args = ["diff", "--name-status", "-z", END_OF_OPTIONS, &from_sha, &to_sha];
-    let numstat_args = ["diff", "--numstat", "-z", END_OF_OPTIONS, &from_sha, &to_sha];
+    let numstat_args = ["diff", "--numstat", "--no-ext-diff", "--no-textconv", "-z", END_OF_OPTIONS, &from_sha, &to_sha];
     let (name_status, numstat) =
         tokio::join!(git_text(cwd, &tree_args), git_text(cwd, &numstat_args));
     let (name_ok, name_status, name_err) = name_status?;
