@@ -113,12 +113,18 @@ const isGitPaneAvailable = computed(
 const showGitCommit = computed(() => isGitPaneAvailable.value && settings.showGitCommit);
 const gitCommitRef = ref<InstanceType<typeof GitCommitPanel> | null>(null);
 
+const MOCK_REPO_FOLDER = '/repo';
+let isGitServiceBound = false;
+
 watch(
   [isGitPaneAvailable, () => workspace.currentFolder],
   ([isAvailable, folder]) => {
     if (!isAvailable) return;
-    gitPane.bindService();
-    void gitPane.open(folder);
+    if (!isGitServiceBound) {
+      gitPane.bindService();
+      isGitServiceBound = true;
+    }
+    void gitPane.open(folder ?? (isGitMockActive() ? MOCK_REPO_FOLDER : null));
   },
   { immediate: true },
 );

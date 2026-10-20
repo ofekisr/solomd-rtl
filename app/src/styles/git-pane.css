@@ -48,3 +48,10 @@
 .git-diff__line--del { background: color-mix(in srgb, var(--git-deleted) 15%, transparent); }
 .git-diff .diff-word-add { background: color-mix(in srgb, var(--git-added) 35%, transparent); }
 .git-diff .diff-word-del { background: color-mix(in srgb, var(--git-deleted) 35%, transparent); }
+
+.git-row--selected { background: var(--bg-active); }
+.git-menu__backdrop { position: fixed; inset: 0; z-index: 9998; }
+.git-menu { position: fixed; z-index: 9999; min-inline-size: 160px; background: var(--bg-elev); border: var(--bd); border-radius: 6px; padding-block: 4px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25); }
+.git-menu__item { display: block; inline-size: 100%; padding-inline: 12px; padding-block: 6px; text-align: start; background: none; border: 0; color: var(--text); cursor: pointer; }
+.git-menu__item:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.git-menu__item:disabled { opacity: 0.5; cursor: not-allowed; }

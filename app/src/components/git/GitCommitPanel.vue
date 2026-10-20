@@ -11,6 +11,7 @@ import type { WireWorkingTreeFile } from '../../lib/git-pane/shared/models';
 import { getGitPaneService } from '../../lib/git-pane/serviceFactory';
 import GitChangeRow from './GitChangeRow.vue';
 import GitEmptyState from './GitEmptyState.vue';
+import GitRowMenu from './GitRowMenu.vue';
 
 const GROUP_LABEL: Record<ChangeGroupId, string> = {
   conflicts: 'git.groupConflicts',
@@ -26,10 +27,12 @@ const toasts = useToastsStore();
 const files = useFiles();
 const { t } = useI18n();
 const messageEl = ref<HTMLTextAreaElement | null>(null);
+const selectedPath = ref<string | null>(null);
+const menu = ref<{ file: WireWorkingTreeFile; x: number; y: number } | null>(null);
 
 const groups = computed(() => groupChanges(git.snapshot?.workingTree ?? []));
 const emptyStatus = computed(() => {
-  if (!workspace.currentFolder) return 'no-folder' as const;
+  if (!workspace.currentFolder && git.status === 'idle') return 'no-folder' as const;
   if (git.status !== 'ready') return git.status;
   return groups.value.length === 0 ? ('no-changes' as const) : null;
 });
@@ -48,9 +51,52 @@ function toggle(file: WireWorkingTreeFile): void {
   else git.toggleIncluded(file.path);
 }
 
-async function rollback(file: WireWorkingTreeFile): Promise<void> {
-  if (!window.confirm(t('git.confirmRollback', { name: file.fileName }))) return;
-  await git.run({ kind: file.staged ? 'unstage' : 'discard-file', target: file.path });
+function isRollbackable(file: WireWorkingTreeFile): boolean {
+  return file.status !== 'untracked' && file.status !== 'conflicted';
+}
+
+function isNewStaged(file: WireWorkingTreeFile): boolean {
+  return file.staged && file.status === 'added';
+}
+
+function rollbackConfirmText(targets: WireWorkingTreeFile[]): string {
+  const isSingle = targets.length === 1;
+  const name = targets[0].fileName;
+  const count = targets.length;
+  if (targets.every(isNewStaged)) {
+    return isSingle ? t('git.confirmUnstageNew', { name }) : t('git.confirmUnstageNewMany', { count });
+  }
+  return isSingle ? t('git.confirmRollback', { name }) : t('git.confirmRollbackMany', { count });
+}
+
+async function rollbackFiles(candidates: WireWorkingTreeFile[]): Promise<void> {
+  const targets = [...new Map(candidates.filter(isRollbackable).map((f) => [f.path, f])).values()];
+  if (targets.length === 0) return;
+  if (!window.confirm(rollbackConfirmText(targets))) return;
+  for (const file of targets) {
+    if (file.staged && !(await git.run({ kind: 'unstage', target: file.path }))) return;
+    if (!isNewStaged(file) && !(await git.run({ kind: 'discard-file', target: file.path }))) return;
+  }
+}
+
+const allFiles = computed(() => git.snapshot?.workingTree ?? []);
+const toolbarTargets = computed(() =>
+  allFiles.value.filter((f) => isRollbackable(f) && (git.included.includes(f.path) || f.path === selectedPath.value)),
+);
+
+function openMenu(file: WireWorkingTreeFile, ev: MouseEvent): void {
+  selectedPath.value = file.path;
+  menu.value = { file, x: ev.clientX, y: ev.clientY };
+}
+
+function closeMenu(): void {
+  menu.value = null;
+}
+
+function menuAction(action: (file: WireWorkingTreeFile) => void | Promise<void>): void {
+  const file = menu.value?.file;
+  closeMenu();
+  if (file) void action(file);
 }
 
 async function commit(push: boolean): Promise<void> {
@@ -58,8 +104,9 @@ async function commit(push: boolean): Promise<void> {
     window.dispatchEvent(new CustomEvent('gitpane:open-push', { detail: { commitFirst: true } }));
     return;
   }
+  const count = git.stagedFiles.length + git.included.length;
   const ok = await git.commit({ push: false });
-  if (ok) toasts.success(t('git.commit'));
+  if (ok) toasts.success(t('git.committed', { count }));
   else if (git.lastError) toasts.error(git.lastError.message);
 }
 
@@ -88,12 +135,13 @@ defineExpose({ focusMessage: () => messageEl.value?.focus() });
 <template>
   <section class="git-panel" :aria-label="t('git.commitPanelTitle')">
     <div class="git-toolbar">
-      <button :title="t('git.refresh')" @click="git.refresh()">⟳</button>
-      <button :title="t('git.fetch')" :disabled="!!git.busyOp" @click="git.run({ kind: 'fetch' })">⇣</button>
+      <button :title="t('git.refresh')" :aria-label="t('git.refresh')" @click="git.refresh()">⟳</button>
+      <button :title="t('git.rollback')" :aria-label="t('git.rollback')" :disabled="toolbarTargets.length === 0 || !!git.busyOp" @click="rollbackFiles(toolbarTargets)">↶</button>
+      <button :title="t('git.fetch')" :aria-label="t('git.fetch')" :disabled="!!git.busyOp" @click="git.run({ kind: 'fetch' })">⇣</button>
     </div>
     <div v-if="git.busyOp" class="git-busy">
       {{ t('git.busy', { op: git.busyOp }) }}
-      <button :title="t('git.cancel')" @click="getGitPaneService().cancel()">✕</button>
+      <button :title="t('git.cancel')" :aria-label="t('git.cancel')" @click="getGitPaneService().cancel()">✕</button>
     </div>
     <GitEmptyState v-if="emptyStatus" :status="emptyStatus" @init="initRepo" />
     <div v-else class="git-groups">
@@ -105,13 +153,25 @@ defineExpose({ focusMessage: () => messageEl.value?.focus() });
           :file="file"
           :is-staged="file.staged"
           :included="git.included.includes(file.path)"
+          :is-selected="selectedPath === file.path"
+          @select="selectedPath = file.path"
           @toggle="toggle(file)"
           @open-diff="openDiff(file)"
           @open-file="openFile(file)"
-          @context="rollback(file)"
+          @context="openMenu(file, $event)"
         />
       </div>
     </div>
+    <GitRowMenu
+      v-if="menu"
+      :x="menu.x"
+      :y="menu.y"
+      :can-rollback="isRollbackable(menu.file)"
+      @show-diff="menuAction(openDiff)"
+      @open-file="menuAction(openFile)"
+      @rollback="menuAction((f) => rollbackFiles([f]))"
+      @close="closeMenu"
+    />
     <div v-if="git.status === 'ready'" class="git-commit-box">
       <textarea
         ref="messageEl"
