@@ -167,7 +167,7 @@ async fn prepare(
     let engine = Arc::new(CliEngine::open(std::path::Path::new(path)).await?);
     let risky = super::trust::risky_config_keys(engine.root()).await?;
     if !is_trusted && !risky.is_empty() {
-        return Err(super::trust::untrusted_error(risky));
+        return Err(super::trust::untrusted_error(engine.root(), risky));
     }
     let snapshot = engine.snapshot(&snapshot_options(options)).await?;
     let root = engine.root().to_string_lossy().into_owned();

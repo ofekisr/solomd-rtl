@@ -223,6 +223,7 @@ interface Settings {
    *  users see no behavior change. */
   showHistoryPanel: boolean;
   enableGitPane: boolean;
+  gitTrustedRepos: string[];
   showGitCommit: boolean;
   showGitLog: boolean;
   gitDockHeight: number;
@@ -654,6 +655,7 @@ function defaults(): Settings {
     autoGitDebounceSeconds: 30,
     showHistoryPanel: true,
     enableGitPane: true,
+    gitTrustedRepos: [],
     showGitCommit: false,
     showGitLog: false,
     gitDockHeight: 280,
@@ -796,6 +798,9 @@ function load(): Settings {
           if (isTreeSortMode(v)) merged.explorerSortByFolder[k] = v;
         }
       }
+      merged.gitTrustedRepos = Array.isArray(parsed.gitTrustedRepos)
+        ? parsed.gitTrustedRepos.filter((root): root is string => typeof root === 'string')
+        : [];
       merged.keybindings = {};
       if (parsed.keybindings && typeof parsed.keybindings === 'object') {
         for (const [k, v] of Object.entries(parsed.keybindings)) {
@@ -1291,6 +1296,11 @@ export const useSettingsStore = defineStore('settings', {
     toggleHistoryPanel() {
       this.showHistoryPanel = !this.showHistoryPanel;
       if (this.showHistoryPanel) this.ensureRightSidebarVisible();
+      this.persist();
+    },
+    trustGitRepo(root: string) {
+      if (this.gitTrustedRepos.includes(root)) return;
+      this.gitTrustedRepos = [...this.gitTrustedRepos, root];
       this.persist();
     },
     toggleGitCommit() {

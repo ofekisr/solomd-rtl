@@ -29,11 +29,12 @@ pub async fn risky_config_keys(root: &Path) -> Result<Vec<String>, GitError> {
     Err(GitError::unknown(format!("Could not read repository config: {}", stderr.trim())))
 }
 
-pub fn untrusted_error(keys: Vec<String>) -> GitError {
+pub fn untrusted_error(root: &Path, keys: Vec<String>) -> GitError {
     let mut error = GitError::new(
         UNTRUSTED_CODE,
         "This repository's config can run programs. Trust it to enable the git pane.".to_string(),
     );
+    error.detail = Some(root.to_string_lossy().into_owned());
     error.files = Some(keys);
     error
 }

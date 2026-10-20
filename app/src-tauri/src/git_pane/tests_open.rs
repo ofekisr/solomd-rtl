@@ -84,6 +84,8 @@ async fn untrusted_config_blocks_snapshot() {
     let error = env.error.unwrap();
     assert_eq!(error.code, "UntrustedConfig");
     assert_eq!(error.files, Some(vec!["filter.x.clean".to_string()]));
+    let root = dir.path().canonicalize().unwrap().to_string_lossy().into_owned();
+    assert_eq!(error.detail, Some(root));
     assert!(!marker.exists(), "snapshot ran on an untrusted repo");
     assert_eq!(root_of(&state).await, None);
 }

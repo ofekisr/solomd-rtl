@@ -33,6 +33,8 @@
 .git-btn--primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
 .git-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .git-empty { padding: 16px; color: var(--text-muted); display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.git-untrusted-keys { margin: 0; padding-inline-start: 16px; font-size: 12px; }
+.git-untrusted-hint { font-size: 12px; }
 .git-busy { padding-inline: 8px; padding-block: 2px; color: var(--text-muted); font-size: 11px; }
 
 .git-diff { display: flex; flex-direction: column; block-size: 100%; min-block-size: 0; }
