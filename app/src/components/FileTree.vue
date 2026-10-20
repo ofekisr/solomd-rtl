@@ -1546,6 +1546,21 @@ onBeforeUnmount(() => {
           </div>
         </div>
         <button
+          class="ftree__hbtn ftree__hbtn--icon"
+          :class="{ 'ftree__hbtn--on': settings.explorerShowHidden }"
+          :title="t('settings.explorerShowHidden')"
+          :aria-label="t('settings.explorerShowHidden')"
+          :aria-pressed="settings.explorerShowHidden"
+          data-testid="explorer-toggle-hidden"
+          @click="settings.toggleExplorerShowHidden()"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+            <circle cx="12" cy="12" r="3" />
+            <line v-if="!settings.explorerShowHidden" x1="3" y1="3" x2="21" y2="21" />
+          </svg>
+        </button>
+        <button
           class="ftree__hbtn"
           :title="t('explorer.refresh') || 'Refresh'"
           @click="scheduleRefresh"
@@ -2096,6 +2111,11 @@ export const FileTreeNode = defineComponent({
   border-radius: 4px;
   cursor: pointer;
   line-height: 1.6;
+}
+.ftree__hbtn--icon {
+  display: inline-flex;
+  align-items: center;
+  align-self: stretch;
 }
 .ftree__hbtn:hover:not(:disabled) {
   color: var(--accent);
