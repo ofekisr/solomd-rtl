@@ -10,3 +10,5 @@ pub mod watcher;
 pub mod commands;
 #[cfg(test)]
 mod tests_engine;
+#[cfg(test)]
+mod tests_e2e;
