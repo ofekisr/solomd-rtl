@@ -1,4 +1,4 @@
-export interface ContextMenuItem { name: string; onclick: () => void }
+export interface ContextMenuItem { name: string; key?: string; onclick: () => void }
 
 export const CONTEXT_MENU_SELECTOR = '.context-menu';
 
@@ -6,6 +6,7 @@ export const CONTEXT_MENU_SELECTOR = '.context-menu';
 export function closingMenuItems(items: readonly ContextMenuItem[], hide: () => void): ContextMenuItem[] {
   return items.map((item) => ({
     name: item.name,
+    key: item.key,
     onclick: () => {
       try {
         item.onclick();

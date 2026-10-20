@@ -11,7 +11,8 @@ import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
 import { fenceNodeSource, readNodeSource, type MindmapSource } from '../lib/mindmap-source';
 import { useI18n } from '../i18n';
-import { resolveBindings } from '../lib/keybindings';
+import { resolveBindings, shortcutLabel } from '../lib/keybindings';
+import { isMacOS } from '../lib/platform';
 import { createMapKeyDispatch } from '../lib/mindmap-key-dispatch';
 import { layoutDirectionFor, MINDMAP_LAYOUT } from '../lib/mindmap-direction';
 import { themeFamily } from '../lib/themes';
@@ -535,6 +536,7 @@ const GATE_MENU_LABEL_KEYS: Record<GateMenuAction, string> = {
   'mindmap.markGateTarget': 'mindmap.gateMarkTarget',
   'mindmap.insertGate': 'mindmap.gateInsert',
   'mindmap.followGate': 'mindmap.gateFollow',
+  'mindmap.gateBack': 'mindmap.gateBackMenu',
   'mindmap.repairGate': 'mindmap.gateRepair',
   'mindmap.removeGate': 'mindmap.gateRemove',
 };
@@ -545,13 +547,18 @@ function gateMenuLabels(): Record<GateMenuAction, string> {
   return labels;
 }
 
+function gateMenuKeys(): Partial<Record<GateMenuAction, string>> {
+  const ids = Object.keys(GATE_MENU_LABEL_KEYS) as GateMenuAction[];
+  return Object.fromEntries(ids.map((id) => [id, shortcutLabel(id, settings.keybindings, isMacOS())]));
+}
+
 const gates = createGateController({
   getMind: () => mind,
   isReadOnly: () => isEditBlocked() || isGraphView.value,
   brokenLabel: () => t('mindmap.gateBroken'),
   notify: (key: GateNotice) => toasts.info(t(`mindmap.${key}`)),
   onChange: scheduleSync,
-}, gateMenuLabels());
+}, gateMenuLabels(), gateMenuKeys());
 
 const duplicateGroups = ref<DuplicateGroup[] | null>(null);
 

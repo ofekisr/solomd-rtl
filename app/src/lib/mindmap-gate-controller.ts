@@ -7,7 +7,7 @@ import type { ContextMenuItem } from './mindmap-context-menu.ts';
 type Before = NonNullable<Options['before']>;
 
 export type GateNotice = 'gateMarked' | 'gateNoTarget' | 'gateTargetIsGate' | 'gateNotGate' | 'gateCannotHoldChildren';
-export type GateMenuAction = 'mindmap.markGateTarget' | 'mindmap.insertGate' | 'mindmap.followGate' | 'mindmap.repairGate' | 'mindmap.removeGate';
+export type GateMenuAction = 'mindmap.markGateTarget' | 'mindmap.insertGate' | 'mindmap.followGate' | 'mindmap.gateBack' | 'mindmap.repairGate' | 'mindmap.removeGate';
 export interface GateControllerContext {
   getMind(): MindElixirInstance | null;
   isReadOnly(): boolean;
@@ -23,7 +23,7 @@ export interface GateController {
 }
 
 const GATE_ID_LENGTH = 16;
-const MENU_ACTIONS: readonly GateMenuAction[] = ['mindmap.markGateTarget', 'mindmap.insertGate', 'mindmap.followGate', 'mindmap.repairGate', 'mindmap.removeGate'];
+const MENU_ACTIONS: readonly GateMenuAction[] = ['mindmap.markGateTarget', 'mindmap.insertGate', 'mindmap.followGate', 'mindmap.gateBack', 'mindmap.repairGate', 'mindmap.removeGate'];
 
 function newNodeId(): string {
   return crypto.randomUUID().replace(/-/g, '').slice(0, GATE_ID_LENGTH);
@@ -45,7 +45,11 @@ function liveElement(m: MindElixirInstance, id: string): Topic | null {
   }
 }
 
-export function createGateController(ctx: GateControllerContext, labels: Record<GateMenuAction, string>): GateController {
+export function createGateController(
+  ctx: GateControllerContext,
+  labels: Record<GateMenuAction, string>,
+  keys: Partial<Record<GateMenuAction, string>> = {},
+): GateController {
   let markedId: string | null = null;
   const history: string[] = [];
 
@@ -168,6 +172,6 @@ export function createGateController(ctx: GateControllerContext, labels: Record<
     'mindmap.repairGate': repairGate,
     'mindmap.removeGate': removeGate,
   };
-  const menu: ContextMenuItem[] = MENU_ACTIONS.map((id) => ({ name: labels[id], onclick: actions[id] }));
+  const menu: ContextMenuItem[] = MENU_ACTIONS.map((id) => ({ name: labels[id], key: keys[id], onclick: actions[id] }));
   return { actions, guards, menu, syncLabels };
 }

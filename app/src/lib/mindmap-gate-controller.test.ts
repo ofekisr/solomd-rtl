@@ -53,7 +53,7 @@ function buildHarness(): Harness {
     brokenLabel: () => '?',
     notify: (key) => notices.push(key),
     onChange: () => undefined,
-  }, { 'mindmap.markGateTarget': 'm', 'mindmap.insertGate': 'i', 'mindmap.followGate': 'f', 'mindmap.repairGate': 'r', 'mindmap.removeGate': 'x' });
+  }, { 'mindmap.markGateTarget': 'm', 'mindmap.insertGate': 'i', 'mindmap.followGate': 'f', 'mindmap.gateBack': 'b', 'mindmap.repairGate': 'r', 'mindmap.removeGate': 'x' });
   const setCurrent = (id: string): void => { fake.currentNode = fake.findEle(id) as Topic; };
   return { controller, selected, notices, setCurrent };
 }
@@ -163,4 +163,14 @@ test('a built-in combo is stopped in the bubble phase so outer handlers never se
   assert.equal(event.isStopped, true);
   assert.equal(coreHandled, 0);
   assert.deepEqual(h.selected, []);
+});
+
+test('menu lists Back after Follow and carries shortcut hints', () => {
+  const labels = { 'mindmap.markGateTarget': 'm', 'mindmap.insertGate': 'i', 'mindmap.followGate': 'f', 'mindmap.gateBack': 'b', 'mindmap.repairGate': 'r', 'mindmap.removeGate': 'x' } as const;
+  const ctx = { getMind: () => null, isReadOnly: () => false, brokenLabel: () => '?', notify: () => undefined, onChange: () => undefined };
+  const { menu } = createGateController(ctx, labels, { 'mindmap.followGate': '⌥Enter', 'mindmap.gateBack': '⌥←' });
+  assert.deepEqual(menu.map((i) => i.name), ['m', 'i', 'f', 'b', 'r', 'x']);
+  assert.equal(menu[2].key, '⌥Enter');
+  assert.equal(menu[3].key, '⌥←');
+  assert.equal(menu[0].key, undefined);
 });

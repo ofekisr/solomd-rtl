@@ -1520,6 +1520,7 @@ export const en = {
     gateMarkTarget: 'Mark as gate target',
     gateInsert: 'Insert gate to marked node',
     gateFollow: 'Follow gate',
+    gateBackMenu: 'Back from gate',
     gateRepair: 'Repair gate',
     gateRemove: 'Remove gate',
   },

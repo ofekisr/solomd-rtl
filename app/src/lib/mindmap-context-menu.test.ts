@@ -21,3 +21,8 @@ test('names are kept', () => {
   const items = closingMenuItems([{ name: 'A', onclick: () => {} }, { name: 'B', onclick: () => {} }], () => {});
   assert.deepEqual(items.map((i) => i.name), ['A', 'B']);
 });
+
+test('shortcut hints are kept', () => {
+  const [item] = closingMenuItems([{ name: 'Follow', key: '⌥Enter', onclick: () => {} }], () => {});
+  assert.equal(item.key, '⌥Enter');
+});
