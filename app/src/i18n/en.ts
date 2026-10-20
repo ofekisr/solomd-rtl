@@ -1887,6 +1887,16 @@ export const en = {
   previewFold: {
     toggle: 'Fold / unfold section',
   },
+  git: {
+    sideBySide: 'Side-by-side',
+    unified: 'Unified',
+    stageHunk: 'Stage hunk',
+    unstageHunk: 'Unstage hunk',
+    rollbackHunk: 'Rollback hunk',
+    binaryFile: 'Binary file not shown',
+    tooLarge: 'Diff too large to display',
+    confirmRollback: 'Discard local changes to {name}? This cannot be undone.',
+  },
   findBar: {
     wrapPresets: 'Wrap match:',
     skipCode: 'Skip code (inline `spans` and ``` blocks)',
@@ -2311,9 +2321,10 @@ type EnglishSettings = EnglishDictionary['settings'];
 
 type EnglishCmd = EnglishDictionary['cmd'];
 
-export type I18n = Omit<EnglishDictionary, 'settings' | 'mindmap' | 'cmd' | 'searchReplace' | 'findBar'> & {
+export type I18n = Omit<EnglishDictionary, 'settings' | 'mindmap' | 'cmd' | 'searchReplace' | 'findBar' | 'git'> & {
   searchReplace?: EnglishDictionary['searchReplace'];
   findBar?: EnglishDictionary['findBar'];
+  git?: EnglishDictionary['git'];
   cmd: Omit<EnglishCmd, 'mindmap'> & { mindmap?: EnglishCmd['mindmap'] };
   settings: Omit<EnglishSettings, DirectiveCompletionFallbackKey> &
     Partial<Pick<EnglishSettings, DirectiveCompletionFallbackKey>>;

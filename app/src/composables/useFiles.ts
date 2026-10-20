@@ -790,6 +790,7 @@ export function useFiles() {
   }
 
   async function saveTab(tab: Tab, opts: { silent?: boolean } = {}): Promise<boolean> {
+    if (tab.language === 'git-diff') return false;
     // #222 — the CodeMirror editor syncs doc→tab.content on a 350ms debounce.
     // A save issued inside that window (vim `:w`/`:wq`, a fast Ctrl+S) would
     // read a stale document; for `:wq` the tab then closes and the tail of the
@@ -859,6 +860,7 @@ export function useFiles() {
   }
 
   async function saveTabAs(tab: Tab): Promise<boolean> {
+    if (tab.language === 'git-diff') return false;
     const defaultName =
       deriveNameFromHeading(tab) ||
       tab.fileName ||

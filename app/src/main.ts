@@ -10,6 +10,7 @@ import { useToastsStore } from './stores/toasts';
 import './styles/cjk-font.css';
 import './styles/main.css';
 import './styles/hljs-theme.css';
+import './styles/git-pane.css';
 import 'katex/dist/katex.min.css';
 
 const params = new URLSearchParams(window.location.search);

@@ -8,6 +8,7 @@ import { useWindowsStore } from './windows';
 import { stampGoalSetAtIfMissing } from '../composables/useWritingGoals';
 import { compactTabs, expandTabs, setItemWithEviction } from '../lib/tab-persistence';
 import { sessionKey } from '../lib/cm-session-restore';
+import { encodeDiffPath, type DiffTabRef } from '../lib/git-pane/diffTab';
 
 // Legacy / global key (used when per-workspace tabs is OFF, and as the
 // migration source on first upgrade).
@@ -130,6 +131,7 @@ function bucketKey(folder: string | null): string {
 }
 
 function isDirty(t: Tab): boolean {
+  if (t.language === 'git-diff') return false;
   return t.content !== t.savedContent;
 }
 
@@ -195,8 +197,11 @@ export const useTabsStore = defineStore('tabs', {
     isDirty(): (id: string) => boolean {
       return (id: string) => {
         const t = this.tabs.find((x) => x.id === id);
-        return !!t && t.content !== t.savedContent;
+        return !!t && isDirty(t);
       };
+    },
+    persistableTabs(state): Tab[] {
+      return state.tabs.filter((t) => t.language !== 'git-diff');
     },
   },
   actions: {
@@ -416,8 +421,24 @@ export const useTabsStore = defineStore('tabs', {
       }
       if (value) useSettingsStore().ensureRightSidebarVisible();
     },
+    persistedState(): PersistedState {
+      const tabs = this.persistableTabs;
+      const activeKept = tabs.some((x) => x.id === this.activeId);
+      return { tabs, activeId: activeKept ? this.activeId : tabs[0]?.id ?? '' };
+    },
+    openGitDiff(ref: DiffTabRef) {
+      const filePath = encodeDiffPath(ref);
+      const existing = this.tabs.find((x) => x.filePath === filePath);
+      if (existing) {
+        this.activeId = existing.id;
+        return;
+      }
+      const name = ref.path.split('/').pop() ?? ref.path;
+      const tab = this.newTab({ fileName: `${name} (diff)`, language: 'git-diff' });
+      tab.filePath = filePath;
+    },
     persist() {
-      writeBucket(bucketKey(currentWorkspaceFolder()), { tabs: this.tabs, activeId: this.activeId });
+      writeBucket(bucketKey(currentWorkspaceFolder()), this.persistedState());
     },
     /** #103 — when this is an auxiliary window, record it in the shared
      *  windows registry so the main window re-spawns it on the next launch.
@@ -438,7 +459,7 @@ export const useTabsStore = defineStore('tabs', {
      *  leaving a workspace, so it's remembered when the user returns). */
     persistToFolder(folder: string | null) {
       if (!perWorkspaceTabsEnabled()) return this.persist();
-      writeBucket(bucketKey(folder), { tabs: this.tabs, activeId: this.activeId });
+      writeBucket(bucketKey(folder), this.persistedState());
     },
     /** Called by the workspace store when the active folder changes. Saves
      *  the current view into the previous workspace's bucket, then swaps in

@@ -27,10 +27,13 @@ const previewRef = ref<InstanceType<typeof Preview> | null>(null);
 
 const MindmapView = defineAsyncComponent(() => import('./MindmapView.vue'));
 
+const GitDiff = defineAsyncComponent(() => import('./git/GitDiff.vue'));
+
 const isMindmap = computed(() => props.tab?.language === 'mindmap');
+const isGitDiff = computed(() => props.tab?.language === 'git-diff');
 
 const showEditor = computed(
-  () => !isMindmap.value && (props.tab?.language !== 'markdown' || settings.viewMode !== 'preview')
+  () => !isMindmap.value && !isGitDiff.value && (props.tab?.language !== 'markdown' || settings.viewMode !== 'preview')
 );
 // `liveEdit` mode is editor-only: the inline-rendered markdown IS the
 // preview, so we don't show the separate Preview pane next to it.
@@ -465,6 +468,9 @@ function onPreviewSearchEvent(e: Event) {
       'pane-content--distinct': settings.distinctSplitPanes && showEditor && showPreview,
     }"
   >
+    <div class="pane pane--git-diff" v-if="isGitDiff && tab">
+      <GitDiff :key="tab.id" :uri="tab.filePath ?? ''" />
+    </div>
     <div class="pane pane--mindmap" v-if="isMindmap && tab">
       <MindmapView :key="tab.id" ref="mindmapRef" :tab="tab" />
     </div>
