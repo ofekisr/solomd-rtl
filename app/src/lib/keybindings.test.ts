@@ -95,10 +95,15 @@ test('mindmap rebinds that hit a Mind Elixir built-in are conflicts', () => {
   assert.notEqual(conflictFor('Tab', 'file.new', {}), MINDMAP_BUILTIN_OWNER);
 });
 
-test('git shortcuts do not collide with existing defaults', () => {
+const ZOOM_CHORDS = ['Mod+0', 'Mod+=', 'Mod+-'];
+
+test('git shortcuts do not collide with existing defaults or zoom chords', () => {
   for (const id of ['git.toggleCommit', 'git.toggleLog', 'git.push', 'git.update']) {
     const action = KEY_ACTIONS.find((a) => a.id === id);
     assert.ok(action, id);
-    for (const combo of action.defaults) assert.equal(conflictFor(combo, id, {}), null, `${id} ${combo}`);
+    for (const combo of action.defaults) {
+      assert.equal(conflictFor(combo, id, {}), null, `${id} ${combo}`);
+      assert.ok(!ZOOM_CHORDS.includes(combo), `${id} ${combo} clashes with zoom`);
+    }
   }
 });

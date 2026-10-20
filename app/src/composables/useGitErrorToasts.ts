@@ -1,9 +1,7 @@
 import { watch } from 'vue';
 import { useGitPaneStore } from '../stores/gitPane';
 import { useToastsStore } from '../stores/toasts';
-import { formatGitErrorToast } from '../lib/git-pane/formatError';
-
-const SILENT_CODES = new Set(['DirtyWorktree', 'Cancelled']);
+import { formatGitErrorToast, isSilentGitError } from '../lib/git-pane/formatError';
 
 export function useGitErrorToasts(): void {
   const git = useGitPaneStore();
@@ -11,7 +9,7 @@ export function useGitErrorToasts(): void {
   watch(
     () => git.lastError,
     (error) => {
-      if (!error || git.status !== 'ready' || SILENT_CODES.has(error.code)) return;
+      if (!error || git.status !== 'ready' || isSilentGitError(error.code, git.lastErrorKind)) return;
       toasts.error(formatGitErrorToast(error));
     },
   );

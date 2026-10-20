@@ -148,7 +148,7 @@ export const KEY_ACTIONS: KeyActionDef[] = [
   { id: 'view.toggleOutline', label: 'Toggle Outline', category: 'view', defaults: ['Mod+Shift+O'] },
   { id: 'view.toggleInspector', label: 'Toggle Properties Inspector', category: 'view', defaults: ['Mod+Shift+I'] },
   { id: 'view.toggleToolbar', label: 'Show / Hide Toolbar Buttons', category: 'view', defaults: ['Mod+Alt+Shift+T'] },
-  { id: 'git.toggleCommit', label: 'Git: Commit Panel', category: 'view', defaults: ['Mod+0'] },
+  { id: 'git.toggleCommit', label: 'Git: Commit Panel', category: 'view', defaults: ['Mod+Shift+G'] },
   { id: 'git.toggleLog', label: 'Git: Log', category: 'view', defaults: ['Mod+9'] },
   { id: 'git.commit', label: 'Git: Commit', category: 'tools', scope: 'gitCommit', defaults: ['Mod+Enter'] },
   { id: 'git.push', label: 'Git: Push…', category: 'tools', defaults: ['Mod+Shift+U'] },

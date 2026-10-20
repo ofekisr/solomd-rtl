@@ -3,16 +3,20 @@ import type { WireCommit, WireRepositorySnapshot, WireWorkingTreeFile } from '..
 import { GitPaneError, type GitPaneAction, type GitPaneActionKind, type GitPaneService } from '../lib/git-pane/service.ts'
 import { toGitPaneError } from '../lib/git-pane/validate.ts'
 import { getGitPaneService } from '../lib/git-pane/serviceFactory.ts'
+import type { SerializedGitError } from '../lib/git-pane/shared/errors.ts'
 
 export type { DiffSide } from '../lib/git-pane/service.ts'
-export type GitPaneStatus = 'idle' | 'loading' | 'ready' | 'no-repo' | 'no-git' | 'error'
+export type GitPaneStatus = 'idle' | 'loading' | 'ready' | 'no-repo' | 'no-git' | 'untrusted' | 'error'
 
 const REFRESH_THROTTLE_MS = 250
 const PAGE_SIZE = 200
 const NO_REPO_CODES = new Set(['RepositoryNotFound', 'NotARepository'])
+const UNTRUSTED_CODE = 'UntrustedConfig'
 
 let service: GitPaneService | null = null
 let unsubscribe: (() => void) | null = null
+let trustedRoots: readonly string[] = []
+let openedFolder: string | null = null
 let refreshTimer: ReturnType<typeof setTimeout> | null = null
 let generation = 0
 let runQueue: Promise<unknown> = Promise.resolve()
@@ -42,13 +46,26 @@ interface State {
   amend: boolean
   busyOp: GitPaneActionKind | null
   lastError: GitPaneError | null
+  lastErrorKind: GitPaneActionKind | null
+  untrustedRoot: string | null
+  untrustedKeys: string[]
+}
+
+function closeBackend(): void {
+  void svc().close().catch(() => undefined)
+}
+
+function listenForWindowFocus(onFocus: () => void): () => void {
+  if (typeof window === 'undefined') return () => undefined
+  window.addEventListener('focus', onFocus)
+  return () => window.removeEventListener('focus', onFocus)
 }
 
 export const useGitPaneStore = defineStore('gitPane', {
   state: (): State => ({
     status: 'idle', repoRoot: null, snapshot: null, commits: [], hasMoreCommits: false,
     selectedSha: null, selectedFiles: [], included: [], message: '', amend: false,
-    busyOp: null, lastError: null,
+    busyOp: null, lastError: null, lastErrorKind: null, untrustedRoot: null, untrustedKeys: [],
   }),
   getters: {
     stagedFiles: (s): WireWorkingTreeFile[] => s.snapshot?.workingTree.filter((f) => f.staged) ?? [],
@@ -61,6 +78,9 @@ export const useGitPaneStore = defineStore('gitPane', {
       ahead: s.snapshot?.repository.ahead ?? 0,
       behind: s.snapshot?.repository.behind ?? 0,
     }),
+    commitFileCount(): number {
+      return new Set([...this.stagedFiles.map((f) => f.path), ...this.included]).size
+    },
     canCommit(): boolean {
       const hasContent = this.stagedFiles.length > 0 || this.included.length > 0 || this.amend
       return hasContent && this.message.trim().length > 0 && this.busyOp === null
@@ -70,8 +90,24 @@ export const useGitPaneStore = defineStore('gitPane', {
     bindService(next?: GitPaneService): () => void {
       unsubscribe?.()
       service = next ?? getGitPaneService()
-      unsubscribe = service.onChanged(() => this.scheduleRefresh())
+      const offChanged = service.onChanged(() => this.scheduleRefresh())
+      const offFocus = listenForWindowFocus(() => this.scheduleRefresh())
+      unsubscribe = () => {
+        offChanged()
+        offFocus()
+      }
       return () => unsubscribe?.()
+    },
+    setTrustedRoots(roots: readonly string[]): void {
+      trustedRoots = [...roots]
+    },
+    trustAndReopen(): Promise<void> {
+      const root = this.untrustedRoot
+      if (root && !trustedRoots.includes(root)) trustedRoots = [...trustedRoots, root]
+      return this.open(openedFolder)
+    },
+    async cancel(): Promise<void> {
+      await svc().cancel()
     },
     scheduleRefresh(): void {
       if (refreshTimer) clearTimeout(refreshTimer)
@@ -90,8 +126,9 @@ export const useGitPaneStore = defineStore('gitPane', {
       const gen = ++generation
       if (refreshTimer) clearTimeout(refreshTimer)
       refreshTimer = null
+      openedFolder = folder
       this.$reset()
-      if (!folder) return
+      if (!folder) return closeBackend()
       this.status = 'loading'
       try {
         const version = await svc().version()
@@ -100,16 +137,29 @@ export const useGitPaneStore = defineStore('gitPane', {
           this.status = 'no-git'
           return
         }
-        const res = await svc().open(folder)
+        let res = await svc().open(folder, false)
+        const root = res.error?.code === UNTRUSTED_CODE ? res.error.detail : undefined
+        if (root && trustedRoots.includes(root) && gen === generation) res = await svc().open(folder, true)
         if (gen !== generation) return
         if (res.ok && res.snapshot) return this.applySnapshot(res.snapshot)
-        this.status = res.error && NO_REPO_CODES.has(res.error.code) ? 'no-repo' : 'error'
-        this.lastError = res.error ? new GitPaneError(res.error.code, res.error.message) : null
+        this.applyOpenFailure(res.error)
       } catch (e) {
         if (gen !== generation) return
         this.status = 'error'
         this.lastError = toGitPaneError(e)
+        closeBackend()
       }
+    },
+    applyOpenFailure(error: SerializedGitError | undefined): void {
+      closeBackend()
+      this.lastError = error ? new GitPaneError(error.code, error.message, error.detail) : null
+      if (error?.code === UNTRUSTED_CODE) {
+        this.status = 'untrusted'
+        this.untrustedRoot = error.detail ?? null
+        this.untrustedKeys = error.files ?? []
+        return
+      }
+      this.status = error && NO_REPO_CODES.has(error.code) ? 'no-repo' : 'error'
     },
     async refresh(): Promise<void> {
       if (this.status !== 'ready') return
@@ -136,20 +186,24 @@ export const useGitPaneStore = defineStore('gitPane', {
       }
     },
     run(action: GitPaneAction): Promise<boolean> {
+      if (this.status !== 'ready') return Promise.resolve(false)
       return enqueue((gen) => this.execute(action, gen))
     },
     async execute(action: GitPaneAction, gen: number): Promise<boolean> {
       if (gen !== generation) return false
       this.busyOp = action.kind
       this.lastError = null
+      this.lastErrorKind = null
       try {
         const env = await svc().execute(action)
         if (!env.ok) {
+          this.lastErrorKind = action.kind
           this.lastError = new GitPaneError(env.error?.code ?? 'unknown', env.error?.message ?? env.message)
           return false
         }
         return true
       } catch (e) {
+        this.lastErrorKind = action.kind
         this.lastError = toGitPaneError(e)
         return false
       } finally {
@@ -165,7 +219,7 @@ export const useGitPaneStore = defineStore('gitPane', {
       return true
     },
     commit(opts: { push: boolean; force?: boolean }): Promise<boolean> {
-      if (!this.canCommit) return Promise.resolve(false)
+      if (!this.canCommit || this.status !== 'ready') return Promise.resolve(false)
       const kind: GitPaneActionKind = opts.push ? (opts.force ? 'commit-and-force-push' : 'commit-and-push') : (this.amend ? 'amend' : 'commit')
       const meta = { message: this.message.trim(), amend: this.amend }
       return enqueue(async (gen) => {

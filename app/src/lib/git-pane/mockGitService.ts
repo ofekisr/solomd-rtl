@@ -2,10 +2,20 @@ import type {
   ActionEnvelope, WireAuthor, WireBranch, WireCommit, WireRepositorySnapshot, WireWorkingTreeFile,
 } from './shared/models.ts'
 import type { GitPaneAction, GitPaneService, OpenResult } from './service.ts'
+import type { SerializedGitError } from './shared/errors.ts'
 
 export interface MockSeed {
   notARepo?: boolean
   noGit?: boolean
+  untrusted?: boolean
+  dirtyPull?: boolean
+}
+
+const MOCK_ROOT = '/repo'
+const UNTRUSTED_KEYS = ['core.hookspath', 'filter.lfs.clean']
+
+function failure(code: SerializedGitError['code'], message: string, extra: Partial<SerializedGitError> = {}): SerializedGitError {
+  return { __gitError: true, code, message, ...extra }
 }
 
 const MOCK_COMMIT_COUNT = 30
@@ -45,7 +55,7 @@ export function sampleSnapshot(): WireRepositorySnapshot {
   commits[0].refs = [{ type: 'head', name: 'HEAD', label: 'HEAD', isHead: true }, { type: 'localBranch', name: 'main', label: 'main' }]
   return {
     repository: {
-      name: 'repo', path: '/repo', gitVersion: 'git version 2.50.0', currentBranch: 'main', detached: false,
+      name: 'repo', path: MOCK_ROOT, gitVersion: 'git version 2.50.0', currentBranch: 'main', detached: false,
       headSha: commits[0].sha, ahead: 1, behind: 0, remoteUrl: 'https://github.com/example/repo.git',
       remotes: [{ name: 'origin', fetchUrl: 'https://github.com/example/repo.git', pushUrl: 'https://github.com/example/repo.git' }],
       state: { detachedHead: false, merging: false, rebasing: false, cherryPicking: false, reverting: false, bisecting: false, operationLabel: null },
@@ -81,18 +91,22 @@ function applyAction(snap: WireRepositorySnapshot, action: GitPaneAction): void 
   }
 }
 
-export function createMockGitService(seed: MockSeed = {}): GitPaneService & { calls: GitPaneAction[]; emitChanged(): void } {
+export function createMockGitService(seed: MockSeed = {}): GitPaneService & { calls: GitPaneAction[]; closeCount: number; emitChanged(): void } {
   let snap = sampleSnapshot()
   const listeners = new Set<() => void>()
   const calls: GitPaneAction[] = []
   return {
     calls,
+    closeCount: 0,
     emitChanged: () => listeners.forEach((l) => l()),
     async version() {
       return seed.noGit ? null : { version: 'git version 2.50.0', gitPath: '/opt/homebrew/bin/git' }
     },
-    async open(): Promise<OpenResult> {
-      if (seed.notARepo) return { ok: false, error: { __gitError: true, code: 'RepositoryNotFound', message: 'Not a git repository.' } }
+    async open(_folder: string, isTrusted: boolean): Promise<OpenResult> {
+      if (seed.notARepo) return { ok: false, error: failure('RepositoryNotFound', 'Not a git repository.') }
+      if (seed.untrusted && !isTrusted) {
+        return { ok: false, error: failure('UntrustedConfig', 'Repository config can run programs.', { detail: MOCK_ROOT, files: UNTRUSTED_KEYS }) }
+      }
       snap = sampleSnapshot()
       return { ok: true, snapshot: structuredClone(snap) }
     },
@@ -120,10 +134,16 @@ export function createMockGitService(seed: MockSeed = {}): GitPaneService & { ca
     },
     async execute(action): Promise<ActionEnvelope> {
       calls.push(action)
+      if (seed.dirtyPull && action.kind === 'pull') {
+        return { ok: false, message: 'dirty', error: failure('DirtyWorktree', 'Your local changes would be overwritten by pull.') }
+      }
       applyAction(snap, action)
       return { ok: true, message: `${action.kind} done` }
     },
     async cancel() {},
+    async close() {
+      this.closeCount += 1
+    },
     onChanged(listener) {
       listeners.add(listener)
       return () => listeners.delete(listener)

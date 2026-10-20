@@ -6,6 +6,7 @@ import { redactUrl } from './redactUrl.ts'
 import { decodeDiffPath, encodeDiffPath, isDiffPath } from './diffTab.ts'
 import { statusLetter } from './statusLetter.ts'
 import { sampleSnapshot } from './mockGitService.ts'
+import { isSilentGitError } from './formatError.ts'
 
 test('groups changes in JetBrains order and omits empty groups', () => {
   const groups = groupChanges(sampleSnapshot().workingTree)
@@ -82,4 +83,11 @@ test('formatGitErrorToast appends the credential hint for Authentication', () =>
 test('formatGitErrorToast falls back to the default message and skips hints for other codes', () => {
   assert.ok(formatGitErrorToast({ code: 'Network', message: '' }).includes('network error'))
   assert.equal(formatGitErrorToast({ code: 'RemoteRejected', message: 'Rejected' }), 'Rejected')
+})
+
+test('DirtyWorktree is silent only for checkout, which shows its own dialog', () => {
+  assert.equal(isSilentGitError('DirtyWorktree', 'checkout'), true)
+  assert.equal(isSilentGitError('DirtyWorktree', 'pull'), false)
+  assert.equal(isSilentGitError('Cancelled', 'pull'), true)
+  assert.equal(isSilentGitError('Authentication', 'push'), false)
 })

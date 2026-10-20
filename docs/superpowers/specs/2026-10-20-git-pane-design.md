@@ -142,13 +142,13 @@ New tab language `git-diff`, virtual path `git-diff://<path>?side=staged|worktre
 
 | Key | Action |
 | --- | --- |
-| ⌘0 (`Mod+0`) | Toggle Commit panel (focuses message box) |
+| ⌘⇧G (`Mod+Shift+G`) | Toggle Commit panel (focuses message box) |
 | ⌘9 (`Mod+9`) | Toggle Log dock |
 | ⌘↩ (`Mod+Enter`, scope: commit message box) | Commit |
 | ⌘⇧U (`Mod+Shift+U`) | Push… |
 | ⌘⌥U (`Mod+Alt+U`) | Update Project (pull) |
 
-JetBrains' own ⌘K / ⌘⇧K / ⌘T are taken in `lib/keybindings.ts` (`fmt.link`, `palette.open`, `file.new`); ⌘⌥K is `fmt.codeblock`. The chosen combos are free there; the only other ⌘0 is scoped to the image overlay (`lib/image-overlay.ts:527`). All five are registered as rebindable `git.*` entries in `lib/keybindings.ts` and appear in `CommandPalette`.
+JetBrains' own ⌘K / ⌘⇧K / ⌘T are taken in `lib/keybindings.ts` (`fmt.link`, `palette.open`, `file.new`); ⌘⌥K is `fmt.codeblock`. The chosen combos are free there. ⌘0 was rejected because it resets the app zoom (`App.vue` zoom handler and the `view.zoomUiReset` menu accelerator). All five are registered as rebindable `git.*` entries in `lib/keybindings.ts` and appear in `CommandPalette`.
 
 ### RTL / i18n / styling
 

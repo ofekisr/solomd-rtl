@@ -37,7 +37,7 @@ import { useGithubSyncStore } from '../stores/githubSync';
 import { useGithubSync } from './useGithubSync';
 import { IS_APP_STORE_BUILD } from '../lib/app-build';
 import { hasGitBackend } from '../lib/platform';
-import { isGitMockActive } from '../lib/git-pane/serviceFactory';
+import { useGitPaneAvailable } from './useGitPaneAvailable';
 import { useGitPaneStore } from '../stores/gitPane';
 
 export interface Command {
@@ -804,7 +804,7 @@ export function useCommands(): Command[] {
   // Quick capture is a desktop window opened by an OS-level hotkey; neither
   // half exists on a phone, so the command would only ever fail there.
   const desktopOnly = isMobile() ? built.filter((c) => c.id !== 'capture.quick') : built;
-  const isGitPaneAvailable = (hasGitBackend() && settings.enableGitPane) || isGitMockActive();
+  const isGitPaneAvailable = useGitPaneAvailable().value;
   const visible = isGitPaneAvailable ? desktopOnly : desktopOnly.filter((c) => !c.id.startsWith('git.'));
   if (!hasGitBackend()) {
     return visible.filter(

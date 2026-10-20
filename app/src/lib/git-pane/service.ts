@@ -32,7 +32,8 @@ export interface GitVersionInfo {
 
 export interface GitPaneService {
   version(): Promise<GitVersionInfo | null>
-  open(folder: string): Promise<OpenResult>
+  open(folder: string, isTrusted: boolean): Promise<OpenResult>
+  close(): Promise<void>
   snapshot(): Promise<WireRepositorySnapshot>
   commitPage(request: CommitPageRequest): Promise<CommitPageResult>
   diff(request: DiffRequest): Promise<DiffResult>

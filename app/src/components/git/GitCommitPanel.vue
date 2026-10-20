@@ -8,7 +8,6 @@ import { useI18n } from '../../i18n';
 import { useFiles } from '../../composables/useFiles';
 import { groupChanges, type ChangeGroupId } from '../../lib/git-pane/groupChanges';
 import type { WireWorkingTreeFile } from '../../lib/git-pane/shared/models';
-import { getGitPaneService } from '../../lib/git-pane/serviceFactory';
 import GitChangeRow from './GitChangeRow.vue';
 import GitEmptyState from './GitEmptyState.vue';
 import GitConflictBanner from './GitConflictBanner.vue';
@@ -121,7 +120,7 @@ async function commit(push: boolean): Promise<void> {
     window.dispatchEvent(new CustomEvent('gitpane:open-push', { detail: { commitFirst: true } }));
     return;
   }
-  const count = git.stagedFiles.length + git.included.length;
+  const count = git.commitFileCount;
   const ok = await git.commit({ push: false });
   if (ok) toasts.success(t('git.committed', { count }));
 }
@@ -157,7 +156,7 @@ defineExpose({ focusMessage: () => messageEl.value?.focus() });
     </div>
     <div v-if="git.busyOp" class="git-busy">
       {{ t('git.busy', { op: git.busyOp }) }}
-      <button :title="t('git.cancel')" :aria-label="t('git.cancel')" @click="getGitPaneService().cancel()">✕</button>
+      <button :title="t('git.cancel')" :aria-label="t('git.cancel')" @click="git.cancel()">✕</button>
     </div>
     <GitConflictBanner @open-file="openRelPath" />
     <GitEmptyState v-if="emptyStatus" :status="emptyStatus" @init="initRepo" />

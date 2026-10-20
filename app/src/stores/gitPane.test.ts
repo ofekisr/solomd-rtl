@@ -10,6 +10,7 @@ function storeWith(seed = {}) {
   const svc = createMockGitService(seed)
   const store = useGitPaneStore()
   store.bindService(svc)
+  store.setTrustedRoots([])
   return { store, svc }
 }
 
@@ -87,9 +88,9 @@ test('changed event triggers refresh', async () => {
 test('late response for a previous folder does not overwrite the current one', async () => {
   const { store, svc } = storeWith()
   const realOpen = svc.open.bind(svc)
-  svc.open = async (folder: string) => {
+  svc.open = async (folder: string, isTrusted: boolean) => {
     if (folder === '/a') await new Promise((r) => setTimeout(r, 60))
-    const res = await realOpen(folder)
+    const res = await realOpen(folder, isTrusted)
     if (res.snapshot) res.snapshot.repository.path = folder
     return res
   }
@@ -205,4 +206,71 @@ test('commit does not run against a new folder opened during staging', async () 
   assert.equal(await store.commit({ push: false }), false)
   assert.deepEqual(svc.calls.map((c) => c.kind), ['stage'])
   assert.equal(store.message, 'typed in b')
+})
+
+test('run is refused unless the pane is ready', async () => {
+  const { store, svc } = storeWith({ notARepo: true })
+  await store.open('/plain')
+  assert.equal(await store.run({ kind: 'fetch' }), false)
+  assert.deepEqual(svc.calls, [])
+})
+
+test('a failed open closes the backend', async () => {
+  const { store, svc } = storeWith({ notARepo: true })
+  await store.open('/plain')
+  assert.equal(svc.closeCount, 1)
+})
+
+test('open(null) closes the backend', async () => {
+  const { store, svc } = storeWith()
+  await store.open('/repo')
+  await store.open(null)
+  assert.equal(svc.closeCount, 1)
+})
+
+test('failed action records which kind failed', async () => {
+  const { store } = storeWith({ dirtyPull: true })
+  await store.open('/repo')
+  assert.equal(await store.run({ kind: 'pull' }), false)
+  assert.equal(store.lastError?.code, 'DirtyWorktree')
+  assert.equal(store.lastErrorKind, 'pull')
+})
+
+test('untrusted repo enters untrusted status without a snapshot', async () => {
+  const { store } = storeWith({ untrusted: true })
+  await store.open('/repo')
+  assert.equal(store.status, 'untrusted')
+  assert.equal(store.snapshot, null)
+  assert.equal(store.untrustedRoot, '/repo')
+  assert.deepEqual(store.untrustedKeys, ['core.hookspath', 'filter.lfs.clean'])
+})
+
+test('trustAndReopen opens the untrusted repo', async () => {
+  const { store } = storeWith({ untrusted: true })
+  await store.open('/repo')
+  await store.trustAndReopen()
+  assert.equal(store.status, 'ready')
+})
+
+test('a repo already in the trusted list opens directly', async () => {
+  const { store } = storeWith({ untrusted: true })
+  store.setTrustedRoots(['/repo'])
+  await store.open('/repo')
+  assert.equal(store.status, 'ready')
+})
+
+test('commit file count does not double-count included staged files', async () => {
+  const { store } = storeWith()
+  await store.open('/repo')
+  store.toggleIncluded('notes/todo.md')
+  store.toggleIncluded('README.md')
+  assert.equal(store.commitFileCount, 2)
+})
+
+test('cancel goes through the service', async () => {
+  const { store, svc } = storeWith()
+  let cancelled = 0
+  svc.cancel = async () => { cancelled += 1 }
+  await store.cancel()
+  assert.equal(cancelled, 1)
 })

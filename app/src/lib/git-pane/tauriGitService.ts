@@ -24,8 +24,9 @@ export function createTauriGitService(): GitPaneService {
         return null
       }
     },
-    async open(folder: string): Promise<OpenResult> {
-      const res = await call<OpenResult>('gitpane_open', { path: folder, options: { commitLimit: SNAPSHOT_COMMIT_LIMIT } })
+    async open(folder: string, isTrusted: boolean): Promise<OpenResult> {
+      const options = { commitLimit: SNAPSHOT_COMMIT_LIMIT }
+      const res = await call<OpenResult>('gitpane_open', { path: folder, options, trusted: isTrusted })
       if (res.ok) ensure(res.snapshot, isSnapshot, 'snapshot')
       return res
     },
@@ -46,6 +47,9 @@ export function createTauriGitService(): GitPaneService {
     },
     async cancel() {
       await call('gitpane_cancel')
+    },
+    async close() {
+      await call('gitpane_close')
     },
     onChanged(listener: () => void) {
       let unlisten: (() => void) | null = null

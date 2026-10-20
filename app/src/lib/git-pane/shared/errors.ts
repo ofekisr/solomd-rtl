@@ -21,6 +21,7 @@ export type GitErrorCode =
   | 'Cancelled'
   | 'GitNotFound'
   | 'InvalidRefName'
+  | 'UntrustedConfig'
   | 'Unknown'
 
 export interface SerializedGitError {
@@ -71,6 +72,7 @@ export const DEFAULT_MESSAGES: Record<GitErrorCode, string> = {
   Cancelled: 'The operation was cancelled.',
   GitNotFound: 'Git was not found on this system.',
   InvalidRefName: 'The reference name is not valid.',
+  UntrustedConfig: 'This repository has config that can run programs.',
   Unknown: 'An unexpected Git error occurred.',
 }
 
