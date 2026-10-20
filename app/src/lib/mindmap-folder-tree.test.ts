@@ -2,25 +2,23 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { NodeObj } from 'mind-elixir';
 import {
-  buildFolderTreeMap, defaultIncluded, folderRows, matchingTags, parseTagRules, setIncluded,
-  type ScannedFolder, type TreeOptions,
+  buildFolderTreeMap, matchingTags, parseTagRules, rowRange, visibleRows,
+  type ScannedFolder, type TreeEntry, type TreeOptions,
 } from './mindmap-folder-tree.ts';
+import { applyScope, defaultScopeRules } from './mindmap-folder-scope.ts';
 
-const file = (name: string) => ({ name, isHidden: name.startsWith('.') });
-const dir = (relPath: string, files: string[], folders: ScannedFolder[] = []): ScannedFolder => {
-  const name = relPath.split('/').pop() || 'repo';
-  return { name, relPath, isHidden: name.startsWith('.'), files: files.map(file), folders };
-};
+const dir = (relPath: string, files: string[], folders: ScannedFolder[] = []): ScannedFolder =>
+  ({ name: relPath.split('/').pop() || 'repo', relPath, files, folders });
 
 const tree = dir('', ['README.md', '.env'], [
-  dir('src', ['a.ts', 'a.spec.ts', 'b.spec.ts'], [dir('src/util', ['u.ts'])]),
-  dir('docs', ['CLAUDE.md']),
   dir('.claude', ['settings.json']),
+  dir('docs', ['CLAUDE.md']),
+  dir('src', ['a.ts', 'a.spec.ts', 'b.spec.ts'], [dir('src/util', ['u.ts'])]),
 ]);
 
 const options = (patch: Partial<TreeOptions> = {}): TreeOptions => ({
-  included: defaultIncluded(tree), wrapFiles: true, showHidden: false,
-  rules: [{ suffix: '.spec.ts', tag: 'tests' }, { suffix: 'claude.md', tag: 'claude' }],
+  scope: defaultScopeRules(), wrapFiles: true,
+  tagRules: [{ suffix: '.spec.ts', tag: 'tests' }, { suffix: 'claude.md', tag: 'claude' }],
   filesTopic: (count) => `Files (${count})`, ...patch,
 });
 
@@ -31,61 +29,47 @@ const child = (node: NodeObj, topic: string): NodeObj => {
   return found;
 };
 
-test('defaultIncluded selects every non-hidden folder', () => {
-  assert.deepEqual([...defaultIncluded(tree)].sort(), ['', 'docs', 'src', 'src/util']);
-});
-
-test('wraps direct files into a files node placed first', () => {
+test('default scope wraps files first and skips hidden entries', () => {
   const root = buildFolderTreeMap(tree, options()).nodeData;
   assert.equal(root.topic, 'repo');
-  assert.deepEqual(topics(root), ['Files (1)', 'src', 'docs']);
-  assert.deepEqual(topics(child(root, 'Files (1)')), ['README.md']);
+  assert.deepEqual(topics(root), ['Files (1)', 'docs', 'src']);
   assert.deepEqual(topics(child(root, 'src')), ['Files (3)', 'util']);
 });
 
-test('without wrapping, files are direct children after folders', () => {
+test('without wrapping, files follow subfolders', () => {
   const root = buildFolderTreeMap(tree, options({ wrapFiles: false })).nodeData;
   assert.deepEqual(topics(child(root, 'src')), ['util', 'a.ts', 'a.spec.ts', 'b.spec.ts']);
 });
 
-test('a folder without files gets no files node', () => {
-  const empty = dir('', [], [dir('x', [])]);
-  const root = buildFolderTreeMap(empty, options({ included: defaultIncluded(empty) })).nodeData;
-  assert.deepEqual(topics(root), ['x']);
-  assert.equal(child(root, 'x').children, undefined);
-});
-
-test('folder tags are deduped, case-insensitive, and only on the folder', () => {
+test('tags go on the folder only, deduped and case-insensitive', () => {
   const root = buildFolderTreeMap(tree, options()).nodeData;
   assert.deepEqual(child(root, 'src').tags, ['tests']);
   assert.deepEqual(child(root, 'docs').tags, ['claude']);
-  assert.equal(child(child(root, 'src'), 'Files (3)').children?.[1].tags, undefined);
   assert.equal(root.tags, undefined);
 });
 
-test('an excluded folder drops its files and re-parents included subfolders', () => {
-  const included = setIncluded(tree, options().included, 'src', false, false);
-  const root = buildFolderTreeMap(tree, options({ included })).nodeData;
-  assert.deepEqual(topics(root), ['Files (1)', 'util', 'docs']);
+test('excluding a folder non-recursively keeps it as a path node for its subfolders', () => {
+  const scope = applyScope(defaultScopeRules(), [{ path: 'src', isDir: true }], 'exclude', false);
+  const src = child(buildFolderTreeMap(tree, options({ scope })).nodeData, 'src');
+  assert.deepEqual(topics(src), ['util']);
+  assert.equal(src.tags, undefined);
 });
 
-test('recursive exclusion removes the whole subtree', () => {
-  const included = setIncluded(tree, options().included, 'src', false, true);
-  assert.deepEqual([...included].sort(), ['', 'docs']);
+test('recursive exclusion removes the subtree', () => {
+  const scope = applyScope(defaultScopeRules(), [{ path: 'src', isDir: true }], 'exclude', true);
+  assert.deepEqual(topics(buildFolderTreeMap(tree, options({ scope })).nodeData), ['Files (1)', 'docs']);
 });
 
-test('recursive inclusion does not pull hidden folders in unless shown', () => {
-  const none = new Set<string>();
-  assert.deepEqual([...setIncluded(tree, none, '', true, true, false)].sort(), ['', 'docs', 'src', 'src/util']);
-  assert.ok(setIncluded(tree, none, '', true, true, true).has('.claude'));
+test('explicitly included hidden entries appear', () => {
+  const scope = applyScope(defaultScopeRules(), [{ path: '.claude', isDir: true }, { path: '.env', isDir: false }], 'include', true);
+  const root = buildFolderTreeMap(tree, options({ scope })).nodeData;
+  assert.deepEqual(topics(root), ['Files (2)', '.claude', 'docs', 'src']);
 });
 
-test('hidden files and folders appear only when shown', () => {
-  const included = new Set([...defaultIncluded(tree), '.claude']);
-  const hiddenOff = buildFolderTreeMap(tree, options({ included })).nodeData;
-  assert.deepEqual(topics(hiddenOff), ['Files (1)', 'src', 'docs']);
-  const hiddenOn = buildFolderTreeMap(tree, options({ included, showHidden: true })).nodeData;
-  assert.deepEqual(topics(hiddenOn), ['Files (2)', 'src', 'docs', '.claude']);
+test('an empty scope still yields the root node', () => {
+  const root = buildFolderTreeMap(tree, options({ scope: new Map() })).nodeData;
+  assert.equal(root.topic, 'repo');
+  assert.equal(root.children, undefined);
 });
 
 test('node ids are unique', () => {
@@ -93,6 +77,25 @@ test('node ids are unique', () => {
   const walk = (n: NodeObj): void => { ids.push(n.id); n.children?.forEach(walk); };
   walk(buildFolderTreeMap(tree, options({ wrapFiles: false })).nodeData);
   assert.equal(new Set(ids).size, ids.length);
+});
+
+const entries = new Map<string, TreeEntry[]>([
+  ['', [{ name: '.git', relPath: '.git', isDir: true }, { name: 'src', relPath: 'src', isDir: true }, { name: 'a.md', relPath: 'a.md', isDir: false }]],
+  ['src', [{ name: 'x.ts', relPath: 'src/x.ts', isDir: false }]],
+]);
+
+test('visibleRows shows only expanded folders and hides dot entries unless shown', () => {
+  const collapsed = visibleRows('repo', entries, new Set(['']), false);
+  assert.deepEqual(collapsed.map((r) => [r.relPath, r.depth]), [['', 0], ['src', 1], ['a.md', 1]]);
+  const open = visibleRows('repo', entries, new Set(['', 'src']), true);
+  assert.deepEqual(open.map((r) => r.relPath), ['', '.git', 'src', 'src/x.ts', 'a.md']);
+  assert.ok(open[1].isHidden);
+});
+
+test('rowRange selects between anchor and target in either direction', () => {
+  const rows = visibleRows('repo', entries, new Set(['', 'src']), false);
+  assert.deepEqual(rowRange(rows, 'a.md', 'src').map((r) => r.relPath), ['src', 'src/x.ts', 'a.md']);
+  assert.deepEqual(rowRange(rows, 'gone', 'src').map((r) => r.relPath), ['src']);
 });
 
 test('matchingTags ignores rules with empty parts', () => {
@@ -103,9 +106,4 @@ test('parseTagRules keeps valid trimmed rows from unknown input', () => {
   const parsed = parseTagRules([{ suffix: ' .spec.ts ', tag: ' tests ' }, { suffix: '', tag: 'x' }, 'junk', { suffix: 1 }]);
   assert.deepEqual(parsed, [{ suffix: '.spec.ts', tag: 'tests' }]);
   assert.deepEqual(parseTagRules('nope'), []);
-});
-
-test('folderRows lists folders depth-first with depth, hiding hidden ones unless shown', () => {
-  assert.deepEqual(folderRows(tree, false).map((r) => [r.relPath, r.depth]), [['', 0], ['src', 1], ['src/util', 2], ['docs', 1]]);
-  assert.ok(folderRows(tree, true).some((r) => r.relPath === '.claude'));
 });

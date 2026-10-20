@@ -6,18 +6,21 @@ import { useSettingsStore } from '../stores/settings';
 import { useTabsStore } from '../stores/tabs';
 import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
-import { MAX_TREE_ENTRIES, useFolderTreeScan } from '../composables/useFolderTreeScan';
+import { MAX_TREE_ENTRIES, folderNameOf, useFolderTreeScan } from '../composables/useFolderTreeScan';
 import { MINDMAP_FOLDER_TREE_EVENT } from '../composables/useMindmapConvert';
 import { serializeMindmap } from '../lib/mindmap-format';
 import { NODE_WARNING_THRESHOLD, countNodes } from '../lib/mindmap-folder';
 import {
-  buildFolderTreeMap, defaultIncluded, folderRows, setIncluded, type ScannedFolder, type TagRule,
-} from '../lib/mindmap-folder-tree';
+  applyScope, defaultScopeRules, folderState, isPathIncluded, type ScopeKind, type ScopeRule, type ScopeState,
+} from '../lib/mindmap-folder-scope';
+import { buildFolderTreeMap, rowRange, visibleRows, type TagRule, type TreeEntry, type TreeRow } from '../lib/mindmap-folder-tree';
 
 const ESCAPE_KEY = 'Escape';
 const MINDMAP_LANGUAGE = 'mindmap';
 const MMAP_SUFFIX = '.mmap';
+const ROOT_PATH = '';
 const INDENT_PX = 16;
+const BASE_INDENT_PX = 6;
 const MAX_TREE_ENTRIES_TEXT = String(MAX_TREE_ENTRIES);
 
 const { t } = useI18n();
@@ -25,65 +28,111 @@ const settings = useSettingsStore();
 const tabs = useTabsStore();
 const toasts = useToastsStore();
 const workspace = useWorkspaceStore();
-const { scanFolderTree } = useFolderTreeScan();
+const { listEntries, scanForMap } = useFolderTreeScan();
 
 const isOpen = ref(false);
-const folder = ref<string | null>(null);
-const root = ref<ScannedFolder | null>(null);
-const isTruncated = ref(false);
-const included = ref<Set<string>>(new Set());
+const rootAbs = ref<string | null>(null);
+const children = ref<Map<string, TreeEntry[]>>(new Map());
+const expanded = ref<Set<string>>(new Set());
+const selected = ref<Set<string>>(new Set());
+const anchor = ref<string | null>(null);
+const scope = ref<Map<string, ScopeRule>>(defaultScopeRules());
 const showHidden = ref(false);
 const wrapFiles = ref(true);
-const rules = ref<TagRule[]>([]);
-const isLoading = ref(false);
+const tagRules = ref<TagRule[]>([]);
+const isBusy = ref(false);
+const isTruncated = ref(false);
 const pendingLargeCount = ref<number | null>(null);
 const dialogEl = ref<HTMLElement | null>(null);
 
-const rows = computed(() => (root.value ? folderRows(root.value, showHidden.value) : []));
-const canCreate = computed(() => root.value !== null && !isLoading.value);
+const rootName = computed(() => (rootAbs.value ? folderNameOf(rootAbs.value) : ''));
+const rows = computed(() => (rootAbs.value ? visibleRows(rootName.value, children.value, expanded.value, showHidden.value) : []));
+const selectedRows = computed(() => rows.value.filter((row) => selected.value.has(row.relPath)));
+const hasSelection = computed(() => selectedRows.value.length > 0);
+const canCreate = computed(() => rootAbs.value !== null && !isBusy.value);
+
+function rowState(row: TreeRow): ScopeState {
+  if (row.isDir) return folderState(row.relPath, scope.value);
+  return isPathIncluded(row.relPath, false, scope.value) ? 'included' : 'excluded';
+}
 
 function resetPending(): void {
   pendingLargeCount.value = null;
+  isTruncated.value = false;
 }
 
-function toggleFolder(relPath: string, isRecursive: boolean, isIncluded = !included.value.has(relPath)): void {
-  if (!root.value) return;
+async function loadChildren(relPath: string): Promise<void> {
+  if (!rootAbs.value || children.value.has(relPath)) return;
+  const entries = await listEntries(rootAbs.value, relPath);
+  children.value = new Map(children.value).set(relPath, entries);
+}
+
+async function toggleExpand(row: TreeRow): Promise<void> {
+  if (!row.isDir) return;
+  const next = new Set(expanded.value);
+  if (next.has(row.relPath)) {
+    next.delete(row.relPath);
+    expanded.value = next;
+    return;
+  }
+  try {
+    await loadChildren(row.relPath);
+    expanded.value = next.add(row.relPath);
+  } catch (error) {
+    console.error('mindmap folder tree: listing failed', row.relPath, error);
+    toasts.error(t('mindmap.folderReadFailed'));
+  }
+}
+
+function select(row: TreeRow, e: MouseEvent): void {
+  if (e.shiftKey && anchor.value !== null) {
+    selected.value = new Set(rowRange(rows.value, anchor.value, row.relPath).map((r) => r.relPath));
+    return;
+  }
+  const isAdditive = e.metaKey || e.ctrlKey;
+  const next = isAdditive ? new Set(selected.value) : new Set<string>();
+  if (isAdditive && next.has(row.relPath)) next.delete(row.relPath);
+  else next.add(row.relPath);
+  selected.value = next;
+  anchor.value = row.relPath;
+}
+
+function apply(kind: ScopeKind, isRecursive: boolean): void {
+  const targets = selectedRows.value.map((row) => ({ path: row.relPath, isDir: row.isDir }));
+  scope.value = applyScope(scope.value, targets, kind, isRecursive);
   resetPending();
-  included.value = setIncluded(root.value, included.value, relPath, isIncluded, isRecursive, showHidden.value);
 }
 
 function addRule(): void {
-  rules.value = [...rules.value, { suffix: '', tag: '' }];
+  tagRules.value = [...tagRules.value, { suffix: '', tag: '' }];
 }
 
 function removeRule(index: number): void {
-  rules.value = rules.value.filter((_, i) => i !== index);
+  tagRules.value = tagRules.value.filter((_, i) => i !== index);
   resetPending();
 }
 
-async function load(path: string): Promise<void> {
-  isLoading.value = true;
+async function openRoot(path: string): Promise<void> {
+  rootAbs.value = path;
+  children.value = new Map();
+  expanded.value = new Set();
+  selected.value = new Set();
+  anchor.value = null;
+  scope.value = defaultScopeRules();
+  resetPending();
   try {
-    const result = await scanFolderTree(path);
-    root.value = result.root;
-    isTruncated.value = result.truncated;
-    included.value = defaultIncluded(result.root);
+    await loadChildren(ROOT_PATH);
+    expanded.value = new Set([ROOT_PATH]);
   } catch (error) {
-    console.error('mindmap folder tree: scan failed', error);
+    console.error('mindmap folder tree: listing failed', error);
     toasts.error(t('mindmap.folderReadFailed'));
-    root.value = null;
-  } finally {
-    isLoading.value = false;
   }
 }
 
 async function chooseFolder(): Promise<void> {
   try {
-    const selected = await openFolderDialog({ directory: true, multiple: false });
-    if (typeof selected !== 'string') return;
-    folder.value = selected;
-    resetPending();
-    await load(selected);
+    const picked = await openFolderDialog({ directory: true, multiple: false });
+    if (typeof picked === 'string') await openRoot(picked);
   } catch (error) {
     console.error('mindmap folder tree: dialog failed', error);
     toasts.error(t('mindmap.folderReadFailed'));
@@ -92,12 +141,9 @@ async function chooseFolder(): Promise<void> {
 
 async function onOpen(): Promise<void> {
   isOpen.value = true;
-  resetPending();
-  root.value = null;
-  isTruncated.value = false;
-  rules.value = settings.mindmapFolderTagRules.map((rule) => ({ ...rule }));
-  folder.value = workspace.currentFolder;
-  if (folder.value) await load(folder.value);
+  rootAbs.value = null;
+  tagRules.value = settings.mindmapFolderTagRules.map((rule) => ({ ...rule }));
+  if (workspace.currentFolder) await openRoot(workspace.currentFolder);
   await nextTick();
   dialogEl.value?.focus();
 }
@@ -106,28 +152,32 @@ function close(): void {
   isOpen.value = false;
 }
 
-function create(): void {
-  if (!root.value) return;
+async function create(): Promise<void> {
+  if (!rootAbs.value) return;
+  isBusy.value = true;
   try {
-    settings.setMindmapFolderTagRules(rules.value);
-    const map = buildFolderTreeMap(root.value, {
-      included: included.value,
+    settings.setMindmapFolderTagRules(tagRules.value);
+    const scan = await scanForMap(rootAbs.value, scope.value);
+    const map = buildFolderTreeMap(scan.root, {
+      scope: scope.value,
       wrapFiles: wrapFiles.value,
-      showHidden: showHidden.value,
-      rules: settings.mindmapFolderTagRules,
+      tagRules: settings.mindmapFolderTagRules,
       filesTopic: (count) => t('mindmap.treeFilesNode', { count: String(count) }),
     });
     const count = countNodes(map);
-    if (count > NODE_WARNING_THRESHOLD && pendingLargeCount.value === null) {
+    if ((count > NODE_WARNING_THRESHOLD || scan.truncated) && pendingLargeCount.value === null) {
       pendingLargeCount.value = count;
+      isTruncated.value = scan.truncated;
       return;
     }
-    const tab = tabs.newTab({ fileName: `${root.value.name}${MMAP_SUFFIX}`, language: MINDMAP_LANGUAGE });
+    const tab = tabs.newTab({ fileName: `${scan.root.name}${MMAP_SUFFIX}`, language: MINDMAP_LANGUAGE });
     tabs.setContent(tab.id, serializeMindmap(map));
     close();
   } catch (error) {
     console.error('mindmap folder tree: build failed', error);
     toasts.error(t('mindmap.folderConvertFailed'));
+  } finally {
+    isBusy.value = false;
   }
 }
 
@@ -152,51 +202,59 @@ onBeforeUnmount(() => {
     <div ref="dialogEl" class="mft-dialog" role="dialog" aria-modal="true" tabindex="-1" :aria-label="t('mindmap.treeTitle')">
       <h3>{{ t('mindmap.treeTitle') }}</h3>
       <div class="mft-folder">
-        <span class="mft-path" dir="auto">{{ folder ?? t('mindmap.folderNone') }}</span>
+        <span class="mft-path" dir="auto">{{ rootAbs ?? t('mindmap.folderNone') }}</span>
         <button type="button" @click="chooseFolder">{{ t('mindmap.folderChoose') }}</button>
       </div>
-      <div class="mft-options">
+      <div class="mft-section-head">
+        <strong>{{ t('mindmap.treeScope') }}</strong>
         <label class="mft-check">
-          <input v-model="showHidden" type="checkbox" @change="resetPending" />
+          <input v-model="showHidden" type="checkbox" />
           <span>{{ t('mindmap.treeShowHidden') }}</span>
         </label>
-        <label class="mft-check">
-          <input v-model="wrapFiles" type="checkbox" @change="resetPending" />
-          <span>{{ t('mindmap.treeWrapFiles') }}</span>
-        </label>
       </div>
-      <div class="mft-section-head">
-        <strong>{{ t('mindmap.treeFolders') }}</strong>
-        <span class="mft-bulk">
-          <button v-if="root" type="button" @click="toggleFolder('', true, true)">{{ t('mindmap.treeAll') }}</button>
-          <button v-if="root" type="button" @click="toggleFolder('', true, false)">{{ t('mindmap.treeNone') }}</button>
-        </span>
+      <div class="mft-toolbar">
+        <button type="button" :disabled="!hasSelection" @click="apply('include', false)">{{ t('mindmap.treeInclude') }}</button>
+        <button type="button" :disabled="!hasSelection" @click="apply('include', true)">{{ t('mindmap.treeIncludeRecursive') }}</button>
+        <button type="button" :disabled="!hasSelection" @click="apply('exclude', false)">{{ t('mindmap.treeExclude') }}</button>
+        <button type="button" :disabled="!hasSelection" @click="apply('exclude', true)">{{ t('mindmap.treeExcludeRecursive') }}</button>
       </div>
-      <ul class="mft-list">
-        <li v-for="row in rows" :key="row.relPath" :class="{ 'mft-hidden': row.isHidden }" :style="{ paddingInlineStart: `${row.depth * INDENT_PX + 8}px` }">
-          <label dir="auto">
-            <input type="checkbox" :checked="included.has(row.relPath)" @change="toggleFolder(row.relPath, false)" />
-            <span>{{ row.name }}</span>
-          </label>
-          <span class="mft-row-actions">
-            <button type="button" :title="t('mindmap.treeRecursiveInclude')" :aria-label="t('mindmap.treeRecursiveInclude')" @click="toggleFolder(row.relPath, true, true)">⤵︎✓</button>
-            <button type="button" :title="t('mindmap.treeRecursiveExclude')" :aria-label="t('mindmap.treeRecursiveExclude')" @click="toggleFolder(row.relPath, true, false)">⤵︎✕</button>
-          </span>
+      <ul class="mft-tree" role="tree" :aria-multiselectable="true">
+        <li
+          v-for="row in rows" :key="row.relPath" role="treeitem"
+          :aria-selected="selected.has(row.relPath)" :aria-expanded="row.isDir ? row.isExpanded : undefined"
+          :class="['mft-row', `mft-${rowState(row)}`, { 'mft-selected': selected.has(row.relPath), 'mft-hidden': row.isHidden }]"
+          :style="{ paddingInlineStart: `${row.depth * INDENT_PX + BASE_INDENT_PX}px` }"
+          @click="select(row, $event)" @dblclick="toggleExpand(row)"
+        >
+          <button
+            v-if="row.isDir" type="button" class="mft-chevron"
+            :aria-label="t(row.isExpanded ? 'mindmap.treeCollapse' : 'mindmap.treeExpand')"
+            @click.stop="toggleExpand(row)"
+          >{{ row.isExpanded ? '▾' : '▸' }}</button>
+          <span v-else class="mft-chevron-spacer" />
+          <span class="mft-icon" aria-hidden="true">{{ row.isDir ? '📁' : '📄' }}</span>
+          <span class="mft-name" dir="auto">{{ row.name }}</span>
+          <em v-if="rowState(row) === 'partial'" class="mft-partial-label">{{ t('mindmap.treePartial') }}</em>
         </li>
       </ul>
-      <p v-if="isTruncated" class="mft-note">{{ t('mindmap.treeTruncated', { count: MAX_TREE_ENTRIES_TEXT }) }}</p>
+      <p class="mft-note">{{ t('mindmap.treeScopeHint') }}</p>
+      <label class="mft-check">
+        <input v-model="wrapFiles" type="checkbox" @change="resetPending" />
+        <span>{{ t('mindmap.treeWrapFiles') }}</span>
+      </label>
       <div class="mft-section-head">
         <strong>{{ t('mindmap.treeTagRules') }}</strong>
         <button type="button" @click="addRule">{{ t('mindmap.treeAddRule') }}</button>
       </div>
       <div class="mft-rules">
-        <div v-for="(rule, index) in rules" :key="index" class="mft-rule">
+        <div v-for="(rule, index) in tagRules" :key="index" class="mft-rule">
           <input v-model="rule.suffix" type="text" dir="auto" :placeholder="t('mindmap.treeSuffix')" :aria-label="t('mindmap.treeSuffix')" @input="resetPending" />
           <span aria-hidden="true">→</span>
           <input v-model="rule.tag" type="text" dir="auto" :placeholder="t('mindmap.treeTag')" :aria-label="t('mindmap.treeTag')" @input="resetPending" />
           <button type="button" :title="t('mindmap.treeRemoveRule')" :aria-label="t('mindmap.treeRemoveRule')" @click="removeRule(index)">✕</button>
         </div>
       </div>
+      <p v-if="isTruncated" class="mft-note" role="alert">{{ t('mindmap.treeTruncated', { count: MAX_TREE_ENTRIES_TEXT }) }}</p>
       <p v-if="pendingLargeCount !== null" class="mft-note" role="alert">{{ t('mindmap.folderLarge', { count: String(pendingLargeCount) }) }}</p>
       <footer>
         <button type="button" @click="close">{{ t('mindmap.folderCancel') }}</button>
@@ -208,28 +266,32 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .mft-backdrop { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.4); z-index: var(--z-modal); }
-.mft-dialog { display: flex; flex-direction: column; gap: 10px; width: min(640px, 92vw); max-height: 85vh; padding: 16px 20px; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--bg-elev); color: var(--text); box-shadow: var(--sh-pop); font: 13px var(--font-ui); outline: none; }
+.mft-dialog { display: flex; flex-direction: column; gap: 8px; width: min(680px, 92vw); max-height: 88vh; padding: 16px 20px; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--bg-elev); color: var(--text); box-shadow: var(--sh-pop); font: 13px var(--font-ui); outline: none; }
 .mft-dialog h3 { margin: 0; }
-.mft-folder, .mft-section-head { display: flex; gap: 8px; align-items: center; }
+.mft-folder, .mft-section-head, .mft-toolbar { display: flex; gap: 8px; align-items: center; }
 .mft-section-head { justify-content: space-between; }
+.mft-toolbar { flex-wrap: wrap; gap: 6px; }
 .mft-path { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-faint); }
-.mft-options { display: flex; flex-direction: column; gap: 4px; }
 .mft-check { display: flex; gap: 6px; align-items: center; }
-.mft-bulk { display: flex; gap: 6px; }
-.mft-list { flex: 1; min-height: 80px; overflow: auto; margin: 0; padding: 0; list-style: none; border: 1px solid var(--border); border-radius: 6px; }
-.mft-list li { display: flex; align-items: center; justify-content: space-between; padding-block: 2px; padding-inline-end: 8px; }
-.mft-list li:hover { background: var(--accent-soft); }
-.mft-list label { display: flex; gap: 8px; align-items: center; min-width: 0; }
-.mft-hidden label span { color: var(--text-faint); }
-.mft-row-actions { display: flex; gap: 4px; opacity: 0.4; }
-.mft-list li:hover .mft-row-actions, .mft-row-actions:focus-within { opacity: 1; }
-.mft-dialog .mft-row-actions button { padding: 0 6px; font-size: 0.85em; }
-.mft-rules { display: flex; flex-direction: column; gap: 6px; max-height: 160px; overflow: auto; }
+.mft-tree { flex: 1; min-height: 160px; overflow: auto; margin: 0; padding: 4px 0; list-style: none; border: 1px solid var(--border); border-radius: 6px; user-select: none; }
+.mft-row { display: flex; gap: 4px; align-items: center; padding-block: 2px; padding-inline-end: 8px; cursor: default; white-space: nowrap; }
+.mft-row:hover { background: var(--bg-hover, var(--accent-soft)); }
+.mft-selected, .mft-selected:hover { background: var(--accent-soft); outline: 1px solid var(--accent); outline-offset: -1px; }
+.mft-included .mft-name { color: var(--success, #4caf50); }
+.mft-partial .mft-name { color: var(--success, #4caf50); font-style: italic; }
+.mft-excluded .mft-name { color: var(--text-faint); }
+.mft-hidden .mft-icon { opacity: 0.5; }
+.mft-dialog .mft-chevron { width: 18px; padding: 0; border: none; background: transparent; color: var(--text-faint); font-size: 11px; }
+.mft-chevron-spacer { display: inline-block; width: 18px; }
+.mft-icon { font-size: 12px; }
+.mft-name { overflow: hidden; text-overflow: ellipsis; }
+.mft-partial-label { font-size: 0.8em; color: var(--text-faint); }
+.mft-rules { display: flex; flex-direction: column; gap: 6px; max-height: 140px; overflow: auto; }
 .mft-rule { display: flex; gap: 6px; align-items: center; }
 .mft-rule input { flex: 1; min-width: 0; background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; font: inherit; }
-.mft-note { margin: 0; color: var(--text-faint); }
+.mft-note { margin: 0; color: var(--text-faint); font-size: 0.9em; }
 .mft-dialog footer { display: flex; justify-content: flex-end; gap: 8px; }
-.mft-dialog button { background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 5px 12px; font: inherit; cursor: pointer; }
+.mft-dialog button { background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font: inherit; cursor: pointer; }
 .mft-dialog button:disabled { opacity: 0.5; cursor: default; }
 .mft-dialog .mft-primary { background: var(--accent-soft); }
 </style>
