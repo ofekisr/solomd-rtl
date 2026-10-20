@@ -85,6 +85,7 @@ let snippetsOverride: Snippet[] = [];
 let lastSynced = props.content;
 let syncTimer: number | null = null;
 let pristineSerialized: string | null = null;
+let loaded: { content: string; serialized: string } | null = null;
 let centerObserver: ResizeObserver | null = null;
 
 function themeFor(): typeof MindElixir.THEME {
@@ -121,7 +122,9 @@ function syncNow(): void {
   if (!mind || props.locked || isGraphView.value || parseError.value !== null) return;
   const serialized = props.codec.serialize(mind.getData(), displayOverride, snippetsOverride);
   if (serialized === pristineSerialized && props.content === '') return;
-  lastSynced = serialized;
+  const next = serialized === loaded?.serialized ? loaded.content : serialized;
+  if (next === props.content) return;
+  lastSynced = next;
   emit('update:content', lastSynced);
 }
 
@@ -156,6 +159,11 @@ function scheduleDuplicateCount(): void {
   duplicateTimer = window.setTimeout(countDuplicates, DUPLICATE_COUNT_DEBOUNCE_MS);
 }
 
+/** Load-time fixes (refreshed gate labels) are not edits: until the map really changes, keep the file's own text. */
+function rememberLoaded(): void {
+  loaded = mind ? { content: props.content, serialized: props.codec.serialize(mind.getData(), displayOverride, snippetsOverride) } : null;
+}
+
 function scheduleSync(): void {
   if (isReadOnly.value) return;
   if (syncTimer !== null) window.clearTimeout(syncTimer);
@@ -183,6 +191,7 @@ function mount(): void {
   chordPan.attach(host.value);
   stage.value?.addEventListener(FULLSCREEN_CHANGE_EVENT, onFullscreenChange);
   gates.syncLabels();
+  rememberLoaded();
   countDuplicates();
   pristineSerialized = props.content === '' ? props.codec.serialize(mind.getData(), displayOverride, snippetsOverride) : null;
   centerOnceLaidOut();
@@ -442,6 +451,7 @@ async function applyExternalContent(): Promise<void> {
     mind.refresh(data);
     if (wasGraphView && canEdit()) mind.enableEdit();
     gates.syncLabels();
+    rememberLoaded();
     reapplyFocus();
     countDuplicates();
     mind.clearHistory?.();

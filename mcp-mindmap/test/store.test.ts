@@ -59,3 +59,19 @@ test('save leaves no temp files behind', async () => {
   await store.save('plan.mmap', await store.load('plan.mmap'));
   assert.deepEqual(await readdir(dir), ['plan.mmap']);
 });
+
+test('save refreshes gate labels so renamed targets never leave stale gates on disk', async () => {
+  const { dir, store } = await workspace();
+  const doc = await store.load('plan.mmap');
+  const target = doc.data.nodeData.children![0];
+  doc.data.nodeData.children!.push(
+    { id: 'g1', topic: '⇒ old name', metadata: { gate: { target: target.id } } },
+    { id: 'g2', topic: '⇒ old name', metadata: { gate: { target: 'gone' } } },
+  );
+  target.topic = 'New name';
+  await store.save('plan.mmap', doc);
+  const text = await readFile(join(dir, 'plan.mmap'), 'utf8');
+  assert.match(text, /"⇒ New name"/);
+  assert.match(text, /"⇒ ⚠ missing target"/);
+  assert.doesNotMatch(text, /old name/);
+});

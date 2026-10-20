@@ -5,11 +5,13 @@ import { MMAP_EXTENSION, parseMindmap, rootTopicFromFileName, serializeMindmap }
 import type { MapDisplay } from '../../app/src/lib/mindmap-display.ts';
 import type { Snippet } from '../../app/src/lib/mindmap-snippets.ts';
 import { resolveNode } from '../../app/src/lib/mindmap-address.ts';
+import { withGateLabels } from '../../app/src/lib/mindmap-gates.ts';
 import type { ServerConfig } from './config.ts';
 
 export interface MapDoc { data: MindElixirData; display: MapDisplay; snippets: Snippet[] }
 
 const TMP_SUFFIX = '.mcp-tmp';
+const BROKEN_GATE_LABEL = '⚠ missing target';
 const NOT_FOUND = 'ENOENT';
 const PARENT = '..';
 let tmpCounter = 0;
@@ -83,7 +85,7 @@ export class MapStore {
     const abs = await this.resolveReal(file);
     const tmp = `${abs}.${process.pid}.${tmpCounter++}${TMP_SUFFIX}`;
     try {
-      await writeFile(tmp, serializeMindmap(doc.data, doc.display, doc.snippets), { flag: 'wx' });
+      await writeFile(tmp, serializeMindmap(withGateLabels(doc.data, BROKEN_GATE_LABEL), doc.display, doc.snippets), { flag: 'wx' });
       await rename(tmp, abs);
     } catch (error) {
       await unlink(tmp).catch(() => undefined);
