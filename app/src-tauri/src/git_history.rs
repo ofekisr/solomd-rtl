@@ -397,6 +397,10 @@ pub async fn git_init_workspace(
     initial_message: Option<String>,
     exclude_assets: Option<bool>,
 ) -> Result<(), String> {
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    let _repo_guard = crate::git_pane::lock::RepoLocks::global()
+        .acquire(std::path::Path::new(&folder))
+        .await;
     tauri::async_runtime::spawn_blocking(move || {
         git_init_workspace_inner(folder, initial_message, exclude_assets)
     })
@@ -431,6 +435,10 @@ pub async fn git_auto_commit(
     file_path: Option<String>,
     message: Option<String>,
 ) -> Result<Option<String>, String> {
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    let _repo_guard = crate::git_pane::lock::RepoLocks::global()
+        .acquire(std::path::Path::new(&folder))
+        .await;
     let folder_for_dispatch = folder.clone();
     let file_for_dispatch = file_path.clone();
     let result = tauri::async_runtime::spawn_blocking(move || {
@@ -710,6 +718,10 @@ pub async fn git_rollback_file(
     file_path: String,
     sha: String,
 ) -> Result<(), String> {
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    let _repo_guard = crate::git_pane::lock::RepoLocks::global()
+        .acquire(std::path::Path::new(&folder))
+        .await;
     tauri::async_runtime::spawn_blocking(move || {
         git_rollback_file_inner(folder, file_path, sha)
     })
