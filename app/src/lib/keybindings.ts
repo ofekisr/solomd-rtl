@@ -176,6 +176,7 @@ export const KEY_ACTIONS: KeyActionDef[] = [
   { id: 'mindmap.insertFenceFromSection', label: 'Mindmap: Insert Map Fence from Section', category: 'tools', defaults: [] },
   { id: 'mindmap.insertFenceFromSelection', label: 'Mindmap: Insert Map Fence from Selection', category: 'tools', defaults: [] },
   { id: 'mindmap.convertFolder', label: 'Mindmap: Convert Folder to Map', category: 'tools', defaults: [] },
+  { id: 'mindmap.folderTree', label: 'Mindmap: Folder Tree to Map', category: 'tools', defaults: [] },
   { id: 'settings.open', label: 'Settings', category: 'tools', defaults: ['Mod+Comma'] },
   { id: 'help.markdown', label: 'Markdown Help', category: 'tools', defaults: ['F1', 'Mod+Slash'] },
   { id: 'proofread.cjk', label: 'CJK Proofread', category: 'tools', defaults: ['Mod+Shift+J'] },

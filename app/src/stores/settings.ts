@@ -6,6 +6,7 @@ import { parseMapDisplay, type MapDisplay } from '../lib/mindmap-display';
 import { migrateLensKeybindings } from '../lib/mindmap-lens';
 import { isViewModeChangeAllowed } from '../lib/view-mode-guard';
 import { DEFAULT_MINDMAP_CONTROL_STYLE, normalizeControlStyle, type MindmapControlStyle } from '../lib/mindmap-icon-names';
+import { parseTagRules, type TagRule } from '../lib/mindmap-folder-tree';
 
 const LS_KEY = 'solomd.settings.v1';
 
@@ -262,6 +263,7 @@ interface Settings {
   mindmapDetailsOpen: boolean;
   mindmapDetailsHeight: number;
   mindmapControlStyle: MindmapControlStyle;
+  mindmapFolderTagRules: TagRule[];
   // v2.5 F4: Pomodoro / focus session timer.
   pomodoroShowControls: boolean;
   pomodoroAutoEngageFocus: boolean;
@@ -667,6 +669,11 @@ function defaults(): Settings {
     mindmapDetailsOpen: false,
     mindmapDetailsHeight: 220,
     mindmapControlStyle: DEFAULT_MINDMAP_CONTROL_STYLE,
+    mindmapFolderTagRules: [
+      { suffix: '.spec.ts', tag: 'tests' },
+      { suffix: '.test.ts', tag: 'tests' },
+      { suffix: 'CLAUDE.md', tag: 'claude' },
+    ],
     pomodoroShowControls: true,
     pomodoroAutoEngageFocus: true,
     pomodoroDefaultMinutes: 25,
@@ -771,6 +778,7 @@ function load(): Settings {
       if ((merged.language as string) === 'zh') merged.language = 'en';
       merged.mindmapDefaults = parseMapDisplay(parsed.mindmapDefaults);
       merged.mindmapControlStyle = normalizeControlStyle(parsed.mindmapControlStyle);
+      if (parsed.mindmapFolderTagRules !== undefined) merged.mindmapFolderTagRules = parseTagRules(parsed.mindmapFolderTagRules);
       // #180 — keybindings is a free-form map, so a tampered or older blob
       // could put anything here; keep only string/null values.
       if (merged.windowsEditorEngine !== 'codemirror') merged.windowsEditorEngine = 'native';
@@ -1356,6 +1364,10 @@ export const useSettingsStore = defineStore('settings', {
       const next = { ...this.mindmapDefaults };
       delete next[key];
       this.mindmapDefaults = next;
+      this.persist();
+    },
+    setMindmapFolderTagRules(rules: TagRule[]) {
+      this.mindmapFolderTagRules = parseTagRules(rules);
       this.persist();
     },
     toggleMindmapPanel() {

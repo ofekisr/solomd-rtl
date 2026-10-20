@@ -36,6 +36,7 @@ import WhiteboardOverlay from './components/WhiteboardOverlay.vue';
 import AIRewriteOverlay from './components/AIRewriteOverlay.vue';
 import MindmapFenceOverlay from './components/MindmapFenceOverlay.vue';
 import MindmapConvertFolder from './components/MindmapConvertFolder.vue';
+import MindmapFolderTree from './components/MindmapFolderTree.vue';
 import BasesView from './components/BasesView.vue';
 import { BASES_OPEN_EVENT, BASES_CLOSE_EVENT } from './composables/useBasesView';
 import InboxView from './components/InboxView.vue';
@@ -2115,6 +2116,7 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
     <WhiteboardOverlay />
     <MindmapFenceOverlay />
     <MindmapConvertFolder />
+    <MindmapFolderTree />
     <FileChangedDialog
       :open="fileChangedOpen"
       :file-name="fileChangedFileName"

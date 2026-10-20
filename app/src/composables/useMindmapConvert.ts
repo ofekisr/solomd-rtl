@@ -15,6 +15,8 @@ export type ConvertOutput = 'map' | 'fence';
 export const MINDMAP_CONVERT_EVENT = 'solomd:mindmap-convert';
 export const MINDMAP_CONVERT_FOLDER_EVENT = 'solomd:mindmap-convert-folder';
 export const MINDMAP_CONVERT_FOLDER_ACTION = 'mindmap.convertFolder';
+export const MINDMAP_FOLDER_TREE_EVENT = 'solomd:mindmap-folder-tree';
+export const MINDMAP_FOLDER_TREE_ACTION = 'mindmap.folderTree';
 const MARKDOWN_LANGUAGE = 'markdown';
 const MINDMAP_LANGUAGE = 'mindmap';
 
