@@ -3,6 +3,7 @@ use super::cli::git::{CommitPageInfo, DiffResult, GitError, SnapshotOptions, Wir
 use super::cli::actions::ActionEnvelope;
 use super::engine::{CliEngine, GitEngine};
 use super::watcher::{RepoWatcher, CHANGED_EVENT};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, State};
 
@@ -19,6 +20,36 @@ const PROGRESS_EVENT: &str = "gitpane:progress";
 pub struct GitPaneState {
     engine: tokio::sync::RwLock<Option<Arc<CliEngine>>>,
     watcher: std::sync::Mutex<Option<RepoWatcher>>,
+    open_token: AtomicU64,
+}
+
+type Installed = (Arc<CliEngine>, Option<RepoWatcher>);
+
+impl GitPaneState {
+    pub(crate) fn begin_open(&self) -> u64 {
+        self.open_token.fetch_add(1, Ordering::SeqCst) + 1
+    }
+
+    pub(crate) async fn install(&self, token: u64, next: Option<Installed>) -> bool {
+        let mut slot = self.engine.write().await;
+        if self.open_token.load(Ordering::SeqCst) != token {
+            return false;
+        }
+        let (engine, watcher) = next.map_or((None, None), |(engine, watcher)| (Some(engine), watcher));
+        *self.watcher.lock().unwrap_or_else(|e| e.into_inner()) = watcher;
+        *slot = engine;
+        true
+    }
+
+    pub(crate) async fn close(&self) {
+        let token = self.begin_open();
+        self.install(token, None).await;
+    }
+
+    #[cfg(test)]
+    pub(crate) async fn current_root(&self) -> Option<std::path::PathBuf> {
+        self.engine.read().await.as_ref().map(|engine| engine.root().to_path_buf())
+    }
 }
 
 fn no_repo() -> GitError {
@@ -62,6 +93,7 @@ pub struct VersionInfo {
 
 #[tauri::command]
 pub async fn gitpane_version() -> Result<VersionInfo, GitError> {
+    super::env::warm().await;
     let output = super::env::git_command()?
         .arg("--version")
         .stdin(std::process::Stdio::null())
@@ -84,37 +116,83 @@ struct ChangedPayload {
 
 #[derive(serde::Serialize)]
 pub struct OpenEnvelope {
-    ok: bool,
+    pub(crate) ok: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     snapshot: Option<WireSnapshot>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    error: Option<GitError>,
+    pub(crate) error: Option<GitError>,
+}
+
+impl OpenEnvelope {
+    fn failed(error: GitError) -> Self {
+        Self { ok: false, snapshot: None, error: Some(error) }
+    }
+}
+
+fn superseded() -> GitError {
+    GitError::new("Cancelled", "A newer repository was opened.".to_string())
+}
+
+pub(crate) async fn open_repo(
+    state: &GitPaneState,
+    path: &str,
+    options: &Option<serde_json::Value>,
+    is_trusted: bool,
+    on_change: impl Fn(&str) + Send + Sync + 'static,
+) -> OpenEnvelope {
+    let token = state.begin_open();
+    super::env::warm().await;
+    let result = prepare(path, options, is_trusted, on_change).await;
+    match result {
+        Ok((engine, watcher, snapshot)) => {
+            if state.install(token, Some((engine, watcher))).await {
+                OpenEnvelope { ok: true, snapshot: Some(snapshot), error: None }
+            } else {
+                OpenEnvelope::failed(superseded())
+            }
+        }
+        Err(error) => {
+            state.install(token, None).await;
+            OpenEnvelope::failed(error)
+        }
+    }
+}
+
+async fn prepare(
+    path: &str,
+    options: &Option<serde_json::Value>,
+    is_trusted: bool,
+    on_change: impl Fn(&str) + Send + Sync + 'static,
+) -> Result<(Arc<CliEngine>, Option<RepoWatcher>, WireSnapshot), GitError> {
+    let engine = Arc::new(CliEngine::open(std::path::Path::new(path)).await?);
+    let risky = super::trust::risky_config_keys(engine.root()).await?;
+    if !is_trusted && !risky.is_empty() {
+        return Err(super::trust::untrusted_error(risky));
+    }
+    let snapshot = engine.snapshot(&snapshot_options(options)).await?;
+    let root = engine.root().to_string_lossy().into_owned();
+    let watcher = RepoWatcher::start(move || on_change(&root), engine.git_dir(), engine.common_dir());
+    Ok((engine, watcher, snapshot))
 }
 
 #[tauri::command]
-pub async fn gitpane_open(app: AppHandle, state: State<'_, GitPaneState>, path: String, options: Option<serde_json::Value>) -> Result<OpenEnvelope, ()> {
-    let engine = match CliEngine::open(std::path::Path::new(&path)).await {
-        Ok(engine) => Arc::new(engine),
-        Err(error) => return Ok(OpenEnvelope { ok: false, snapshot: None, error: Some(error) }),
+pub async fn gitpane_open(
+    app: AppHandle,
+    state: State<'_, GitPaneState>,
+    path: String,
+    options: Option<serde_json::Value>,
+    trusted: Option<bool>,
+) -> Result<OpenEnvelope, ()> {
+    let emit = move |root: &str| {
+        let _ = app.emit(CHANGED_EVENT, ChangedPayload { path: root.to_string() });
     };
-    let snapshot = match engine.snapshot(&snapshot_options(&options)).await {
-        Ok(snapshot) => snapshot,
-        Err(error) => return Ok(OpenEnvelope { ok: false, snapshot: None, error: Some(error) }),
-    };
-    let emitter = app.clone();
-    let payload = engine.root().to_string_lossy().into_owned();
-    let watcher = RepoWatcher::start(
-        move || {
-            let _ = emitter.emit(CHANGED_EVENT, ChangedPayload { path: payload.clone() });
-        },
-        engine.git_dir(),
-        engine.common_dir(),
-    );
-    let mut slot = state.engine.write().await;
-    *state.watcher.lock().unwrap_or_else(|e| e.into_inner()) = watcher;
-    *slot = Some(engine);
-    drop(slot);
-    Ok(OpenEnvelope { ok: true, snapshot: Some(snapshot), error: None })
+    Ok(open_repo(&state, &path, &options, trusted.unwrap_or(false), emit).await)
+}
+
+#[tauri::command]
+pub async fn gitpane_close(state: State<'_, GitPaneState>) -> Result<(), ()> {
+    state.close().await;
+    Ok(())
 }
 
 #[tauri::command]

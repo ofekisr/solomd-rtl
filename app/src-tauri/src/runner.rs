@@ -843,6 +843,7 @@ pub fn run_with(initial_file: Option<String>) {
             crate::git_pane::commands::gitpane_commit_files,
             crate::git_pane::commands::gitpane_execute,
             crate::git_pane::commands::gitpane_cancel,
+            crate::git_pane::commands::gitpane_close,
             capture_endpoint::capture_get_state,
             capture_endpoint::capture_set_enabled,
             capture_endpoint::capture_regenerate_token,
