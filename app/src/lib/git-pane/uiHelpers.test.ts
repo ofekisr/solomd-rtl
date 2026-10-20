@@ -40,3 +40,33 @@ test('diff path round-trips unicode and spaces', () => {
   assert.deepEqual(decodeDiffPath(uri), { path: 'notes/שלום עולם.md', side: 'commit', sha: 'abc1234' })
   assert.equal(decodeDiffPath('/Users/x/a.md'), null)
 })
+
+test('redacts passwords containing @ and leaves query strings alone', () => {
+  assert.equal(redactUrl('https://user:p@ss@host/x'), 'https://host/x')
+  assert.equal(redactUrl('https://host/x?a=b@c'), 'https://host/x?a=b@c')
+})
+
+test('decodeDiffPath returns null on malformed percent sequences', () => {
+  assert.equal(decodeDiffPath('git-diff://%E0?side=worktree'), null)
+})
+
+test('diff path round-trips question marks and percent signs', () => {
+  const ref = { path: 'a?b/100%.md', side: 'worktree' as const }
+  assert.deepEqual(decodeDiffPath(encodeDiffPath(ref)), ref)
+})
+
+test('conflicted file lands in the conflicts group first', () => {
+  const file = { id: 'c', path: 'c.md', fileName: 'c.md', directory: '', status: 'conflicted' as const, staged: false, additions: 0, deletions: 0 }
+  const groups = groupChanges([...sampleSnapshot().workingTree, file])
+  assert.equal(groups[0].id, 'conflicts')
+  assert.deepEqual(groups[0].files, [file])
+})
+
+test('remote branch origin/feature/x nests origin, feature, x', () => {
+  const snap = sampleSnapshot()
+  const remote = { ...snap.branches[2], id: 'r:origin/feature/x', name: 'origin/feature/x' }
+  const origin = buildBranchTree([remote], [])[1].children[0]
+  assert.equal(origin.label, 'origin')
+  assert.equal(origin.children[0].label, 'feature')
+  assert.equal(origin.children[0].children[0].label, 'x')
+})

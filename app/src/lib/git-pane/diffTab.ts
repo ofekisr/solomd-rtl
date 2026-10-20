@@ -26,5 +26,15 @@ export function decodeDiffPath(uri: string): DiffTabRef | null {
   const side = query.get('side') as DiffSide | null
   if (!side || !SIDES.includes(side)) return null
   const sha = query.get('sha') ?? undefined
-  return sha ? { path: decodeURIComponent(encodedPath), side, sha } : { path: decodeURIComponent(encodedPath), side }
+  const path = safeDecode(encodedPath)
+  if (path === null) return null
+  return sha ? { path, side, sha } : { path, side }
+}
+
+function safeDecode(value: string): string | null {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return null
+  }
 }
