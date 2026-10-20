@@ -3,6 +3,10 @@
 
 use std::path::Path;
 
+use crate::git_pane::cli::actions::checked_rev;
+
+const END_OF_OPTIONS: &str = "--end-of-options";
+
 use crate::git_pane::cli::git::{
     BlameResult, ConflictBlock, ConflictResult, ConflictVersions, DiffHunk, DiffLine, DiffLineType,
     DiffResult, FileHistoryEntry, FileHistoryResult, GitError, RebaseCommitEntry,
@@ -623,13 +627,14 @@ pub async fn fetch_diff(cwd: &Path, req: &DiffFetch) -> Result<DiffResult, GitEr
             safe_path.clone(),
         ],
         DiffSource::Commit => {
-            let sha = req.sha.clone().unwrap_or_else(|| "HEAD".to_string());
+            let sha = checked_rev(req.sha.as_deref().unwrap_or("HEAD"), "revision")?;
             let parents = commit_parents(cwd, &sha).await?;
             if parents.len() > 1 {
                 vec![
                     "diff".into(),
                     "-m".into(),
                     "--first-parent".into(),
+                    END_OF_OPTIONS.into(),
                     format!("{}^1", sha),
                     sha,
                     "--".into(),
@@ -638,19 +643,27 @@ pub async fn fetch_diff(cwd: &Path, req: &DiffFetch) -> Result<DiffResult, GitEr
             } else if parents.len() == 1 {
                 vec![
                     "diff".into(),
+                    END_OF_OPTIONS.into(),
                     format!("{}^", sha),
                     sha,
                     "--".into(),
                     safe_path.clone(),
                 ]
             } else {
-                vec!["show".into(), sha, "--".into(), safe_path.clone()]
+                vec![
+                    "show".into(),
+                    END_OF_OPTIONS.into(),
+                    sha,
+                    "--".into(),
+                    safe_path.clone(),
+                ]
             }
         }
         DiffSource::Range => vec![
             "diff".into(),
-            req.sha.clone().unwrap_or_else(|| "HEAD~1".to_string()),
-            req.to_sha.clone().unwrap_or_else(|| "HEAD".to_string()),
+            END_OF_OPTIONS.into(),
+            checked_rev(req.sha.as_deref().unwrap_or("HEAD~1"), "revision")?,
+            checked_rev(req.to_sha.as_deref().unwrap_or("HEAD"), "revision")?,
             "--".into(),
             safe_path.clone(),
         ],
@@ -670,7 +683,9 @@ pub async fn fetch_diff(cwd: &Path, req: &DiffFetch) -> Result<DiffResult, GitEr
 
 async fn commit_parents(cwd: &Path, sha: &str) -> Result<Vec<String>, GitError> {
     use crate::git_pane::cli::git::git_text;
-    let (ok, stdout, _) = git_text(cwd, &["rev-list", "--parents", "-n", "1", sha]).await?;
+    let sha = checked_rev(sha, "revision")?;
+    let (ok, stdout, _) =
+        git_text(cwd, &["rev-list", "--parents", "-n", "1", END_OF_OPTIONS, &sha]).await?;
     if !ok {
         return Ok(Vec::new());
     }
@@ -707,14 +722,14 @@ pub async fn fetch_blame(
             None,
         ),
         DiffSource::Commit => {
-            let sha = sha.unwrap_or("HEAD").to_string();
+            let sha = checked_rev(sha.unwrap_or("HEAD"), "revision")?;
             (
                 vec!["blame".to_string(), "--line-porcelain".to_string()],
                 Some(sha),
             )
         }
         DiffSource::Range => {
-            let sha = to_sha.or(sha).unwrap_or("HEAD").to_string();
+            let sha = checked_rev(to_sha.or(sha).unwrap_or("HEAD"), "revision")?;
             (
                 vec!["blame".to_string(), "--line-porcelain".to_string()],
                 Some(sha),
@@ -727,6 +742,7 @@ pub async fn fetch_blame(
     };
     let mut args = head;
     if let Some(rev) = middle {
+        args.push(END_OF_OPTIONS.to_string());
         args.push(rev);
     }
     args.push("--".to_string());
@@ -825,6 +841,8 @@ pub async fn fetch_commit_files(
     sha: &str,
 ) -> Result<Vec<WireWorkingTreeFile>, GitError> {
     use crate::git_pane::cli::git::git_text;
+    let sha = checked_rev(sha, "revision")?;
+    let sha = sha.as_str();
     let parents = commit_parents(cwd, sha).await?;
     let (tree_args, numstat_args): (Vec<String>, Vec<String>) = if parents.is_empty() {
         (
@@ -835,6 +853,7 @@ pub async fn fetch_commit_files(
                 "--name-status",
                 "-z",
                 "-r",
+                END_OF_OPTIONS,
                 sha,
             ]
             .into_iter()
@@ -847,6 +866,7 @@ pub async fn fetch_commit_files(
                 "--numstat",
                 "-z",
                 "-r",
+                END_OF_OPTIONS,
                 sha,
             ]
             .into_iter()
@@ -856,11 +876,11 @@ pub async fn fetch_commit_files(
     } else if parents.len() > 1 {
         // Merge: diff against the first parent only (same reference as GitKraken).
         (
-            vec!["diff", "--name-status", "-z", &parents[0], sha]
+            vec!["diff", "--name-status", "-z", END_OF_OPTIONS, &parents[0], sha]
                 .into_iter()
                 .map(|s: &str| s.to_string())
                 .collect(),
-            vec!["diff", "--numstat", "-z", &parents[0], sha]
+            vec!["diff", "--numstat", "-z", END_OF_OPTIONS, &parents[0], sha]
                 .into_iter()
                 .map(|s: &str| s.to_string())
                 .collect(),
@@ -874,6 +894,7 @@ pub async fn fetch_commit_files(
                 "-z",
                 "-r",
                 "-m",
+                END_OF_OPTIONS,
                 sha,
             ]
             .into_iter()
@@ -886,6 +907,7 @@ pub async fn fetch_commit_files(
                 "-z",
                 "-r",
                 "-m",
+                END_OF_OPTIONS,
                 sha,
             ]
             .into_iter()
@@ -909,8 +931,10 @@ pub async fn fetch_compare_files(
     to_sha: &str,
 ) -> Result<Vec<WireWorkingTreeFile>, GitError> {
     use crate::git_pane::cli::git::git_text;
-    let tree_args = ["diff", "--name-status", "-z", from_sha, to_sha];
-    let numstat_args = ["diff", "--numstat", "-z", from_sha, to_sha];
+    let from_sha = checked_rev(from_sha, "revision")?;
+    let to_sha = checked_rev(to_sha, "revision")?;
+    let tree_args = ["diff", "--name-status", "-z", END_OF_OPTIONS, &from_sha, &to_sha];
+    let numstat_args = ["diff", "--numstat", "-z", END_OF_OPTIONS, &from_sha, &to_sha];
     let (name_status, numstat) =
         tokio::join!(git_text(cwd, &tree_args), git_text(cwd, &numstat_args));
     Ok(parse_commit_files(
@@ -925,7 +949,10 @@ pub async fn fetch_rebase_commits(cwd: &Path, base: &str) -> Result<RebaseCommit
     if base.is_empty() {
         return Err(GitError::unknown("No base ref specified.".to_string()));
     }
-    let (ok, short_out, _) = git_text(cwd, &["rev-parse", "--short", base]).await?;
+    let base = checked_rev(base, "base ref")?;
+    let base = base.as_str();
+    let (ok, short_out, _) =
+        git_text(cwd, &["rev-parse", "--short", END_OF_OPTIONS, base]).await?;
     if !ok {
         return Err(GitError::unknown(format!(
             "Could not resolve base ref \"{base}\"."
@@ -938,6 +965,7 @@ pub async fn fetch_rebase_commits(cwd: &Path, base: &str) -> Result<RebaseCommit
             "log",
             "--reverse",
             &format!("--format={REBASE_LOG_FORMAT}"),
+            END_OF_OPTIONS,
             &range,
         ],
     )

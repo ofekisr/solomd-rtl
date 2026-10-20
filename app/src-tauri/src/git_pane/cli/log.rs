@@ -349,12 +349,13 @@ pub async fn fetch_commit_log(
     args.push("--decorate=full".to_string());
     args.push("-n".to_string());
     args.push(fetch_limit.to_string());
-    if let Some(rev) = end_rev {
-        args.push(rev.to_string());
-    }
     if skip > 0 {
         args.push("--skip".to_string());
         args.push(skip.to_string());
+    }
+    if let Some(rev) = end_rev {
+        args.push("--end-of-options".to_string());
+        args.push(crate::git_pane::cli::actions::checked_rev(rev, "revision")?);
     }
     let arg_refs: Vec<&str> = args.iter().map(String::as_str).collect();
     let (ok, stdout, _) = git_text(cwd, &arg_refs).await?;
