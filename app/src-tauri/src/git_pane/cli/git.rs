@@ -454,7 +454,7 @@ pub fn child_env(cmd: &mut tokio::process::Command) {
 pub async fn git_text(cwd: &Path, args: &[&str]) -> Result<(bool, String, String), GitError> {
     let mut full: Vec<&str> = vec!["-c", "core.quotepath=false", "-c", "color.ui=false"];
     full.extend(args);
-    let mut cmd = tokio::process::Command::new("git");
+    let mut cmd = crate::git_pane::env::git_command();
     cmd.args(&full).current_dir(cwd).stdin(Stdio::null());
     child_env(&mut cmd);
     let output = cmd
@@ -474,7 +474,7 @@ pub async fn git_text(cwd: &Path, args: &[&str]) -> Result<(bool, String, String
 pub async fn git_bytes(cwd: &Path, args: &[&str]) -> Result<(bool, Vec<u8>), GitError> {
     let mut full: Vec<&str> = vec!["-c", "core.quotepath=false", "-c", "color.ui=false"];
     full.extend(args);
-    let mut cmd = tokio::process::Command::new("git");
+    let mut cmd = crate::git_pane::env::git_command();
     cmd.args(&full).current_dir(cwd).stdin(Stdio::null());
     child_env(&mut cmd);
     let output = cmd

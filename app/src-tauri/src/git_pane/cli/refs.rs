@@ -915,11 +915,14 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         let run = |args: &[&str]| {
-            std::process::Command::new("git")
-                .args(args)
-                .current_dir(&dir)
-                .output()
-                .unwrap()
+            let env = crate::git_pane::env::global();
+            let mut cmd = std::process::Command::new(
+                env.git_path.clone().unwrap_or_else(|| "git".into()),
+            );
+            for (k, v) in &env.vars {
+                cmd.env(k, v);
+            }
+            cmd.args(args).current_dir(&dir).output().unwrap()
         };
         assert!(run(&["init"]).status.success());
         run(&["config", "user.name", "T"]);
@@ -953,11 +956,14 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         let run = |args: &[&str]| {
-            std::process::Command::new("git")
-                .args(args)
-                .current_dir(&dir)
-                .output()
-                .unwrap()
+            let env = crate::git_pane::env::global();
+            let mut cmd = std::process::Command::new(
+                env.git_path.clone().unwrap_or_else(|| "git".into()),
+            );
+            for (k, v) in &env.vars {
+                cmd.env(k, v);
+            }
+            cmd.args(args).current_dir(&dir).output().unwrap()
         };
         let sha = |args: &[&str]| {
             String::from_utf8(run(args).stdout)
