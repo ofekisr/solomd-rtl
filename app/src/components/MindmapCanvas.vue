@@ -598,7 +598,7 @@ const actions: Record<string, () => void> = {
   [TOGGLE_NODE_ACTION]: toggleCollapse,
   'mindmap.fit': () => mind?.scaleFit(),
   'mindmap.focusRoot': selectRoot,
-  'mindmap.shortcutHelp': () => { isHelpOpen.value = true; },
+  'mindmap.shortcutHelp': () => { isHelpOpen.value = !isHelpOpen.value; },
   'mindmap.jumpToSource': jumpToSource,
   'mindmap.findDuplicates': findDuplicates,
   'mindmap.toggleGraphView': toggleGraphView,
