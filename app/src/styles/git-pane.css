@@ -55,3 +55,33 @@
 .git-menu__item { display: block; inline-size: 100%; padding-inline: 12px; padding-block: 6px; text-align: start; background: none; border: 0; color: var(--text); cursor: pointer; }
 .git-menu__item:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 18%, transparent); }
 .git-menu__item:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.git-dock { position: relative; display: flex; flex-direction: column; border-block-start: var(--bd); background: var(--bg); flex-shrink: 0; font-size: 12px; }
+.git-dock__resize { position: absolute; inset-block-start: -3px; inset-inline: 0; block-size: 6px; cursor: row-resize; z-index: 1; }
+.git-dock__tabs { display: flex; align-items: center; padding-inline: 6px; border-block-end: var(--bd); }
+.git-dock__spacer { flex: 1; }
+.git-dock__tab { background: none; border: 0; padding-inline: 10px; padding-block: 4px; color: var(--text); border-block-end: 2px solid var(--accent); }
+.git-dock__close { background: none; border: 0; color: var(--text-muted); cursor: pointer; }
+.git-log { display: flex; flex: 1; min-block-size: 0; }
+.git-log__split { inline-size: 4px; cursor: col-resize; background: var(--border); flex-shrink: 0; }
+.git-log__graph { flex: 1; min-inline-size: 0; }
+.git-branches, .git-details, .git-graph { display: flex; flex-direction: column; min-block-size: 0; overflow: hidden; flex-shrink: 0; }
+.git-log__graph { flex-shrink: 1; }
+.git-branches__list, .git-details { overflow: auto; }
+.git-graph__scroll { flex: 1; overflow: auto; }
+.git-graph__canvas { position: relative; }
+.git-graph__item { position: absolute; inset-inline: 0; }
+.git-search { margin: 4px 6px; padding-inline: 6px; padding-block: 2px; background: var(--bg-elev); color: var(--text); border: var(--bd); border-radius: 4px; font: inherit; }
+.git-graph-row { display: flex; align-items: center; gap: 6px; padding-inline-end: 8px; font-size: 12px; white-space: nowrap; cursor: default; }
+.git-graph-row:hover { background: var(--bg-hover); }
+.git-graph-row--selected, .git-graph-row--selected:hover { background: var(--bg-active); }
+.git-graph-row__svg { flex-shrink: 0; overflow: visible; }
+.git-graph-row__subject { flex: 1; min-inline-size: 80px; overflow: hidden; text-overflow: ellipsis; }
+.git-graph-row__author, .git-graph-row__date { color: var(--text-muted); }
+.git-ref-chip { border: var(--bd); border-radius: 8px; padding-inline: 6px; font-size: 11px; }
+.git-ref-chip[data-type='head'] { border-color: var(--accent); color: var(--accent); }
+.git-row--current .git-row__name { font-weight: 600; }
+.git-details { padding: 6px; gap: 4px; }
+.git-details__subject { font-weight: 600; }
+.git-details__body { white-space: pre-wrap; margin: 0; font: inherit; color: var(--text-muted); }
+.git-details__meta { color: var(--text-muted); }

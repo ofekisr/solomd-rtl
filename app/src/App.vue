@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, watch, watchEffect, computed, provide, nextTick } from 'vue';
+import { onMounted, onBeforeUnmount, ref, watch, watchEffect, computed, provide, nextTick, defineAsyncComponent } from 'vue';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
@@ -74,6 +74,7 @@ import { useFileWatcher } from './composables/useFileWatcher';
 import { loadCustomTheme } from './lib/custom-theme';
 import { isIOS, isMacOS, isAndroid, isMobile, isTauri, hasGitBackend } from './lib/platform';
 import GitCommitPanel from './components/git/GitCommitPanel.vue';
+const GitBottomDock = defineAsyncComponent(() => import('./components/git/GitBottomDock.vue'));
 import { useGitPaneStore } from './stores/gitPane';
 import { isGitMockActive } from './lib/git-pane/serviceFactory';
 import { useViewport } from './composables/useViewport';
@@ -111,6 +112,7 @@ const isGitPaneAvailable = computed(
   () => (isTauri() && hasGitBackend() && settings.enableGitPane) || isGitMockActive(),
 );
 const showGitCommit = computed(() => isGitPaneAvailable.value && settings.showGitCommit);
+const showGitLog = computed(() => isGitPaneAvailable.value && settings.showGitLog);
 const gitCommitRef = ref<InstanceType<typeof GitCommitPanel> | null>(null);
 
 const MOCK_REPO_FOLDER = '/repo';
@@ -1963,11 +1965,14 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           </template>
         </aside>
         <div class="content">
-          <BasesView v-if="basesOpen" />
-          <InboxView v-else-if="inboxViewOpen" />
-          <TypeLensView v-else-if="typeLensOpen" :type-name="typeLensName" />
-          <ViewNoteList v-else-if="viewPaneVisible" />
-          <TileRoot v-else :node="tiles.root" @cursor="onCursor" @selection="onSelection" />
+          <div class="content__main">
+            <BasesView v-if="basesOpen" />
+            <InboxView v-else-if="inboxViewOpen" />
+            <TypeLensView v-else-if="typeLensOpen" :type-name="typeLensName" />
+            <ViewNoteList v-else-if="viewPaneVisible" />
+            <TileRoot v-else :node="tiles.root" @cursor="onCursor" @selection="onSelection" />
+          </div>
+          <GitBottomDock v-if="showGitLog" />
         </div>
         <aside
           v-if="showRightSidebar && settings.outlineSide !== 'left'"
@@ -2491,7 +2496,16 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
 .content {
   flex: 1;
   display: flex;
+  flex-direction: column;
   min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+.content__main {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
   overflow: hidden;
   position: relative;
 }
