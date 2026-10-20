@@ -22,7 +22,8 @@ import { useMindmapJump } from '../composables/useMindmapJump';
 import type { MindmapSource } from '../lib/mindmap-source';
 import MindmapRail, { type RailState } from './MindmapRail.vue';
 import { MINDMAP_LAYOUT } from '../lib/mindmap-direction';
-import { buildNodePatch, type NodeField } from '../lib/mindmap-node-style';
+import { buildNodePatch, setIcon, type NodeField } from '../lib/mindmap-node-style';
+import { runAsOneOperation, type OperationBus } from '../lib/mindmap-batch';
 import MindmapCanvas from './MindmapCanvas.vue';
 import MindmapSidePanel from './MindmapSidePanel.vue';
 import MindmapNodeFields from './MindmapNodeFields.vue';
@@ -58,6 +59,7 @@ const canvas = ref<MindmapCanvasApi | null>(null);
 const sourceError = ref<string | null>(null);
 const selected = ref<NodeObj[]>([]);
 const singleNode = computed(() => (selected.value.length === 1 ? selected.value[0] : null));
+const BATCH_RESHAPE_OPERATION = 'reshapeNodes';
 
 function has(part: CellPart): boolean {
   return cellHas(parts.value, part);
@@ -173,16 +175,32 @@ function openAsText(): void {
   if (!has('json')) settings.setViewMode('edit');
 }
 
-function applyNodePatch(field: NodeField, value: string | number | boolean | readonly string[] | null): void {
+type PatchValue = string | number | boolean | readonly string[] | null;
+
+function applyNodePatch(field: NodeField, value: PatchValue): void {
+  patchSelected((node) => buildNodePatch(node, field, value));
+}
+
+function applyNodeIcon(icon: string, isOn: boolean): void {
+  patchSelected((node) => buildNodePatch(node, 'icons', setIcon(node.icons, icon, isOn)));
+}
+
+function patchSelected(build: (node: NodeObj) => ReturnType<typeof buildNodePatch>): void {
   const mind = canvas.value?.getMind();
-  const node = singleNode.value;
-  if (!mind || !node || !isPanelEditable.value) return;
-  const result = buildNodePatch(node, field, value);
-  if (!result.ok) {
-    toasts.error(t('mindmap.fieldUrlInvalid'));
+  if (!mind || selected.value.length === 0 || !isPanelEditable.value) return;
+  const elements = selected.value.map((node) => findLiveElement(mind, node.id)).filter((el): el is Topic => el !== null);
+  const results = elements.map((el) => build(el.nodeObj));
+  if (results.some((r) => !r.ok)) {
+    toasts.error(t('mindmap.fieldInvalid'));
     return;
   }
-  patchNodeById(node.id, result.patch);
+  runAsOneOperation(mind.bus as unknown as OperationBus, () => reshapeAll(mind, elements, results), { name: BATCH_RESHAPE_OPERATION, obj: elements[0]?.nodeObj, objs: elements.map((el) => el.nodeObj) });
+  selected.value = elements.map((el) => ({ ...el.nodeObj }));
+}
+
+function reshapeAll(mind: MindElixirInstance, elements: readonly Topic[], results: ReturnType<typeof buildNodePatch>[]): boolean {
+  elements.forEach((el, i) => { const r = results[i]; if (r.ok) mind.reshapeNode(el, r.patch); });
+  return elements.length > 0;
 }
 
 function patchNodeById(id: string, patch: Partial<NodeObj>): void {
@@ -417,10 +435,10 @@ defineExpose({ setLens, canvas, lens, openFind });
           <Preview v-else :source="outlinePreview" class="mindmap-shell__outline" :style="{ order: partOrder('outlinePreview') }" />
         </template>
       </div>
-      <MindmapSidePanel v-if="isPanelVisible" :has-single-node="singleNode !== null">
+      <MindmapSidePanel v-if="isPanelVisible" :has-single-node="selected.length > 0">
         <template #node>
           <p v-if="!isPanelEditable" class="mindmap-shell__hint">{{ t('mindmap.panelReadOnly') }}</p>
-          <MindmapNodeFields v-if="singleNode" :node="singleNode" :disabled="!isPanelEditable" @patch="applyNodePatch" />
+          <MindmapNodeFields v-if="selected.length > 0" :nodes="selected" :disabled="!isPanelEditable" @patch="applyNodePatch" @icon="applyNodeIcon" />
         </template>
         <template #map>
           <MindmapMapFields :value="displayOverride" :inherited="settings.mindmapDefaults" :disabled="!isPanelEditable" @set="setOverride" @clear="clearOverride" />

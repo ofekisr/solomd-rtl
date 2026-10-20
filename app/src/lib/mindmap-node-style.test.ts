@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { NodeObj } from 'mind-elixir';
-import { buildNodePatch, isSafeLink, toggleIcon } from './mindmap-node-style.ts';
+import { buildNodePatch, fontKeyOf, isSafeLink, parseBorder, setIcon, shapeKeyOf, toggleIcon } from './mindmap-node-style.ts';
 
 const node: NodeObj = { id: 'n1', topic: 'A', style: { fontWeight: 'bold', color: '#111' } };
 
@@ -66,4 +66,50 @@ test('icons patch drops blank and angle-bracket entries; empty gives undefined',
 test('toggleIcon keeps non-grid icons', () => {
   assert.deepEqual(toggleIcon(['custom', '⭐'], '⭐'), ['custom']);
   assert.deepEqual(toggleIcon(['custom'], '✅'), ['custom', '✅']);
+});
+
+test('shape preset writes borderRadius and empty clears it', () => {
+  const pill = buildNodePatch(node, 'shape', 'pill');
+  assert.equal(pill.ok && (pill.patch.style as Record<string, string>).borderRadius, '999px');
+  const cleared = buildNodePatch(node, 'shape', '');
+  assert.equal(cleared.ok && (cleared.patch.style as Record<string, string>).borderRadius, '');
+  assert.deepEqual(buildNodePatch(node, 'shape', 'blob'), { ok: false, reason: 'invalid' });
+});
+
+test('font family maps a key to its stack and rejects free text', () => {
+  const serif = buildNodePatch(node, 'fontFamily', 'serif');
+  assert.match((serif.ok && serif.patch.style?.fontFamily) || '', /Georgia/);
+  assert.deepEqual(buildNodePatch(node, 'fontFamily', 'Comic Sans'), { ok: false, reason: 'invalid' });
+});
+
+test('text decoration accepts only known values', () => {
+  const under = buildNodePatch(node, 'textDecoration', 'underline');
+  assert.equal(under.ok && under.patch.style?.textDecoration, 'underline');
+  assert.deepEqual(buildNodePatch(node, 'textDecoration', 'blink'), { ok: false, reason: 'invalid' });
+});
+
+test('width is clamped and written as px', () => {
+  const wide = buildNodePatch(node, 'width', 5000);
+  assert.equal(wide.ok && wide.patch.style?.width, '800px');
+});
+
+test('border is validated and round-trips through parseBorder', () => {
+  const ok = buildNodePatch(node, 'border', '2px dashed #ff0000');
+  assert.equal(ok.ok && ok.patch.style?.border, '2px dashed #ff0000');
+  assert.deepEqual(parseBorder('2px dashed #ff0000'), { width: 2, style: 'dashed', color: '#ff0000' });
+  assert.deepEqual(buildNodePatch(node, 'border', '2px groove red'), { ok: false, reason: 'invalid' });
+  assert.deepEqual(buildNodePatch(node, 'border', '50px solid red'), { ok: false, reason: 'invalid' });
+});
+
+test('setIcon adds or removes regardless of current state', () => {
+  assert.deepEqual(setIcon(['⭐'], '⭐', true), ['⭐']);
+  assert.deepEqual(setIcon(undefined, '⭐', true), ['⭐']);
+  assert.deepEqual(setIcon(['⭐', '🔥'], '⭐', false), ['🔥']);
+});
+
+test('fontKeyOf and shapeKeyOf reverse-map stored CSS', () => {
+  const serif = buildNodePatch(node, 'fontFamily', 'serif');
+  assert.equal(fontKeyOf(serif.ok ? serif.patch.style?.fontFamily : undefined), 'serif');
+  assert.equal(shapeKeyOf('50%'), 'circle');
+  assert.equal(shapeKeyOf('3px'), '');
 });

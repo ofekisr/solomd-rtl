@@ -383,3 +383,7 @@ test('parseMindmap sanitizes snippets and tolerates a missing key', () => {
   assert.ok(empty.ok);
   assert.deepEqual(empty.snippets, []);
 });
+
+test('borderRadius survives sanitizing, unknown style keys do not', () => {
+  assert.deepEqual(styledNode({ borderRadius: '999px', clipPath: 'circle()' }), { borderRadius: '999px' });
+});
