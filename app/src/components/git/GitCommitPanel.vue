@@ -11,7 +11,7 @@ import type { WireWorkingTreeFile } from '../../lib/git-pane/shared/models';
 import { getGitPaneService } from '../../lib/git-pane/serviceFactory';
 import GitChangeRow from './GitChangeRow.vue';
 import GitEmptyState from './GitEmptyState.vue';
-import GitRowMenu from './GitRowMenu.vue';
+import GitMenu, { type GitMenuItem } from './GitMenu.vue';
 
 const GROUP_LABEL: Record<ChangeGroupId, string> = {
   conflicts: 'git.groupConflicts',
@@ -89,6 +89,18 @@ function openMenu(file: WireWorkingTreeFile, ev: MouseEvent): void {
   menu.value = { file, x: ev.clientX, y: ev.clientY };
 }
 
+const menuItems = computed<GitMenuItem[]>(() => [
+  { id: 'show-diff', label: t('git.showDiff') },
+  { id: 'open-file', label: t('git.openFile') },
+  { id: 'rollback', label: t('git.rollback'), disabled: !(menu.value && isRollbackable(menu.value.file)) },
+]);
+
+function onMenuSelect(id: string): void {
+  if (id === 'show-diff') menuAction(openDiff);
+  else if (id === 'open-file') menuAction(openFile);
+  else if (id === 'rollback') menuAction((f) => rollbackFiles([f]));
+}
+
 function closeMenu(): void {
   menu.value = null;
 }
@@ -162,16 +174,7 @@ defineExpose({ focusMessage: () => messageEl.value?.focus() });
         />
       </div>
     </div>
-    <GitRowMenu
-      v-if="menu"
-      :x="menu.x"
-      :y="menu.y"
-      :can-rollback="isRollbackable(menu.file)"
-      @show-diff="menuAction(openDiff)"
-      @open-file="menuAction(openFile)"
-      @rollback="menuAction((f) => rollbackFiles([f]))"
-      @close="closeMenu"
-    />
+    <GitMenu v-if="menu" :x="menu.x" :y="menu.y" :items="menuItems" @select="onMenuSelect" @close="closeMenu" />
     <div v-if="git.status === 'ready'" class="git-commit-box">
       <textarea
         ref="messageEl"

@@ -85,3 +85,8 @@
 .git-details__subject { font-weight: 600; }
 .git-details__body { white-space: pre-wrap; margin: 0; font: inherit; color: var(--text-muted); }
 .git-details__meta { color: var(--text-muted); }
+.git-dialog__backdrop { position: fixed; inset: 0; z-index: 10000; background: rgba(0, 0, 0, 0.35); display: flex; align-items: center; justify-content: center; }
+.git-dialog { min-inline-size: 320px; max-inline-size: 90vw; background: var(--bg-elev); border: var(--bd); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
+.git-dialog__title { font-weight: 600; }
+.git-dialog__input { padding-inline: 8px; padding-block: 5px; background: var(--bg); color: var(--text); border: var(--bd); border-radius: 4px; font: inherit; }
+.git-dialog__actions { display: flex; justify-content: flex-end; gap: 8px; }

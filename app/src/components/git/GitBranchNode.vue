@@ -8,7 +8,7 @@ const emit = defineEmits<{
   (e: 'toggle', id: string): void;
   (e: 'select', node: BranchTreeNode): void;
   (e: 'checkout', node: BranchTreeNode): void;
-  (e: 'context', node: BranchTreeNode): void;
+  (e: 'context', node: BranchTreeNode, ev: MouseEvent): void;
 }>();
 </script>
 
@@ -19,7 +19,7 @@ const emit = defineEmits<{
     :class="{ 'git-row--current': node.branch?.isCurrent }"
     @click="node.kind === 'folder' ? emit('toggle', node.id) : emit('select', node)"
     @dblclick="emit('checkout', node)"
-    @contextmenu.prevent="emit('context', node)"
+    @contextmenu.prevent="emit('context', node, $event)"
   >
     <span v-if="node.kind === 'folder'">{{ collapsed.has(node.id) ? '▸' : '▾' }}</span>
     <span v-else>{{ node.kind === 'tag' ? '🏷' : '⎇' }}</span>
@@ -36,7 +36,7 @@ const emit = defineEmits<{
       @toggle="emit('toggle', $event)"
       @select="emit('select', $event)"
       @checkout="emit('checkout', $event)"
-      @context="emit('context', $event)"
+      @context="(n: BranchTreeNode, ev: MouseEvent) => emit('context', n, ev)"
     />
   </template>
 </template>

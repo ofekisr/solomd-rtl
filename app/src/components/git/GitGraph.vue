@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useVirtualizer } from '@tanstack/vue-virtual';
-import { useGitPaneStore } from '../../stores/gitPane';
 import { useI18n } from '../../i18n';
+import { useGitPaneStore } from '../../stores/gitPane';
 import { computeGraphLayout } from '../../lib/git-pane/graph/computeGraphLayout';
+import { useGitBranchCreate } from '../../composables/useGitBranchCreate';
 import GitGraphRow from './GitGraphRow.vue';
 
 const ROW_HEIGHT = 24;
@@ -12,16 +13,19 @@ const OVERSCAN = 12;
 const LOAD_MORE_THRESHOLD = 40;
 
 const git = useGitPaneStore();
-const { t } = useI18n();
 const scrollEl = ref<HTMLElement | null>(null);
+const { t } = useI18n();
 const query = ref('');
+const { createBranchFrom } = useGitBranchCreate();
+const isLoadingMore = ref(false);
+const isFiltering = computed(() => query.value.trim() !== '');
 
 const visibleCommits = computed(() => {
   const q = query.value.trim().toLowerCase();
   if (!q) return git.commits;
   return git.commits.filter((c) => c.subject.toLowerCase().includes(q) || c.sha.startsWith(q) || c.author.name.toLowerCase().includes(q));
 });
-const layout = computed(() => computeGraphLayout(query.value ? [] : visibleCommits.value));
+const layout = computed(() => computeGraphLayout(isFiltering.value ? [] : visibleCommits.value));
 
 const virtualizer = useVirtualizer(computed(() => ({
   count: visibleCommits.value.length,
@@ -35,15 +39,16 @@ const lastVisibleIndex = computed(() => {
   return items.length ? items[items.length - 1].index : undefined;
 });
 
-watch(lastVisibleIndex, (last) => {
+watch(lastVisibleIndex, async (last) => {
   const isNearEnd = last !== undefined && last > visibleCommits.value.length - LOAD_MORE_THRESHOLD;
-  if (isNearEnd && git.hasMoreCommits) void git.loadMoreCommits();
+  if (!isNearEnd || !git.hasMoreCommits || isLoadingMore.value) return;
+  isLoadingMore.value = true;
+  try {
+    await git.loadMoreCommits();
+  } finally {
+    isLoadingMore.value = false;
+  }
 });
-
-async function newBranchFrom(sha: string): Promise<void> {
-  const name = window.prompt(t('git.branchNamePrompt'));
-  if (name?.trim()) await git.run({ kind: 'create-branch', meta: { name: name.trim(), startPoint: sha } });
-}
 </script>
 
 <template>
@@ -68,7 +73,7 @@ async function newBranchFrom(sha: string): Promise<void> {
             :lane-width="LANE_WIDTH"
             :is-selected="git.selectedSha === visibleCommits[item.index].sha"
             @select="git.selectCommit(visibleCommits[item.index].sha)"
-            @context="newBranchFrom(visibleCommits[item.index].sha)"
+            @context="createBranchFrom(visibleCommits[item.index].sha)"
           />
         </div>
       </div>

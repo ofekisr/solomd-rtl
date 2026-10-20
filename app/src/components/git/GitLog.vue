@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onBeforeUnmount, ref } from 'vue';
 import GitBranchTree from './GitBranchTree.vue';
 import GitGraph from './GitGraph.vue';
 import GitCommitDetails from './GitCommitDetails.vue';
@@ -19,6 +19,8 @@ function loadWidths(): [number, number] {
 
 const widths = ref<[number, number]>(loadWidths());
 
+let stopDrag: (() => void) | null = null;
+
 function drag(index: 0 | 1, down: PointerEvent): void {
   const startX = down.clientX;
   const start = widths.value[index];
@@ -29,14 +31,23 @@ function drag(index: 0 | 1, down: PointerEvent): void {
     next[index] = Math.max(MIN_COL_PX, start + sign * (move.clientX - startX));
     widths.value = next;
   };
-  const onUp = (): void => {
+  const detach = (): void => {
     window.removeEventListener('pointermove', onMove);
     window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onUp);
+    stopDrag = null;
+  };
+  const onUp = (): void => {
+    detach();
     try { localStorage.setItem(WIDTHS_KEY, JSON.stringify(widths.value)); } catch { /* storage unavailable */ }
   };
   window.addEventListener('pointermove', onMove);
   window.addEventListener('pointerup', onUp);
+  window.addEventListener('pointercancel', onUp);
+  stopDrag = detach;
 }
+
+onBeforeUnmount(() => stopDrag?.());
 </script>
 
 <template>

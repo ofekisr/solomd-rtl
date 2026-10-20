@@ -1,13 +1,17 @@
 <script setup lang="ts">
+import { onBeforeUnmount } from 'vue';
 import { useSettingsStore } from '../../stores/settings';
 import { useI18n } from '../../i18n';
 import GitLog from './GitLog.vue';
+import GitPromptDialog from './GitPromptDialog.vue';
 
 const MIN_DOCK_PX = 120;
 const MAX_DOCK_RATIO = 0.8;
 
 const settings = useSettingsStore();
 const { t } = useI18n();
+
+let stopResize: (() => void) | null = null;
 
 function startResize(down: PointerEvent): void {
   const startY = down.clientY;
@@ -16,14 +20,23 @@ function startResize(down: PointerEvent): void {
   const onMove = (move: PointerEvent): void => {
     settings.gitDockHeight = Math.min(maxPx, Math.max(MIN_DOCK_PX, startHeight + (startY - move.clientY)));
   };
-  const onUp = (): void => {
+  const detach = (): void => {
     window.removeEventListener('pointermove', onMove);
     window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onUp);
+    stopResize = null;
+  };
+  const onUp = (): void => {
+    detach();
     settings.setGitDockHeight(settings.gitDockHeight);
   };
   window.addEventListener('pointermove', onMove);
   window.addEventListener('pointerup', onUp);
+  window.addEventListener('pointercancel', onUp);
+  stopResize = detach;
 }
+
+onBeforeUnmount(() => stopResize?.());
 </script>
 
 <template>
@@ -32,8 +45,9 @@ function startResize(down: PointerEvent): void {
     <div class="git-dock__tabs">
       <button class="git-dock__tab git-dock__tab--active">{{ t('git.logTitle') }}</button>
       <span class="git-dock__spacer" />
-      <button class="git-dock__close" @click="settings.toggleGitLog()">✕</button>
+      <button class="git-dock__close" :aria-label="t('git.closeLog')" @click="settings.toggleGitLog()">✕</button>
     </div>
     <GitLog />
+    <GitPromptDialog />
   </section>
 </template>
