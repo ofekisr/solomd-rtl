@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref, watch } from 'vue';
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from '../../i18n';
 import { useGitPrompt } from '../../composables/useGitPrompt';
 
@@ -17,8 +17,11 @@ watch(request, async (next) => {
 
 function submit(): void {
   const trimmed = value.value.trim();
-  settlePrompt(trimmed || null);
+  if (!trimmed) return;
+  settlePrompt(trimmed);
 }
+
+onBeforeUnmount(() => settlePrompt(null));
 </script>
 
 <template>
@@ -36,7 +39,7 @@ function submit(): void {
         />
         <div class="git-dialog__actions">
           <button class="git-btn" @click="settlePrompt(null)">{{ t('git.cancel') }}</button>
-          <button class="git-btn" :disabled="!value.trim()" @click="submit">OK</button>
+          <button class="git-btn" :disabled="!value.trim()" @click="submit">{{ t('git.ok') }}</button>
         </div>
       </div>
     </div>

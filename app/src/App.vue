@@ -75,6 +75,7 @@ import { loadCustomTheme } from './lib/custom-theme';
 import { isIOS, isMacOS, isAndroid, isMobile, isTauri, hasGitBackend } from './lib/platform';
 import GitCommitPanel from './components/git/GitCommitPanel.vue';
 const GitBottomDock = defineAsyncComponent(() => import('./components/git/GitBottomDock.vue'));
+const GitPromptDialog = defineAsyncComponent(() => import('./components/git/GitPromptDialog.vue'));
 import { useGitPaneStore } from './stores/gitPane';
 import { isGitMockActive } from './lib/git-pane/serviceFactory';
 import { useViewport } from './composables/useViewport';
@@ -1973,6 +1974,7 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
             <TileRoot v-else :node="tiles.root" @cursor="onCursor" @selection="onSelection" />
           </div>
           <GitBottomDock v-if="showGitLog" />
+          <GitPromptDialog v-if="isGitPaneAvailable" />
         </div>
         <aside
           v-if="showRightSidebar && settings.outlineSide !== 'left'"

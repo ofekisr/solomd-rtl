@@ -1938,6 +1938,7 @@ export const en = {
     push: 'Push',
     update: 'Update',
     closeLog: 'Close log',
+    ok: 'OK',
   },
   findBar: {
     wrapPresets: 'Wrap match:',

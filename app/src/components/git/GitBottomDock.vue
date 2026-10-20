@@ -3,7 +3,6 @@ import { onBeforeUnmount } from 'vue';
 import { useSettingsStore } from '../../stores/settings';
 import { useI18n } from '../../i18n';
 import GitLog from './GitLog.vue';
-import GitPromptDialog from './GitPromptDialog.vue';
 
 const MIN_DOCK_PX = 120;
 const MAX_DOCK_RATIO = 0.8;
@@ -36,7 +35,11 @@ function startResize(down: PointerEvent): void {
   stopResize = detach;
 }
 
-onBeforeUnmount(() => stopResize?.());
+onBeforeUnmount(() => {
+  if (!stopResize) return;
+  stopResize();
+  settings.setGitDockHeight(settings.gitDockHeight);
+});
 </script>
 
 <template>
@@ -48,6 +51,5 @@ onBeforeUnmount(() => stopResize?.());
       <button class="git-dock__close" :aria-label="t('git.closeLog')" @click="settings.toggleGitLog()">✕</button>
     </div>
     <GitLog />
-    <GitPromptDialog />
   </section>
 </template>
