@@ -19,6 +19,8 @@ export type GitErrorCode =
   | 'Network'
   | 'DirtyWorktree'
   | 'Cancelled'
+  | 'GitNotFound'
+  | 'InvalidRefName'
   | 'Unknown'
 
 export interface SerializedGitError {
@@ -67,6 +69,8 @@ const DEFAULT_MESSAGES: Record<GitErrorCode, string> = {
   Network: 'A network error occurred while contacting the remote.',
   DirtyWorktree: 'You have uncommitted changes that would be overwritten.',
   Cancelled: 'The operation was cancelled.',
+  GitNotFound: 'Git was not found on this system.',
+  InvalidRefName: 'The reference name is not valid.',
   Unknown: 'An unexpected Git error occurred.',
 }
 
