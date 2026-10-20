@@ -765,6 +765,7 @@ pub fn run_with(initial_file: Option<String>) {
         .manage(PendingOpen(Mutex::new(pending)))
         .manage(watcher::WatcherState::new())
         .manage(recipe_runner::RecipesState::new())
+        .manage(crate::git_pane::commands::GitPaneState::default())
         .invoke_handler(tauri::generate_handler![
             commands::read_file,
             commands::read_binary_file,
@@ -834,6 +835,14 @@ pub fn run_with(initial_file: Option<String>) {
             git_history::git_file_diff,
             git_history::git_file_at_version,
             git_history::git_rollback_file,
+            crate::git_pane::commands::gitpane_version,
+            crate::git_pane::commands::gitpane_open,
+            crate::git_pane::commands::gitpane_snapshot,
+            crate::git_pane::commands::gitpane_commit_page,
+            crate::git_pane::commands::gitpane_diff,
+            crate::git_pane::commands::gitpane_commit_files,
+            crate::git_pane::commands::gitpane_execute,
+            crate::git_pane::commands::gitpane_cancel,
             capture_endpoint::capture_get_state,
             capture_endpoint::capture_set_enabled,
             capture_endpoint::capture_regenerate_token,

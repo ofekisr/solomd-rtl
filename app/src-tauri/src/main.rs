@@ -5,13 +5,9 @@ mod linux_a11y;
 mod runner;
 mod windows_install_migration;
 
-// Binary-root mirror of lib.rs's git_pane::lock: git_history.rs (pulled in via
-// runner.rs) resolves `crate::git_pane::lock`, which must exist at this root.
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-mod git_pane {
-    #[path = "lock.rs"]
-    pub mod lock;
-}
+#[path = "git_pane/mod.rs"]
+mod git_pane;
 
 #[cfg(any(target_os = "windows", test))]
 const WINDOWS_APP_USER_MODEL_ID: &str = "app.solomd";
