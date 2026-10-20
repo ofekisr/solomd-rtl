@@ -36,6 +36,10 @@ export function isAndroid(): boolean {
  * `?forceWinChrome`) so the Android degradation can be driven from a desktop
  * dev build instead of needing an APK on a device.
  */
+export function isTauri(): boolean {
+  return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+}
+
 export function hasGitBackend(): boolean {
   if (typeof location !== 'undefined' && location.search.includes('forceNoGit')) {
     return false;

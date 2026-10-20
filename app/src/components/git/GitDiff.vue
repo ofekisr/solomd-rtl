@@ -55,8 +55,12 @@ async function hunkAction(hunk: DiffHunk, kind: PatchAction): Promise<void> {
   if (!diff.value) return;
   if (kind === 'discard-patch' && !window.confirm(t('git.confirmRollback', { name: diff.value.path }))) return;
   const patch = buildPatchFromHunk(diff.value.path, hunk, diff.value.oldPath);
-  await git.run({ kind, target: diff.value.path, meta: { patch } });
-  await load();
+  let isApplied = false;
+  try {
+    isApplied = await git.run({ kind, target: diff.value.path, meta: { patch } });
+  } finally {
+    if (!isApplied) await load();
+  }
 }
 
 function html(content: string): string {

@@ -4,6 +4,7 @@ import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useTabsStore } from '../stores/tabs';
 import { useSettingsStore } from '../stores/settings';
 import type { FileReadResult } from '../types';
+import { isDiffPath } from '../lib/git-pane/diffTab';
 
 type FileChangedAction = 'reload' | 'overwrite' | 'cancel';
 type ShowDialog = (fileName: string) => Promise<FileChangedAction>;
@@ -23,7 +24,7 @@ export function useFileWatcher(showDialog: ShowDialog) {
   async function syncWatchedPaths() {
     const currentPaths = new Set<string>();
     for (const tab of tabs.tabs) {
-      if (tab.filePath) {
+      if (tab.filePath && !isDiffPath(tab.filePath)) {
         currentPaths.add(tab.filePath);
       }
     }
@@ -143,7 +144,7 @@ export function useFileWatcher(showDialog: ShowDialog) {
     revalidating = true;
     try {
       const paths = [
-        ...new Set(tabs.tabs.map((t) => t.filePath).filter(Boolean) as string[]),
+        ...new Set(tabs.tabs.map((t) => t.filePath).filter((p): p is string => Boolean(p) && !isDiffPath(p))),
       ];
       for (const filePath of paths) {
         if (pendingPaths.has(filePath)) continue;

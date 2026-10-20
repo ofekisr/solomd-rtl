@@ -72,7 +72,10 @@ import { useExport } from './composables/useExport';
 import { useShortcuts } from './composables/useShortcuts';
 import { useFileWatcher } from './composables/useFileWatcher';
 import { loadCustomTheme } from './lib/custom-theme';
-import { isIOS, isMacOS, isAndroid, isMobile } from './lib/platform';
+import { isIOS, isMacOS, isAndroid, isMobile, isTauri, hasGitBackend } from './lib/platform';
+import GitCommitPanel from './components/git/GitCommitPanel.vue';
+import { useGitPaneStore } from './stores/gitPane';
+import { isGitMockActive } from './lib/git-pane/serviceFactory';
 import { useViewport } from './composables/useViewport';
 import { nativeMenuAccelerators } from './lib/keybindings';
 import { useI18n } from './i18n';
@@ -102,6 +105,27 @@ const tiles = useTilesStore();
 const files = useFiles();
 const exporter = useExport();
 const workspace = useWorkspaceStore();
+
+const gitPane = useGitPaneStore();
+const isGitPaneAvailable = computed(
+  () => (isTauri() && hasGitBackend() && settings.enableGitPane) || isGitMockActive(),
+);
+const showGitCommit = computed(() => isGitPaneAvailable.value && settings.showGitCommit);
+const gitCommitRef = ref<InstanceType<typeof GitCommitPanel> | null>(null);
+
+watch(
+  [isGitPaneAvailable, () => workspace.currentFolder],
+  ([isAvailable, folder]) => {
+    if (!isAvailable) return;
+    gitPane.bindService();
+    void gitPane.open(folder);
+  },
+  { immediate: true },
+);
+
+watch(showGitCommit, (isShown) => {
+  if (isShown) void nextTick(() => gitCommitRef.value?.focusMessage());
+});
 
 // #148 / #151 — Android real-folder vault picking. useFiles.openFolder()
 // dispatches these events; the picker modal + permission request live here so
@@ -1867,9 +1891,10 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           aria-hidden="true"
           @click="closeNarrowDrawer"
         />
-        <div v-if="settings.showFileTree || settings.showViewsPanel" class="left-stack">
+        <div v-if="settings.showFileTree || settings.showViewsPanel || showGitCommit" class="left-stack">
           <FileTree v-if="settings.showFileTree" />
           <ViewsPanel v-if="settings.showViewsPanel" />
+          <GitCommitPanel v-if="showGitCommit" ref="gitCommitRef" />
         </div>
         <aside
           v-if="showRightSidebar && settings.outlineSide === 'left'"

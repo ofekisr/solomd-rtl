@@ -8,6 +8,7 @@ import { isNarrowViewport } from './useViewport';
 import { useTabsStore } from '../stores/tabs';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useSettingsStore } from '../stores/settings';
+import { useGitPaneStore } from '../stores/gitPane';
 import { useToastsStore } from '../stores/toasts';
 import { useRecentEditsStore } from '../stores/recentEdits';
 import { useWindowsStore } from '../stores/windows';
@@ -842,6 +843,7 @@ export function useFiles() {
         window.dispatchEvent(
           new CustomEvent('solomd:saved', { detail: { filePath: path } }),
         );
+        useGitPaneStore().scheduleRefresh();
       }
       if (!opts.silent) {
         if (isIOS()) {
