@@ -24,6 +24,8 @@ pub mod pandoc;
 // when the Tauri command resolution fails.
 #[cfg(not(target_os = "android"))]
 pub mod git_history;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub mod git_pane;
 pub mod rag;
 // v2.4 inbound HTTP capture endpoint — production-grade, opt-in via Settings.
 pub mod capture_endpoint;

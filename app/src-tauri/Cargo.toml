@@ -77,7 +77,7 @@ walkdir = "2.5.0"
 #  pure-frontend POST to solomd.app/api/track so the plugin is gone, but
 #  the runtime entry in main.rs and these features stay — they're still
 #  needed for the rest of the app's async work.)
-tokio = { version = "1", features = ["rt-multi-thread", "net", "io-util", "sync", "time", "macros"] }
+tokio = { version = "1", features = ["rt-multi-thread", "net", "io-util", "sync", "time", "macros", "process", "fs"] }
 
 # File-to-Markdown conversion (built-in, no Python needed)
 htmd = "0.5"
@@ -168,6 +168,7 @@ tauri-plugin-global-shortcut = "2"
 # #112 — fs_delete moves to the OS trash (Finder Trash / recycle bin) instead
 # of permanently unlinking; desktop only (mobile has no user-visible trash).
 trash = "5"
+uuid = { version = "1", features = ["v4"] }
 
 # v2.2 AutoGit per-note history + v3.0 GitHub sync: libgit2 bindings for
 # cross-platform git access (no shelling out). `vendored-libgit2` ships the
