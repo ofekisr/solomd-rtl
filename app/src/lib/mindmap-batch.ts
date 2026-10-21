@@ -17,3 +17,14 @@ export function runAsOneOperation(bus: OperationBus, work: () => boolean, event:
     bus.fire = fire;
   }
 }
+
+export async function runAsOneOperationAsync(bus: OperationBus, work: () => Promise<boolean>, event: Record<string, unknown>): Promise<void> {
+  const fire = bus.fire;
+  bus.fire = (name, ...args) => { if (name !== OPERATION_EVENT) fire.call(bus, name, ...args); };
+  try {
+    if (!(await work())) return;
+  } finally {
+    bus.fire = fire;
+  }
+  fire.call(bus, OPERATION_EVENT, event);
+}

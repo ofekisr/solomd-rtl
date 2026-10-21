@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { runAsOneOperation, type OperationBus } from './mindmap-batch.ts';
+import { runAsOneOperation, runAsOneOperationAsync, type OperationBus } from './mindmap-batch.ts';
 
 function recordingBus(): OperationBus & { log: string[] } {
   const log: string[] = [];
@@ -24,5 +24,22 @@ test('fires nothing when no work was done and restores fire', () => {
   const original = bus.fire;
   runAsOneOperation(bus, () => false, { name: 'reshapeNodes' });
   assert.deepEqual(bus.log, []);
+  assert.equal(bus.fire, original);
+});
+
+test('runAsOneOperationAsync emits exactly one operation for many inner ones', async () => {
+  const fired: string[] = [];
+  const bus = { fire: (name: string) => { fired.push(name); } };
+  await runAsOneOperationAsync(bus, async () => {
+    bus.fire('operation'); await Promise.resolve(); bus.fire('operation');
+    return true;
+  }, { name: 'pasteMap' });
+  assert.deepEqual(fired, ['operation']);
+});
+
+test('runAsOneOperationAsync restores fire when work throws', async () => {
+  const original = () => {};
+  const bus = { fire: original };
+  await assert.rejects(runAsOneOperationAsync(bus, async () => { throw new Error('x'); }, {}));
   assert.equal(bus.fire, original);
 });

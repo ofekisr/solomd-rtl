@@ -29,6 +29,8 @@ import MindmapShortcutHelp from './MindmapShortcutHelp.vue';
 import MindmapDuplicates from './MindmapDuplicates.vue';
 import { findDuplicateGroups, mergeIntoGate, type DuplicateGroup } from '../lib/mindmap-duplicates';
 import { findNode, isGate } from '../lib/mindmap-gates';
+import { runAsOneOperationAsync, type OperationBus } from '../lib/mindmap-batch';
+import { resolveInsertTargetId, type PasteMapTarget } from '../lib/mindmap-insert';
 import { parsePaste, type PastePayload } from '../lib/mindmap-paste';
 import { buildIdMap, remapArrows, remapGates, remapSummaries } from '../lib/mindmap-paste-remap';
 import { withGateArrows } from '../lib/mindmap-graph';
@@ -43,7 +45,6 @@ const EXPAND_EVENT = 'expandNode';
 const SELECT_EVENT = 'selectNodes';
 const UNSELECT_EVENT = 'unselectNodes';
 const BEGIN_EDIT_OPERATION = 'beginEdit';
-const COPY_NODES_OPERATION = 'copyNodes';
 const PASTE_NOTICE_KEYS = { empty: null, tooLarge: 'mindmap.pasteTooLarge', unrecognized: 'mindmap.pasteUnrecognized' } as const;
 const TOGGLE_NODE_ACTION = 'mindmap.toggleNode';
 const CHANGE_DIRECTION_EVENT = 'changeDirection';
@@ -626,33 +627,45 @@ function activate(): void {
   if (props.registerActive) setActiveMindmap(handle);
 }
 
-function pasteTarget(): Topic | null {
+const PASTE_MAP_OPERATION = 'pasteMap';
+
+function insertTarget(mode: PasteMapTarget): Topic | null {
   if (!mind || isEditBlocked() || isGraphView.value) return null;
-  const target = mind.currentNode;
-  if (!target) toasts.info(t('mindmap.pasteSelectNode'));
-  else if (isGate(target.nodeObj)) toasts.info(t('mindmap.gateCannotHoldChildren'));
-  else return target;
-  return null;
+  const id = resolveInsertTargetId(mind.currentNode?.nodeObj.id ?? null, mind.nodeData.id, mode);
+  const target = mind.findEle(id);
+  if (isGate(target.nodeObj)) {
+    toasts.info(t('mindmap.gateCannotHoldChildren'));
+    return null;
+  }
+  return target;
 }
 
-async function insertPayload(instance: MindElixirInstance, target: Topic, payload: PastePayload): Promise<void> {
+async function graftInto(instance: MindElixirInstance, target: Topic, payload: PastePayload): Promise<boolean> {
   const countBefore = target.nodeObj.children?.length ?? 0;
   await instance.copyNodes(payload.nodes.map((nodeObj) => ({ nodeObj }) as Topic), target);
   const children = target.nodeObj.children ?? [];
-  if (children.length !== countBefore + payload.nodes.length) return;
+  if (children.length !== countBefore + payload.nodes.length) return false;
   const inserted = children.slice(countBefore);
   const idMap = buildIdMap(payload.nodes, inserted);
-  const remapped = remapGates(inserted, idMap);
+  remapGates(inserted, idMap);
   for (const arrow of remapArrows(payload.arrows, idMap)) instance.createArrowFrom(arrow);
   for (const summary of remapSummaries(payload.summaries, idMap)) instance.createSummaryFrom(summary);
-  if (remapped > 0) instance.bus.fire(OPERATION_EVENT, { name: COPY_NODES_OPERATION, objs: inserted });
+  return true;
+}
+
+async function insertPayloadAt(payload: PastePayload, mode: PasteMapTarget): Promise<boolean> {
+  const target = insertTarget(mode);
+  if (!mind || !target) return false;
+  const instance = mind;
+  let isInserted = false;
+  await runAsOneOperationAsync(instance.bus as unknown as OperationBus, async () => (isInserted = await graftInto(instance, target, payload)), { name: PASTE_MAP_OPERATION });
   gates.syncLabels();
+  return isInserted;
 }
 
 function onPaste(e: ClipboardEvent): void {
   if (e.target instanceof HTMLElement && e.target.id === TOPIC_EDITOR_ID) return;
-  const target = pasteTarget();
-  if (!mind || !target) return;
+  if (!mind || isEditBlocked() || isGraphView.value) return;
   const result = parsePaste(e.clipboardData?.getData('text/plain') ?? '');
   e.preventDefault();
   if (!result.ok) {
@@ -660,7 +673,7 @@ function onPaste(e: ClipboardEvent): void {
     if (key) toasts.info(t(key));
     return;
   }
-  void insertPayload(mind, target, result.payload);
+  void insertPayloadAt(result.payload, 'selected');
 }
 
 function isEditingTopic(e: KeyboardEvent): boolean {
