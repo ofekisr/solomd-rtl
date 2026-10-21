@@ -17,3 +17,7 @@ export function normalizePasteMapSetting(value: unknown): PasteMapSetting {
 export function needsPasteDialog(format: PasteFormat, hasSelection: boolean, setting: PasteMapSetting): boolean {
   return format === WHOLE_MAP_FORMAT && hasSelection && setting === 'ask';
 }
+
+export function pasteMode(format: PasteFormat, setting: PasteMapSetting): PasteMapTarget {
+  return format === WHOLE_MAP_FORMAT && setting !== 'ask' ? setting : 'selected';
+}

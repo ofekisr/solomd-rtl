@@ -13,6 +13,7 @@ export const TAB_SOURCE_PREFIX = 'tab:';
 const KEY_SEPARATOR = '#';
 const ID_SEPARATOR = ',';
 const TOPIC_JOINER = ' + ';
+const LAYOUT_KEYS: ReadonlySet<string> = new Set(['direction', 'expanded']);
 
 export function entryKey(e: EntryDraft | WorkbenchEntry): string {
   if (e.kind === 'file') return `file${KEY_SEPARATOR}${e.path}`;
@@ -84,7 +85,9 @@ function canonical(value: unknown): string {
 function sortKeys(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(sortKeys);
   if (!isRecord(value)) return value;
-  const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) => (a < b ? -1 : 1));
+  const entries = Object.entries(value as Record<string, unknown>)
+    .filter(([k]) => !LAYOUT_KEYS.has(k))
+    .sort(([a], [b]) => (a < b ? -1 : 1));
   return Object.fromEntries(entries.map(([k, v]) => [k, sortKeys(v)]));
 }
 

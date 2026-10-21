@@ -84,3 +84,17 @@ test('a malformed nodes row is dropped without losing valid rows', () => {
   const bad = { id: 'x', kind: 'nodes', label: 'X', selected: true, sourcePath: '/a', capturedAt: 't', nodeIds: ['x'], snapshot: { nodeData: { id: 'x', topic: 'X', children: 'bad' } } };
   assert.deepEqual(parseWorkbench([bad, ...good]), good);
 });
+
+const withNodeExtra = (extra: object): MindElixirData =>
+  ({ nodeData: { id: 'root', topic: 'R', children: [{ id: 'n', topic: 'N', ...extra }] } }) as unknown as MindElixirData;
+
+test('layout-only keys (direction, expanded) do not make an entry stale', () => {
+  const entry = liveEntry(withNodeExtra({}));
+  assert.equal(nodesStaleness(entry as NodesEntry, withNodeExtra({ direction: 1 })), 'fresh');
+  assert.equal(nodesStaleness(entry as NodesEntry, withNodeExtra({ expanded: false })), 'fresh');
+});
+
+test('a topic change is still stale next to layout keys', () => {
+  const entry = liveEntry(withNodeExtra({}));
+  assert.equal(nodesStaleness(entry as NodesEntry, withNodeExtra({ direction: 1, topic: 'N2' })), 'stale');
+});

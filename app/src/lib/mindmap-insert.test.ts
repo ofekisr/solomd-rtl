@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { needsPasteDialog, normalizePasteMapSetting, resolveInsertTargetId } from './mindmap-insert.ts';
+import { needsPasteDialog, normalizePasteMapSetting, pasteMode, resolveInsertTargetId } from './mindmap-insert.ts';
 
 test('selected mode uses selection', () => assert.equal(resolveInsertTargetId('n1', 'root', 'selected'), 'n1'));
 test('selected mode without selection falls back to root', () => assert.equal(resolveInsertTargetId(null, 'root', 'selected'), 'root'));
@@ -17,4 +17,11 @@ test('normalizePasteMapSetting falls back to ask', () => {
   assert.equal(normalizePasteMapSetting('root'), 'root');
   assert.equal(normalizePasteMapSetting('bogus'), 'ask');
   assert.equal(normalizePasteMapSetting(undefined), 'ask');
+});
+
+test('pasteMode: mmap follows a non-ask setting; everything else pastes into selected', () => {
+  assert.equal(pasteMode('mmap', 'root'), 'root');
+  assert.equal(pasteMode('mmap', 'selected'), 'selected');
+  assert.equal(pasteMode('mmap', 'ask'), 'selected');
+  assert.equal(pasteMode('markdown', 'root'), 'selected');
 });
