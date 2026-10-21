@@ -5,6 +5,7 @@ import { isIOS, isMobile } from '../lib/platform';
 import { parseMapDisplay, type MapDisplay } from '../lib/mindmap-display';
 import { migrateLensKeybindings } from '../lib/mindmap-lens';
 import { isViewModeChangeAllowed } from '../lib/view-mode-guard';
+import { normalizePasteMapSetting, type PasteMapSetting } from '../lib/mindmap-insert';
 import { DEFAULT_MINDMAP_CONTROL_STYLE, normalizeControlStyle, type MindmapControlStyle } from '../lib/mindmap-icon-names';
 import { parseTagRules, type TagRule } from '../lib/mindmap-folder-tree';
 
@@ -268,6 +269,7 @@ interface Settings {
   mindmapDetailsOpen: boolean;
   mindmapDetailsHeight: number;
   mindmapControlStyle: MindmapControlStyle;
+  mindmapPasteMapTarget: PasteMapSetting;
   mindmapFolderTagRules: TagRule[];
   // v2.5 F4: Pomodoro / focus session timer.
   pomodoroShowControls: boolean;
@@ -679,6 +681,7 @@ function defaults(): Settings {
     mindmapDetailsOpen: false,
     mindmapDetailsHeight: 220,
     mindmapControlStyle: DEFAULT_MINDMAP_CONTROL_STYLE,
+    mindmapPasteMapTarget: 'ask',
     mindmapFolderTagRules: [
       { suffix: '.spec.ts', tag: 'tests' },
       { suffix: '.test.ts', tag: 'tests' },
@@ -788,6 +791,7 @@ function load(): Settings {
       if ((merged.language as string) === 'zh') merged.language = 'en';
       merged.mindmapDefaults = parseMapDisplay(parsed.mindmapDefaults);
       merged.mindmapControlStyle = normalizeControlStyle(parsed.mindmapControlStyle);
+      merged.mindmapPasteMapTarget = normalizePasteMapSetting(parsed.mindmapPasteMapTarget);
       if (parsed.mindmapFolderTagRules !== undefined) merged.mindmapFolderTagRules = parseTagRules(parsed.mindmapFolderTagRules);
       // #180 — keybindings is a free-form map, so a tampered or older blob
       // could put anything here; keep only string/null values.
@@ -1414,6 +1418,10 @@ export const useSettingsStore = defineStore('settings', {
     },
     setMindmapControlStyle(style: MindmapControlStyle) {
       this.mindmapControlStyle = normalizeControlStyle(style);
+      this.persist();
+    },
+    setMindmapPasteMapTarget(value: PasteMapSetting) {
+      this.mindmapPasteMapTarget = normalizePasteMapSetting(value);
       this.persist();
     },
     togglePomodoroShowControls() {

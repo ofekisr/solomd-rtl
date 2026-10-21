@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PASTE_MAP_SETTINGS, type PasteMapSetting } from '../lib/mindmap-insert';
 import { MINDMAP_CONTROL_STYLES, type MindmapControlStyle } from '../lib/mindmap-icon-names';
 import { ref, computed, watch, onUnmounted, nextTick } from 'vue';
 import { shortcutLabel } from '../lib/keybindings';
@@ -786,6 +787,17 @@ function onSelectPdfFont(v: string) {
           >
             <option v-for="style in MINDMAP_CONTROL_STYLES" :key="style" :value="style">{{ t(`settings.mindmapControlStyle_${style}`) }}</option>
           </select>
+        </section>
+
+        <section data-cat="basics">
+          <label>{{ t('settings.mindmapPasteMapTarget') }}</label>
+          <select
+            :value="settings.mindmapPasteMapTarget"
+            @change="settings.setMindmapPasteMapTarget(($event.target as HTMLSelectElement).value as PasteMapSetting)"
+          >
+            <option v-for="v in PASTE_MAP_SETTINGS" :key="v" :value="v">{{ t(`settings.mindmapPasteMapTarget_${v}`) }}</option>
+          </select>
+          <button type="button" :disabled="settings.mindmapPasteMapTarget === 'ask'" @click="settings.setMindmapPasteMapTarget('ask')">{{ t('settings.mindmapPasteMapReset') }}</button>
         </section>
 
         <section data-cat="basics">

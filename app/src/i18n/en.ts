@@ -303,6 +303,11 @@ export const en = {
     mindmapControlStyle: 'Mind map controls',
     mindmapControlStyle_classic: 'Classic (default)',
     mindmapControlStyle_compact: 'Compact',
+    mindmapPasteMapTarget: 'When pasting a whole map',
+    mindmapPasteMapTarget_ask: 'Ask every time',
+    mindmapPasteMapTarget_selected: 'Into selected node',
+    mindmapPasteMapTarget_root: 'Into root',
+    mindmapPasteMapReset: 'Reset to ask',
     fontFamily: 'Font Family',
     customFont: 'Custom…',
     customFontPlaceholder: 'Enter font name, e.g. PingFang SC',
@@ -2403,7 +2408,12 @@ type DirectiveCompletionFallbackKey =
   | 'catMindmap'
   | 'mindmapControlStyle'
   | 'mindmapControlStyle_classic'
-  | 'mindmapControlStyle_compact';
+  | 'mindmapControlStyle_compact'
+  | 'mindmapPasteMapTarget'
+  | 'mindmapPasteMapTarget_ask'
+  | 'mindmapPasteMapTarget_selected'
+  | 'mindmapPasteMapTarget_root'
+  | 'mindmapPasteMapReset';
 
 type EnglishDictionary = typeof en;
 type EnglishSettings = EnglishDictionary['settings'];

@@ -26,11 +26,12 @@ import { EMPTY_FRAME_STYLE, readFrameVars, type StripFrameStyle } from '../lib/m
 import MindmapDock from './MindmapDock.vue';
 import MindmapDockButton from './MindmapDockButton.vue';
 import MindmapShortcutHelp from './MindmapShortcutHelp.vue';
+import MindmapPasteTargetDialog from './MindmapPasteTargetDialog.vue';
 import MindmapDuplicates from './MindmapDuplicates.vue';
 import { findDuplicateGroups, mergeIntoGate, type DuplicateGroup } from '../lib/mindmap-duplicates';
 import { findNode, isGate } from '../lib/mindmap-gates';
 import { runAsOneOperationAsync, type OperationBus } from '../lib/mindmap-batch';
-import { resolveInsertTargetId, type PasteMapTarget } from '../lib/mindmap-insert';
+import { needsPasteDialog, resolveInsertTargetId, type PasteMapTarget } from '../lib/mindmap-insert';
 import { parsePaste, type PastePayload } from '../lib/mindmap-paste';
 import { buildIdMap, remapArrows, remapGates, remapSummaries } from '../lib/mindmap-paste-remap';
 import { withGateArrows, withoutGateArrows } from '../lib/mindmap-graph';
@@ -706,7 +707,7 @@ async function pasteMapFromClipboard(): Promise<void> {
     if (key) toasts.info(t(key));
     return;
   }
-  await insertPayloadAt(result.payload, 'selected');
+  routePaste(result.payload);
 }
 
 function workbenchMenuItems(): { name: string; onclick: () => void }[] {
@@ -734,6 +735,30 @@ async function insertPayloadAt(payload: PastePayload, mode: PasteMapTarget): Pro
   return inserted.length > 0;
 }
 
+const pendingPaste = ref<PastePayload | null>(null);
+
+function insertReportingErrors(payload: PastePayload, mode: PasteMapTarget): void {
+  void insertPayloadAt(payload, mode).catch((e: unknown) => toasts.error(String(e)));
+}
+
+function routePaste(payload: PastePayload): void {
+  const setting = settings.mindmapPasteMapTarget;
+  const hasSelection = (mind?.currentNodes?.length ?? 0) > 0;
+  if (needsPasteDialog(payload.format, hasSelection, setting)) {
+    pendingPaste.value = payload;
+    return;
+  }
+  const mode: PasteMapTarget = payload.format === 'mmap' && setting !== 'ask' ? setting : 'selected';
+  insertReportingErrors(payload, mode);
+}
+
+function onPasteTargetChosen(target: PasteMapTarget, remember: boolean): void {
+  const payload = pendingPaste.value;
+  pendingPaste.value = null;
+  if (remember) settings.setMindmapPasteMapTarget(target);
+  if (payload) insertReportingErrors(payload, target);
+}
+
 function onPaste(e: ClipboardEvent): void {
   if (e.target instanceof HTMLElement && e.target.id === TOPIC_EDITOR_ID) return;
   if (!mind || isEditBlocked() || isGraphView.value) return;
@@ -744,7 +769,7 @@ function onPaste(e: ClipboardEvent): void {
     if (key) toasts.info(t(key));
     return;
   }
-  void insertPayloadAt(result.payload, 'selected');
+  routePaste(result.payload);
 }
 
 function isEditingTopic(e: KeyboardEvent): boolean {
@@ -867,6 +892,7 @@ defineExpose({
       <span v-if="isReadOnly" class="mindmap-view__badge">{{ t('mindmap.readOnlyBadge') }}</span>
     </div>
     <MindmapDuplicates v-if="duplicateGroups" :groups="duplicateGroups" :topic-of="topicOf" @merge="mergeDuplicate" @close="duplicateGroups = null" />
+    <MindmapPasteTargetDialog v-if="pendingPaste" @choose="onPasteTargetChosen" @cancel="pendingPaste = null" />
     <MindmapShortcutHelp v-if="isHelpOpen" @close="isHelpOpen = false" />
   </div>
 </template>
