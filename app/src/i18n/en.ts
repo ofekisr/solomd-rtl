@@ -1365,6 +1365,10 @@ export const en = {
     },
   },
   mindmap: {
+    sortChildrenMenu: 'Sort children by name',
+    sortedAsc: 'Children sorted A → Z',
+    sortedDesc: 'Children sorted Z → A',
+    sortNothing: 'Nothing to sort: select a node with 2+ children',
     canvasFit: 'Fit to window',
     canvasFullscreen: 'Full screen',
     canvasCenter: 'Frame map',
