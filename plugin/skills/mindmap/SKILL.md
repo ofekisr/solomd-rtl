@@ -22,6 +22,7 @@ Maps are `.mmap` files. Never read or write their JSON directly: always use the 
 | Want | Tool |
 | --- | --- |
 | New map | `mmap_create` from an outline or markdown |
+| Combine maps | `mmap_merge` into a new file, or `mmap_graft` one map under a node |
 | Locate a node | `mmap_find` before pulling a full outline |
 | Reparent a node | `mmap_move` |
 | Text export | `mmap_export` |

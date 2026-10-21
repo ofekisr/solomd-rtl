@@ -46,6 +46,8 @@ The plugin works from this repo checkout (`--plugin-dir`), not from a copied mar
 
 ### File (3)
 - `mmap_create` – new map from outline or markdown
+- `mmap_merge` – new map from several maps, one child per source
+- `mmap_graft` – insert a whole map under a node of another
 - `mmap_export` – save to outline, markdown, headings, mermaid, or adjacency
 - `mmap_reveal` – open the map in SoloMD (requires app running)
 

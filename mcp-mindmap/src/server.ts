@@ -7,7 +7,7 @@ import { add, edit, gate, move, remove } from './tools/write.ts';
 import { legend, mark } from './tools/meaning.ts';
 import { bindSession, sessionNodes } from './tools/session.ts';
 import { isSafeColor } from '../../app/src/lib/mindmap-display.ts';
-import { create, exportMap, reveal } from './tools/file.ts';
+import { create, exportMap, graft, merge, reveal } from './tools/file.ts';
 
 export const SERVER_NAME = 'solomd-mindmap';
 const VERSION = '0.1.0';
@@ -122,6 +122,16 @@ function registerFile(server: McpServer, store: MapStore): void {
     description: 'New .mmap from a "- Topic" outline or from markdown headings/lists. Refuses to overwrite.',
     inputSchema: z.object({ file: fileArg, from: z.enum(['outline', 'markdown']), source: z.string().min(1), root: z.string().optional().describe('Root topic; defaults to the file name') }),
   }, async (a) => text(await create(store, a)));
+  server.registerTool('mmap_merge', {
+    title: 'Merge maps into a new file', annotations: WRITE,
+    description: 'New .mmap whose root has one child per source map. Ids are prefixed; arrows, summaries and gates kept. Refuses to overwrite.',
+    inputSchema: z.object({ files: z.array(fileArg).min(2), out: fileArg, root: z.string().optional().describe('Root topic; defaults to "A + B"') }),
+  }, async (a) => text(await merge(store, a)));
+  server.registerTool('mmap_graft', {
+    title: 'Insert a map under a node', annotations: WRITE,
+    description: 'Copy the whole source map (root included) under a node of the target map; default node is the root.',
+    inputSchema: z.object({ file: fileArg, source: fileArg, node: nodeArg.optional() }),
+  }, async (a) => text(await graft(store, a)));
   server.registerTool('mmap_export', {
     title: 'Export map as text', annotations: READ,
     description: 'outline (with ids), markdown, headings, mermaid or adjacency. Returns the text; write it with your own file tools if needed.',
