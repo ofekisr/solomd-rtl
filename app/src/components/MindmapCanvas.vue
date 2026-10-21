@@ -31,7 +31,7 @@ import MindmapDuplicates from './MindmapDuplicates.vue';
 import { findDuplicateGroups, mergeIntoGate, type DuplicateGroup } from '../lib/mindmap-duplicates';
 import { findNode, isGate } from '../lib/mindmap-gates';
 import { runAsOneOperationAsync, type OperationBus } from '../lib/mindmap-batch';
-import { needsPasteDialog, resolveInsertTargetId, type PasteMapTarget } from '../lib/mindmap-insert';
+import { needsPasteDialog, pasteMode, resolveInsertTargetId, type PasteMapTarget } from '../lib/mindmap-insert';
 import { parsePaste, type PastePayload } from '../lib/mindmap-paste';
 import { buildIdMap, remapArrows, remapGates, remapSummaries } from '../lib/mindmap-paste-remap';
 import { withGateArrows, withoutGateArrows } from '../lib/mindmap-graph';
@@ -666,16 +666,23 @@ function selectedNonRootIds(): string[] {
   return (mind.currentNodes ?? []).map((tpc) => tpc.nodeObj.id).filter((id) => id !== mind!.nodeData.id);
 }
 
+function liveData(instance: MindElixirInstance): MindElixirData {
+  return withoutGateArrows(instance.getData());
+}
+
 function menuDraft(): EntryDraft | null {
   if (!mind || !props.sourcePath) return null;
   const ids = selectedNonRootIds();
   if (ids.length === 0) return props.sourcePath.startsWith(TAB_SOURCE_PREFIX) ? null : fileDraft(props.sourcePath);
-  return nodesDraft(props.sourcePath, mind.getData(), ids, props.sourceLabel ?? props.exportName);
+  return nodesDraft(props.sourcePath, liveData(mind), ids, props.sourceLabel ?? props.exportName);
 }
 
 function toggleWorkbench(): void {
   const draft = menuDraft();
-  if (!draft) return;
+  if (!draft) {
+    toasts.info(t('mindmap.workbenchSaveFirst'));
+    return;
+  }
   const key = entryKey(draft);
   if (workbench.has(key)) {
     workbench.removeKey(key);
@@ -694,13 +701,17 @@ function openWorkbenchFromMenu(): void {
 async function copyMap(): Promise<void> {
   if (!mind) return;
   const ids = selectedNonRootIds();
-  const data = ids.length === 0 ? mind.getData() : subtreeData(mind.getData(), ids, MENU_GROUP_TOPIC);
+  const data = ids.length === 0 ? liveData(mind) : subtreeData(liveData(mind), ids, MENU_GROUP_TOPIC);
   if (!data) return;
-  await copyPlainText(copyMapText(withoutGateArrows(data)));
+  await copyPlainText(copyMapText(data));
   toasts.success(t('mindmap.mapCopied'));
 }
 
 async function pasteMapFromClipboard(): Promise<void> {
+  if (!mind || isEditBlocked() || isGraphView.value) {
+    toasts.info(t('mindmap.pasteBlocked'));
+    return;
+  }
   const result = parsePaste(await readPlainText());
   if (!result.ok) {
     const key = PASTE_NOTICE_KEYS[result.reason];
@@ -743,13 +754,12 @@ function insertReportingErrors(payload: PastePayload, mode: PasteMapTarget): voi
 
 function routePaste(payload: PastePayload): void {
   const setting = settings.mindmapPasteMapTarget;
-  const hasSelection = (mind?.currentNodes?.length ?? 0) > 0;
+  const hasSelection = selectedNonRootIds().length > 0;
   if (needsPasteDialog(payload.format, hasSelection, setting)) {
     pendingPaste.value = payload;
     return;
   }
-  const mode: PasteMapTarget = payload.format === 'mmap' && setting !== 'ask' ? setting : 'selected';
-  insertReportingErrors(payload, mode);
+  insertReportingErrors(payload, pasteMode(payload.format, setting));
 }
 
 function onPasteTargetChosen(target: PasteMapTarget, remember: boolean): void {

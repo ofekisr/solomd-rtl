@@ -5,7 +5,7 @@ import { useToastsStore } from '../stores/toasts';
 import { useMindmapWorkbenchStore } from '../stores/mindmapWorkbench';
 import { useFiles } from './useFiles';
 import { useI18n } from '../i18n';
-import type { FileReadResult } from '../types';
+import type { FileReadResult, Tab } from '../types';
 import { mergeMindmaps } from '../lib/mindmap-merge';
 import { rootTopicFromFileName, sanitizeMindmapData, serializeMindmap } from '../lib/mindmap-format';
 import { parseMapText, subtreeData } from '../lib/mindmap-payload';
@@ -88,9 +88,19 @@ export function useMindmapWorkbench() {
     const merged = sanitizeMindmapData(mergeMindmaps(rootTopic, maps.map((data) => ({ data }))));
     const tab = tabs.newTab({ fileName: `${rootTopic.replace(UNSAFE_FILE_CHARS, '-')}${MMAP_SUFFIX}`, language: MINDMAP_LANGUAGE });
     tabs.setContent(tab.id, serializeMindmap(merged));
-    const isSaved = await saveTabAs(tabs.tabs.find((x) => x.id === tab.id) ?? tab);
-    if (!isSaved) tabs.closeTab(tab.id);
-    return isSaved;
+    return saveMergedTab(tab);
+  }
+
+  async function saveMergedTab(tab: Tab): Promise<boolean> {
+    try {
+      const isSaved = await saveTabAs(tabs.tabs.find((x) => x.id === tab.id) ?? tab);
+      if (!isSaved) tabs.closeTab(tab.id);
+      return isSaved;
+    } catch (e) {
+      tabs.closeTab(tab.id);
+      toasts.error(t('mindmap.workbenchMergeFailed', { error: String(e) }));
+      return false;
+    }
   }
 
   return { readSource, resolveEntry, staleness, refreshEntry, mergeSelected };

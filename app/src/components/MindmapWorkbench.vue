@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { open as openFileDialog } from '@tauri-apps/plugin-dialog';
 import { useI18n } from '../i18n';
 import { useToastsStore } from '../stores/toasts';
@@ -20,16 +20,22 @@ const isOpen = ref(false);
 const isBusy = ref(false);
 const status = ref<Record<string, Staleness>>({});
 const rootTopic = ref('');
+const isTopicEdited = ref(false);
 const dialogEl = ref<HTMLElement | null>(null);
 
 const selectedCount = computed(() => store.selectedEntries.length);
 const mergeable = computed(() => store.selectedEntries.filter((e) => status.value[e.id] !== 'missing').length);
 const canMerge = computed(() => mergeable.value >= MIN_MERGE && !isBusy.value && rootTopic.value.trim() !== '');
 
+const defaultTopic = computed(() => defaultMergeTopic(store.selectedEntries.map((e) => e.label)));
+
+watch(defaultTopic, (topic) => {
+  if (!isTopicEdited.value) rootTopic.value = topic;
+}, { immediate: true });
+
 async function refreshStatus(): Promise<void> {
   const pairs = await Promise.all(store.entries.map(async (e) => [e.id, await staleness(e)] as const));
   status.value = Object.fromEntries(pairs);
-  rootTopic.value = defaultMergeTopic(store.selectedEntries.map((e) => e.label));
 }
 
 function announce(result: 'added' | 'updated'): void {
@@ -39,6 +45,8 @@ function announce(result: 'added' | 'updated'): void {
 async function onOpen(e: Event): Promise<void> {
   const draft = (e as CustomEvent<WorkbenchOpenDetail>).detail?.autoAdd;
   if (draft) announce(store.add(draft));
+  isTopicEdited.value = false;
+  rootTopic.value = defaultTopic.value;
   isOpen.value = true;
   await refreshStatus();
   await nextTick();
@@ -46,10 +54,14 @@ async function onOpen(e: Event): Promise<void> {
 }
 
 async function addMaps(): Promise<void> {
-  const picked = await openFileDialog({ multiple: true, filters: MMAP_FILTER });
-  const paths = Array.isArray(picked) ? picked : picked ? [picked] : [];
-  for (const path of paths) store.add(fileDraft(path));
-  await refreshStatus();
+  try {
+    const picked = await openFileDialog({ multiple: true, filters: MMAP_FILTER });
+    const paths = Array.isArray(picked) ? picked : picked ? [picked] : [];
+    for (const path of paths) store.add(fileDraft(path));
+    await refreshStatus();
+  } catch {
+    toasts.error(t('mindmap.workbenchAddFailed'));
+  }
 }
 
 async function removeSelected(): Promise<void> {
@@ -118,7 +130,7 @@ onBeforeUnmount(() => {
       </ul>
       <label class="mindmap-workbench__topic">
         <span>{{ t('mindmap.workbenchRootTopic') }}</span>
-        <input v-model="rootTopic" type="text" dir="auto" />
+        <input v-model="rootTopic" type="text" dir="auto" @input="isTopicEdited = true" />
       </label>
       <div class="mindmap-workbench__actions">
         <button type="button" @click="addMaps">{{ t('mindmap.workbenchAddMap') }}</button>

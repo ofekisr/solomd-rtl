@@ -145,13 +145,17 @@ function openWorkbenchWith(path: string): void {
 
 async function copyMapFile(path: string): Promise<void> {
   closeCtx();
-  const data = await readSource(path);
-  if (!data) {
-    toasts.error(t('mindmap.workbenchMissing'));
-    return;
+  try {
+    const data = await readSource(path);
+    if (!data) {
+      toasts.error(t('mindmap.workbenchMissing'));
+      return;
+    }
+    await writeText(copyMapText(data));
+    toasts.success(t('mindmap.mapCopied'));
+  } catch (e) {
+    toasts.error(String(e));
   }
-  await writeText(copyMapText(data));
-  toasts.success(t('mindmap.mapCopied'));
 }
 
 /** #120 — copy the node's absolute filesystem path (file OR folder). */
