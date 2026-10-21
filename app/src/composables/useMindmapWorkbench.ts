@@ -20,6 +20,7 @@ const MMAP_SUFFIX = '.mmap';
 const LABEL_SEPARATOR = ' › ';
 const UNSAFE_FILE_CHARS = /[\\/:*?"<>|]+/gu;
 const NAMES_JOINER = ', ';
+const MIN_MAPS = 2;
 
 export function openWorkbench(autoAdd?: EntryDraft): void {
   window.dispatchEvent(new CustomEvent<WorkbenchOpenDetail>(MINDMAP_WORKBENCH_EVENT, { detail: { autoAdd } }));
@@ -80,7 +81,7 @@ export function useMindmapWorkbench() {
     const missing = picked.filter((_, i) => resolved[i] === null).map((e) => e.label);
     const maps = resolved.filter((d): d is MindElixirData => d !== null);
     if (missing.length > 0) toasts.info(t('mindmap.workbenchSkipped', { names: missing.join(NAMES_JOINER) }));
-    if (maps.length < 2) {
+    if (maps.length < MIN_MAPS) {
       toasts.info(t('mindmap.workbenchMergeNeedsTwo'));
       return false;
     }
