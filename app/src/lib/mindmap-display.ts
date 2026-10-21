@@ -6,7 +6,7 @@ export type MapFont = 'system' | 'serif' | 'mono';
 
 export interface MapDisplay { compact?: boolean; branchStyle?: BranchStyle; textColor?: string; font?: MapFont; theme?: MapThemeId; foldedCount?: FoldedCountMode }
 export type ResolvedMapDisplay = { compact: boolean; branchStyle: BranchStyle; textColor: string | null; font: MapFont; theme: MapThemeId; foldedCount: FoldedCountMode };
-export interface BranchBox { pT: number; pL: number; pW: number; pH: number; cT: number; cL: number; cW: number; cH: number; direction: string }
+export interface BranchBox { pT: number; pL: number; pW: number; pH: number; cT: number; cL: number; cW: number; cH: number; direction: string; gap?: number }
 
 const BRANCH_STYLES: readonly BranchStyle[] = ['curve', 'straight', 'arrow'];
 const FOLDED_COUNT_MODES: readonly FoldedCountMode[] = ['off', 'direct', 'all', 'both'];
@@ -15,6 +15,7 @@ const SAFE_COLOR_PATTERN = /^(#[0-9a-f]{3,8}|rgba?\([\d\s.,%]+\)|hsla?\([\d\s.,%
 const LEFT_DIRECTION = 'lhs';
 const DOWN_DIRECTION = 'down';
 const HALF = 2;
+export const DEFAULT_NODE_GAP = 0;
 const ARROW_HEAD_LENGTH = 9;
 const ARROW_HEAD_SPREAD = Math.PI / 7;
 const COORD_DECIMALS = 2;
@@ -83,8 +84,11 @@ function mainSegment(p: BranchBox): Segment {
 
 function subSegment(p: BranchBox): Segment {
   if (p.direction === DOWN_DIRECTION) return downSegment(p);
-  const parentX = p.direction === LEFT_DIRECTION ? p.pL : p.pL + p.pW;
-  return { x1: parentX, y1: p.pT + p.pH / HALF, x2: childAnchorX(p), y2: p.cT + p.cH / HALF };
+  const gap = p.gap ?? DEFAULT_NODE_GAP;
+  const isLeft = p.direction === LEFT_DIRECTION;
+  const x1 = isLeft ? p.pL + gap : p.pL + p.pW - gap;
+  const x2 = isLeft ? p.cL + p.cW - gap : p.cL + gap;
+  return { x1, y1: p.pT + p.pH / HALF, x2, y2: p.cT + p.cH / HALF };
 }
 
 function wing(s: Segment, angle: number): string {

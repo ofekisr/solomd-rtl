@@ -1,6 +1,6 @@
 import type { MindElixirInstance } from 'mind-elixir';
 import { mapThemeVariant, type ThemeFamily } from '../lib/mindmap-themes';
-import { FONT_STACKS, arrowMainBranch, arrowSubBranch, resolveMapDisplay, straightMainBranch, straightSubBranch, type BranchStyle, type FoldedCountMode, type MapDisplay, type ResolvedMapDisplay } from '../lib/mindmap-display';
+import { DEFAULT_NODE_GAP, FONT_STACKS, arrowMainBranch, arrowSubBranch, resolveMapDisplay, straightMainBranch, straightSubBranch, type BranchBox, type BranchStyle, type FoldedCountMode, type MapDisplay, type ResolvedMapDisplay } from '../lib/mindmap-display';
 
 const FOLDED_COUNT_CLASS_PREFIX = 'mm-folded-count--';
 const TEXT_COLOR_VARS: readonly string[] = ['--color', '--main-color'];
@@ -16,10 +16,19 @@ export function captureBranchGenerators(mind: MindElixirInstance): BranchGenerat
 
 type GeneratorPicker = (original: BranchGenerators) => BranchGenerators;
 
+const NODE_GAP_VAR = '--node-gap-x';
+
+function withNodeGap(pure: (box: BranchBox) => string): BranchGenerators['sub'] {
+  return function (this: MindElixirInstance, box: BranchBox): string {
+    const parsed = parseInt(this.container.style.getPropertyValue(NODE_GAP_VAR), 10);
+    return pure({ ...box, gap: Number.isNaN(parsed) ? DEFAULT_NODE_GAP : parsed });
+  } as BranchGenerators['sub'];
+}
+
 const GENERATORS_BY_STYLE: Readonly<Record<BranchStyle, GeneratorPicker>> = {
   curve: (original) => original,
-  straight: () => ({ main: straightMainBranch, sub: straightSubBranch }),
-  arrow: () => ({ main: arrowMainBranch, sub: arrowSubBranch }),
+  straight: () => ({ main: straightMainBranch, sub: withNodeGap(straightSubBranch) }),
+  arrow: () => ({ main: arrowMainBranch, sub: withNodeGap(arrowSubBranch) }),
 };
 
 function applyBranchStyle(mind: MindElixirInstance, display: ResolvedMapDisplay, original: BranchGenerators): void {

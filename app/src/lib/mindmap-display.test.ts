@@ -73,3 +73,13 @@ test('foldedCount accepts known modes and defaults to both', () => {
   assert.equal(resolveMapDisplay({}, { foldedCount: 'off' }).foldedCount, 'off');
   assert.equal(resolveMapDisplay({ foldedCount: 'all' }, { foldedCount: 'off' }).foldedCount, 'all');
 });
+
+test('rhs sub-branches are inset by the node gap', () => {
+  const box = { pT: 0, pL: 0, pW: 100, pH: 40, cT: 100, cL: 100, cW: 80, cH: 30, direction: 'rhs', gap: 15 };
+  assert.equal(straightSubBranch(box), 'M 85 20 L 115 115');
+});
+
+test('lhs sub-branches are inset by the node gap', () => {
+  const box = { pT: 0, pL: 300, pW: 100, pH: 40, cT: 100, cL: 220, cW: 80, cH: 30, direction: 'lhs', gap: 15 };
+  assert.equal(straightSubBranch(box), 'M 315 20 L 285 115');
+});
