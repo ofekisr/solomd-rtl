@@ -28,6 +28,7 @@ import {
   clearRevealedPath,
 } from '../composables/useFileTreeReveal';
 import { newFileInTreeRequest, clearNewFileInTreeRequest } from '../composables/useFileTreeNewFile';
+import { DEFAULT_NEW_FILE_EXT, NEW_FILE_TYPES, newFilePlaceholder } from '../lib/new-file-types';
 import MoveToDialog from './MoveToDialog.vue';
 import { DsButton, DsModal } from '../ui';
 import { parentDirOf, setTreeSelection } from '../lib/new-file-target';
@@ -664,6 +665,16 @@ interface CtxMenu {
   node: Node | null;
 }
 const ctx = ref<CtxMenu | null>(null);
+const isNewFileSubOpen = ref(false);
+const CTX_MENU_WIDTH = 180;
+const CTX_SUB_WIDTH = 160;
+const CTX_SUB_ITEM_HEIGHT = 30;
+const isNewFileSubFlipped = computed(
+  () => !!ctx.value && ctx.value.x + CTX_MENU_WIDTH + CTX_SUB_WIDTH > window.innerWidth,
+);
+const isNewFileSubRaised = computed(
+  () => !!ctx.value && ctx.value.y + NEW_FILE_TYPES.length * CTX_SUB_ITEM_HEIGHT > window.innerHeight,
+);
 
 interface InlineEdit {
   /** 'new-file' / 'new-dir' / 'rename' */
@@ -741,6 +752,7 @@ function openCtx(e: MouseEvent, node: Node | null) {
 }
 function closeCtx() {
   ctx.value = null;
+  isNewFileSubOpen.value = false;
 }
 
 /** Open a collapsed folder before creating in it, so the new row has
@@ -750,10 +762,10 @@ async function expandForCreate(parent: string) {
   if (node && node.is_dir && !node.expanded) await expandDir(node);
 }
 
-async function startNewFile(parent: string) {
+async function startNewFile(parent: string, ext: string = DEFAULT_NEW_FILE_EXT) {
   closeCtx();
   await expandForCreate(parent);
-  editing.value = { kind: 'new-file', parent, name: 'untitled.md' };
+  editing.value = { kind: 'new-file', parent, name: newFilePlaceholder(ext) };
   await nextTick();
   // Select just the basename (not the .md) so a single keystroke replaces
   // the placeholder, Finder-style.
@@ -1767,9 +1779,36 @@ onBeforeUnmount(() => {
       @click.stop
     >
       <template v-if="!ctx.node || ctx.node.is_dir">
-        <button class="ftree__ctx-item" @click="startNewFile(ctx.node ? ctx.node.path : newEntryParent())">
-          📄 {{ t('explorer.newFile') || 'New File' }}
-        </button>
+        <div
+          class="ftree__ctx-sub"
+          :class="{ 'ftree__ctx-sub--flip': isNewFileSubFlipped, 'ftree__ctx-sub--raise': isNewFileSubRaised }"
+          @mouseenter="isNewFileSubOpen = true"
+          @mouseleave="isNewFileSubOpen = false"
+        >
+          <button
+            class="ftree__ctx-item ftree__ctx-item--sub"
+            aria-haspopup="menu"
+            :aria-expanded="isNewFileSubOpen"
+            @click="isNewFileSubOpen = !isNewFileSubOpen"
+            @keydown.right.prevent="isNewFileSubOpen = true"
+            @keydown.left.prevent="isNewFileSubOpen = false"
+          >
+            <span>📄 {{ t('explorer.newFile') || 'New File' }}</span>
+            <span class="ftree__ctx-arrow">▸</span>
+          </button>
+          <div v-if="isNewFileSubOpen" class="ftree__ctx ftree__ctx--sub" role="menu">
+            <button
+              v-for="type in NEW_FILE_TYPES"
+              :key="type.ext"
+              class="ftree__ctx-item ftree__ctx-item--sub"
+              role="menuitem"
+              @click="startNewFile(ctx.node ? ctx.node.path : newEntryParent(), type.ext)"
+            >
+              <span><span class="ftree__ctx-icon">{{ type.icon }}</span>{{ type.label }}</span>
+              <span class="ftree__ctx-ext">.{{ type.ext }}</span>
+            </button>
+          </div>
+        </div>
         <button class="ftree__ctx-item" @click="startNewFolder(ctx.node ? ctx.node.path : newEntryParent())">
           📁 {{ t('explorer.newFolder') || 'New Folder' }}
         </button>
@@ -2781,6 +2820,46 @@ export const FileTreeNode = defineComponent({
 }
 .ftree__ctx-item--danger:hover {
   background: rgba(221, 17, 34, 0.12);
+}
+.ftree__ctx-sub {
+  position: relative;
+}
+.ftree__ctx-item--sub {
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ftree__ctx-arrow,
+.ftree__ctx-ext {
+  color: var(--text-muted, var(--text));
+  opacity: 0.6;
+  font-size: 11px;
+}
+.ftree__ctx-arrow {
+  font-size: 13px;
+}
+.ftree__ctx-icon {
+  display: inline-block;
+  width: 22px;
+  font-size: 11px;
+  text-align: center;
+  margin-inline-end: 6px;
+}
+.ftree__ctx--sub {
+  position: absolute;
+  top: -4px;
+  left: 100%;
+  min-width: 160px;
+}
+.ftree__ctx-sub--flip > .ftree__ctx--sub {
+  left: auto;
+  right: 100%;
+}
+.ftree__ctx-sub--raise > .ftree__ctx--sub {
+  top: auto;
+  bottom: -4px;
 }
 .ftree__ctx-sep {
   height: 1px;
