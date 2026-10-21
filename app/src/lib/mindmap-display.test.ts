@@ -65,3 +65,11 @@ test('arrow main branch on the left side points at the child right edge', () => 
 test('parseMapDisplay accepts the arrow branch style', () => {
   assert.deepEqual(parseMapDisplay({ branchStyle: 'arrow' }), { branchStyle: 'arrow' });
 });
+
+test('foldedCount accepts known modes and defaults to both', () => {
+  assert.deepEqual(parseMapDisplay({ foldedCount: 'direct' }), { foldedCount: 'direct' });
+  assert.deepEqual(parseMapDisplay({ foldedCount: true }), {});
+  assert.equal(resolveMapDisplay({}, {}).foldedCount, 'both');
+  assert.equal(resolveMapDisplay({}, { foldedCount: 'off' }).foldedCount, 'off');
+  assert.equal(resolveMapDisplay({ foldedCount: 'all' }, { foldedCount: 'off' }).foldedCount, 'all');
+});

@@ -1,7 +1,8 @@
 import type { MindElixirInstance } from 'mind-elixir';
 import { mapThemeVariant, type ThemeFamily } from '../lib/mindmap-themes';
-import { FONT_STACKS, arrowMainBranch, arrowSubBranch, resolveMapDisplay, straightMainBranch, straightSubBranch, type BranchStyle, type MapDisplay, type ResolvedMapDisplay } from '../lib/mindmap-display';
+import { FONT_STACKS, arrowMainBranch, arrowSubBranch, resolveMapDisplay, straightMainBranch, straightSubBranch, type BranchStyle, type FoldedCountMode, type MapDisplay, type ResolvedMapDisplay } from '../lib/mindmap-display';
 
+const FOLDED_COUNT_CLASS_PREFIX = 'mm-folded-count--';
 const TEXT_COLOR_VARS: readonly string[] = ['--color', '--main-color'];
 
 export interface BranchGenerators {
@@ -27,6 +28,12 @@ function applyBranchStyle(mind: MindElixirInstance, display: ResolvedMapDisplay,
   mind.generateSubBranch = picked.sub;
 }
 
+function applyFoldedCount(mind: MindElixirInstance, mode: FoldedCountMode): void {
+  const classes = mind.container.classList;
+  for (const name of [...classes]) if (name.startsWith(FOLDED_COUNT_CLASS_PREFIX)) classes.remove(name);
+  classes.add(FOLDED_COUNT_CLASS_PREFIX + mode);
+}
+
 function applyText(mind: MindElixirInstance, display: ResolvedMapDisplay, hasExplicitFont: boolean): void {
   const style = mind.container.style;
   if (display.textColor) {
@@ -41,6 +48,7 @@ export function applyMapDisplay(mind: MindElixirInstance, display: ResolvedMapDi
   if (mind.compact !== display.compact) mind.changeCompact(display.compact);
   applyBranchStyle(mind, display, original);
   applyText(mind, display, hasExplicitFont);
+  applyFoldedCount(mind, display.foldedCount);
   mind.linkDiv();
 }
 

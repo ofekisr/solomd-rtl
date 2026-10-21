@@ -16,6 +16,7 @@ import { isMacOS } from '../lib/platform';
 import { createMapKeyDispatch } from '../lib/mindmap-key-dispatch';
 import { layoutDirectionFor, MINDMAP_LAYOUT } from '../lib/mindmap-direction';
 import { themeFamily } from '../lib/themes';
+import { decorateFoldedCounts } from '../lib/mindmap-folded-count';
 import { clearActiveMindmap, setActiveMindmap, type MindmapHandle } from '../lib/mindmap-active';
 import { createGateController, type GateMenuAction, type GateNotice } from '../lib/mindmap-gate-controller';
 import { useMindmapCanvasActions } from '../composables/useMindmapCanvasActions';
@@ -57,6 +58,7 @@ const BEGIN_EDIT_OPERATION = 'beginEdit';
 const PASTE_NOTICE_KEYS = { empty: null, tooLarge: 'mindmap.pasteTooLarge', unrecognized: 'mindmap.pasteUnrecognized' } as const;
 const MENU_GROUP_TOPIC = 'Selection';
 const TOGGLE_NODE_ACTION = 'mindmap.toggleNode';
+const LINK_DIV_EVENT = 'linkDiv';
 const CHANGE_DIRECTION_EVENT = 'changeDirection';
 const FULLSCREEN_CHANGE_EVENT = 'fullscreenchange';
 const INTERACTIVE_SELECTOR = 'button, input, select, textarea, a[href], [contenteditable="true"], [role="button"], [role="menuitem"]';
@@ -212,6 +214,7 @@ function mount(): void {
   mind.bus.addListener(SELECT_EVENT, emitSelection);
   mind.bus.addListener(UNSELECT_EVENT, emitSelection);
   mind.bus.addListener(CHANGE_DIRECTION_EVENT, onDirectionChange);
+  mind.bus.addListener(LINK_DIV_EVENT, () => { if (mind) decorateFoldedCounts(mind.nodes); });
   syncAfterHistoryJumps(mind);
   sanitizeCopiedNodes(mind);
   guardRemovedNodes(mind);
@@ -985,6 +988,23 @@ defineExpose({
 .mindmap-view { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
 .mindmap-view__stage { position: relative; flex: 1; min-height: 0; display: flex; background: var(--bg); }
 .mindmap-view__canvas { flex: 1; min-height: 0; width: 100%; }
+.mindmap-view__canvas :deep(:is(.mm-folded-count--direct, .mm-folded-count--all, .mm-folded-count--both) me-epd[data-count-all]:not(.minus)) {
+  background-image: none;
+  background-color: var(--main-color);
+  color: var(--main-bgcolor);
+  width: auto;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+  white-space: nowrap;
+  opacity: 1;
+}
+.mindmap-view__canvas :deep(.mm-folded-count--direct me-epd[data-count-direct]:not(.minus)::after) { content: attr(data-count-direct); }
+.mindmap-view__canvas :deep(.mm-folded-count--all me-epd[data-count-all]:not(.minus)::after) { content: attr(data-count-all); }
+.mindmap-view__canvas :deep(.mm-folded-count--both me-epd[data-count-both]:not(.minus)::after) { content: attr(data-count-both); }
 .mindmap-view__canvas.mm-grabbing, .mindmap-view__canvas.mm-grabbing :deep(*) { cursor: grabbing !important; }
 .mindmap-view__status { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; z-index: 5; display: flex; gap: 6px; pointer-events: none; }
 .mindmap-view__badge { padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); opacity: 0.9; }

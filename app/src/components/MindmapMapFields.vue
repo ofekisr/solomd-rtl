@@ -4,7 +4,7 @@ import { useI18n } from '../i18n';
 import { MAP_THEMES, type MapThemeId } from '../lib/mindmap-themes';
 import { themeFamily } from '../lib/themes';
 import { useSettingsStore } from '../stores/settings';
-import type { BranchStyle, MapDisplay, MapFont } from '../lib/mindmap-display';
+import type { BranchStyle, FoldedCountMode, MapDisplay, MapFont } from '../lib/mindmap-display';
 
 const props = defineProps<{ value: MapDisplay; inherited?: MapDisplay; disabled?: boolean }>();
 const emit = defineEmits<{ set: [patch: MapDisplay]; clear: [key: keyof MapDisplay] }>();
@@ -13,6 +13,13 @@ const settings = useSettingsStore();
 const themeLabelId = useId();
 const family = computed(() => themeFamily(settings.theme));
 const currentTheme = computed<MapThemeId>(() => props.value.theme ?? props.inherited?.theme ?? 'default');
+
+const FOLDED_COUNT_OPTIONS: readonly { value: FoldedCountMode; labelKey: string }[] = [
+  { value: 'both', labelKey: 'mindmap.foldedCountBoth' },
+  { value: 'all', labelKey: 'mindmap.foldedCountAll' },
+  { value: 'direct', labelKey: 'mindmap.foldedCountDirect' },
+  { value: 'off', labelKey: 'mindmap.foldedCountOff' },
+];
 
 const BRANCH_OPTIONS: readonly { value: BranchStyle; labelKey: string }[] = [
   { value: 'curve', labelKey: 'mindmap.branchCurve' },
@@ -72,6 +79,12 @@ const resetLabel = (): string => (props.inherited ? t('mindmap.useGlobalDefault'
         <option v-for="o in BRANCH_OPTIONS" :key="o.value" :value="o.value">{{ t(o.labelKey) }}</option>
       </select>
       <button v-if="isSet('branchStyle')" type="button" @click="emit('clear', 'branchStyle')">{{ resetLabel() }}</button>
+    </label>
+    <label>{{ t('mindmap.fieldFoldedCount') }}
+      <select :value="value.foldedCount ?? inherited?.foldedCount ?? 'both'" @change="emit('set', { foldedCount: ($event.target as HTMLSelectElement).value as FoldedCountMode })">
+        <option v-for="o in FOLDED_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ t(o.labelKey) }}</option>
+      </select>
+      <button v-if="isSet('foldedCount')" type="button" @click="emit('clear', 'foldedCount')">{{ resetLabel() }}</button>
     </label>
     <label>{{ t('mindmap.fieldTextColor') }}
       <span class="mm-fields__row">
