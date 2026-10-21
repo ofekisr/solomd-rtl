@@ -1560,6 +1560,8 @@ export const en = {
     workbench: 'Mindmap Workbench',
     workbenchAddMap: 'Add map…',
     workbenchRemoveSelected: 'Remove selected',
+    workbenchSelectAll: 'Select all',
+    workbenchSelectNone: 'Select none',
     workbenchRefreshSelected: 'Refresh selected',
     workbenchMergeSelected: 'Merge selected…',
     workbenchRootTopic: 'Root topic',

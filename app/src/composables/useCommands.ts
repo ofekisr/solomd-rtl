@@ -9,6 +9,7 @@ import { isMacOS, isMobile } from '../lib/platform';
 import { useTabsStore } from '../stores/tabs';
 import { useTilesStore } from '../stores/tiles';
 import { useExport } from './useExport';
+import { MINDMAP_WORKBENCH_ACTION, openWorkbench } from './useMindmapWorkbench';
 import { MINDMAP_CONVERT_ACTIONS, MINDMAP_CONVERT_EVENT, MINDMAP_CONVERT_FOLDER_ACTION, MINDMAP_CONVERT_FOLDER_EVENT, MINDMAP_FOLDER_TREE_ACTION, MINDMAP_FOLDER_TREE_EVENT, type MindmapConvertDetail } from './useMindmapConvert';
 import { useToastsStore } from '../stores/toasts';
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
@@ -173,6 +174,12 @@ export function useCommands(): Command[] {
     },
   }));
 
+  const mindmapWorkbenchCommand: Command = {
+    id: MINDMAP_WORKBENCH_ACTION,
+    title: t('cmd.mindmap.workbench'),
+    shortcut: kb(MINDMAP_WORKBENCH_ACTION),
+    run: () => openWorkbench(),
+  };
   const mindmapFolderCommand: Command = {
     id: MINDMAP_CONVERT_FOLDER_ACTION,
     title: t('cmd.mindmap.convertFolder'),
@@ -796,7 +803,7 @@ export function useCommands(): Command[] {
   const built = IS_APP_STORE_BUILD
     ? all.filter((c) => c.id !== 'view.toggleAgentPanel')
     : all;
-  built.push(...mindmapCommands, ...mindmapConvertCommands, mindmapFolderCommand, mindmapFolderTreeCommand);
+  built.push(...mindmapCommands, ...mindmapConvertCommands, mindmapFolderCommand, mindmapFolderTreeCommand, mindmapWorkbenchCommand);
 
   // #230 — Android has no libgit2, so every `history.*` / `sync.*` entry would
   // resolve to a `Command … not found`. Keep them out of the palette entirely
