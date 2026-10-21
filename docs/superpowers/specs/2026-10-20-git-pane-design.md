@@ -142,7 +142,7 @@ New tab language `git-diff`, virtual path `git-diff://<path>?side=staged|worktre
 
 | Key | Action |
 | --- | --- |
-| ⌘⇧G (`Mod+Shift+G`) | Toggle Commit panel (focuses message box) |
+| ⌘⌥⇧G (`Mod+Alt+Shift+G`) | Toggle Commit panel (focuses message box) |
 | ⌘9 (`Mod+9`) | Toggle Log dock |
 | ⌘↩ (`Mod+Enter`, scope: commit message box) | Commit |
 | ⌘⇧U (`Mod+Shift+U`) | Push… |
