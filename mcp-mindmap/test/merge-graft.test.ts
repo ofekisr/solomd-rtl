@@ -35,3 +35,15 @@ test('mmap_graft inserts source under node (default root)', async () => {
   const doc = await store.load('a.mmap');
   assert.equal(doc.data.nodeData.children?.at(-1)?.topic, 'B');
 });
+
+test('mmap_graft resolves a topic path as the target node', async () => {
+  const store = await withFixtures();
+  await graft(store, { file: 'plan.mmap', source: 'b.mmap', node: 'Plan/Phase 2' });
+  const phase = (await store.load('plan.mmap')).data.nodeData.children?.find((c) => c.topic === 'Phase 2');
+  assert.equal(phase?.children?.at(-1)?.topic, 'B');
+});
+
+test('mmap_merge refuses a read-only store', async () => {
+  const { store } = await workspace(false);
+  await assert.rejects(merge(store, { files: ['plan.mmap', 'plan.mmap'], out: 'x.mmap' }), /--allow-write/);
+});

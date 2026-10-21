@@ -59,7 +59,8 @@ export async function merge(store: MapStore, a: { files: string[]; out: string; 
 export async function graft(store: MapStore, a: { file: string; source: string; node?: string }): Promise<string> {
   store.assertWritable();
   const [target, source] = await Promise.all([store.load(a.file), store.load(a.source)]);
-  const res = graftMap(target.data, source.data, a.node);
+  const parentId = a.node ? requireNode(target, a.node).id : undefined;
+  const res = graftMap(target.data, source.data, parentId);
   if (!res.ok) throw new Error(res.error);
   await store.save(a.file, { ...target, data: res.data });
   return `Grafted ${a.source} into ${a.file} as node ${res.rootId}`;

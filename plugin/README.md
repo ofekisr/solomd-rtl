@@ -44,7 +44,7 @@ The plugin works from this repo checkout (`--plugin-dir`), not from a copied mar
 ### Session (1)
 - `mmap_bind_session` – tie this conversation to a node (stores session ID)
 
-### File (3)
+### File (5)
 - `mmap_create` – new map from outline or markdown
 - `mmap_merge` – new map from several maps, one child per source
 - `mmap_graft` – insert a whole map under a node of another
@@ -53,7 +53,7 @@ The plugin works from this repo checkout (`--plugin-dir`), not from a copied mar
 
 ## Verify Schema
 
-All 16 tools have valid, combinator-free schemas:
+All 18 tools have valid, combinator-free schemas:
 
 ```bash
 pnpm --dir mcp-mindmap test
