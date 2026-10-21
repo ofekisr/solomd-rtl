@@ -1366,6 +1366,13 @@ export const en = {
   },
   mindmap: {
     sortChildrenMenu: 'Sort children by name',
+    numberMenu: 'Number children',
+    removeNumbersMenu: 'Remove numbering',
+    numberingTitle: 'Number {count} selected nodes',
+    numberingChildren: 'Their children',
+    numberingSelves: 'The selected nodes',
+    numberingCancel: 'Cancel',
+    numberingNothing: 'Nothing to number',
     sortedAsc: 'Children sorted A → Z',
     sortedDesc: 'Children sorted Z → A',
     sortNothing: 'Nothing to sort: select a node with 2+ children',

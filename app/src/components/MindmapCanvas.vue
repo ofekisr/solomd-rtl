@@ -28,6 +28,8 @@ import MindmapDockButton from './MindmapDockButton.vue';
 import MindmapShortcutHelp from './MindmapShortcutHelp.vue';
 import MindmapPasteTargetDialog from './MindmapPasteTargetDialog.vue';
 import MindmapDuplicates from './MindmapDuplicates.vue';
+import MindmapNumberingDialog from './MindmapNumberingDialog.vue';
+import { applyNumbers, numberingGroups, type NumberingScope } from '../lib/mindmap-numbering';
 import { findDuplicateGroups, mergeIntoGate, type DuplicateGroup } from '../lib/mindmap-duplicates';
 import { findNode, isGate } from '../lib/mindmap-gates';
 import { runAsOneOperation, runAsOneOperationAsync, type OperationBus } from '../lib/mindmap-batch';
@@ -187,7 +189,7 @@ function mount(): void {
     el: host.value,
     direction: layoutDirectionFor(data),
     editable: canEdit(),
-    contextMenu: { extend: closingMenuItems([...gates.menu, { name: t('mindmap.jumpToSourceMenu'), onclick: jumpToSource }, { name: t('mindmap.pinStripRoot'), onclick: pinCurrentAsStripRoot }, { name: t('mindmap.detailsShow'), onclick: () => emit('show-details') }, { name: t('mindmap.sortChildrenMenu'), onclick: sortSelectedChildren }, ...workbenchMenuItems()], () => hideContextMenu(host.value)) },
+    contextMenu: { extend: closingMenuItems([...gates.menu, { name: t('mindmap.jumpToSourceMenu'), onclick: jumpToSource }, { name: t('mindmap.pinStripRoot'), onclick: pinCurrentAsStripRoot }, { name: t('mindmap.detailsShow'), onclick: () => emit('show-details') }, { name: t('mindmap.sortChildrenMenu'), onclick: sortSelectedChildren }, { name: t('mindmap.numberMenu'), onclick: () => requestNumbering(true) }, { name: t('mindmap.removeNumbersMenu'), onclick: () => requestNumbering(false) }, ...workbenchMenuItems()], () => hideContextMenu(host.value)) },
     before: gates.guards,
     toolBar: false,
     keypress: true,
@@ -636,8 +638,44 @@ function sortSelectedChildren(): void {
   toasts.info(t(result.order ? SORT_TOAST_KEYS[result.order] : 'mindmap.sortNothing'));
 }
 
+const pendingNumbering = ref<{ isNumbered: boolean; count: number } | null>(null);
+
+function selectedNodes(): NodeObj[] {
+  return (mind?.currentNodes ?? []).map((tpc) => tpc.nodeObj);
+}
+
+function reselect(instance: MindElixirInstance, nodes: readonly NodeObj[]): void {
+  if (nodes.length > 1) instance.selectNodes(nodes.map((n) => instance.findEle(n.id)));
+}
+
+function runNumbering(scope: NumberingScope, isNumbered: boolean): void {
+  const selected = selectedNodes();
+  if (!mind || selected.length === 0 || !canEditTree()) return;
+  const isChanged = commitTreeEdit(mind, selected[0], () => applyNumbers(numberingGroups(selected, scope), isNumbered, isGate));
+  if (!isChanged) toasts.info(t('mindmap.numberingNothing'));
+  reselect(mind, selected);
+}
+
+function requestNumbering(isNumbered: boolean): void {
+  const count = selectedNodes().length;
+  if (count === 0 || !canEditTree()) return;
+  if (count === 1) {
+    runNumbering('children', isNumbered);
+    return;
+  }
+  pendingNumbering.value = { isNumbered, count };
+}
+
+function onNumberingChoice(scope: NumberingScope): void {
+  const pending = pendingNumbering.value;
+  pendingNumbering.value = null;
+  if (pending) runNumbering(scope, pending.isNumbered);
+}
+
 const actions: Record<string, () => void> = {
   'mindmap.sortChildren': sortSelectedChildren,
+  'mindmap.numberChildren': () => requestNumbering(true),
+  'mindmap.removeNumbers': () => requestNumbering(false),
   [TOGGLE_NODE_ACTION]: toggleCollapse,
   'mindmap.fit': () => mind?.scaleFit(),
   'mindmap.focusRoot': selectRoot,
@@ -939,6 +977,7 @@ defineExpose({
     <MindmapDuplicates v-if="duplicateGroups" :groups="duplicateGroups" :topic-of="topicOf" @merge="mergeDuplicate" @close="duplicateGroups = null" />
     <MindmapPasteTargetDialog v-if="pendingPaste" @choose="onPasteTargetChosen" @cancel="pendingPaste = null" />
     <MindmapShortcutHelp v-if="isHelpOpen" @close="isHelpOpen = false" />
+    <MindmapNumberingDialog :open="pendingNumbering !== null" :count="pendingNumbering?.count ?? 0" @choose="onNumberingChoice" @cancel="pendingNumbering = null" />
   </div>
 </template>
 
