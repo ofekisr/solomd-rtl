@@ -1001,6 +1001,8 @@ defineExpose({
   text-align: center;
   white-space: nowrap;
   opacity: 1;
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 .mindmap-view__canvas :deep(.mm-folded-count--direct me-epd[data-count-direct]:not(.minus)::after) { content: attr(data-count-direct); }
 .mindmap-view__canvas :deep(.mm-folded-count--all me-epd[data-count-all]:not(.minus)::after) { content: attr(data-count-all); }
