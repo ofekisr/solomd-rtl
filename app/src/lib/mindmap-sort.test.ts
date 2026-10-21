@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { NodeObj } from 'mind-elixir';
-import { sortChildrenByTopic } from './mindmap-sort.ts';
+import type { Summary } from 'mind-elixir/dist/types/summary';
+import { remapSummaries, sortChildrenByTopic } from './mindmap-sort.ts';
 
 const node = (topic: string, children: NodeObj[] = []): NodeObj => ({ id: topic, topic, children });
 const topics = (n: NodeObj): string[] => (n.children ?? []).map((c) => c.topic);
@@ -33,4 +34,36 @@ test('grandchildren keep their order', () => {
 test('fewer than two children is a no-op', () => {
   assert.equal(sortChildrenByTopic(node('r', [node('x')])), null);
   assert.equal(sortChildrenByTopic(node('r')), null);
+});
+
+const summary = (id: string, parent: string, start: number, end: number): Summary => ({ id, parent, start, end, label: id });
+const pool = (letters: string[]): Map<string, NodeObj> => new Map(letters.map((l) => [l, node(l)]));
+const pick = (nodes: Map<string, NodeObj>, order: string): NodeObj[] => [...order].map((l) => nodes.get(l)!);
+
+test('remapSummaries follows a contiguous block to its new position', () => {
+  const nodes = pool(['a', 'b', 'c']);
+  const result = remapSummaries([summary('s', 'p', 0, 1)], 'p', pick(nodes, 'bac'), pick(nodes, 'abc'));
+  assert.deepEqual(result.kept, [summary('s', 'p', 0, 1)]);
+  assert.equal(result.droppedCount, 0);
+});
+
+test('remapSummaries remaps after a reversal', () => {
+  const nodes = pool(['a', 'b', 'c']);
+  const result = remapSummaries([summary('s', 'p', 0, 1)], 'p', pick(nodes, 'abc'), pick(nodes, 'cba'));
+  assert.deepEqual(result.kept, [summary('s', 'p', 1, 2)]);
+});
+
+test('remapSummaries drops a summary whose nodes are no longer adjacent', () => {
+  const nodes = pool(['a', 'x', 'b']);
+  const result = remapSummaries([summary('s', 'p', 0, 1)], 'p', pick(nodes, 'axb'), pick(nodes, 'xba'));
+  assert.deepEqual(result.kept, []);
+  assert.equal(result.droppedCount, 1);
+});
+
+test('remapSummaries leaves other parents untouched', () => {
+  const nodes = pool(['a', 'b']);
+  const other = summary('o', 'q', 0, 1);
+  const result = remapSummaries([other], 'p', pick(nodes, 'ab'), pick(nodes, 'ba'));
+  assert.deepEqual(result.kept, [other]);
+  assert.equal(result.droppedCount, 0);
 });

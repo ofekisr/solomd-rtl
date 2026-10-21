@@ -1375,6 +1375,7 @@ export const en = {
     numberingNothing: 'Nothing to number',
     sortedAsc: 'Children sorted A → Z',
     sortedDesc: 'Children sorted Z → A',
+    sortDroppedSummaries: 'Removed {count} summaries that no longer cover adjacent nodes',
     sortNothing: 'Nothing to sort: select a node with 2+ children',
     canvasFit: 'Fit to window',
     canvasFullscreen: 'Full screen',

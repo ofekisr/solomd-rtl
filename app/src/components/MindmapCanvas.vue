@@ -34,7 +34,7 @@ import { applyNumbers, numberingGroups, type NumberingScope } from '../lib/mindm
 import { findDuplicateGroups, mergeIntoGate, type DuplicateGroup } from '../lib/mindmap-duplicates';
 import { findNode, isGate } from '../lib/mindmap-gates';
 import { runAsOneOperation, runAsOneOperationAsync, type OperationBus } from '../lib/mindmap-batch';
-import { sortChildrenByTopic, type SortOrder } from '../lib/mindmap-sort';
+import { remapSummaries as remapChildSummaries, sortChildrenByTopic, type SortOrder } from '../lib/mindmap-sort';
 import { needsPasteDialog, pasteMode, resolveInsertTargetId, type PasteMapTarget } from '../lib/mindmap-insert';
 import { parsePaste, type PastePayload } from '../lib/mindmap-paste';
 import { buildIdMap, remapArrows, remapGates, remapSummaries } from '../lib/mindmap-paste-remap';
@@ -614,14 +614,13 @@ const SORT_TOAST_KEYS: Readonly<Record<SortOrder, string>> = { asc: 'mindmap.sor
 const TREE_EDIT_OPERATION = 'moveNodeBefore';
 
 function commitTreeEdit(instance: MindElixirInstance, anchor: NodeObj, mutate: () => NodeObj[]): boolean {
-  const event: Record<string, unknown> = { name: TREE_EDIT_OPERATION, obj: anchor, objs: [] };
+  const event: Record<string, unknown> = { name: TREE_EDIT_OPERATION, obj: anchor, objs: [anchor] };
+  let isChanged = false;
   runAsOneOperation(instance.bus as unknown as OperationBus, () => {
-    const changed = mutate();
-    event.objs = changed;
-    if (changed.length > 0) instance.refresh();
-    return changed.length > 0;
+    isChanged = mutate().length > 0;
+    if (isChanged) instance.refresh();
+    return isChanged;
   }, event);
-  const isChanged = (event.objs as NodeObj[]).length > 0;
   if (isChanged) instance.selectNode(instance.findEle(anchor.id));
   return isChanged;
 }
@@ -630,15 +629,25 @@ function canEditTree(): boolean {
   return !!mind && !isEditBlocked() && !isGraphView.value;
 }
 
+function remapSortedSummaries(instance: MindElixirInstance, target: NodeObj, before: readonly NodeObj[]): number {
+  const { kept, droppedCount } = remapChildSummaries(instance.summaries, target.id, before, target.children ?? []);
+  instance.summaries = kept;
+  return droppedCount;
+}
+
 function sortSelectedChildren(): void {
   const target = mind?.currentNode?.nodeObj;
-  if (!mind || !target || !canEditTree()) return;
-  const result: { order: SortOrder | null } = { order: null };
-  commitTreeEdit(mind, target, () => {
+  const instance = mind;
+  if (!instance || !target || !canEditTree()) return;
+  const result: { order: SortOrder | null; droppedCount: number } = { order: null, droppedCount: 0 };
+  commitTreeEdit(instance, target, () => {
+    const before = [...(target.children ?? [])];
     result.order = sortChildrenByTopic(target);
+    if (result.order) result.droppedCount = remapSortedSummaries(instance, target, before);
     return result.order ? target.children ?? [] : [];
   });
   toasts.info(t(result.order ? SORT_TOAST_KEYS[result.order] : 'mindmap.sortNothing'));
+  if (result.droppedCount > 0) toasts.info(t('mindmap.sortDroppedSummaries', { count: result.droppedCount }));
 }
 
 const pendingNumbering = ref<{ isNumbered: boolean; count: number } | null>(null);
