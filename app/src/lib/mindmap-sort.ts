@@ -1,5 +1,6 @@
-import type { NodeObj } from 'mind-elixir';
-import type { Summary } from 'mind-elixir/dist/types/summary';
+import type { MindElixirInstance, NodeObj } from 'mind-elixir';
+
+type Summary = MindElixirInstance['summaries'][number];
 
 export type SortOrder = 'asc' | 'desc';
 

@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import type { NodeObj } from 'mind-elixir';
-import type { Summary } from 'mind-elixir/dist/types/summary';
+import type { MindElixirInstance, NodeObj } from 'mind-elixir';
+
+type Summary = MindElixirInstance['summaries'][number];
 import { remapSummaries, sortChildrenByTopic } from './mindmap-sort.ts';
 
 const node = (topic: string, children: NodeObj[] = []): NodeObj => ({ id: topic, topic, children });
