@@ -43,3 +43,12 @@ test('runAsOneOperationAsync restores fire when work throws', async () => {
   await assert.rejects(runAsOneOperationAsync(bus, async () => { throw new Error('x'); }, {}));
   assert.equal(bus.fire, original);
 });
+
+test('runAsOneOperationAsync forwards the event filled in by work', async () => {
+  const events: unknown[] = [];
+  const bus = { fire: (_name: string, payload?: unknown) => { events.push(payload); } };
+  const event: Record<string, unknown> = { name: 'copyNodes' };
+  await runAsOneOperationAsync(bus, async () => { event.objs = ['a']; return true; }, event);
+  assert.deepEqual(events, [{ name: 'copyNodes', objs: ['a'] }]);
+  assert.equal(events[0], event);
+});

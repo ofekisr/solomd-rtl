@@ -627,7 +627,7 @@ function activate(): void {
   if (props.registerActive) setActiveMindmap(handle);
 }
 
-const PASTE_MAP_OPERATION = 'pasteMap';
+const COPY_NODES_OPERATION = 'copyNodes';
 
 function insertTarget(mode: PasteMapTarget): Topic | null {
   if (!mind || isEditBlocked() || isGraphView.value) return null;
@@ -640,27 +640,33 @@ function insertTarget(mode: PasteMapTarget): Topic | null {
   return target;
 }
 
-async function graftInto(instance: MindElixirInstance, target: Topic, payload: PastePayload): Promise<boolean> {
+async function graftInto(instance: MindElixirInstance, target: Topic, payload: PastePayload): Promise<NodeObj[]> {
   const countBefore = target.nodeObj.children?.length ?? 0;
   await instance.copyNodes(payload.nodes.map((nodeObj) => ({ nodeObj }) as Topic), target);
   const children = target.nodeObj.children ?? [];
-  if (children.length !== countBefore + payload.nodes.length) return false;
+  if (children.length !== countBefore + payload.nodes.length) return [];
   const inserted = children.slice(countBefore);
   const idMap = buildIdMap(payload.nodes, inserted);
   remapGates(inserted, idMap);
   for (const arrow of remapArrows(payload.arrows, idMap)) instance.createArrowFrom(arrow);
   for (const summary of remapSummaries(payload.summaries, idMap)) instance.createSummaryFrom(summary);
-  return true;
+  return inserted;
 }
 
 async function insertPayloadAt(payload: PastePayload, mode: PasteMapTarget): Promise<boolean> {
   const target = insertTarget(mode);
   if (!mind || !target) return false;
   const instance = mind;
-  let isInserted = false;
-  await runAsOneOperationAsync(instance.bus as unknown as OperationBus, async () => (isInserted = await graftInto(instance, target, payload)), { name: PASTE_MAP_OPERATION });
-  gates.syncLabels();
-  return isInserted;
+  const event: Record<string, unknown> = { name: COPY_NODES_OPERATION };
+  let inserted: NodeObj[] = [];
+  await runAsOneOperationAsync(instance.bus as unknown as OperationBus, async () => {
+    inserted = await graftInto(instance, target, payload);
+    event.obj = inserted[0];
+    event.objs = inserted;
+    return inserted.length > 0;
+  }, event);
+  if (inserted.length > 0) gates.syncLabels();
+  return inserted.length > 0;
 }
 
 function onPaste(e: ClipboardEvent): void {
