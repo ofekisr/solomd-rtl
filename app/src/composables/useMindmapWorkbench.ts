@@ -63,8 +63,8 @@ export function useMindmapWorkbench() {
   const resolveEntry = (e: WorkbenchEntry): Promise<MindElixirData | null> =>
     e.kind === 'file' ? readSource(e.path) : Promise.resolve(e.snapshot);
 
-  async function staleness(e: WorkbenchEntry): Promise<Staleness | null> {
-    if (e.kind === 'file') return (await readSource(e.path)) ? null : 'missing';
+  async function staleness(e: WorkbenchEntry): Promise<Staleness> {
+    if (e.kind === 'file') return (await readSource(e.path)) ? 'fresh' : 'missing';
     return nodesStaleness(e, await readSource(e.sourcePath));
   }
 
