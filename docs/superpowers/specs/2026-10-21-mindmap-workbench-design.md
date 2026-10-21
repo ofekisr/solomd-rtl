@@ -1,6 +1,6 @@
 # Mindmap Workbench, Merge & Map Paste — Design
 
-Date: 2026-10-21 · Status: draft, awaiting review
+Date: 2026-10-21 · Status: approved
 
 ## Goal
 
@@ -55,7 +55,7 @@ type WorkbenchEntry =
       snapshot: MindElixirData; capturedAt: string; selected: boolean };
 ```
 
-- Persisted to localStorage, validated with Zod on load (drop invalid entries).
+- Persisted to localStorage, validated with type guards on load (drop invalid entries); app has no zod.
 - New entry → `selected: true`; afterwards each entry's selection is preserved.
 - Identity: file = `path`; nodes = `sourcePath + sorted nodeIds`.
 - **Re-add of an existing identity → update in place** (refresh snapshot, keep selection), toast "Workbench entry updated".
@@ -104,7 +104,7 @@ Unsaved map (no path): file-kind add disabled; node entries use `sourcePath = ta
 
 ### 6. ⌘V with a whole map on the clipboard
 
-- Trigger: `parsePaste` result `format ∈ {'mmap','json'}` with a map root. Other formats keep current behaviour, no dialog.
+- Trigger: `parsePaste` result `format === 'mmap'` (envelope text, as produced by Copy map). Other formats keep current behaviour, no dialog.
 - Nothing selected → root, no dialog.
 - Otherwise dialog: **Into selected node** · **Into root** · ☐ Remember my choice.
 - Setting `mindmapPasteMapTarget: 'ask' | 'selected' | 'root'` (default `ask`) in Settings → Mindmap, with **Reset to ask**.
@@ -126,7 +126,7 @@ Both reuse `app/src/lib` functions.
 | Merge with <2 resolvable entries | Button disabled; tooltip explains |
 | Save dialog cancelled | No-op |
 | Paste into gate node | Existing gate toast |
-| Corrupt localStorage | Zod drops bad entries; workbench starts empty if root invalid |
+| Corrupt localStorage | Type guards drop bad entries; workbench starts empty if root invalid |
 
 ## Testing
 
