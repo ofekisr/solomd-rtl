@@ -668,7 +668,7 @@ pub async fn fetch_diff(cwd: &Path, req: &DiffFetch) -> Result<DiffResult, GitEr
         ],
         DiffSource::Worktree => {
             ensure_intent_to_add(cwd, &safe_path).await;
-            vec!["diff".into(), "--".into(), safe_path.clone()]
+            vec!["diff".into(), "--ignore-submodules=dirty".into(), "--".into(), safe_path.clone()]
         }
     };
     let mut args: Vec<String> = args;
