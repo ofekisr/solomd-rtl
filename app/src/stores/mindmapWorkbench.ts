@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import type { MindElixirData } from 'mind-elixir';
-import { entryKey, parseWorkbench, removeEntries, upsertEntry, type EntryDraft, type WorkbenchEntry } from '../lib/mindmap-workbench.ts';
+import { entryKey, parseWorkbench, removeEntries, sanitizeSnapshot, upsertEntry, type EntryDraft, type WorkbenchEntry } from '../lib/mindmap-workbench.ts';
 
 const LS_KEY = 'solomd.mindmapWorkbench.v1';
 const ID_PREFIX = 'wb-';
@@ -23,7 +23,13 @@ export const useMindmapWorkbenchStore = defineStore('mindmapWorkbench', {
     selectedEntries: (s): WorkbenchEntry[] => s.entries.filter((e) => e.selected),
   },
   actions: {
-    persist(): void { storage()?.setItem(LS_KEY, JSON.stringify(this.entries)); },
+    persist(): void {
+      try {
+        storage()?.setItem(LS_KEY, JSON.stringify(this.entries));
+      } catch (err) {
+        console.error('mindmap workbench persist failed', err);
+      }
+    },
     add(draft: EntryDraft): 'added' | 'updated' {
       const res = upsertEntry(this.entries, draft, `${ID_PREFIX}${crypto.randomUUID()}`);
       this.entries = res.entries;
@@ -49,7 +55,7 @@ export const useMindmapWorkbenchStore = defineStore('mindmapWorkbench', {
     },
     replaceSnapshot(id: string, snapshot: MindElixirData): void {
       const capturedAt = new Date().toISOString();
-      this.entries = this.entries.map((e) => (e.id === id && e.kind === 'nodes' ? { ...e, snapshot, capturedAt } : e));
+      this.entries = this.entries.map((e) => (e.id === id && e.kind === 'nodes' ? { ...e, snapshot: sanitizeSnapshot(snapshot), capturedAt } : e));
       this.persist();
     },
   },

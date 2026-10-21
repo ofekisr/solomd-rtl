@@ -34,3 +34,18 @@ test('corrupt storage → empty workbench', () => {
   mem.set('solomd.mindmapWorkbench.v1', '{nope');
   assert.deepEqual(useMindmapWorkbenchStore().entries, []);
 });
+
+test('quota error on persist does not throw; in-memory state still updates', () => {
+  const original = globalThis.localStorage.setItem;
+  globalThis.localStorage.setItem = () => { throw new Error('QuotaExceededError'); };
+  const originalError = console.error;
+  console.error = () => {};
+  try {
+    const s = useMindmapWorkbenchStore();
+    s.add({ kind: 'file', path: '/a.mmap', label: 'a' });
+    assert.equal(s.entries.length, 1);
+  } finally {
+    globalThis.localStorage.setItem = original;
+    console.error = originalError;
+  }
+});

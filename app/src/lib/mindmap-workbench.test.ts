@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { MindElixirData } from 'mind-elixir';
-import { defaultMergeTopic, entryKey, nodesStaleness, parseWorkbench, removeEntries, upsertEntry, type EntryDraft, type NodesEntry } from './mindmap-workbench.ts';
+import { defaultMergeTopic, entryKey, nodesStaleness, parseWorkbench, removeEntries, upsertEntry, type EntryDraft, type NodesEntry, type WorkbenchEntry } from './mindmap-workbench.ts';
+import { subtreeData } from './mindmap-payload.ts';
 
 const map = (topic = 'A'): MindElixirData => ({ nodeData: { id: 'root', topic, children: [{ id: 'n', topic: 'N' }] } });
 const fileDraft: EntryDraft = { kind: 'file', path: '/w/a.mmap', label: 'a' };
@@ -48,3 +49,38 @@ test('nodesStaleness: fresh / stale / missing', () => {
 });
 
 test('defaultMergeTopic joins labels', () => assert.equal(defaultMergeTopic(['a', 'b']), 'a + b'));
+
+const unsafeNode = { id: 'n', topic: 'N', hyperLink: 'javascript:alert(1)', tags: [{ text: 't', extra: 1 }] };
+const unsafeSource = (node: object = unsafeNode): MindElixirData =>
+  ({ nodeData: { id: 'root', topic: 'R', children: [node] } }) as unknown as MindElixirData;
+const liveEntry = (source: MindElixirData): WorkbenchEntry => {
+  const snapshot = subtreeData(source, ['n'], 'N');
+  if (!snapshot) throw new Error('no subtree');
+  const { entries } = upsertEntry([], { kind: 'nodes', sourcePath: '/w/a.mmap', nodeIds: ['n'], label: 'l', snapshot, capturedAt: 't' }, 'e1');
+  return parseWorkbench(JSON.parse(JSON.stringify(entries)))[0];
+};
+
+test('live source with unsafe fields reads fresh after a persist round-trip', () => {
+  const entry = liveEntry(unsafeSource());
+  assert.equal(nodesStaleness(entry as NodesEntry, unsafeSource()), 'fresh');
+});
+
+test('staleness ignores key order of the live source', () => {
+  const entry = liveEntry(unsafeSource());
+  const reordered = { tags: unsafeNode.tags, hyperLink: unsafeNode.hyperLink, topic: 'N', id: 'n' };
+  assert.equal(nodesStaleness(entry as NodesEntry, unsafeSource(reordered)), 'fresh');
+});
+
+test('upsert stores a sanitized snapshot', () => {
+  const snapshot = subtreeData(unsafeSource(), ['n'], 'N');
+  if (!snapshot) throw new Error('no subtree');
+  const { entries } = upsertEntry([], { kind: 'nodes', sourcePath: '/w/a.mmap', nodeIds: ['n'], label: 'l', snapshot, capturedAt: 't' }, 'e1');
+  const stored = entries[0] as NodesEntry;
+  assert.equal(stored.snapshot.nodeData.hyperLink, undefined);
+});
+
+test('a malformed nodes row is dropped without losing valid rows', () => {
+  const good = upsertEntry([], fileDraft, 'e1').entries;
+  const bad = { id: 'x', kind: 'nodes', label: 'X', selected: true, sourcePath: '/a', capturedAt: 't', nodeIds: ['x'], snapshot: { nodeData: { id: 'x', topic: 'X', children: 'bad' } } };
+  assert.deepEqual(parseWorkbench([bad, ...good]), good);
+});
