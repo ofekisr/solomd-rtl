@@ -17,6 +17,7 @@ const currentTheme = computed<MapThemeId>(() => props.value.theme ?? props.inher
 const BRANCH_OPTIONS: readonly { value: BranchStyle; labelKey: string }[] = [
   { value: 'curve', labelKey: 'mindmap.branchCurve' },
   { value: 'straight', labelKey: 'mindmap.branchStraight' },
+  { value: 'arrow', labelKey: 'mindmap.branchArrow' },
 ];
 const FONT_OPTIONS: readonly { value: MapFont; labelKey: string }[] = [
   { value: 'system', labelKey: 'mindmap.fontSystem' },

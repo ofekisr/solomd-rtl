@@ -1490,6 +1490,7 @@ export const en = {
     fieldBranchStyle: 'Branch style',
     branchCurve: 'Curve',
     branchStraight: 'Straight',
+    branchArrow: 'Arrow',
     fieldFont: 'Font',
     fieldTheme: 'Theme',
     themeDefault: 'Default',

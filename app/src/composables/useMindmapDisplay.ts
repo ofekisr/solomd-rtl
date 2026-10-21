@@ -1,6 +1,6 @@
 import type { MindElixirInstance } from 'mind-elixir';
 import { mapThemeVariant, type ThemeFamily } from '../lib/mindmap-themes';
-import { FONT_STACKS, resolveMapDisplay, straightMainBranch, straightSubBranch, type MapDisplay, type ResolvedMapDisplay } from '../lib/mindmap-display';
+import { FONT_STACKS, arrowMainBranch, arrowSubBranch, resolveMapDisplay, straightMainBranch, straightSubBranch, type BranchStyle, type MapDisplay, type ResolvedMapDisplay } from '../lib/mindmap-display';
 
 const TEXT_COLOR_VARS: readonly string[] = ['--color', '--main-color'];
 
@@ -13,10 +13,18 @@ export function captureBranchGenerators(mind: MindElixirInstance): BranchGenerat
   return { main: mind.generateMainBranch, sub: mind.generateSubBranch };
 }
 
+type GeneratorPicker = (original: BranchGenerators) => BranchGenerators;
+
+const GENERATORS_BY_STYLE: Readonly<Record<BranchStyle, GeneratorPicker>> = {
+  curve: (original) => original,
+  straight: () => ({ main: straightMainBranch, sub: straightSubBranch }),
+  arrow: () => ({ main: arrowMainBranch, sub: arrowSubBranch }),
+};
+
 function applyBranchStyle(mind: MindElixirInstance, display: ResolvedMapDisplay, original: BranchGenerators): void {
-  const isStraight = display.branchStyle === 'straight';
-  mind.generateMainBranch = isStraight ? straightMainBranch : original.main;
-  mind.generateSubBranch = isStraight ? straightSubBranch : original.sub;
+  const picked = GENERATORS_BY_STYLE[display.branchStyle](original);
+  mind.generateMainBranch = picked.main;
+  mind.generateSubBranch = picked.sub;
 }
 
 function applyText(mind: MindElixirInstance, display: ResolvedMapDisplay, hasExplicitFont: boolean): void {
