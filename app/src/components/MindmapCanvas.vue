@@ -1013,6 +1013,9 @@ defineExpose({
   direction: ltr;
   unicode-bidi: isolate;
 }
+.mindmap-view__canvas :deep(:is(.mm-folded-count--direct, .mm-folded-count--all, .mm-folded-count--both) .rhs me-epd[data-count-all]:not(.minus)) { left: calc(100% - 8px); right: auto; }
+.mindmap-view__canvas :deep(:is(.mm-folded-count--direct, .mm-folded-count--all, .mm-folded-count--both) .lhs me-epd[data-count-all]:not(.minus)) { right: calc(100% - 8px); left: auto; }
+.mindmap-view__canvas :deep(:is(.mm-folded-count--direct, .mm-folded-count--all, .mm-folded-count--both) me-nodes.down me-epd[data-count-all]:not(.minus)) { left: calc(50% - 9px); right: auto; transform: translateX(calc(-50% + 9px)); }
 .mindmap-view__canvas :deep(.mm-folded-count--direct me-epd[data-count-direct]:not(.minus)::after) { content: attr(data-count-direct); }
 .mindmap-view__canvas :deep(.mm-folded-count--all me-epd[data-count-all]:not(.minus)::after) { content: attr(data-count-all); }
 .mindmap-view__canvas :deep(.mm-folded-count--both me-epd[data-count-both]:not(.minus)::after) { content: attr(data-count-both); }
