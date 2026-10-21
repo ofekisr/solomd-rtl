@@ -90,3 +90,52 @@ async fn linked_worktree_resolves_common_dir() {
     assert!(engine.common_dir().join("refs").is_dir());
     assert_ne!(engine.common_dir(), engine.git_dir());
 }
+
+const MARKER_FILE: &str = "ran.marker";
+
+#[cfg(unix)]
+fn write_executable(path: &Path, body: &str) {
+    use std::os::unix::fs::PermissionsExt;
+    std::fs::write(path, body).unwrap();
+    std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o755)).unwrap();
+}
+
+#[cfg(unix)]
+#[tokio::test]
+async fn snapshot_skips_dirty_submodule_filters() {
+    let sub = repo_with_commits(1);
+    let dir = repo_with_commits(1);
+    let marker = dir.path().join(MARKER_FILE);
+    let sub_url = sub.path().to_string_lossy().into_owned();
+    git(dir.path(), &["-c", "protocol.file.allow=always", "submodule", "add", "-q", &sub_url, "s"]);
+    git(dir.path(), &["commit", "-q", "-m", "add submodule"]);
+    let module = dir.path().join("s");
+    let command = format!("touch '{}'; cat", marker.display());
+    git(&module, &["config", "filter.z.clean", &command]);
+    std::fs::write(module.join(".gitattributes"), "*.md filter=z\n").unwrap();
+    std::fs::write(module.join("a.md"), "line 9\n").unwrap();
+    let engine = CliEngine::open(dir.path()).await.unwrap();
+    engine.snapshot(&ALL_SCOPES).await.unwrap();
+    assert!(!marker.exists(), "snapshot ran a submodule filter");
+}
+
+#[cfg(unix)]
+#[tokio::test]
+async fn untracked_diff_skips_index_hooks() {
+    use super::cli::diff::{DiffFetch, DiffSource};
+    let dir = repo_with_commits(1);
+    let marker = dir.path().join(MARKER_FILE);
+    let hook = dir.path().join(".git/hooks/post-index-change");
+    write_executable(&hook, &format!("#!/bin/sh\ntouch '{}'\n", marker.display()));
+    std::fs::write(dir.path().join("b.md"), "new\n").unwrap();
+    let engine = CliEngine::open(dir.path()).await.unwrap();
+    let req = DiffFetch {
+        source: DiffSource::Worktree,
+        path: "b.md".to_string(),
+        sha: None,
+        to_sha: None,
+        ignore_whitespace: false,
+    };
+    engine.diff(&req).await.unwrap();
+    assert!(!marker.exists(), "intent-to-add ran a repo hook");
+}

@@ -100,3 +100,20 @@ async fn trusted_repo_opens_and_runs_filter() {
     assert!(env.ok);
     assert!(marker.exists(), "marker proof is not wired: the filter never ran");
 }
+
+#[cfg(unix)]
+#[tokio::test]
+async fn worktree_scoped_filter_is_untrusted() {
+    let dir = repo();
+    let marker = dir.path().join(MARKER_FILE);
+    std::fs::write(dir.path().join(".gitattributes"), "*.md filter=x\n").unwrap();
+    git(dir.path(), &["config", "extensions.worktreeConfig", "true"]);
+    let command = format!("touch '{}'; cat", marker.display());
+    git(dir.path(), &["config", "--worktree", "filter.x.clean", &command]);
+    std::fs::write(dir.path().join("a.md"), "two\n").unwrap();
+    let state = GitPaneState::default();
+    let env = open_repo(&state, &dir.path().to_string_lossy(), &None, false, noop).await;
+    assert!(!env.ok);
+    assert_eq!(env.error.unwrap().code, "UntrustedConfig");
+    assert!(!marker.exists(), "worktree-scoped filter ran on an untrusted repo");
+}

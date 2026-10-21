@@ -693,6 +693,8 @@ async fn commit_parents(cwd: &Path, sha: &str) -> Result<Vec<String>, GitError> 
     Ok(parts.into_iter().skip(1).map(str::to_string).collect())
 }
 
+const NO_HOOKS: &str = "core.hooksPath=/dev/null";
+
 /// Intent-to-add so untracked files appear in `git diff` (mirrors provider).
 async fn ensure_intent_to_add(cwd: &Path, path: &str) {
     use crate::git_pane::cli::git::git_text;
@@ -701,7 +703,7 @@ async fn ensure_intent_to_add(cwd: &Path, path: &str) {
         return;
     }
     let _guard = crate::git_pane::lock::RepoLocks::global().acquire(cwd).await;
-    let _ = git_text(cwd, &["add", "-N", "--", path]).await;
+    let _ = git_text(cwd, &["-c", NO_HOOKS, "add", "-N", "--", path]).await;
 }
 
 pub async fn fetch_blame(
