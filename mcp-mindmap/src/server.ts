@@ -124,7 +124,7 @@ function registerFile(server: McpServer, store: MapStore): void {
   }, async (a) => text(await create(store, a)));
   server.registerTool('mmap_merge', {
     title: 'Merge maps into a new file', annotations: WRITE,
-    description: 'New .mmap whose root has one child per source map. Ids are prefixed; arrows, summaries and gates kept. Refuses to overwrite.',
+    description: 'New .mmap whose root has one child per source map. Ids are prefixed; arrows, summaries and gates kept. Sources\' display settings and snippets are not carried over. Refuses to overwrite.',
     inputSchema: z.object({ files: z.array(fileArg).min(2), out: fileArg, root: z.string().optional().describe('Root topic; defaults to "A + B"') }),
   }, async (a) => text(await merge(store, a)));
   server.registerTool('mmap_graft', {
