@@ -1,6 +1,6 @@
 export type MindmapIconName =
   | 'lens-data' | 'lens-map' | 'lens-doc'
-  | 'dir-left' | 'dir-right' | 'dir-side'
+  | 'dir-left' | 'dir-right' | 'dir-side' | 'dir-down'
   | 'graph' | 'lock' | 'panel' | 'details' | 'undo' | 'redo' | 'export' | 'more'
   | 'fullscreen' | 'center' | 'zoom-out' | 'zoom-in' | 'fit' | 'root' | 'collapse';
 

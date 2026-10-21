@@ -20,6 +20,7 @@ const PATHS: Readonly<Record<MindmapIconName, readonly string[]>> = {
   'lens-doc': ['M5 6h14', 'M5 10h10', 'M5 14h14', 'M5 18h8'],
   'dir-left': ['M20 12h-6', 'M14 12c-3 0-3-6-7-6H4', 'M14 12H4', 'M14 12c-3 0-3 6-7 6H4'],
   'dir-right': ['M4 12h6', 'M10 12c3 0 3-6 7-6h3', 'M10 12h10', 'M10 12c3 0 3 6 7 6h3'],
+  'dir-down': ['M12 3v5', 'M12 8c0 3-6 3-6 7v3', 'M12 8v10', 'M12 8c0 3 6 3 6 7v3'],
   'dir-side': ['M10 12h4', 'M14 12c2 0 2-5 4-5h3', 'M14 12c2 0 2 5 4 5h3', 'M10 12c-2 0-2-5-4-5H3', 'M10 12c-2 0-2 5-4 5H3'],
   graph: ['M5 7h13l-3-3', 'M19 17H6l3 3'],
   lock: ['M6 11h12v9H6z', 'M8.5 11V8a3.5 3.5 0 0 1 7 0v3'],

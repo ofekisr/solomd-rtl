@@ -17,6 +17,7 @@ export const CLASSIC_GLYPHS: Readonly<Partial<Record<MindmapIconName, string>>> 
   'lens-data': '{ }',
   'lens-map': '◫',
   'lens-doc': '≡',
+  'dir-down': '↓',
   graph: '⇄',
   lock: '🔒',
   panel: '▤',

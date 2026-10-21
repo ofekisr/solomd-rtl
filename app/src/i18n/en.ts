@@ -1376,6 +1376,7 @@ export const en = {
     layoutLeft: 'Grow left',
     layoutRight: 'Grow right',
     layoutSide: 'Both sides',
+    layoutDown: 'Grow down',
     canvasRoot: 'Go to root',
     canvasCollapse: 'Collapse / expand (Space): selected nodes, or the whole map',
     duplicatesChip: '{count} duplicates',

@@ -617,6 +617,7 @@ const actions: Record<string, () => void> = {
   'mindmap.layoutLeft': () => mind?.initLeft(),
   'mindmap.layoutRight': () => mind?.initRight(),
   'mindmap.layoutSide': () => mind?.initSide(),
+  'mindmap.layoutDown': () => mind?.initDown(),
   'mindmap.redo': () => mind?.redo(),
   ...canvasActions,
   ...gates.actions,

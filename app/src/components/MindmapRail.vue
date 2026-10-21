@@ -30,6 +30,7 @@ const DIRECTIONS: readonly { layout: number; actionId: string; icon: MindmapIcon
   { layout: MINDMAP_LAYOUT.LEFT, actionId: 'mindmap.layoutLeft', icon: 'dir-left', labelKey: 'mindmap.layoutLeft' },
   { layout: MINDMAP_LAYOUT.RIGHT, actionId: 'mindmap.layoutRight', icon: 'dir-right', labelKey: 'mindmap.layoutRight' },
   { layout: MINDMAP_LAYOUT.SIDE, actionId: 'mindmap.layoutSide', icon: 'dir-side', labelKey: 'mindmap.layoutSide' },
+  { layout: MINDMAP_LAYOUT.DOWN, actionId: 'mindmap.layoutDown', icon: 'dir-down', labelKey: 'mindmap.layoutDown' },
 ];
 const EXPORT_OPTIONS: readonly FlyoutOption[] = [
   { id: 'mindmap.exportPng', label: 'PNG' },
