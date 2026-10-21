@@ -1004,6 +1004,7 @@ export function useFiles() {
     // be open has to go through the tab, not straight to disk, or the tab's
     // in-memory copy would silently overwrite it on the next save.
     saveTab,
+    saveTabAs,
     autoSaveDirtyTabs,
     closeTabSafe,
     spawnAuxWindow,
