@@ -11,6 +11,11 @@ import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
 import { useGithubSyncStore } from '../stores/githubSync';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
+import { isMindmapPath, isXmindPath } from '../lib/mindmap-format';
+import { entryKey } from '../lib/mindmap-workbench';
+import { useMindmapWorkbenchStore } from '../stores/mindmapWorkbench';
+import { fileDraft, openWorkbench, useMindmapWorkbench } from '../composables/useMindmapWorkbench';
+import { copyMapText } from '../lib/mindmap-payload';
 import { useTabsStore } from '../stores/tabs';
 import { useI18n } from '../i18n';
 import { isMobile } from '../lib/platform';
@@ -119,6 +124,34 @@ async function copyGitUrl(node: Node) {
   await writeText(`https://${host}/${owner}/${repo}${blobSeg}main/${rel}`);
   toasts.success(t('explorer.copyGitUrlDone') || 'Git URL copied to clipboard.');
   closeCtx();
+}
+
+const workbench = useMindmapWorkbenchStore();
+const { readSource } = useMindmapWorkbench();
+const isMmap = (path: string): boolean => isMindmapPath(path) && !isXmindPath(path);
+
+function toggleWorkbenchFile(path: string): void {
+  const key = entryKey(fileDraft(path));
+  if (workbench.has(key)) workbench.removeKey(key);
+  else workbench.add(fileDraft(path));
+  closeCtx();
+}
+
+function openWorkbenchWith(path: string): void {
+  const draft = fileDraft(path);
+  openWorkbench(workbench.has(entryKey(draft)) ? undefined : draft);
+  closeCtx();
+}
+
+async function copyMapFile(path: string): Promise<void> {
+  closeCtx();
+  const data = await readSource(path);
+  if (!data) {
+    toasts.error(t('mindmap.workbenchMissing'));
+    return;
+  }
+  await writeText(copyMapText(data));
+  toasts.success(t('mindmap.mapCopied'));
 }
 
 /** #120 — copy the node's absolute filesystem path (file OR folder). */
@@ -1760,6 +1793,14 @@ onBeforeUnmount(() => {
       <button v-if="ctx.node && !ctx.node.is_dir" class="ftree__ctx-item" @click="copyGitUrl(ctx.node)">
         🔗 {{ t('explorer.copyGitUrl') || 'Copy Git URL' }}
       </button>
+      <template v-if="ctx.node && !ctx.node.is_dir && isMmap(ctx.node.path)">
+        <div class="ftree__ctx-sep"></div>
+        <button class="ftree__ctx-item" @click="toggleWorkbenchFile(ctx.node.path)">
+          {{ workbench.has(entryKey(fileDraft(ctx.node.path))) ? t('mindmap.menuRemoveFromWorkbench') : t('mindmap.menuAddToWorkbench') }}
+        </button>
+        <button class="ftree__ctx-item" @click="openWorkbenchWith(ctx.node.path)">{{ t('mindmap.menuOpenWorkbench') }}</button>
+        <button class="ftree__ctx-item" @click="copyMapFile(ctx.node.path)">{{ t('mindmap.menuCopyMap') }}</button>
+      </template>
       <!-- #148 follow-up — hidden on mobile: revealItemInDir silently no-ops
            there (no user-reachable file manager can browse the app sandbox
            on Android, and iOS has no Finder), so the item just looked broken. -->

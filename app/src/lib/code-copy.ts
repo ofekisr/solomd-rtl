@@ -28,7 +28,7 @@
  *                        legitimately indented (YAML fragments etc.).
  */
 
-import { writeText } from '@tauri-apps/plugin-clipboard-manager';
+import { readText, writeText } from '@tauri-apps/plugin-clipboard-manager';
 
 /**
  * Write `text` to the system clipboard. Prefers the Tauri clipboard plugin
@@ -45,6 +45,16 @@ export async function copyPlainText(text: string): Promise<void> {
       await navigator.clipboard.writeText(text);
       return;
     }
+    throw err;
+  }
+}
+
+/** Read the system clipboard text; Tauri plugin first, web API fallback. */
+export async function readPlainText(): Promise<string> {
+  try {
+    return (await readText()) ?? '';
+  } catch (err) {
+    if (navigator.clipboard?.readText) return navigator.clipboard.readText();
     throw err;
   }
 }

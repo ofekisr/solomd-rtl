@@ -24,6 +24,7 @@ import MindmapRail, { type RailState } from './MindmapRail.vue';
 import { MINDMAP_LAYOUT } from '../lib/mindmap-direction';
 import { buildNodePatch, setIcon, type NodeField } from '../lib/mindmap-node-style';
 import { runAsOneOperation, type OperationBus } from '../lib/mindmap-batch';
+import { TAB_SOURCE_PREFIX } from '../lib/mindmap-workbench';
 import MindmapCanvas from './MindmapCanvas.vue';
 import MindmapSidePanel from './MindmapSidePanel.vue';
 import MindmapNodeFields from './MindmapNodeFields.vue';
@@ -52,6 +53,7 @@ const settings = useSettingsStore();
 const { t } = useI18n();
 const { jumpTo } = useMindmapJump();
 const codec = computed(() => mmapCodec(props.tab.fileName));
+const sourcePath = computed(() => props.tab.filePath ?? `${TAB_SOURCE_PREFIX}${props.tab.id}`);
 const exportName = computed(() => props.tab.fileName.replace(/\.[^.]+$/u, ''));
 const lens = computed<MindmapLens>(() => resolveTabLens(props.tab));
 const parts = computed(() => lensCell(lens.value, settings.viewMode));
@@ -400,6 +402,8 @@ defineExpose({ setLens, canvas, lens, openFind });
             :content="mapContent"
             :codec="codec"
             :export-name="exportName"
+            :source-path="sourcePath"
+            :source-label="exportName"
             :register-active="false"
             :locked="isMapLocked"
             :focus-key="tab.id"

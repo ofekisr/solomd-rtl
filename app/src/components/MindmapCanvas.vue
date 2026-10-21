@@ -33,7 +33,12 @@ import { runAsOneOperationAsync, type OperationBus } from '../lib/mindmap-batch'
 import { resolveInsertTargetId, type PasteMapTarget } from '../lib/mindmap-insert';
 import { parsePaste, type PastePayload } from '../lib/mindmap-paste';
 import { buildIdMap, remapArrows, remapGates, remapSummaries } from '../lib/mindmap-paste-remap';
-import { withGateArrows } from '../lib/mindmap-graph';
+import { withGateArrows, withoutGateArrows } from '../lib/mindmap-graph';
+import { copyPlainText, readPlainText } from '../lib/code-copy';
+import { copyMapText, subtreeData } from '../lib/mindmap-payload';
+import { entryKey, TAB_SOURCE_PREFIX, type EntryDraft } from '../lib/mindmap-workbench';
+import { useMindmapWorkbenchStore } from '../stores/mindmapWorkbench';
+import { fileDraft, nodesDraft, openWorkbench } from '../composables/useMindmapWorkbench';
 import { closingMenuItems, hideContextMenu } from '../lib/mindmap-context-menu';
 import { buildFreezeStrip, canAnchor, getTabFocus, getTabStripRoot, pathTo, setTabFocus, setTabStripRoot, type FreezeStrip } from '../lib/mindmap-focus';
 import MindmapFreezeStrip from './MindmapFreezeStrip.vue';
@@ -46,13 +51,14 @@ const SELECT_EVENT = 'selectNodes';
 const UNSELECT_EVENT = 'unselectNodes';
 const BEGIN_EDIT_OPERATION = 'beginEdit';
 const PASTE_NOTICE_KEYS = { empty: null, tooLarge: 'mindmap.pasteTooLarge', unrecognized: 'mindmap.pasteUnrecognized' } as const;
+const MENU_GROUP_TOPIC = 'Selection';
 const TOGGLE_NODE_ACTION = 'mindmap.toggleNode';
 const CHANGE_DIRECTION_EVENT = 'changeDirection';
 const FULLSCREEN_CHANGE_EVENT = 'fullscreenchange';
 const INTERACTIVE_SELECTOR = 'button, input, select, textarea, a[href], [contenteditable="true"], [role="button"], [role="menuitem"]';
 
 const props = withDefaults(
-  defineProps<{ content: string; codec: MindmapCodec; exportName?: string; fenceLine?: number; registerActive?: boolean; locked?: boolean; focusKey?: string }>(),
+  defineProps<{ content: string; codec: MindmapCodec; exportName?: string; fenceLine?: number; registerActive?: boolean; locked?: boolean; focusKey?: string; sourcePath?: string; sourceLabel?: string }>(),
   { exportName: 'mindmap', registerActive: true, locked: false },
 );
 const emit = defineEmits<{
@@ -65,6 +71,7 @@ const emit = defineEmits<{
 }>();
 const settings = useSettingsStore();
 const toasts = useToastsStore();
+const workbench = useMindmapWorkbenchStore();
 const { t } = useI18n();
 
 const host = ref<HTMLElement | null>(null);
@@ -178,7 +185,7 @@ function mount(): void {
     el: host.value,
     direction: layoutDirectionFor(data),
     editable: canEdit(),
-    contextMenu: { extend: closingMenuItems([...gates.menu, { name: t('mindmap.jumpToSourceMenu'), onclick: jumpToSource }, { name: t('mindmap.pinStripRoot'), onclick: pinCurrentAsStripRoot }, { name: t('mindmap.detailsShow'), onclick: () => emit('show-details') }], () => hideContextMenu(host.value)) },
+    contextMenu: { extend: closingMenuItems([...gates.menu, { name: t('mindmap.jumpToSourceMenu'), onclick: jumpToSource }, { name: t('mindmap.pinStripRoot'), onclick: pinCurrentAsStripRoot }, { name: t('mindmap.detailsShow'), onclick: () => emit('show-details') }, ...workbenchMenuItems()], () => hideContextMenu(host.value)) },
     before: gates.guards,
     toolBar: false,
     keypress: true,
@@ -651,6 +658,64 @@ async function graftInto(instance: MindElixirInstance, target: Topic, payload: P
   for (const arrow of remapArrows(payload.arrows, idMap)) instance.createArrowFrom(arrow);
   for (const summary of remapSummaries(payload.summaries, idMap)) instance.createSummaryFrom(summary);
   return inserted;
+}
+
+function selectedNonRootIds(): string[] {
+  if (!mind) return [];
+  return (mind.currentNodes ?? []).map((tpc) => tpc.nodeObj.id).filter((id) => id !== mind!.nodeData.id);
+}
+
+function menuDraft(): EntryDraft | null {
+  if (!mind || !props.sourcePath) return null;
+  const ids = selectedNonRootIds();
+  if (ids.length === 0) return props.sourcePath.startsWith(TAB_SOURCE_PREFIX) ? null : fileDraft(props.sourcePath);
+  return nodesDraft(props.sourcePath, mind.getData(), ids, props.sourceLabel ?? props.exportName);
+}
+
+function toggleWorkbench(): void {
+  const draft = menuDraft();
+  if (!draft) return;
+  const key = entryKey(draft);
+  if (workbench.has(key)) {
+    workbench.removeKey(key);
+    toasts.success(t('mindmap.workbenchRemoved'));
+    return;
+  }
+  const outcome = workbench.add(draft);
+  toasts.success(t(outcome === 'updated' ? 'mindmap.workbenchUpdated' : 'mindmap.workbenchAdded'));
+}
+
+function openWorkbenchFromMenu(): void {
+  const draft = menuDraft();
+  openWorkbench(draft && !workbench.has(entryKey(draft)) ? draft : undefined);
+}
+
+async function copyMap(): Promise<void> {
+  if (!mind) return;
+  const ids = selectedNonRootIds();
+  const data = ids.length === 0 ? mind.getData() : subtreeData(mind.getData(), ids, MENU_GROUP_TOPIC);
+  if (!data) return;
+  await copyPlainText(copyMapText(withoutGateArrows(data)));
+  toasts.success(t('mindmap.mapCopied'));
+}
+
+async function pasteMapFromClipboard(): Promise<void> {
+  const result = parsePaste(await readPlainText());
+  if (!result.ok) {
+    const key = PASTE_NOTICE_KEYS[result.reason];
+    if (key) toasts.info(t(key));
+    return;
+  }
+  await insertPayloadAt(result.payload, 'selected');
+}
+
+function workbenchMenuItems(): { name: string; onclick: () => void }[] {
+  return [
+    { name: t('mindmap.menuAddToWorkbench'), onclick: toggleWorkbench },
+    { name: t('mindmap.menuOpenWorkbench'), onclick: openWorkbenchFromMenu },
+    { name: t('mindmap.menuCopyMap'), onclick: () => { void copyMap().catch((e: unknown) => toasts.error(String(e))); } },
+    { name: t('mindmap.menuPasteMap'), onclick: () => { void pasteMapFromClipboard().catch((e: unknown) => toasts.error(String(e))); } },
+  ];
 }
 
 async function insertPayloadAt(payload: PastePayload, mode: PasteMapTarget): Promise<boolean> {
