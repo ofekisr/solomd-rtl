@@ -51,8 +51,8 @@ const lensOptions = computed<FlyoutOption[]>(() => MINDMAP_LENSES.map((l) => ({ 
 const directionOptions = computed<FlyoutOption[]>(() => DIRECTIONS.map((d) => ({ id: d.actionId, label: t(d.labelKey), icon: d.icon })));
 const currentDirection = computed(() => DIRECTIONS.find((d) => d.layout === props.state.direction) ?? DIRECTIONS[2]);
 const moreOptions = computed<FlyoutOption[]>(() => MORE_ITEMS.map((m) => ({ id: m.id, label: t(m.labelKey) })));
-const isHistoryBlocked = computed(() => props.state.isLocked || props.state.isReadOnly || props.state.isGraphView);
-const isDirectionBlocked = computed(() => props.state.isLocked || props.state.isGraphView || props.state.isFocused);
+const isHistoryBlocked = computed(() => props.state.isLocked || props.state.isReadOnly);
+const isDirectionBlocked = computed(() => props.state.isLocked || props.state.isFocused);
 
 function pickLens(id: string): void {
   emit('set-lens', id as MindmapLens);

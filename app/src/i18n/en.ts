@@ -1480,7 +1480,7 @@ export const en = {
     panelMap: 'Map',
     panelSelectOne: 'Select one or more nodes',
     panelBatch: '{count} nodes selected — changes apply to all',
-    panelReadOnly: 'Editing is off in read-only and graph view',
+    panelReadOnly: 'Editing is off in read-only mode',
     fieldTextColor: 'Text color',
     fieldBackground: 'Background',
     fieldFontSize: 'Font size',

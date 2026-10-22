@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { MindElixirData } from 'mind-elixir';
-import { gateArrows, GATE_ARROW_PREFIX, toAdjacency, toMermaid, withGateArrows, withoutGateArrows } from './mindmap-graph.ts';
+import { gateArrows, GATE_ARROW_PREFIX, toAdjacency, toMermaid, withGateArrows, withGateOverlay, withoutGateArrows, withoutGateOverlay } from './mindmap-graph.ts';
 
 const data = (): MindElixirData => ({
   nodeData: { id: 'r', topic: 'Root "q"', children: [
@@ -44,4 +44,12 @@ test('adjacency lists child and gate edges', () => {
   assert.deepEqual(adj.nodes.find((n) => n.id === 'g'), { id: 'g', topic: '⇒ A', isGate: true });
   assert.deepEqual(adj.edges.filter((e) => e.kind === 'gate'), [{ from: 'g', to: 'a', kind: 'gate' }]);
   assert.equal(adj.edges.filter((e) => e.kind === 'child').length, 3);
+});
+
+test('the gate overlay replaces stale gate arrows and keeps user arrows', () => {
+  const user = { id: 'user', label: 'l', from: 'a', to: 'r' };
+  const stale = { id: `${GATE_ARROW_PREFIX}gone`, label: '', from: 'x', to: 'y' };
+  const overlay = withGateOverlay([user, stale], data());
+  assert.deepEqual(overlay.map((a) => a.id), ['user', `${GATE_ARROW_PREFIX}g`]);
+  assert.deepEqual(withoutGateOverlay(overlay), [user]);
 });

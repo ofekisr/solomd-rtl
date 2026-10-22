@@ -110,7 +110,7 @@ const railState = computed<RailState>(() => ({
   isLocked: isMapLocked.value,
   isFocused: canvas.value?.isFocused ?? false,
 }));
-const isPanelEditable = computed(() => !(canvas.value?.isReadOnly || canvas.value?.isGraphView || isMapLocked.value) && canvas.value?.hasMap === true);
+const isPanelEditable = computed(() => !(canvas.value?.isReadOnly || isMapLocked.value) && canvas.value?.hasMap === true);
 const LIVE_EDIT_VIEW: ViewMode = 'liveEdit';
 const snippets = ref<Snippet[]>([]);
 const canEditSnippets = computed(() => settings.viewMode === LIVE_EDIT_VIEW && isPanelEditable.value);

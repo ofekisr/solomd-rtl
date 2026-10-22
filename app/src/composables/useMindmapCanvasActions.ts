@@ -74,7 +74,7 @@ export function useMindmapCanvasActions(ctx: CanvasActionContext): Record<string
     if (!mind) return;
     ctx.isReadOnly.value = !ctx.isReadOnly.value;
     if (ctx.isReadOnly.value) mind.disableEdit();
-    else if (!ctx.isGraphView.value && !ctx.isLocked()) mind.enableEdit();
+    else if (!ctx.isLocked()) mind.enableEdit();
   }
 
   const exports = Object.fromEntries(Object.entries(EXPORT_ACTIONS).map(([id, format]) => [id, exportAs(format)]));

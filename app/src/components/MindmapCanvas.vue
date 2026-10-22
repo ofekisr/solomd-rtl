@@ -38,7 +38,7 @@ import { remapSummaries as remapChildSummaries, sortChildrenByTopic, type SortOr
 import { needsPasteDialog, pasteMode, resolveInsertTargetId, type PasteMapTarget } from '../lib/mindmap-insert';
 import { parsePaste, type PastePayload } from '../lib/mindmap-paste';
 import { buildIdMap, remapArrows, remapGates, remapSummaries } from '../lib/mindmap-paste-remap';
-import { withGateArrows, withoutGateArrows } from '../lib/mindmap-graph';
+import { withGateOverlay, withoutGateArrows, withoutGateOverlay } from '../lib/mindmap-graph';
 import { copyPlainText, readPlainText } from '../lib/code-copy';
 import { copyMapText, subtreeData } from '../lib/mindmap-payload';
 import { entryKey, TAB_SOURCE_PREFIX, type EntryDraft } from '../lib/mindmap-workbench';
@@ -92,7 +92,6 @@ const stripRootId = ref<string | null>(props.focusKey ? getTabStripRoot(props.fo
 const strip = ref<FreezeStrip | null>(null);
 const frameStyle = ref<StripFrameStyle>(EMPTY_FRAME_STYLE);
 let isApplyingFocus = false;
-let graphBaseline: MindElixirData | null = null;
 let mind: MindElixirInstance | null = null;
 let displayOverride: MapDisplay = {};
 let snippetsOverride: Snippet[] = [];
@@ -133,8 +132,8 @@ function clearPendingSync(): void {
 
 function syncNow(): void {
   clearPendingSync();
-  if (!mind || props.locked || isGraphView.value || parseError.value !== null) return;
-  const serialized = props.codec.serialize(mind.getData(), displayOverride, snippetsOverride);
+  if (!mind || props.locked || parseError.value !== null) return;
+  const serialized = props.codec.serialize(withoutGateArrows(mind.getData()), displayOverride, snippetsOverride);
   if (serialized === pristineSerialized && props.content === '') return;
   const next = serialized === loaded?.serialized ? loaded.content : serialized;
   if (next === props.content) return;
@@ -276,6 +275,7 @@ function emitSelection(): void {
 function onOperation(info: { name: string }): void {
   if (info.name === BEGIN_EDIT_OPERATION) return;
   gates.syncLabels();
+  if (mind && isGraphView.value) syncGraphOverlay(mind);
   scheduleSync();
   scheduleDuplicateCount();
   const root = mind ? fullRoot(mind) : null;
@@ -356,7 +356,6 @@ function refreshStrip(knownRoot?: NodeObj | null): void {
 function wrapFocus(instance: MindElixirInstance): void {
   const { focusNode, cancelFocus } = instance;
   instance.focusNode = (tpc) => {
-    if (isGraphView.value) return;
     const isRoot = !tpc.nodeObj.parent;
     focusNode.call(instance, tpc);
     if (!isApplyingFocus && !isRoot) rememberFocus(tpc.nodeObj.id);
@@ -390,7 +389,7 @@ function focusById(id: string | null): void {
 }
 
 function reapplyFocus(): void {
-  if (!mind || isGraphView.value) return;
+  if (!mind) return;
   const id = focusId.value;
   if (id === null || !pathTo(fullRoot(mind), id)) {
     rememberFocus(null);
@@ -420,7 +419,7 @@ function sanitizedTopic(tpc: Topic): Topic | null {
 function sanitizeCopiedNodes(instance: MindElixirInstance): void {
   const { copyNodes } = instance;
   instance.copyNodes = (tpcs, to) => {
-    if (isEditBlocked() || isGraphView.value) return Promise.resolve();
+    if (isEditBlocked()) return Promise.resolve();
     const safe = tpcs.map(sanitizedTopic).filter((tpc): tpc is Topic => tpc !== null);
     return copyNodes.call(instance, safe, to);
   };
@@ -429,7 +428,7 @@ function sanitizeCopiedNodes(instance: MindElixirInstance): void {
 function guardRemovedNodes(instance: MindElixirInstance): void {
   const { removeNodes } = instance;
   instance.removeNodes = (tpcs) => {
-    if (isEditBlocked() || isGraphView.value) return Promise.resolve();
+    if (isEditBlocked()) return Promise.resolve();
     return removeNodes.call(instance, tpcs);
   };
 }
@@ -447,7 +446,7 @@ function teardown(): void {
   syncTimer = null;
   if (duplicateTimer !== null) window.clearTimeout(duplicateTimer);
   duplicateTimer = null;
-  resetGraphView();
+  isGraphView.value = false;
   duplicateCount.value = 0;
   strip.value = null;
   mind?.destroy();
@@ -461,11 +460,9 @@ async function applyExternalContent(): Promise<void> {
     return;
   }
   if (mind) {
-    const wasGraphView = isGraphView.value;
-    resetGraphView();
     leaveFocusQuietly();
     mind.refresh(data);
-    if (wasGraphView && canEdit()) mind.enableEdit();
+    syncGraphOverlay(mind);
     gates.syncLabels();
     rememberLoaded();
     reapplyFocus();
@@ -479,33 +476,15 @@ async function applyExternalContent(): Promise<void> {
   mount();
 }
 
-function resetGraphView(): void {
-  isGraphView.value = false;
-  graphBaseline = null;
-}
-
-function enterGraphView(instance: MindElixirInstance): void {
-  leaveFocusQuietly();
-  flushPendingSync();
-  graphBaseline = instance.getData();
-  instance.disableEdit();
-  instance.refresh(withGateArrows(graphBaseline));
-  isGraphView.value = true;
-}
-
-function leaveGraphView(instance: MindElixirInstance): void {
-  leaveFocusQuietly();
-  if (graphBaseline) instance.refresh(graphBaseline);
-  resetGraphView();
-  gates.syncLabels();
-  if (canEdit()) instance.enableEdit();
-  reapplyFocus();
+function syncGraphOverlay(instance: MindElixirInstance): void {
+  instance.arrows = isGraphView.value ? withGateOverlay(instance.arrows ?? [], instance.getData()) : withoutGateOverlay(instance.arrows ?? []);
+  instance.renderArrow();
 }
 
 function toggleGraphView(): void {
   if (!mind) return;
-  if (isGraphView.value) leaveGraphView(mind);
-  else enterGraphView(mind);
+  isGraphView.value = !isGraphView.value;
+  syncGraphOverlay(mind);
 }
 
 function toggleSelectedNodes(instance: MindElixirInstance): boolean {
@@ -580,7 +559,7 @@ function gateMenuKeys(): Partial<Record<GateMenuAction, string>> {
 
 const gates = createGateController({
   getMind: () => mind,
-  isReadOnly: () => isEditBlocked() || isGraphView.value,
+  isReadOnly: () => isEditBlocked(),
   brokenLabel: () => t('mindmap.gateBroken'),
   notify: (key: GateNotice) => toasts.info(t(`mindmap.${key}`)),
   onChange: scheduleSync,
@@ -597,7 +576,7 @@ function topicOf(id: string): string {
 }
 
 function mergeDuplicate(keepId: string, dupId: string): void {
-  if (!mind || isEditBlocked() || isGraphView.value) return;
+  if (!mind || isEditBlocked()) return;
   const merged = mergeIntoGate(mind.getData(), keepId, dupId);
   if (!merged) return;
   leaveFocusQuietly();
@@ -627,7 +606,7 @@ function commitTreeEdit(instance: MindElixirInstance, anchor: NodeObj, mutate: (
 }
 
 function canEditTree(): boolean {
-  return !!mind && !isEditBlocked() && !isGraphView.value;
+  return !!mind && !isEditBlocked();
 }
 
 function remapSortedSummaries(instance: MindElixirInstance, target: NodeObj, before: readonly NodeObj[]): number {
@@ -724,7 +703,7 @@ function activate(): void {
 const COPY_NODES_OPERATION = 'copyNodes';
 
 function insertTarget(mode: PasteMapTarget): Topic | null {
-  if (!mind || isEditBlocked() || isGraphView.value) return null;
+  if (!mind || isEditBlocked()) return null;
   const id = resolveInsertTargetId(mind.currentNode?.nodeObj.id ?? null, mind.nodeData.id, mode);
   const target = mind.findEle(id);
   if (isGate(target.nodeObj)) {
@@ -794,7 +773,7 @@ async function copyMap(): Promise<void> {
 }
 
 async function pasteMapFromClipboard(): Promise<void> {
-  if (!mind || isEditBlocked() || isGraphView.value) {
+  if (!mind || isEditBlocked()) {
     toasts.info(t('mindmap.pasteBlocked'));
     return;
   }
@@ -857,7 +836,7 @@ function onPasteTargetChosen(target: PasteMapTarget, remember: boolean): void {
 
 function onPaste(e: ClipboardEvent): void {
   if (e.target instanceof HTMLElement && e.target.id === TOPIC_EDITOR_ID) return;
-  if (!mind || isEditBlocked() || isGraphView.value) return;
+  if (!mind || isEditBlocked()) return;
   const result = parsePaste(e.clipboardData?.getData('text/plain') ?? '');
   e.preventDefault();
   if (!result.ok) {
@@ -901,7 +880,7 @@ watch(() => props.content, (content) => {
 });
 
 watch(() => props.locked, (isLocked) => {
-  if (!mind || isGraphView.value) return;
+  if (!mind) return;
   if (isLocked) {
     clearPendingSync();
     mind.disableEdit();
@@ -934,7 +913,7 @@ function setDisplayOverride(next: MapDisplay): void {
 }
 
 function setSnippets(next: readonly Snippet[]): void {
-  if (!mind || isEditBlocked() || isGraphView.value) return;
+  if (!mind || isEditBlocked()) return;
   snippetsOverride = [...next];
   scheduleSync();
 }
@@ -965,7 +944,7 @@ defineExpose({
       <button type="button" @click="emit('open-as-text')">{{ t('mindmap.openAsText') }}</button>
     </div>
     <template v-else>
-      <MindmapFreezeStrip v-if="strip && !isGraphView" :strip="strip" :focus-id="focusId" :frame-style="frameStyle" @focus="focusById" @anchor="setStripRoot" />
+      <MindmapFreezeStrip v-if="strip" :strip="strip" :focus-id="focusId" :frame-style="frameStyle" @focus="focusById" @anchor="setStripRoot" />
       <div ref="stage" class="mindmap-view__stage">
         <div ref="host" class="mindmap-view__canvas" />
         <slot name="rail" />
@@ -981,7 +960,7 @@ defineExpose({
       </div>
     </template>
     <div class="mindmap-view__status">
-      <button v-if="duplicateCount > 0 && !locked && !isReadOnly && !isGraphView" type="button" class="mindmap-view__chip" @click="findDuplicates">
+      <button v-if="duplicateCount > 0 && !locked && !isReadOnly" type="button" class="mindmap-view__chip" @click="findDuplicates">
         {{ duplicateCount === 1 ? t('mindmap.duplicatesChipOne') : t('mindmap.duplicatesChip', { count: duplicateCount }) }}
       </button>
       <span v-if="isGraphView" class="mindmap-view__badge">{{ t('mindmap.graphViewBadge') }}</span>

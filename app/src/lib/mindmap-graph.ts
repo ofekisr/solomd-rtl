@@ -34,6 +34,14 @@ export function withGateArrows(data: MindElixirData): MindElixirData {
   return copy;
 }
 
+export function withGateOverlay(arrows: readonly Arrow[], data: MindElixirData): Arrow[] {
+  return [...arrows.filter((a) => !a.id.startsWith(GATE_ARROW_PREFIX)), ...gateArrows(data)];
+}
+
+export function withoutGateOverlay(arrows: readonly Arrow[]): Arrow[] {
+  return arrows.filter((a) => !a.id.startsWith(GATE_ARROW_PREFIX));
+}
+
 export function withoutGateArrows(data: MindElixirData): MindElixirData {
   if (!data.arrows) return data;
   return { ...data, arrows: data.arrows.filter((a) => !a.id.startsWith(GATE_ARROW_PREFIX)) };
