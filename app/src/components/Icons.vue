@@ -124,8 +124,9 @@ defineProps<{ name: string; size?: number }>();
       <polyline points="18 8 22 12 18 16" />
     </template>
     <template v-else-if="name === 'view-edit'">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+      <polyline points="16 18 22 12 16 6" />
+      <polyline points="8 6 2 12 8 18" />
+      <line x1="14" y1="4" x2="10" y2="20" />
     </template>
     <template v-else-if="name === 'view-split'">
       <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />

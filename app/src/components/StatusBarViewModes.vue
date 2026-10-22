@@ -15,9 +15,9 @@ interface ViewModeButton {
 
 const BUTTONS: readonly ViewModeButton[] = [
   { mode: 'edit', icon: 'view-edit', labelKey: 'toolbar.editOnly' },
-  { mode: 'split', icon: 'view-split', labelKey: 'toolbar.splitPane' },
   { mode: 'liveEdit', icon: 'view-live', labelKey: 'toolbar.liveEditMode' },
   { mode: 'preview', icon: 'view-preview', labelKey: 'toolbar.previewOnly' },
+  { mode: 'split', icon: 'view-split', labelKey: 'toolbar.splitPane' },
   { mode: 'reading', icon: 'view-reading', labelKey: 'toolbar.readingMode' },
 ];
 

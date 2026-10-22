@@ -1011,14 +1011,6 @@ onBeforeUnmount(() => {
       </button>
       <button
         class="icon-btn"
-        @click="() => { settings.setViewMode('split'); track('view_mode', { mode: 'split' }); }"
-        :class="{ active: settings.viewMode === 'split' }"
-        :title="tip('toolbar.splitPane', 'view.cycleView')"
-      >
-        <Icon name="view-split" />
-      </button>
-      <button
-        class="icon-btn"
         data-phone-primary
         @click="() => { settings.setViewMode('liveEdit'); track('view_mode', { mode: 'liveEdit' }); }"
         :class="{ active: settings.viewMode === 'liveEdit' }"
@@ -1034,6 +1026,14 @@ onBeforeUnmount(() => {
         :title="t('toolbar.previewOnly')"
       >
         <Icon name="view-preview" />
+      </button>
+      <button
+        class="icon-btn"
+        @click="() => { settings.setViewMode('split'); track('view_mode', { mode: 'split' }); }"
+        :class="{ active: settings.viewMode === 'split' }"
+        :title="tip('toolbar.splitPane', 'view.cycleView')"
+      >
+        <Icon name="view-split" />
       </button>
       <button
         class="icon-btn"
