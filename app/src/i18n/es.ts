@@ -472,6 +472,12 @@ export const es: I18n = {
 
     autoReloadExternalChanges: 'Refrescar automáticamente los archivos cambiados por otras apps',
 
+    autoSaveAfterDelay: 'Guardar automáticamente al dejar de escribir',
+
+    autoSaveDelay: 'Retraso del guardado automático',
+
+    autoSaveAfterDelayHint: 'Guarda los archivos abiertos poco después de dejar de escribir (por defecto 1000 ms). Las pestañas sin título y los archivos con un cambio externo sin resolver nunca se guardan automáticamente.',
+
     autoReloadExternalChangesHint: 'Cuando está activado (por defecto), el editor recarga en su lugar si otro programa (otro editor, git checkout, cliente de sincronización) escribe el archivo abierto. Las pestañas no guardadas siempre muestran un diálogo — tus ediciones nunca se pierden en silencio.',
     autoSaveOnBlur: 'Auto-save when the window loses focus',
     autoSaveOnBlurHint: 'When on, switching to another app silently saves every unsaved tab that already has a file. New untitled notes are skipped (they would pop a Save-As dialog). Off by default — Cmd/Ctrl+S still saves manually.',

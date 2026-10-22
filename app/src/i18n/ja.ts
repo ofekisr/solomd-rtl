@@ -472,6 +472,12 @@ export const ja: I18n = {
 
     autoReloadExternalChanges: '他のアプリで変更されたファイルを自動再読み込み',
 
+    autoSaveAfterDelay: '入力停止後に自動保存',
+
+    autoSaveDelay: '自動保存の遅延',
+
+    autoSaveAfterDelayHint: '入力を止めて少し経つと開いているファイルを保存します（既定 1000 ms）。無題のタブや未解決の外部変更があるファイルは自動保存されません。',
+
     autoReloadExternalChangesHint: 'オン（既定）にすると、別のプログラム（他のエディタ、git checkout、同期クライアント）が現在開いているファイルを書き換えた場合に、エディタが内容をその場で再読み込みします。未保存のタブは常に確認ダイアログを出します —— 編集が黙って失われることはありません。',
     autoSaveOnBlur: 'Auto-save when the window loses focus',
     autoSaveOnBlurHint: 'When on, switching to another app silently saves every unsaved tab that already has a file. New untitled notes are skipped (they would pop a Save-As dialog). Off by default — Cmd/Ctrl+S still saves manually.',

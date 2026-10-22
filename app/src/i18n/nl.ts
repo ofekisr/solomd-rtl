@@ -472,6 +472,12 @@ export const nl: I18n = {
 
     autoReloadExternalChanges: 'Door andere apps gewijzigde bestanden automatisch herladen',
 
+    autoSaveAfterDelay: 'Automatisch opslaan als je stopt met typen',
+
+    autoSaveDelay: 'Vertraging automatisch opslaan',
+
+    autoSaveAfterDelayHint: 'Slaat open bestanden kort na het typen op (standaard 1000 ms). Naamloze tabbladen en bestanden met een onopgeloste externe wijziging worden nooit automatisch opgeslagen.',
+
     autoReloadExternalChangesHint: 'Wanneer ingeschakeld (standaard), laadt de editor het bestand opnieuw als een ander programma (andere editor, git checkout, syncclient) het open bestand wijzigt. Tabbladen met niet-opgeslagen wijzigingen tonen altijd een dialoogvenster — uw bewerkingen gaan nooit stilletjes verloren.',
     autoSaveOnBlur: 'Auto-save when the window loses focus',
     autoSaveOnBlurHint: 'When on, switching to another app silently saves every unsaved tab that already has a file. New untitled notes are skipped (they would pop a Save-As dialog). Off by default — Cmd/Ctrl+S still saves manually.',

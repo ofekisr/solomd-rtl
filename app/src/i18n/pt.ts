@@ -474,6 +474,12 @@ export const pt: I18n = {
 
     autoReloadExternalChanges: 'Recarregar automaticamente arquivos alterados por outros apps',
 
+    autoSaveAfterDelay: 'Salvar automaticamente ao parar de digitar',
+
+    autoSaveDelay: 'Atraso do salvamento automático',
+
+    autoSaveAfterDelayHint: 'Salva os arquivos abertos logo depois que você para de digitar (padrão 1000 ms). Abas sem título e arquivos com alteração externa não resolvida nunca são salvos automaticamente.',
+
     autoReloadExternalChangesHint: 'Quando ativado (padrão), o editor recarrega no lugar se outro programa (outro editor, git checkout, cliente de sincronização) escrever o arquivo aberto. Abas não salvas sempre mostram um diálogo — suas edições nunca são perdidas em silêncio.',
     autoSaveOnBlur: 'Auto-save when the window loses focus',
     autoSaveOnBlurHint: 'When on, switching to another app silently saves every unsaved tab that already has a file. New untitled notes are skipped (they would pop a Save-As dialog). Off by default — Cmd/Ctrl+S still saves manually.',

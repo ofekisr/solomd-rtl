@@ -472,6 +472,12 @@ export const de: I18n = {
 
     autoReloadExternalChanges: 'Von anderen Apps geänderte Dateien automatisch neu laden',
 
+    autoSaveAfterDelay: 'Automatisch speichern, wenn das Tippen stoppt',
+
+    autoSaveDelay: 'Verzögerung für automatisches Speichern',
+
+    autoSaveAfterDelayHint: 'Speichert geöffnete Dateien kurz nach dem Tippen (Standard 1000 ms). Unbenannte Tabs und Dateien mit ungelöster externer Änderung werden nie automatisch gespeichert.',
+
     autoReloadExternalChangesHint: 'Wenn aktiviert (Standard), lädt der Editor die Datei direkt neu, falls ein anderes Programm (Editor, git checkout, Sync-Client) sie ändert. Tabs mit ungespeicherten Änderungen zeigen immer einen Dialog — Ihre Bearbeitungen gehen nie still verloren.',
     autoSaveOnBlur: 'Auto-save when the window loses focus',
     autoSaveOnBlurHint: 'When on, switching to another app silently saves every unsaved tab that already has a file. New untitled notes are skipped (they would pop a Save-As dialog). Off by default — Cmd/Ctrl+S still saves manually.',

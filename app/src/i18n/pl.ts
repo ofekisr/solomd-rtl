@@ -472,6 +472,12 @@ export const pl: I18n = {
 
     autoReloadExternalChanges: 'Automatyczne odświeżanie plików zmienionych przez inne aplikacje',
 
+    autoSaveAfterDelay: 'Autozapis po zakończeniu pisania',
+
+    autoSaveDelay: 'Opóźnienie autozapisu',
+
+    autoSaveAfterDelayHint: 'Zapisuje otwarte pliki chwilę po zakończeniu pisania (domyślnie 1000 ms). Karty bez nazwy i pliki z nierozwiązaną zmianą zewnętrzną nigdy nie są zapisywane automatycznie.',
+
     autoReloadExternalChangesHint: 'Gdy włączone (domyślnie), edytor przeładowuje plik w miejscu, jeśli inny program (inny edytor, git checkout, klient synchronizacji) go zapisze. Niezapisane karty zawsze pokazują okno dialogowe — Twoje zmiany nigdy nie znikają po cichu.',
     autoSaveOnBlur: 'Auto-save when the window loses focus',
     autoSaveOnBlurHint: 'When on, switching to another app silently saves every unsaved tab that already has a file. New untitled notes are skipped (they would pop a Save-As dialog). Off by default — Cmd/Ctrl+S still saves manually.',

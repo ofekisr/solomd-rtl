@@ -38,6 +38,7 @@ import Editor from './Editor.vue';
 import Preview from './Preview.vue';
 import type { Snippet } from '../lib/mindmap-snippets';
 import MindmapSnippets from './MindmapSnippets.vue';
+import { hasAnyNote } from '../lib/mindmap-view-defaults';
 import MindmapOutlineInvalid from './MindmapOutlineInvalid.vue';
 
 const SOURCE_LANGUAGE = 'json';
@@ -249,8 +250,19 @@ function applyDisplay(): void {
   canvas.value?.refreshFrameStyle();
 }
 
+let viewDefaultsAppliedFor: string | null = null;
+
+function applyViewDefaultsOnce(): void {
+  const mind = canvas.value?.getMind();
+  if (!mind || viewDefaultsAppliedFor === props.tab.id) return;
+  viewDefaultsAppliedFor = props.tab.id;
+  settings.setMindmapPanelOpen(false);
+  settings.setMindmapDetailsOpen(hasAnyNote(mind.nodeData));
+}
+
 function onCanvasReady(): void {
   snippets.value = [...(canvas.value?.getSnippets() ?? [])];
+  applyViewDefaultsOnce();
   displayOverride.value = canvas.value?.getDisplayOverride() ?? {};
   applyDisplay();
   revealPending();

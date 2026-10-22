@@ -14,8 +14,8 @@ test('hebrew-dominant maps without a stored direction grow leftward', () => {
   assert.equal(layoutDirectionFor(data), MINDMAP_LAYOUT.LEFT);
 });
 
-test('latin-dominant maps default to both sides', () => {
+test('latin-dominant maps without a stored direction also grow leftward', () => {
   const data = createEmptyMindmap('Project plan');
-  data.nodeData.children = [{ id: 'a', topic: 'שלב one two three', children: [] }];
-  assert.equal(layoutDirectionFor(data), MINDMAP_LAYOUT.SIDE);
+  data.nodeData.children = [{ id: 'a', topic: 'one two three', children: [] }];
+  assert.equal(layoutDirectionFor(data), MINDMAP_LAYOUT.LEFT);
 });

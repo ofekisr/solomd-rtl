@@ -472,6 +472,12 @@ export const tr: I18n = {
 
     autoReloadExternalChanges: 'Diğer uygulamalar tarafından değiştirilen dosyaları otomatik yenile',
 
+    autoSaveAfterDelay: 'Yazmayı bırakınca otomatik kaydet',
+
+    autoSaveDelay: 'Otomatik kaydetme gecikmesi',
+
+    autoSaveAfterDelayHint: 'Yazmayı bıraktıktan kısa süre sonra açık dosyaları kaydeder (varsayılan 1000 ms). Adsız sekmeler ve çözülmemiş harici değişikliği olan dosyalar asla otomatik kaydedilmez.',
+
     autoReloadExternalChangesHint: 'Etkinleştirildiğinde (varsayılan), başka bir program (diğer editör, git checkout, eşitleme istemcisi) açık dosyayı yazarsa editör yerinde yeniden yükler. Kaydedilmemiş sekmeler her zaman iletişim kutusu gösterir — düzenlemeleriniz asla sessizce kaybolmaz.',
     autoSaveOnBlur: 'Auto-save when the window loses focus',
     autoSaveOnBlurHint: 'When on, switching to another app silently saves every unsaved tab that already has a file. New untitled notes are skipped (they would pop a Save-As dialog). Off by default — Cmd/Ctrl+S still saves manually.',

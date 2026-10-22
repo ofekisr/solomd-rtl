@@ -486,6 +486,9 @@ export const en = {
     perWorkspaceTabsHint: 'On (default): each folder remembers its own open tabs, so opening one folder never resurfaces another folder\'s accumulated tabs. Unsaved and untitled tabs always follow you across folders. Off: all tabs share one global list.',
 
     autoReloadExternalChanges: 'Auto-refresh files changed by other apps',
+    autoSaveAfterDelay: 'Auto-save after typing stops',
+    autoSaveDelay: 'Auto-save delay',
+    autoSaveAfterDelayHint: 'Saves open files a moment after you stop typing (default 1000 ms). Untitled tabs and files with an unresolved external change are never auto-saved.',
 
     autoReloadExternalChangesHint: 'When on (default), the editor reloads in place if another program writes the file you have open (other editors, git checkout, sync clients). Unsaved tabs always prompt — your edits are never silently lost.',
     autoSaveOnBlur: 'Auto-save when the window loses focus',

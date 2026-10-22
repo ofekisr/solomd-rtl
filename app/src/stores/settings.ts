@@ -8,6 +8,7 @@ import { isViewModeChangeAllowed } from '../lib/view-mode-guard';
 import { normalizePasteMapSetting, type PasteMapSetting } from '../lib/mindmap-insert';
 import { DEFAULT_MINDMAP_CONTROL_STYLE, normalizeControlStyle, type MindmapControlStyle } from '../lib/mindmap-icon-names';
 import { parseTagRules, type TagRule } from '../lib/mindmap-folder-tree';
+import { clampAutoSaveDelay, DEFAULT_AUTO_SAVE_DELAY_MS } from '../lib/auto-save';
 
 const LS_KEY = 'solomd.settings.v1';
 
@@ -147,6 +148,8 @@ interface Settings {
   // tabs are skipped — they'd otherwise pop a Save-As dialog on blur. Default
   // off so the explicit-⌘S mental model stays the default.
   autoSaveOnBlur: boolean;
+  autoSaveAfterDelay: boolean;
+  autoSaveDelayMs: number;
   // Opening a file from the toolbar/menu spawns a new Tauri window instead
   // of a new tab in the current window. Default off.
   openFileInNewWindow: boolean;
@@ -622,6 +625,8 @@ function defaults(): Settings {
     perWorkspaceTabs: true,
     autoReloadExternalChanges: true,
     autoSaveOnBlur: false,
+    autoSaveAfterDelay: true,
+    autoSaveDelayMs: DEFAULT_AUTO_SAVE_DELAY_MS,
     openFileInNewWindow: false,
     revealInFileTreeOnOpen: false,
     openLinkedFilesExternally: true,
@@ -790,6 +795,7 @@ function load(): Settings {
       merged.pdfDefaults = mergePdfDefaults(parsed.pdfDefaults);
       if ((merged.language as string) === 'zh') merged.language = 'en';
       merged.mindmapDefaults = parseMapDisplay(parsed.mindmapDefaults);
+      merged.autoSaveDelayMs = clampAutoSaveDelay(parsed.autoSaveDelayMs);
       merged.mindmapControlStyle = normalizeControlStyle(parsed.mindmapControlStyle);
       merged.mindmapPasteMapTarget = normalizePasteMapSetting(parsed.mindmapPasteMapTarget);
       if (parsed.mindmapFolderTagRules !== undefined) merged.mindmapFolderTagRules = parseTagRules(parsed.mindmapFolderTagRules);
@@ -1163,6 +1169,14 @@ export const useSettingsStore = defineStore('settings', {
       this.autoReloadExternalChanges = !this.autoReloadExternalChanges;
       this.persist();
     },
+    toggleAutoSaveAfterDelay() {
+      this.autoSaveAfterDelay = !this.autoSaveAfterDelay;
+      this.persist();
+    },
+    setAutoSaveDelayMs(ms: number) {
+      this.autoSaveDelayMs = clampAutoSaveDelay(ms);
+      this.persist();
+    },
     toggleAutoSaveOnBlur() {
       this.autoSaveOnBlur = !this.autoSaveOnBlur;
       this.persist();
@@ -1406,6 +1420,16 @@ export const useSettingsStore = defineStore('settings', {
     },
     toggleMindmapPanel() {
       this.mindmapPanelOpen = !this.mindmapPanelOpen;
+      this.persist();
+    },
+    setMindmapPanelOpen(isOpen: boolean) {
+      if (this.mindmapPanelOpen === isOpen) return;
+      this.mindmapPanelOpen = isOpen;
+      this.persist();
+    },
+    setMindmapDetailsOpen(isOpen: boolean) {
+      if (this.mindmapDetailsOpen === isOpen) return;
+      this.mindmapDetailsOpen = isOpen;
       this.persist();
     },
     toggleMindmapDetails() {

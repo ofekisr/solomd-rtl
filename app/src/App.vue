@@ -72,6 +72,7 @@ import { useFiles } from './composables/useFiles';
 import { useExport } from './composables/useExport';
 import { useShortcuts } from './composables/useShortcuts';
 import { useFileWatcher } from './composables/useFileWatcher';
+import { useAutoSave } from './composables/useAutoSave';
 import { loadCustomTheme } from './lib/custom-theme';
 import { isIOS, isMacOS, isAndroid, isMobile } from './lib/platform';
 import GitCommitPanel from './components/git/GitCommitPanel.vue';
@@ -402,6 +403,7 @@ useShortcuts({
 });
 
 useFileWatcher(showFileChangedDialog);
+useAutoSave(files.saveTab);
 
 // v4.6.2 — Ctrl/Cmd + mouse wheel zooms the whole app (Obsidian-style),
 // reusing the globalZoom axis so ⌘0 still resets it and it works in edit +

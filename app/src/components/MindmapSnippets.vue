@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { createSnippet, SNIPPET_KINDS, type Snippet, type SnippetKind } from '../lib/mindmap-snippets';
 import { useI18n } from '../i18n';
 import MindmapSnippetCard from './MindmapSnippetCard.vue';
@@ -9,7 +9,11 @@ const ADD_LABEL_KEYS: Record<SnippetKind, string> = { md: 'mindmap.snippetAddMd'
 const props = defineProps<{ snippets: readonly Snippet[]; editable: boolean }>();
 const emit = defineEmits<{ change: [next: Snippet[]] }>();
 const { t } = useI18n();
-const isCollapsed = ref(false);
+const isCollapsed = ref(props.snippets.length === 0);
+
+watch(() => props.snippets.length, (count, previous) => {
+  if (previous === 0 && count > 0) isCollapsed.value = false;
+});
 
 function add(kind: SnippetKind): void {
   emit('change', [...props.snippets, createSnippet(kind, props.snippets, t('mindmap.snippetUntitled'))]);

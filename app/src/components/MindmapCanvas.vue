@@ -200,6 +200,7 @@ function mount(): void {
     pasteHandler: onPaste,
   });
   wrapToCenter(mind);
+  if (props.fenceLine === undefined) setDescendantsExpanded(data.nodeData, false);
   mind.init(data);
   direction.value = mind.direction;
   chordPan.attach(host.value);

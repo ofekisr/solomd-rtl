@@ -472,6 +472,12 @@ export const sv: I18n = {
 
     autoReloadExternalChanges: 'Uppdatera automatiskt filer som ändrats av andra appar',
 
+    autoSaveAfterDelay: 'Spara automatiskt när du slutar skriva',
+
+    autoSaveDelay: 'Fördröjning för autospara',
+
+    autoSaveAfterDelayHint: 'Sparar öppna filer strax efter att du slutat skriva (standard 1000 ms). Namnlösa flikar och filer med en olöst extern ändring sparas aldrig automatiskt.',
+
     autoReloadExternalChangesHint: 'När aktiverat (standard) laddar redigeraren om filen direkt om ett annat program (annan editor, git checkout, synkklient) skriver till den öppna filen. Osparade flikar visar alltid en dialog — dina ändringar försvinner aldrig i tysthet.',
     autoSaveOnBlur: 'Auto-save when the window loses focus',
     autoSaveOnBlurHint: 'When on, switching to another app silently saves every unsaved tab that already has a file. New untitled notes are skipped (they would pop a Save-As dialog). Off by default — Cmd/Ctrl+S still saves manually.',

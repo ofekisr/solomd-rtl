@@ -472,6 +472,12 @@ export const ko: I18n = {
 
     autoReloadExternalChanges: '다른 앱이 변경한 파일 자동 새로고침',
 
+    autoSaveAfterDelay: '입력을 멈추면 자동 저장',
+
+    autoSaveDelay: '자동 저장 지연',
+
+    autoSaveAfterDelayHint: '입력을 멈추고 잠시 후 열린 파일을 저장합니다(기본 1000 ms). 제목 없는 탭과 해결되지 않은 외부 변경이 있는 파일은 자동 저장되지 않습니다.',
+
     autoReloadExternalChangesHint: '켜져 있으면(기본값) 다른 프로그램(다른 에디터, git checkout, 동기화 클라이언트)이 열려 있는 파일을 수정했을 때 에디터가 자동으로 내용을 새로고침합니다. 저장되지 않은 탭은 항상 확인 대화상자를 표시합니다 —— 편집 내용이 조용히 사라지지 않습니다.',
     autoSaveOnBlur: 'Auto-save when the window loses focus',
     autoSaveOnBlurHint: 'When on, switching to another app silently saves every unsaved tab that already has a file. New untitled notes are skipped (they would pop a Save-As dialog). Off by default — Cmd/Ctrl+S still saves manually.',

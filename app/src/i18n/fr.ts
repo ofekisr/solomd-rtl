@@ -472,6 +472,12 @@ export const fr: I18n = {
 
     autoReloadExternalChanges: 'Rafraîchir automatiquement les fichiers modifiés par d\'autres apps',
 
+    autoSaveAfterDelay: 'Enregistrer automatiquement après la saisie',
+
+    autoSaveDelay: 'Délai d’enregistrement automatique',
+
+    autoSaveAfterDelayHint: 'Enregistre les fichiers ouverts peu après la fin de la saisie (1000 ms par défaut). Les onglets sans titre et les fichiers avec une modification externe non résolue ne sont jamais enregistrés automatiquement.',
+
     autoReloadExternalChangesHint: 'Lorsqu\'activé (par défaut), l\'éditeur recharge en place si un autre programme (autre éditeur, git checkout, client de synchronisation) écrit le fichier ouvert. Les onglets non enregistrés affichent toujours une boîte de dialogue — vos modifications ne sont jamais perdues silencieusement.',
     autoSaveOnBlur: 'Auto-save when the window loses focus',
     autoSaveOnBlurHint: 'When on, switching to another app silently saves every unsaved tab that already has a file. New untitled notes are skipped (they would pop a Save-As dialog). Off by default — Cmd/Ctrl+S still saves manually.',

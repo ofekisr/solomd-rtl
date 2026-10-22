@@ -9,12 +9,17 @@ import { isDiffPath } from '../lib/git-pane/diffTab';
 type FileChangedAction = 'reload' | 'overwrite' | 'cancel';
 type ShowDialog = (fileName: string) => Promise<FileChangedAction>;
 
+const pendingPaths = new Set<string>();
+
+export function isFileConflictPending(filePath: string): boolean {
+  return pendingPaths.has(filePath);
+}
+
 export function useFileWatcher(showDialog: ShowDialog) {
   const tabs = useTabsStore();
   const settings = useSettingsStore();
   const watchedPaths = new Set<string>();
   let unlisten: UnlistenFn | null = null;
-  const pendingPaths = new Set<string>();
   /** Disk bytes the user has already been asked about, per path. */
   const lastPrompted = new Map<string, string>();
   let revalidating = false;

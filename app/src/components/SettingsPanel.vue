@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { MAX_AUTO_SAVE_DELAY_MS, MIN_AUTO_SAVE_DELAY_MS } from '../lib/auto-save';
 import { PASTE_MAP_SETTINGS, type PasteMapSetting } from '../lib/mindmap-insert';
 import { MINDMAP_CONTROL_STYLES, type MindmapControlStyle } from '../lib/mindmap-icon-names';
 import { ref, computed, watch, onUnmounted, nextTick } from 'vue';
@@ -2063,6 +2064,30 @@ function onSelectPdfFont(v: string) {
           </label>
           <div style="font-size: 11px; color: var(--text-faint); margin-top: 4px; line-height: 1.5;">
             {{ t('settings.autoReloadExternalChangesHint') }}
+          </div>
+        </section>
+
+        <section data-cat="advanced">
+          <label>
+            <input type="checkbox" :checked="settings.autoSaveAfterDelay" @change="settings.toggleAutoSaveAfterDelay()" />
+            {{ t('settings.autoSaveAfterDelay') }}
+          </label>
+          <label style="margin-top: 6px;">
+            {{ t('settings.autoSaveDelay') }}
+            <input
+              type="number"
+              :min="MIN_AUTO_SAVE_DELAY_MS"
+              :max="MAX_AUTO_SAVE_DELAY_MS"
+              step="100"
+              style="width: 90px;"
+              :value="settings.autoSaveDelayMs"
+              :disabled="!settings.autoSaveAfterDelay"
+              @change="settings.setAutoSaveDelayMs(Number(($event.target as HTMLInputElement).value))"
+            />
+            ms
+          </label>
+          <div style="font-size: 11px; color: var(--text-faint); margin-top: 4px; line-height: 1.5;">
+            {{ t('settings.autoSaveAfterDelayHint') }}
           </div>
         </section>
 
