@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import type { NodeObj } from 'mind-elixir';
 import { useI18n } from '../i18n';
+import type { EffectiveStyle } from '../lib/mindmap-effective-style';
 import {
   BORDER_WIDTH_MAX, FONT_SIZE_MAX, FONT_SIZE_MIN, NODE_BORDER_STYLES, NODE_DECORATIONS, NODE_ICONS, NODE_SHAPES, NODE_WIDTH_MAX, NODE_WIDTH_MIN,
   fontKeyOf, formatBorder, isSafeLink, parseBorder, shapeKeyOf, type NodeBorder, type NodeField,
@@ -19,7 +20,7 @@ const SHAPE_LABELS: Readonly<Record<string, string>> = { square: 'mindmap.shapeS
 const BORDER_LABELS: Readonly<Record<string, string>> = { solid: 'mindmap.borderSolid', dashed: 'mindmap.borderDashed', dotted: 'mindmap.borderDotted', double: 'mindmap.borderDouble' };
 
 type StyleWithRadius = NonNullable<NodeObj['style']> & { borderRadius?: string };
-const props = defineProps<{ nodes: readonly NodeObj[]; disabled: boolean }>();
+const props = defineProps<{ nodes: readonly NodeObj[]; effective: EffectiveStyle | null; disabled: boolean }>();
 const emit = defineEmits<{
   patch: [field: NodeField, value: string | number | boolean | readonly string[] | null];
   icon: [icon: string, isOn: boolean];
@@ -31,7 +32,7 @@ const style = computed<StyleWithRadius>(() => node.value.style ?? {});
 const isBatch = computed(() => props.nodes.length > 1);
 const url = ref('');
 const isUrlInvalid = computed(() => url.value !== '' && !isSafeLink(url.value));
-const fontSize = computed(() => Number.parseInt(style.value.fontSize ?? '', 10) || DEFAULT_FONT_SIZE);
+const fontSize = computed(() => Number.parseInt(style.value.fontSize ?? '', 10) || props.effective?.fontSize || DEFAULT_FONT_SIZE);
 const width = computed(() => Number.parseInt(style.value.width ?? '', 10) || null);
 const border = computed(() => parseBorder(style.value.border));
 const hasTopLevel = computed(() => props.nodes.some((n) => n.parent !== undefined && n.parent.parent === undefined));
@@ -85,13 +86,13 @@ function inputValue(event: Event): string {
     <p v-if="isBatch" class="mm-fields__batch" role="status">{{ t('mindmap.panelBatch', { count: nodes.length }) }}</p>
     <label>{{ t('mindmap.fieldTextColor') }}
       <span class="mm-fields__row">
-        <input type="color" :value="style.color || themeTextColor()" @change="emit('patch', 'color', inputValue($event))" />
+        <input type="color" :value="style.color || effective?.color || themeTextColor()" @change="emit('patch', 'color', inputValue($event))" />
         <button type="button" @click="emit('patch', 'color', null)">{{ t('mindmap.fieldClear') }}</button>
       </span>
     </label>
     <label>{{ t('mindmap.fieldBackground') }}
       <span class="mm-fields__row">
-        <input type="color" :value="style.background || '#ffffff'" @change="emit('patch', 'background', inputValue($event))" />
+        <input type="color" :value="style.background || effective?.background || '#ffffff'" @change="emit('patch', 'background', inputValue($event))" />
         <button type="button" @click="emit('patch', 'background', null)">{{ t('mindmap.fieldClear') }}</button>
       </span>
     </label>
@@ -141,7 +142,7 @@ function inputValue(event: Event): string {
     </label>
     <label>{{ t('mindmap.fieldBranchColor') }}
       <span class="mm-fields__row">
-        <input type="color" :value="node.branchColor ?? '#888888'" @change="emit('patch', 'branchColor', inputValue($event))" />
+        <input type="color" :value="node.branchColor ?? effective?.branchColor ?? '#888888'" @change="emit('patch', 'branchColor', inputValue($event))" />
         <button type="button" @click="emit('patch', 'branchColor', null)">{{ t('mindmap.fieldClear') }}</button>
       </span>
     </label>

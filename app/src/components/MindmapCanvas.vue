@@ -959,7 +959,7 @@ defineExpose({
 .mindmap-view { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
 .mindmap-view__stage { position: relative; flex: 1; min-height: 0; display: flex; background: var(--bg); }
 .mindmap-view__canvas { flex: 1; min-height: 0; width: 100%; }
-.mindmap-view__canvas :deep(:is(.mm-folded-count--direct, .mm-folded-count--all, .mm-folded-count--both) me-epd[data-count-all]:not(.minus)) {
+.mindmap-view__canvas :deep(:is([data-folded-count='direct'], [data-folded-count='all'], [data-folded-count='both']) me-epd[data-count-all]:not(.minus)) {
   background-image: none;
   background-color: var(--main-color);
   color: var(--main-bgcolor);
@@ -975,12 +975,12 @@ defineExpose({
   direction: ltr;
   unicode-bidi: isolate;
 }
-.mindmap-view__canvas :deep(:is(.mm-folded-count--direct, .mm-folded-count--all, .mm-folded-count--both) .rhs me-epd[data-count-all]:not(.minus)) { left: calc(100% - 8px); right: auto; }
-.mindmap-view__canvas :deep(:is(.mm-folded-count--direct, .mm-folded-count--all, .mm-folded-count--both) .lhs me-epd[data-count-all]:not(.minus)) { right: calc(100% - 8px); left: auto; }
-.mindmap-view__canvas :deep(:is(.mm-folded-count--direct, .mm-folded-count--all, .mm-folded-count--both) me-nodes.down me-epd[data-count-all]:not(.minus)) { left: calc(50% - 9px); right: auto; transform: translateX(calc(-50% + 9px)); }
-.mindmap-view__canvas :deep(.mm-folded-count--direct me-epd[data-count-direct]:not(.minus)::after) { content: attr(data-count-direct); }
-.mindmap-view__canvas :deep(.mm-folded-count--all me-epd[data-count-all]:not(.minus)::after) { content: attr(data-count-all); }
-.mindmap-view__canvas :deep(.mm-folded-count--both me-epd[data-count-both]:not(.minus)::after) { content: attr(data-count-both); }
+.mindmap-view__canvas :deep(:is([data-folded-count='direct'], [data-folded-count='all'], [data-folded-count='both']) .rhs me-epd[data-count-all]:not(.minus)) { left: calc(100% - 8px); right: auto; }
+.mindmap-view__canvas :deep(:is([data-folded-count='direct'], [data-folded-count='all'], [data-folded-count='both']) .lhs me-epd[data-count-all]:not(.minus)) { right: calc(100% - 8px); left: auto; }
+.mindmap-view__canvas :deep(:is([data-folded-count='direct'], [data-folded-count='all'], [data-folded-count='both']) me-nodes.down me-epd[data-count-all]:not(.minus)) { left: calc(50% - 9px); right: auto; transform: translateX(calc(-50% + 9px)); }
+.mindmap-view__canvas :deep([data-folded-count='direct'] me-epd[data-count-direct]:not(.minus)::after) { content: attr(data-count-direct); }
+.mindmap-view__canvas :deep([data-folded-count='all'] me-epd[data-count-all]:not(.minus)::after) { content: attr(data-count-all); }
+.mindmap-view__canvas :deep([data-folded-count='both'] me-epd[data-count-both]:not(.minus)::after) { content: attr(data-count-both); }
 .mindmap-view__canvas.mm-grabbing, .mindmap-view__canvas.mm-grabbing :deep(*) { cursor: grabbing !important; }
 .mindmap-view__status { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; z-index: 5; display: flex; gap: 6px; pointer-events: none; }
 .mindmap-view__badge { padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); opacity: 0.9; }

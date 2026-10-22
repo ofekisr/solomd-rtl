@@ -2,7 +2,7 @@ import type { MindElixirInstance } from 'mind-elixir';
 import { mapThemeVariant, type ThemeFamily } from '../lib/mindmap-themes';
 import { DEFAULT_NODE_GAP, FONT_STACKS, arrowMainBranch, arrowSubBranch, resolveMapDisplay, straightMainBranch, straightSubBranch, type BranchBox, type BranchStyle, type FoldedCountMode, type MapDisplay, type ResolvedMapDisplay } from '../lib/mindmap-display';
 
-const FOLDED_COUNT_CLASS_PREFIX = 'mm-folded-count--';
+const FOLDED_COUNT_ATTR = 'data-folded-count';
 const TEXT_COLOR_VARS: readonly string[] = ['--color', '--main-color'];
 
 export interface BranchGenerators {
@@ -38,9 +38,7 @@ function applyBranchStyle(mind: MindElixirInstance, display: ResolvedMapDisplay,
 }
 
 function applyFoldedCount(mind: MindElixirInstance, mode: FoldedCountMode): void {
-  const classes = mind.container.classList;
-  for (const name of [...classes]) if (name.startsWith(FOLDED_COUNT_CLASS_PREFIX)) classes.remove(name);
-  classes.add(FOLDED_COUNT_CLASS_PREFIX + mode);
+  mind.container.setAttribute(FOLDED_COUNT_ATTR, mode);
 }
 
 function applyText(mind: MindElixirInstance, display: ResolvedMapDisplay, hasExplicitFont: boolean): void {

@@ -28,6 +28,7 @@ import { TAB_SOURCE_PREFIX } from '../lib/mindmap-workbench';
 import MindmapCanvas from './MindmapCanvas.vue';
 import MindmapSidePanel from './MindmapSidePanel.vue';
 import MindmapNodeFields from './MindmapNodeFields.vue';
+import { readEffectiveStyle, type EffectiveStyle } from '../lib/mindmap-effective-style';
 import MindmapDetailsPane from './MindmapDetailsPane.vue';
 import { fieldsPatch, notePatch, type NodeFieldEntry } from '../lib/mindmap-node-fields';
 import MindmapMapFields from './MindmapMapFields.vue';
@@ -64,7 +65,13 @@ const canvas = ref<MindmapCanvasApi | null>(null);
 const sourceError = ref<string | null>(null);
 const selected = ref<NodeObj[]>([]);
 const singleNode = computed(() => (selected.value.length === 1 ? selected.value[0] : null));
+const effectiveStyle = computed<EffectiveStyle | null>(() => {
+  const node = selected.value[0];
+  const element = node ? findLiveElement(canvas.value?.getMind() ?? null, node.id) : null;
+  return element ? readEffectiveStyle(element, EFFECTIVE_FALLBACK) : null;
+});
 const BATCH_RESHAPE_OPERATION = 'reshapeNodes';
+const EFFECTIVE_FALLBACK: EffectiveStyle = { color: '#000000', background: '#ffffff', fontSize: 16, branchColor: '#888888' };
 
 function has(part: CellPart): boolean {
   return cellHas(parts.value, part);
@@ -466,7 +473,7 @@ defineExpose({ setLens, canvas, lens, openFind });
       <MindmapSidePanel v-if="isPanelVisible" :has-single-node="selected.length > 0">
         <template #node>
           <p v-if="!isPanelEditable" class="mindmap-shell__hint">{{ t('mindmap.panelReadOnly') }}</p>
-          <MindmapNodeFields v-if="selected.length > 0" :nodes="selected" :disabled="!isPanelEditable" @patch="applyNodePatch" @icon="applyNodeIcon" />
+          <MindmapNodeFields v-if="selected.length > 0" :nodes="selected" :effective="effectiveStyle" :disabled="!isPanelEditable" @patch="applyNodePatch" @icon="applyNodeIcon" />
         </template>
         <template #map>
           <MindmapMapFields :value="displayOverride" :inherited="settings.mindmapDefaults" :disabled="!isPanelEditable" @set="setOverride" @clear="clearOverride" />
