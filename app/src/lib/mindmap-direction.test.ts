@@ -8,14 +8,11 @@ test('a stored direction always wins', () => {
   assert.equal(layoutDirectionFor(data), MINDMAP_LAYOUT.RIGHT);
 });
 
-test('hebrew-dominant maps without a stored direction grow leftward', () => {
-  const data = createEmptyMindmap('תוכנית עבודה');
-  data.nodeData.children = [{ id: 'a', topic: 'משימה ראשונה API', children: [] }];
-  assert.equal(layoutDirectionFor(data), MINDMAP_LAYOUT.LEFT);
-});
-
-test('latin-dominant maps without a stored direction also grow leftward', () => {
-  const data = createEmptyMindmap('Project plan');
-  data.nodeData.children = [{ id: 'a', topic: 'one two three', children: [] }];
-  assert.equal(layoutDirectionFor(data), MINDMAP_LAYOUT.LEFT);
+test('maps without a stored direction grow rightward', () => {
+  const hebrew = createEmptyMindmap('תוכנית עבודה');
+  hebrew.nodeData.children = [{ id: 'a', topic: 'משימה ראשונה', children: [] }];
+  assert.equal(layoutDirectionFor(hebrew), MINDMAP_LAYOUT.RIGHT);
+  const latin = createEmptyMindmap('Project plan');
+  latin.nodeData.children = [{ id: 'a', topic: 'one two three', children: [] }];
+  assert.equal(layoutDirectionFor(latin), MINDMAP_LAYOUT.RIGHT);
 });
