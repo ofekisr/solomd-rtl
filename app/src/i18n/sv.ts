@@ -472,6 +472,16 @@ export const sv: I18n = {
 
     autoReloadExternalChanges: 'Uppdatera automatiskt filer som ändrats av andra appar',
 
+    convertConflict: 'När den konverterade filen redan finns',
+
+    convertConflictAsk: 'Fråga varje gång',
+
+    convertConflictReplace: 'Ersätt den',
+
+    convertConflictKeep: 'Öppna befintlig fil',
+
+    convertConflictHint: 'Gäller när du öppnar en PDF, Word eller annat dokument bredvid en .md med samma namn. Välj ”Fråga varje gång” för att nollställa ett sparat val.',
+
     autoSaveAfterDelay: 'Spara automatiskt när du slutar skriva',
 
     autoSaveDelay: 'Fördröjning för autospara',
@@ -554,6 +564,14 @@ export const sv: I18n = {
     save: 'Spara',
     dontSave: 'Spara inte',
     cancel: 'Avbryt',
+  },
+  convertConflict: {
+    title: 'Filen finns redan',
+    message: 'finns redan. Ersätta den med konverterade {source}?',
+    remember: 'Kom ihåg mitt val',
+    cancel: 'Avbryt',
+    keep: 'Öppna befintlig',
+    replace: 'Ersätt',
   },
   fileChanged: {
     title: 'Filen har ändrats på disken',

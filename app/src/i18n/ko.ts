@@ -472,6 +472,16 @@ export const ko: I18n = {
 
     autoReloadExternalChanges: '다른 앱이 변경한 파일 자동 새로고침',
 
+    convertConflict: '변환된 파일이 이미 있을 때',
+
+    convertConflictAsk: '매번 묻기',
+
+    convertConflictReplace: '바꾸기',
+
+    convertConflictKeep: '기존 파일 열기',
+
+    convertConflictHint: '같은 이름의 .md 옆에서 PDF, Word 등 문서를 열 때 적용됩니다. 기억된 선택을 초기화하려면 ‘매번 묻기’를 선택하세요.',
+
     autoSaveAfterDelay: '입력을 멈추면 자동 저장',
 
     autoSaveDelay: '자동 저장 지연',
@@ -554,6 +564,14 @@ export const ko: I18n = {
     save: '저장',
     dontSave: '저장 안 함',
     cancel: '취소',
+  },
+  convertConflict: {
+    title: '파일이 이미 있습니다',
+    message: '이(가) 이미 있습니다. 변환된 {source}(으)로 바꿀까요?',
+    remember: '선택 기억하기',
+    cancel: '취소',
+    keep: '기존 파일 열기',
+    replace: '바꾸기',
   },
   fileChanged: {
     title: '디스크에서 파일이 변경됨',

@@ -9,6 +9,7 @@ import { normalizePasteMapSetting, type PasteMapSetting } from '../lib/mindmap-i
 import { DEFAULT_MINDMAP_CONTROL_STYLE, normalizeControlStyle, type MindmapControlStyle } from '../lib/mindmap-icon-names';
 import { parseTagRules, type TagRule } from '../lib/mindmap-folder-tree';
 import { clampAutoSaveDelay, DEFAULT_AUTO_SAVE_DELAY_MS } from '../lib/auto-save';
+import { DEFAULT_CONVERT_CONFLICT_SETTING, normalizeConvertConflictSetting, type ConvertConflictSetting } from '../lib/convert-conflict';
 
 const LS_KEY = 'solomd.settings.v1';
 
@@ -150,6 +151,7 @@ interface Settings {
   autoSaveOnBlur: boolean;
   autoSaveAfterDelay: boolean;
   autoSaveDelayMs: number;
+  convertConflictChoice: ConvertConflictSetting;
   // Opening a file from the toolbar/menu spawns a new Tauri window instead
   // of a new tab in the current window. Default off.
   openFileInNewWindow: boolean;
@@ -627,6 +629,7 @@ function defaults(): Settings {
     autoSaveOnBlur: false,
     autoSaveAfterDelay: true,
     autoSaveDelayMs: DEFAULT_AUTO_SAVE_DELAY_MS,
+    convertConflictChoice: DEFAULT_CONVERT_CONFLICT_SETTING,
     openFileInNewWindow: false,
     revealInFileTreeOnOpen: false,
     openLinkedFilesExternally: true,
@@ -796,6 +799,7 @@ function load(): Settings {
       if ((merged.language as string) === 'zh') merged.language = 'en';
       merged.mindmapDefaults = parseMapDisplay(parsed.mindmapDefaults);
       merged.autoSaveDelayMs = clampAutoSaveDelay(parsed.autoSaveDelayMs);
+      merged.convertConflictChoice = normalizeConvertConflictSetting(parsed.convertConflictChoice);
       merged.mindmapControlStyle = normalizeControlStyle(parsed.mindmapControlStyle);
       merged.mindmapPasteMapTarget = normalizePasteMapSetting(parsed.mindmapPasteMapTarget);
       if (parsed.mindmapFolderTagRules !== undefined) merged.mindmapFolderTagRules = parseTagRules(parsed.mindmapFolderTagRules);
@@ -1167,6 +1171,11 @@ export const useSettingsStore = defineStore('settings', {
     },
     toggleAutoReloadExternalChanges() {
       this.autoReloadExternalChanges = !this.autoReloadExternalChanges;
+      this.persist();
+    },
+    setConvertConflictChoice(choice: ConvertConflictSetting) {
+      if (this.convertConflictChoice === choice) return;
+      this.convertConflictChoice = normalizeConvertConflictSetting(choice);
       this.persist();
     },
     toggleAutoSaveAfterDelay() {

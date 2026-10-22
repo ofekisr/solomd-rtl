@@ -472,6 +472,16 @@ export const uk: I18n = {
 
     autoReloadExternalChanges: 'Автоматично оновлювати файли, змінені іншими додатками',
 
+    convertConflict: 'Якщо сконвертований файл уже існує',
+
+    convertConflictAsk: 'Питати щоразу',
+
+    convertConflictReplace: 'Замінити',
+
+    convertConflictKeep: 'Відкрити наявний файл',
+
+    convertConflictHint: 'Діє під час відкриття PDF, Word чи іншого документа поруч з однойменним .md. Виберіть «Питати щоразу», щоб скинути запам’ятований вибір.',
+
     autoSaveAfterDelay: 'Автозбереження після завершення введення',
 
     autoSaveDelay: 'Затримка автозбереження',
@@ -554,6 +564,14 @@ export const uk: I18n = {
     save: 'Зберегти',
     dontSave: 'Не зберігати',
     cancel: 'Скасувати',
+  },
+  convertConflict: {
+    title: 'Файл уже існує',
+    message: 'уже існує. Замінити його сконвертованим {source}?',
+    remember: 'Запам’ятати вибір',
+    cancel: 'Скасувати',
+    keep: 'Відкрити наявний',
+    replace: 'Замінити',
   },
   fileChanged: {
     title: 'Файл змінено на диску',

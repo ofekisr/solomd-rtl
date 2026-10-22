@@ -8,6 +8,7 @@ import { fileNameOf } from '../lib/import-plan';
 import { buildMindmapFence, insertBlockAfterLine, safeInsertLine } from '../lib/mindmap-fence';
 import { markdownToMindmap, sectionRange, sliceLines, SELECTION_ROOT_TOPIC, type LineRange } from '../lib/mindmap-convert';
 import { mmapPathFor, rootTopicFromFileName, sanitizeMindmapData, serializeMindmap } from '../lib/mindmap-format';
+import { useConvertedOutput } from './useConvertedOutput';
 import { toWorkspaceRelative } from '../lib/mindmap-source';
 
 export type ConvertScope = 'document' | 'section' | 'selection';
@@ -46,6 +47,7 @@ function resolveRange(content: string, scope: ConvertScope, selection: LineSelec
 
 export function useMindmapConvert() {
   const tabs = useTabsStore();
+  const { openConvertedContent } = useConvertedOutput();
   const toasts = useToastsStore();
   const workspace = useWorkspaceStore();
   const { t } = useI18n();
@@ -57,22 +59,28 @@ export function useMindmapConvert() {
     return sanitizeMindmapData(tree);
   }
 
-  function openAsMap(tab: Tab, data: MindElixirData): void {
-    const mapTab = tabs.newTab({ fileName: fileNameOf(mmapPathFor(tab.filePath ?? tab.fileName)), language: MINDMAP_LANGUAGE });
-    tabs.setContent(mapTab.id, serializeMindmap(data));
+  async function openAsMap(tab: Tab, data: MindElixirData): Promise<boolean> {
+    const opened = await openConvertedContent({
+      sourceName: tab.fileName,
+      targetPath: tab.filePath ? mmapPathFor(tab.filePath) : null,
+      fileName: fileNameOf(mmapPathFor(tab.filePath ?? tab.fileName)),
+      language: MINDMAP_LANGUAGE,
+      content: serializeMindmap(data),
+    });
+    return opened !== null;
   }
 
   function insertFence(tab: Tab, range: LineRange, data: MindElixirData): void {
     tabs.setContent(tab.id, insertBlockAfterLine(tab.content, safeInsertLine(tab.content, range.toLine), buildMindmapFence(data)));
   }
 
-  function convert(tab: Tab, scope: ConvertScope, output: ConvertOutput, selection: LineSelection | null): void {
+  async function convert(tab: Tab, scope: ConvertScope, output: ConvertOutput, selection: LineSelection | null): Promise<void> {
     if (tab.language !== MARKDOWN_LANGUAGE) return void toasts.info(t('mindmap.convertMarkdownOnly'));
     const resolved = resolveRange(tab.content, scope, selection);
     if ('errorKey' in resolved) return void toasts.info(t(resolved.errorKey));
     const data = buildData(tab, scope, resolved.range);
-    if (output === 'map') openAsMap(tab, data);
-    else insertFence(tab, resolved.range, data);
+    if (output === 'fence') insertFence(tab, resolved.range, data);
+    else if (!(await openAsMap(tab, data))) return;
     toasts.success(t('mindmap.convertDone'));
   }
 

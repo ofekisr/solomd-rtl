@@ -472,6 +472,16 @@ export const ja: I18n = {
 
     autoReloadExternalChanges: '他のアプリで変更されたファイルを自動再読み込み',
 
+    convertConflict: '変換先ファイルが既に存在する場合',
+
+    convertConflictAsk: '毎回確認する',
+
+    convertConflictReplace: '置き換える',
+
+    convertConflictKeep: '既存のファイルを開く',
+
+    convertConflictHint: '同名の .md がある場所で PDF・Word などを開いたときに適用されます。記憶した選択をリセットするには「毎回確認する」を選んでください。',
+
     autoSaveAfterDelay: '入力停止後に自動保存',
 
     autoSaveDelay: '自動保存の遅延',
@@ -554,6 +564,14 @@ export const ja: I18n = {
     save: '保存',
     dontSave: '保存しない',
     cancel: 'キャンセル',
+  },
+  convertConflict: {
+    title: 'ファイルは既に存在します',
+    message: 'は既に存在します。変換した {source} で置き換えますか？',
+    remember: '選択を記憶する',
+    cancel: 'キャンセル',
+    keep: '既存を開く',
+    replace: '置き換える',
   },
   fileChanged: {
     title: 'ファイルがディスク上で変更されました',

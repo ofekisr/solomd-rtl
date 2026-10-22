@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { MAX_AUTO_SAVE_DELAY_MS, MIN_AUTO_SAVE_DELAY_MS } from '../lib/auto-save';
+import type { ConvertConflictSetting } from '../lib/convert-conflict';
 import { PASTE_MAP_SETTINGS, type PasteMapSetting } from '../lib/mindmap-insert';
 import { MINDMAP_CONTROL_STYLES, type MindmapControlStyle } from '../lib/mindmap-icon-names';
 import { ref, computed, watch, onUnmounted, nextTick } from 'vue';
@@ -2064,6 +2065,23 @@ function onSelectPdfFont(v: string) {
           </label>
           <div style="font-size: 11px; color: var(--text-faint); margin-top: 4px; line-height: 1.5;">
             {{ t('settings.autoReloadExternalChangesHint') }}
+          </div>
+        </section>
+
+        <section data-cat="advanced">
+          <label>
+            {{ t('settings.convertConflict') }}
+            <select
+              :value="settings.convertConflictChoice"
+              @change="settings.setConvertConflictChoice(($event.target as HTMLSelectElement).value as ConvertConflictSetting)"
+            >
+              <option value="ask">{{ t('settings.convertConflictAsk') }}</option>
+              <option value="replace">{{ t('settings.convertConflictReplace') }}</option>
+              <option value="keep">{{ t('settings.convertConflictKeep') }}</option>
+            </select>
+          </label>
+          <div style="font-size: 11px; color: var(--text-faint); margin-top: 4px; line-height: 1.5;">
+            {{ t('settings.convertConflictHint') }}
           </div>
         </section>
 

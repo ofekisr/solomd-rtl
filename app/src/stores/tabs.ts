@@ -354,12 +354,20 @@ export const useTabsStore = defineStore('tabs', {
       }
       t.savedContent = t.content;
       t.language = inferLanguage(t.fileName);
+      this.closeDuplicatesOf(id, filePath);
       // v2.5 — push a "saved" anchor into the writing-session store so the
       // popover can show "since last save" instead of "since open".
       try {
         const ws = useWritingSessionStore();
         ws.markSaved(filePath, ws.sessionForPath(filePath)?.current ?? 0);
       } catch {}
+    },
+    closeDuplicatesOf(keepId: string, filePath: string) {
+      const duplicates = this.tabs.filter((o) => o.id !== keepId && o.filePath === filePath);
+      if (duplicates.length === 0) return;
+      const wasActiveDuplicate = duplicates.some((o) => o.id === this.activeId);
+      for (const other of duplicates) this.closeTab(other.id);
+      if (wasActiveDuplicate) this.activeId = keepId;
     },
     closeTab(id: string) {
       const idx = this.tabs.findIndex((t) => t.id === id);

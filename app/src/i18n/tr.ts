@@ -472,6 +472,16 @@ export const tr: I18n = {
 
     autoReloadExternalChanges: 'Diğer uygulamalar tarafından değiştirilen dosyaları otomatik yenile',
 
+    convertConflict: 'Dönüştürülen dosya zaten varsa',
+
+    convertConflictAsk: 'Her seferinde sor',
+
+    convertConflictReplace: 'Değiştir',
+
+    convertConflictKeep: 'Mevcut dosyayı aç',
+
+    convertConflictHint: 'Aynı adlı bir .md yanında PDF, Word veya başka bir belge açıldığında geçerlidir. Hatırlanan seçimi sıfırlamak için “Her seferinde sor”u seçin.',
+
     autoSaveAfterDelay: 'Yazmayı bırakınca otomatik kaydet',
 
     autoSaveDelay: 'Otomatik kaydetme gecikmesi',
@@ -554,6 +564,14 @@ export const tr: I18n = {
     save: 'Kaydet',
     dontSave: 'Kaydetme',
     cancel: 'İptal',
+  },
+  convertConflict: {
+    title: 'Dosya zaten var',
+    message: 'zaten var. Dönüştürülen {source} ile değiştirilsin mi?',
+    remember: 'Seçimimi hatırla',
+    cancel: 'İptal',
+    keep: 'Mevcut olanı aç',
+    replace: 'Değiştir',
   },
   fileChanged: {
     title: 'Dosya Diskte Değişti',

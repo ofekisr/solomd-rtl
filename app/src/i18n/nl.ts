@@ -472,6 +472,16 @@ export const nl: I18n = {
 
     autoReloadExternalChanges: 'Door andere apps gewijzigde bestanden automatisch herladen',
 
+    convertConflict: 'Als het geconverteerde bestand al bestaat',
+
+    convertConflictAsk: 'Altijd vragen',
+
+    convertConflictReplace: 'Vervangen',
+
+    convertConflictKeep: 'Bestaand bestand openen',
+
+    convertConflictHint: 'Geldt bij het openen van een PDF, Word of ander document naast een .md met dezelfde naam. Kies ‘Altijd vragen’ om een onthouden keuze te wissen.',
+
     autoSaveAfterDelay: 'Automatisch opslaan als je stopt met typen',
 
     autoSaveDelay: 'Vertraging automatisch opslaan',
@@ -554,6 +564,14 @@ export const nl: I18n = {
     save: 'Opslaan',
     dontSave: 'Niet opslaan',
     cancel: 'Annuleren',
+  },
+  convertConflict: {
+    title: 'Bestand bestaat al',
+    message: 'bestaat al. Vervangen door het geconverteerde {source}?',
+    remember: 'Onthoud mijn keuze',
+    cancel: 'Annuleren',
+    keep: 'Bestaande openen',
+    replace: 'Vervangen',
   },
   fileChanged: {
     title: 'Bestand gewijzigd op schijf',

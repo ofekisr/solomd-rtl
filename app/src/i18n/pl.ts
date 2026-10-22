@@ -472,6 +472,16 @@ export const pl: I18n = {
 
     autoReloadExternalChanges: 'Automatyczne odświeżanie plików zmienionych przez inne aplikacje',
 
+    convertConflict: 'Gdy przekonwertowany plik już istnieje',
+
+    convertConflictAsk: 'Pytaj za każdym razem',
+
+    convertConflictReplace: 'Zastąp',
+
+    convertConflictKeep: 'Otwórz istniejący plik',
+
+    convertConflictHint: 'Dotyczy otwierania PDF, Worda lub innego dokumentu obok pliku .md o tej samej nazwie. Wybierz „Pytaj za każdym razem”, aby wyzerować zapamiętany wybór.',
+
     autoSaveAfterDelay: 'Autozapis po zakończeniu pisania',
 
     autoSaveDelay: 'Opóźnienie autozapisu',
@@ -554,6 +564,14 @@ export const pl: I18n = {
     save: 'Zapisz',
     dontSave: 'Nie zapisuj',
     cancel: 'Anuluj',
+  },
+  convertConflict: {
+    title: 'Plik już istnieje',
+    message: 'już istnieje. Zastąpić go przekonwertowanym {source}?',
+    remember: 'Zapamiętaj wybór',
+    cancel: 'Anuluj',
+    keep: 'Otwórz istniejący',
+    replace: 'Zastąp',
   },
   fileChanged: {
     title: 'Plik zmieniony na dysku',

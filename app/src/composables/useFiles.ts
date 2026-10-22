@@ -23,6 +23,8 @@ import { planXmindOpen } from '../lib/mindmap-xmind-open';
 import { MMAP_EXTENSION, MINDMAP_EXTENSIONS, isXmindPath, mmapPathFor } from '../lib/mindmap-format';
 import { XMIND_TOO_LARGE_ERROR, XMIND_CONTENT_TOO_LARGE_ERROR } from '../lib/xmind-limits';
 import { untitledFileName } from '../lib/file-language';
+import { convertedMarkdownPath } from '../lib/convert-conflict';
+import { useConvertedOutput } from './useConvertedOutput';
 
 // Save dialogs only — opening uses no filter so any file is selectable.
 // (rfd treats `'*'` literally as the extension `*`, not as wildcard, so we
@@ -52,6 +54,7 @@ const xmindImportsInFlight = new Set<string>();
 
 export function useFiles() {
   const tabs = useTabsStore();
+  const { openConvertedContent } = useConvertedOutput();
   const workspace = useWorkspaceStore();
   const settings = useSettingsStore();
   const toasts = useToastsStore();
@@ -466,16 +469,15 @@ export function useFiles() {
     try {
       const markdown = await invoke<string>('convert_file_to_markdown', { path });
       toasts.dismiss(tid);
-      // Open as a new unsaved Markdown tab with the converted content.
-      const baseName = fileName.replace(/\.[^.]+$/, '');
-      tabs.newTab();
-      const tab = tabs.activeTab;
-      if (tab) {
-        tab.content = markdown;
-        tab.fileName = `${baseName}.md`;
-        tab.language = 'markdown';
-      }
-      toasts.success(`Converted ${fileName} → Markdown`);
+      const targetPath = convertedMarkdownPath(path);
+      const opened = await openConvertedContent({
+        sourceName: fileName,
+        targetPath,
+        fileName: fileNameOf(targetPath),
+        language: 'markdown',
+        content: markdown,
+      });
+      if (opened) toasts.success(`Converted ${fileName} → Markdown`);
     } catch (e) {
       toasts.dismiss(tid);
       const msg = String(e);
@@ -570,14 +572,15 @@ export function useFiles() {
           await invoke('write_file', { path: target, content: markdown, encoding: 'UTF-8' });
           imported.push(target);
         } else {
-          tabs.newTab();
-          const tab = tabs.activeTab;
-          if (tab) {
-            tab.content = markdown;
-            tab.fileName = `${base}.md`;
-            tab.language = 'markdown';
-          }
-          imported.push(`${base}.md`);
+          const targetPath = convertedMarkdownPath(path);
+          const opened = await openConvertedContent({
+            sourceName: fileName,
+            targetPath,
+            fileName: `${base}.md`,
+            language: 'markdown',
+            content: markdown,
+          });
+          if (opened) imported.push(`${base}.md`);
         }
       } catch (e) {
         const msg = String(e);

@@ -61,6 +61,7 @@ import AboutDialog from './components/AboutDialog.vue';
 import AgentSetupWizard from './components/AgentSetupWizard.vue';
 import UnsavedDialog from './components/UnsavedDialog.vue';
 import FileChangedDialog from './components/FileChangedDialog.vue';
+import ConvertConflictDialog from './components/ConvertConflictDialog.vue';
 import ImageUrlDialog from './components/ImageUrlDialog.vue';
 import Toast from './components/Toast.vue';
 import { useTabsStore } from './stores/tabs';
@@ -2175,6 +2176,7 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
     <MindmapConvertFolder />
     <MindmapWorkbench />
     <MindmapFolderTree />
+    <ConvertConflictDialog />
     <FileChangedDialog
       :open="fileChangedOpen"
       :file-name="fileChangedFileName"

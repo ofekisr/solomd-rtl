@@ -486,6 +486,11 @@ export const en = {
     perWorkspaceTabsHint: 'On (default): each folder remembers its own open tabs, so opening one folder never resurfaces another folder\'s accumulated tabs. Unsaved and untitled tabs always follow you across folders. Off: all tabs share one global list.',
 
     autoReloadExternalChanges: 'Auto-refresh files changed by other apps',
+    convertConflict: 'When a converted file already exists',
+    convertConflictAsk: 'Ask every time',
+    convertConflictReplace: 'Replace it',
+    convertConflictKeep: 'Open the existing file',
+    convertConflictHint: 'Applies when opening a PDF, Word or other document next to a .md of the same name. Pick “Ask every time” to reset a remembered choice.',
     autoSaveAfterDelay: 'Auto-save after typing stops',
     autoSaveDelay: 'Auto-save delay',
     autoSaveAfterDelayHint: 'Saves open files a moment after you stop typing (default 1000 ms). Untitled tabs and files with an unresolved external change are never auto-saved.',
@@ -566,6 +571,14 @@ export const en = {
     save: 'Save',
     dontSave: "Don't Save",
     cancel: 'Cancel',
+  },
+  convertConflict: {
+    title: 'File already exists',
+    message: 'already exists. Replace it with the converted {source}?',
+    remember: 'Remember my choice',
+    cancel: 'Cancel',
+    keep: 'Open existing',
+    replace: 'Replace',
   },
   fileChanged: {
     title: 'File Changed on Disk',

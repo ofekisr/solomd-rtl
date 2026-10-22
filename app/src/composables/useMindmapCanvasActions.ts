@@ -2,7 +2,6 @@ import type { Ref } from 'vue';
 import type { MindElixirInstance } from 'mind-elixir';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { useMindmapExport } from './useMindmapExport';
-import { useTabsStore } from '../stores/tabs';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
 import type { MindmapExportFormat } from '../lib/mindmap-export';
@@ -10,6 +9,9 @@ import { mapToHeadingsMarkdown } from '../lib/mindmap-headings';
 import { snippetsMarkdown, type Snippet } from '../lib/mindmap-snippets';
 import { serializeMindmapFence } from '../lib/mindmap-fence';
 import { withoutGateArrows } from '../lib/mindmap-graph';
+import { siblingPath } from '../lib/convert-conflict';
+import { fileNameOf } from '../lib/import-plan';
+import { useConvertedOutput } from './useConvertedOutput';
 
 export interface CanvasActionContext {
   getMind(): MindElixirInstance | null;
@@ -18,6 +20,7 @@ export interface CanvasActionContext {
   isGraphView: Ref<boolean>;
   isLocked(): boolean;
   getSnippets(): readonly Snippet[];
+  sourceFilePath(): string | null;
 }
 
 const HEADINGS_SUFFIX = '-outline.md';
@@ -34,7 +37,7 @@ const EXPORT_ACTIONS: Record<string, MindmapExportFormat> = {
 
 export function useMindmapCanvasActions(ctx: CanvasActionContext): Record<string, () => void> {
   const { exportMap } = useMindmapExport();
-  const tabs = useTabsStore();
+  const { openConvertedContent } = useConvertedOutput();
   const toasts = useToastsStore();
   const { t } = useI18n();
 
@@ -53,10 +56,17 @@ export function useMindmapCanvasActions(ctx: CanvasActionContext): Record<string
   function openHeadingsDocument(): void {
     const mind = ctx.getMind();
     if (!mind) return;
-    const tab = tabs.newTab({ fileName: ctx.exportName() + HEADINGS_SUFFIX });
     const markdown = mapToHeadingsMarkdown(withoutGateArrows(mind.getData()));
     const snippets = snippetsMarkdown(ctx.getSnippets(), 'source');
-    tabs.setContent(tab.id, snippets === '' ? markdown : markdown + SECTION_JOINER + snippets);
+    const fileName = ctx.exportName() + HEADINGS_SUFFIX;
+    const source = ctx.sourceFilePath();
+    void openConvertedContent({
+      sourceName: source ? fileNameOf(source) : fileName,
+      targetPath: source ? siblingPath(source, fileName) : null,
+      fileName,
+      language: 'markdown',
+      content: snippets === '' ? markdown : markdown + SECTION_JOINER + snippets,
+    });
   }
 
   function toggleReadOnly(): void {

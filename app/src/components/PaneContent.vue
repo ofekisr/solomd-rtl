@@ -377,7 +377,7 @@ function onMindmapConvertEvent(e: Event) {
   if (!props.tab) return;
   window.dispatchEvent(new Event('solomd:flush-content-sync'));
   const ed = editorRef.value as unknown as { getLineSelection?: () => LineSelection | null } | null;
-  mindmapConvert.convert(props.tab, scope, output, ed?.getLineSelection?.() ?? null);
+  void mindmapConvert.convert(props.tab, scope, output, ed?.getLineSelection?.() ?? null);
 }
 
 function onInsertMarkdownEvent(e: Event) {

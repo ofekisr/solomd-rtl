@@ -556,7 +556,7 @@ function jumpToSource(): void {
   emit('jump-to-source', source);
 }
 
-const canvasActions = useMindmapCanvasActions({ getMind: () => mind, exportName: () => props.exportName, isReadOnly, isGraphView, isLocked: () => props.locked, getSnippets: () => snippetsOverride });
+const canvasActions = useMindmapCanvasActions({ getMind: () => mind, exportName: () => props.exportName, isReadOnly, isGraphView, isLocked: () => props.locked, getSnippets: () => snippetsOverride, sourceFilePath: () => (props.sourcePath && !props.sourcePath.startsWith(TAB_SOURCE_PREFIX) ? props.sourcePath : null) });
 
 const GATE_MENU_LABEL_KEYS: Record<GateMenuAction, string> = {
   'mindmap.markGateTarget': 'mindmap.gateMarkTarget',

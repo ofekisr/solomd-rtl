@@ -472,6 +472,16 @@ export const de: I18n = {
 
     autoReloadExternalChanges: 'Von anderen Apps geänderte Dateien automatisch neu laden',
 
+    convertConflict: 'Wenn eine konvertierte Datei bereits existiert',
+
+    convertConflictAsk: 'Jedes Mal fragen',
+
+    convertConflictReplace: 'Ersetzen',
+
+    convertConflictKeep: 'Vorhandene Datei öffnen',
+
+    convertConflictHint: 'Gilt beim Öffnen eines PDF-, Word- oder anderen Dokuments neben einer gleichnamigen .md. „Jedes Mal fragen“ setzt eine gemerkte Auswahl zurück.',
+
     autoSaveAfterDelay: 'Automatisch speichern, wenn das Tippen stoppt',
 
     autoSaveDelay: 'Verzögerung für automatisches Speichern',
@@ -554,6 +564,14 @@ export const de: I18n = {
     save: 'Speichern',
     dontSave: 'Nicht speichern',
     cancel: 'Abbrechen',
+  },
+  convertConflict: {
+    title: 'Datei existiert bereits',
+    message: 'existiert bereits. Durch die konvertierte Datei {source} ersetzen?',
+    remember: 'Auswahl merken',
+    cancel: 'Abbrechen',
+    keep: 'Vorhandene öffnen',
+    replace: 'Ersetzen',
   },
   fileChanged: {
     title: 'Datei wurde auf der Festplatte geändert',
