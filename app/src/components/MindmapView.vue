@@ -46,7 +46,9 @@ const JSON_PARSE_DEBOUNCE_MS = 250;
 const FLUSH_CONTENT_EVENT = 'solomd:flush-content-sync';
 const TOGGLE_PANEL_ACTION = 'mindmap.togglePanel';
 const TOGGLE_DETAILS_ACTION = 'mindmap.toggleDetails';
-const VIEW_ACTIONS: readonly string[] = [TOGGLE_PANEL_ACTION, TOGGLE_DETAILS_ACTION];
+const TOGGLE_PIN_STRIP_ACTION = 'mindmap.togglePinStrip';
+const TOGGLE_SNIPPETS_ACTION = 'mindmap.toggleSnippets';
+const VIEW_ACTIONS: readonly string[] = [TOGGLE_PANEL_ACTION, TOGGLE_DETAILS_ACTION, TOGGLE_PIN_STRIP_ACTION, TOGGLE_SNIPPETS_ACTION];
 const props = defineProps<{ tab: Tab }>();
 const tabs = useTabsStore();
 const toasts = useToastsStore();
@@ -106,7 +108,8 @@ const railState = computed<RailState>(() => ({
   isPanelOpen: settings.mindmapPanelOpen,
   isDetailsOpen: settings.mindmapDetailsOpen,
   isReadOnly: canvas.value?.isReadOnly ?? false,
-  isGraphView: canvas.value?.isGraphView ?? false,
+  isPinStripOpen: settings.mindmapPinStripOpen,
+  isSnippetsOpen: settings.mindmapSnippetsOpen,
   isLocked: isMapLocked.value,
   isFocused: canvas.value?.isFocused ?? false,
 }));
@@ -258,6 +261,7 @@ function applyViewDefaultsOnce(): void {
   viewDefaultsAppliedFor = props.tab.id;
   settings.setMindmapPanelOpen(false);
   settings.setMindmapDetailsOpen(hasAnyNote(mind.nodeData));
+  settings.setMindmapSnippetsOpen((canvas.value?.getSnippets() ?? []).length > 0);
 }
 
 function onCanvasReady(): void {
@@ -300,6 +304,14 @@ function runViewAction(actionId: string): boolean {
   }
   if (actionId === TOGGLE_DETAILS_ACTION) {
     settings.toggleMindmapDetails();
+    return true;
+  }
+  if (actionId === TOGGLE_PIN_STRIP_ACTION) {
+    settings.toggleMindmapPinStrip();
+    return true;
+  }
+  if (actionId === TOGGLE_SNIPPETS_ACTION) {
+    settings.toggleMindmapSnippets();
     return true;
   }
   const target = targetLensFor(actionId, lens.value);
@@ -430,7 +442,7 @@ defineExpose({ setLens, canvas, lens, openFind });
               <MindmapRail :state="railState" @set-lens="setLens" @run="(id) => handle.run(id)" @toggle-panel="settings.toggleMindmapPanel()" />
             </template>
           </MindmapCanvas>
-          <MindmapSnippets v-if="canvas?.hasMap !== false" :snippets="snippets" :editable="canEditSnippets" @change="setSnippets" />
+          <MindmapSnippets v-if="canvas?.hasMap !== false && settings.mindmapSnippetsOpen" :snippets="snippets" :editable="canEditSnippets" @change="setSnippets" />
           <MindmapDetailsPane
             v-if="isDetailsVisible"
             :node="singleNode"

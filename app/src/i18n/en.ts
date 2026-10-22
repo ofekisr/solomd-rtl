@@ -1453,6 +1453,8 @@ export const en = {
     toolbarRedo: 'Redo',
     toolbarPanel: 'Side panel',
     toolbarDetails: 'Node details',
+    toolbarPinStrip: 'Pin strip',
+    toolbarSnippets: 'Snippets',
     detailsShow: 'Show details',
     detailsTitle: 'Node details',
     detailsClose: 'Close details',

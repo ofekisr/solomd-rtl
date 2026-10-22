@@ -272,6 +272,8 @@ interface Settings {
   mindmapDefaults: MapDisplay;
   mindmapPanelOpen: boolean;
   mindmapDetailsOpen: boolean;
+  mindmapPinStripOpen: boolean;
+  mindmapSnippetsOpen: boolean;
   mindmapDetailsHeight: number;
   mindmapControlStyle: MindmapControlStyle;
   mindmapPasteMapTarget: PasteMapSetting;
@@ -687,6 +689,8 @@ function defaults(): Settings {
     mindmapDefaults: {},
     mindmapPanelOpen: false,
     mindmapDetailsOpen: false,
+    mindmapPinStripOpen: true,
+    mindmapSnippetsOpen: false,
     mindmapDetailsHeight: 220,
     mindmapControlStyle: DEFAULT_MINDMAP_CONTROL_STYLE,
     mindmapPasteMapTarget: 'ask',
@@ -1429,6 +1433,19 @@ export const useSettingsStore = defineStore('settings', {
     },
     toggleMindmapPanel() {
       this.mindmapPanelOpen = !this.mindmapPanelOpen;
+      this.persist();
+    },
+    toggleMindmapPinStrip() {
+      this.mindmapPinStripOpen = !this.mindmapPinStripOpen;
+      this.persist();
+    },
+    toggleMindmapSnippets() {
+      this.mindmapSnippetsOpen = !this.mindmapSnippetsOpen;
+      this.persist();
+    },
+    setMindmapSnippetsOpen(isOpen: boolean) {
+      if (this.mindmapSnippetsOpen === isOpen) return;
+      this.mindmapSnippetsOpen = isOpen;
       this.persist();
     },
     setMindmapPanelOpen(isOpen: boolean) {

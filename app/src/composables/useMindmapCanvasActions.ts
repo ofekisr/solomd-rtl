@@ -17,7 +17,6 @@ export interface CanvasActionContext {
   getMind(): MindElixirInstance | null;
   exportName(): string;
   isReadOnly: Ref<boolean>;
-  isGraphView: Ref<boolean>;
   isLocked(): boolean;
   getSnippets(): readonly Snippet[];
   sourceFilePath(): string | null;

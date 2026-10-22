@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
 import { createSnippet, SNIPPET_KINDS, type Snippet, type SnippetKind } from '../lib/mindmap-snippets';
 import { useI18n } from '../i18n';
 import MindmapSnippetCard from './MindmapSnippetCard.vue';
@@ -9,11 +8,7 @@ const ADD_LABEL_KEYS: Record<SnippetKind, string> = { md: 'mindmap.snippetAddMd'
 const props = defineProps<{ snippets: readonly Snippet[]; editable: boolean }>();
 const emit = defineEmits<{ change: [next: Snippet[]] }>();
 const { t } = useI18n();
-const isCollapsed = ref(props.snippets.length === 0);
 
-watch(() => props.snippets.length, (count, previous) => {
-  if (previous === 0 && count > 0) isCollapsed.value = false;
-});
 
 function add(kind: SnippetKind): void {
   emit('change', [...props.snippets, createSnippet(kind, props.snippets, t('mindmap.snippetUntitled'))]);
@@ -38,14 +33,12 @@ function move(index: number, delta: -1 | 1): void {
 <template>
   <section v-if="snippets.length > 0 || editable" class="mm-snippets" :aria-label="t('mindmap.snippetsTitle')">
     <header class="mm-snippets__head">
-      <button type="button" class="mm-snippets__toggle" :aria-expanded="!isCollapsed" @click="isCollapsed = !isCollapsed">
-        {{ isCollapsed ? '▸' : '▾' }} {{ t('mindmap.snippetsTitle') }} ({{ snippets.length }})
-      </button>
-      <div v-if="editable && !isCollapsed" class="mm-snippets__add">
+      <span class="mm-snippets__toggle">{{ t('mindmap.snippetsTitle') }} ({{ snippets.length }})</span>
+      <div v-if="editable" class="mm-snippets__add">
         <button v-for="kind in SNIPPET_KINDS" :key="kind" type="button" @click="add(kind)">{{ t(ADD_LABEL_KEYS[kind]) }}</button>
       </div>
     </header>
-    <div v-if="!isCollapsed" class="mm-snippets__list">
+    <div class="mm-snippets__list">
       <p v-if="snippets.length === 0" class="mm-snippets__empty">{{ t('mindmap.snippetsEmpty') }}</p>
       <MindmapSnippetCard
         v-for="(snippet, index) in snippets"

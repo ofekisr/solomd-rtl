@@ -11,6 +11,6 @@ test('control style defaults to classic for unknown values', () => {
 });
 
 test('every classic icon has either package paths or a glyph', () => {
-  const names = ['lens-data', 'lens-map', 'lens-doc', 'dir-left', 'dir-right', 'dir-side', 'dir-down', 'graph', 'lock', 'panel', 'details', 'undo', 'redo', 'export', 'more', 'fullscreen', 'center', 'zoom-out', 'zoom-in', 'fit', 'root', 'collapse'] as const;
+  const names = ['lens-data', 'lens-map', 'lens-doc', 'dir-left', 'dir-right', 'dir-side', 'dir-down', 'pin', 'snippets', 'lock', 'panel', 'details', 'undo', 'redo', 'export', 'more', 'fullscreen', 'center', 'zoom-out', 'zoom-in', 'fit', 'root', 'collapse'] as const;
   for (const name of names) assert.ok(CLASSIC_PATHS[name] || CLASSIC_GLYPHS[name], name);
 });

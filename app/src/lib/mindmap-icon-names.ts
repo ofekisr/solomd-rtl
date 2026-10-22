@@ -1,7 +1,7 @@
 export type MindmapIconName =
   | 'lens-data' | 'lens-map' | 'lens-doc'
   | 'dir-left' | 'dir-right' | 'dir-side' | 'dir-down'
-  | 'graph' | 'lock' | 'panel' | 'details' | 'undo' | 'redo' | 'export' | 'more'
+  | 'pin' | 'snippets' | 'lock' | 'panel' | 'details' | 'undo' | 'redo' | 'export' | 'more'
   | 'fullscreen' | 'center' | 'zoom-out' | 'zoom-in' | 'fit' | 'root' | 'collapse';
 
 export type MindmapControlStyle = 'classic' | 'compact';

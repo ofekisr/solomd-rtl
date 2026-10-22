@@ -38,7 +38,7 @@ import { remapSummaries as remapChildSummaries, sortChildrenByTopic, type SortOr
 import { needsPasteDialog, pasteMode, resolveInsertTargetId, type PasteMapTarget } from '../lib/mindmap-insert';
 import { parsePaste, type PastePayload } from '../lib/mindmap-paste';
 import { buildIdMap, remapArrows, remapGates, remapSummaries } from '../lib/mindmap-paste-remap';
-import { withGateOverlay, withoutGateArrows, withoutGateOverlay } from '../lib/mindmap-graph';
+import { withoutGateArrows } from '../lib/mindmap-graph';
 import { copyPlainText, readPlainText } from '../lib/code-copy';
 import { copyMapText, subtreeData } from '../lib/mindmap-payload';
 import { entryKey, TAB_SOURCE_PREFIX, type EntryDraft } from '../lib/mindmap-workbench';
@@ -86,7 +86,6 @@ const direction = ref<number>(MINDMAP_LAYOUT.SIDE);
 const parseError = ref<string | null>(null);
 const isHelpOpen = ref(false);
 const isReadOnly = ref(false);
-const isGraphView = ref(false);
 const focusId = ref<string | null>(props.focusKey ? getTabFocus(props.focusKey) : null);
 const stripRootId = ref<string | null>(props.focusKey ? getTabStripRoot(props.focusKey) : null);
 const strip = ref<FreezeStrip | null>(null);
@@ -275,7 +274,6 @@ function emitSelection(): void {
 function onOperation(info: { name: string }): void {
   if (info.name === BEGIN_EDIT_OPERATION) return;
   gates.syncLabels();
-  if (mind && isGraphView.value) syncGraphOverlay(mind);
   scheduleSync();
   scheduleDuplicateCount();
   const root = mind ? fullRoot(mind) : null;
@@ -446,7 +444,6 @@ function teardown(): void {
   syncTimer = null;
   if (duplicateTimer !== null) window.clearTimeout(duplicateTimer);
   duplicateTimer = null;
-  isGraphView.value = false;
   duplicateCount.value = 0;
   strip.value = null;
   mind?.destroy();
@@ -462,7 +459,6 @@ async function applyExternalContent(): Promise<void> {
   if (mind) {
     leaveFocusQuietly();
     mind.refresh(data);
-    syncGraphOverlay(mind);
     gates.syncLabels();
     rememberLoaded();
     reapplyFocus();
@@ -474,17 +470,6 @@ async function applyExternalContent(): Promise<void> {
   await nextTick();
   if (mind) return;
   mount();
-}
-
-function syncGraphOverlay(instance: MindElixirInstance): void {
-  instance.arrows = isGraphView.value ? withGateOverlay(instance.arrows ?? [], instance.getData()) : withoutGateOverlay(instance.arrows ?? []);
-  instance.renderArrow();
-}
-
-function toggleGraphView(): void {
-  if (!mind) return;
-  isGraphView.value = !isGraphView.value;
-  syncGraphOverlay(mind);
 }
 
 function toggleSelectedNodes(instance: MindElixirInstance): boolean {
@@ -535,7 +520,7 @@ function jumpToSource(): void {
   emit('jump-to-source', source);
 }
 
-const canvasActions = useMindmapCanvasActions({ getMind: () => mind, exportName: () => props.exportName, isReadOnly, isGraphView, isLocked: () => props.locked, getSnippets: () => snippetsOverride, sourceFilePath: () => (props.sourcePath && !props.sourcePath.startsWith(TAB_SOURCE_PREFIX) ? props.sourcePath : null) });
+const canvasActions = useMindmapCanvasActions({ getMind: () => mind, exportName: () => props.exportName, isReadOnly, isLocked: () => props.locked, getSnippets: () => snippetsOverride, sourceFilePath: () => (props.sourcePath && !props.sourcePath.startsWith(TAB_SOURCE_PREFIX) ? props.sourcePath : null) });
 
 const GATE_MENU_LABEL_KEYS: Record<GateMenuAction, string> = {
   'mindmap.markGateTarget': 'mindmap.gateMarkTarget',
@@ -674,7 +659,6 @@ const actions: Record<string, () => void> = {
   'mindmap.shortcutHelp': () => { isHelpOpen.value = !isHelpOpen.value; },
   'mindmap.jumpToSource': jumpToSource,
   'mindmap.findDuplicates': findDuplicates,
-  'mindmap.toggleGraphView': toggleGraphView,
   'mindmap.focusNode': () => { if (mind?.currentNode) mind.focusNode(mind.currentNode); },
   'mindmap.cancelFocus': () => focusById(null),
   'mindmap.undo': () => mind?.undo(),
@@ -928,7 +912,6 @@ defineExpose({
   getSnippets: () => snippetsOverride,
   setSnippets,
   isReadOnly,
-  isGraphView,
   direction,
   refreshFrameStyle,
   isFocused: computed(() => focusId.value !== null),
@@ -944,7 +927,7 @@ defineExpose({
       <button type="button" @click="emit('open-as-text')">{{ t('mindmap.openAsText') }}</button>
     </div>
     <template v-else>
-      <MindmapFreezeStrip v-if="strip" :strip="strip" :focus-id="focusId" :frame-style="frameStyle" @focus="focusById" @anchor="setStripRoot" />
+      <MindmapFreezeStrip v-if="strip && settings.mindmapPinStripOpen" :strip="strip" :focus-id="focusId" :frame-style="frameStyle" @focus="focusById" @anchor="setStripRoot" />
       <div ref="stage" class="mindmap-view__stage">
         <div ref="host" class="mindmap-view__canvas" />
         <slot name="rail" />
@@ -963,7 +946,6 @@ defineExpose({
       <button v-if="duplicateCount > 0 && !locked && !isReadOnly" type="button" class="mindmap-view__chip" @click="findDuplicates">
         {{ duplicateCount === 1 ? t('mindmap.duplicatesChipOne') : t('mindmap.duplicatesChip', { count: duplicateCount }) }}
       </button>
-      <span v-if="isGraphView" class="mindmap-view__badge">{{ t('mindmap.graphViewBadge') }}</span>
       <span v-if="isReadOnly" class="mindmap-view__badge">{{ t('mindmap.readOnlyBadge') }}</span>
     </div>
     <MindmapDuplicates v-if="duplicateGroups" :groups="duplicateGroups" :topic-of="topicOf" @merge="mergeDuplicate" @close="duplicateGroups = null" />

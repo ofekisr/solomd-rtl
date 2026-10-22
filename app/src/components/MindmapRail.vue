@@ -15,7 +15,8 @@ export interface RailState {
   readonly isPanelOpen: boolean;
   readonly isDetailsOpen: boolean;
   readonly isReadOnly: boolean;
-  readonly isGraphView: boolean;
+  readonly isPinStripOpen: boolean;
+  readonly isSnippetsOpen: boolean;
   readonly isLocked: boolean;
   readonly isFocused: boolean;
 }
@@ -64,10 +65,11 @@ function pickLens(id: string): void {
     <MindmapDockFlyout :icon="LENS_ICONS[state.lens]" :label="t('mindmap.lensLabel')" :options="lensOptions" :selected-id="state.lens" @pick="pickLens" />
     <template v-if="state.hasCanvas">
       <MindmapDockFlyout :icon="currentDirection.icon" :label="t('mindmap.dockDirection')" :options="directionOptions" :selected-id="currentDirection.actionId" :disabled="isDirectionBlocked" @pick="(id) => emit('run', id)" />
-      <MindmapDockButton icon="graph" :label="t('mindmap.toolbarGraph')" :pressed="state.isGraphView" :disabled="state.isLocked" @click="emit('run', 'mindmap.toggleGraphView')" />
       <MindmapDockButton icon="lock" :label="t('mindmap.toolbarReadOnly')" :pressed="state.isReadOnly" :disabled="state.isLocked" @click="emit('run', 'mindmap.toggleReadOnly')" />
       <MindmapDockButton icon="panel" :label="t('mindmap.toolbarPanel')" :pressed="state.isPanelOpen" @click="emit('toggle-panel')" />
       <MindmapDockButton icon="details" :label="t('mindmap.toolbarDetails')" :pressed="state.isDetailsOpen" @click="emit('run', 'mindmap.toggleDetails')" />
+      <MindmapDockButton icon="pin" :label="t('mindmap.toolbarPinStrip')" :pressed="state.isPinStripOpen" @click="emit('run', 'mindmap.togglePinStrip')" />
+      <MindmapDockButton icon="snippets" :label="t('mindmap.toolbarSnippets')" :pressed="state.isSnippetsOpen" @click="emit('run', 'mindmap.toggleSnippets')" />
       <span class="mm-dock-sep" aria-hidden="true" />
       <MindmapDockButton icon="undo" :label="t('mindmap.toolbarUndo')" :disabled="isHistoryBlocked" @click="emit('run', 'mindmap.undo')" />
       <MindmapDockButton icon="redo" :label="t('mindmap.toolbarRedo')" :disabled="isHistoryBlocked" @click="emit('run', 'mindmap.redo')" />
