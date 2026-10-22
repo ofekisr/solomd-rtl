@@ -7,7 +7,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { baseNameOf, fileNameOf, claimImportName, joinInFolder } from './import-plan';
+import { baseNameOf, fileNameOf, claimImportName, joinInFolder } from './import-plan.ts';
 
 test('an empty folder takes the plain name', () => {
   const taken = new Set<string>();

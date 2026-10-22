@@ -20,8 +20,8 @@ export {
   emptyBoardFence,
   parseSnapshotJson,
   TLDRAW_DEFAULT_HEIGHT,
-} from './tldraw-markdown';
-export type { TldrawFence, TldrawFenceMatch } from './tldraw-markdown';
+} from './tldraw-markdown.ts';
+export type { TldrawFence, TldrawFenceMatch } from './tldraw-markdown.ts';
 
 /** Framework-agnostic theme tokens handed to the tldraw runtime adapter. */
 export interface BoardThemeTokens {
@@ -31,7 +31,7 @@ export interface BoardThemeTokens {
   locale: string;
 }
 
-import { findTldrawFences, serializeTldrawFence } from './tldraw-markdown';
+import { findTldrawFences, serializeTldrawFence } from './tldraw-markdown.ts';
 
 /**
  * Splice a new snapshot (and optional height/width) into the ```tldraw fence

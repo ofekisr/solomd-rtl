@@ -16,7 +16,7 @@ import {
   pruneFolds,
   anchorAtLine,
   remapFolds,
-} from './heading-fold';
+} from './heading-fold.ts';
 
 const DOC = [
   '# Title', // 0

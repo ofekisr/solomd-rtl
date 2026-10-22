@@ -7,7 +7,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { numberEquations, collectLabels, findMathSpanAt } from './equations';
+import { numberEquations, collectLabels, findMathSpanAt } from './equations.ts';
 
 test('a document with no labels or refs is returned untouched', () => {
   const src = '# Title\n\n$$ a = b $$\n\ntext\n';

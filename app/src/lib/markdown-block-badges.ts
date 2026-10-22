@@ -1,5 +1,5 @@
 import type Token from 'markdown-it/lib/token.mjs';
-import type { TextDirection } from './doc-direction';
+import type { TextDirection } from './doc-direction.ts';
 
 const FIRST_BLOCK_NUMBER = 1;
 const COUNTED_TYPES = new Set([

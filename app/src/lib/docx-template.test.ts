@@ -13,7 +13,7 @@ import {
   resolveDocxTemplate,
   firstHeading,
   renderHeaderText,
-} from './docx-template';
+} from './docx-template.ts';
 
 test('plain is what the exporter did before templates existed', () => {
   const t = resolveDocxTemplate('plain', '# Hi\n');

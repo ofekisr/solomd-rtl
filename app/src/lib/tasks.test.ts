@@ -13,7 +13,7 @@ import {
   localDateKey,
   compareTasks,
   toggleTaskLine,
-} from './tasks';
+} from './tasks.ts';
 
 test('plain text has no metadata', () => {
   const m = parseTaskMeta('buy milk');

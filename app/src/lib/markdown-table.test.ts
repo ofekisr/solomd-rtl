@@ -23,7 +23,7 @@ import {
   setAlign,
   setCell,
   emptyTable,
-} from './markdown-table';
+} from './markdown-table.ts';
 
 const SRC = ['| a | b |', '|---|---:|', '| 1 | 2 |', '| 3 | 4 |'].join('\n');
 

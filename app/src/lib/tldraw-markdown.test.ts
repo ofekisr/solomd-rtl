@@ -43,8 +43,8 @@ import {
   parseSnapshotJson,
   emptyBoardFence,
   readFenceAttribute,
-} from './tldraw-markdown';
-import { replaceBoardSnapshot } from './tldraw-board';
+} from './tldraw-markdown.ts';
+import { replaceBoardSnapshot } from './tldraw-board.ts';
 
 describe('serialize ↔ parse', () => {
   it('round-trips id / height / width / snapshot', () => {

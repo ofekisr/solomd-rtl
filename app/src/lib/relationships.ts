@@ -15,7 +15,7 @@
  * in `relationships.test.ts` and the Rust `workspace_index_relationships_tests.rs`.
  */
 
-import { extractWikilinks } from './wikilinks';
+import { extractWikilinks } from './wikilinks.ts';
 
 /**
  * Front-matter keys that are *structural* and never count as a typed

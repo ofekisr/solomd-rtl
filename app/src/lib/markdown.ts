@@ -1,10 +1,10 @@
 import MarkdownIt from 'markdown-it';
 import anchor from 'markdown-it-anchor';
-import { inlineFencePlugin } from './inline-fence';
-import { isTerminalLang, renderTerminalBlock } from './terminal-block';
+import { inlineFencePlugin } from './inline-fence.ts';
+import { isTerminalLang, renderTerminalBlock } from './terminal-block.ts';
 import type Token from 'markdown-it/lib/token.mjs';
 import type Renderer from 'markdown-it/lib/renderer.mjs';
-import hljs from './hljs-languages';
+import hljs from './hljs-languages.ts';
 import 'katex/contrib/mhchem';
 // @ts-ignore — types are loose
 import katex from '@vscode/markdown-it-katex';
@@ -16,10 +16,10 @@ import frontMatter from 'markdown-it-front-matter';
 import mark from 'markdown-it-mark';
 import cjkFriendly from 'markdown-it-cjk-friendly';
 import yaml from 'js-yaml';
-import { numberEquations } from './equations';
-import { renderNumberedBlocks } from './markdown-block-badges';
-import { sanitizeRenderedHtml } from './sanitize-html';
-import { documentDirection } from './doc-direction';
+import { numberEquations } from './equations.ts';
+import { renderNumberedBlocks } from './markdown-block-badges.ts';
+import { sanitizeRenderedHtml } from './sanitize-html.ts';
+import { documentDirection } from './doc-direction.ts';
 
 // NOTE: `@hedgedoc/markdown-it-task-lists` is installed but unusable here —
 // its compiled ESM entry does `import Token from 'markdown-it/lib/token.js'`
