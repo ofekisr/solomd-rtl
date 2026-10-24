@@ -22,7 +22,7 @@ import { createGateController, type GateMenuAction, type GateNotice } from '../l
 import { useMindmapCanvasActions } from '../composables/useMindmapCanvasActions';
 import { createChordPan } from '../composables/useMindmapChordPan';
 import { hasOpenBranch, planSelectionToggle, setDescendantsExpanded } from '../lib/mindmap-collapse';
-import { frameDelta, insetRect, parseTranslate } from '../lib/mindmap-frame';
+import { frameDelta, insetRect, panDelta, parseTranslate, type FrameRect } from '../lib/mindmap-frame';
 import { EMPTY_FRAME_STYLE, readFrameVars, type StripFrameStyle } from '../lib/mindmap-frame-style';
 import MindmapDock from './MindmapDock.vue';
 import MindmapDockButton from './MindmapDockButton.vue';
@@ -49,6 +49,8 @@ import { buildFreezeStrip, canAnchor, getTabFocus, getTabStripRoot, pathTo, setT
 import MindmapFreezeStrip from './MindmapFreezeStrip.vue';
 
 const SYNC_DEBOUNCE_MS = 300;
+const SMOOTH_MOVE_MS = 300;
+const SMOOTH_MOVE_TRANSITION = `transform ${SMOOTH_MOVE_MS / 1000}s`;
 const TOPIC_EDITOR_ID = 'input-box';
 const OPERATION_EVENT = 'operation';
 const EXPAND_EVENT = 'expandNode';
@@ -198,6 +200,7 @@ function mount(): void {
     pasteHandler: onPaste,
   });
   wrapToCenter(mind);
+  wrapMove(mind);
   if (props.fenceLine === undefined) setDescendantsExpanded(data.nodeData, false);
   mind.init(data);
   direction.value = mind.direction;
@@ -240,6 +243,37 @@ function wrapToCenter(instance: MindElixirInstance): void {
   instance.toCenter = () => {
     toCenter.call(instance);
     frameMap(instance);
+  };
+}
+
+function topicsRect(nodes: HTMLElement): FrameRect {
+  let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+  for (const topic of nodes.querySelectorAll('me-tpc')) {
+    const rect = topic.getBoundingClientRect();
+    if (rect.width === 0) continue;
+    left = Math.min(left, rect.left);
+    top = Math.min(top, rect.top);
+    right = Math.max(right, rect.right);
+    bottom = Math.max(bottom, rect.bottom);
+  }
+  if (left === Infinity) return nodes.getBoundingClientRect();
+  return { left, top, width: right - left, height: bottom - top };
+}
+
+function wrapMove(instance: MindElixirInstance): void {
+  instance.move = (dx, dy, smooth = false) => {
+    const { map, container, nodes, scaleVal, bus } = instance;
+    if (smooth && map.style.transition === SMOOTH_MOVE_TRANSITION) return false;
+    const delta = panDelta({ container: container.getBoundingClientRect(), content: topicsRect(nodes), dx, dy });
+    if (delta.dx === 0 && delta.dy === 0) return false;
+    const { x, y } = parseTranslate(map.style.transform);
+    if (smooth) {
+      map.style.transition = SMOOTH_MOVE_TRANSITION;
+      window.setTimeout(() => { map.style.transition = 'none'; }, SMOOTH_MOVE_MS);
+    }
+    map.style.transform = `translate3d(${x + delta.dx}px, ${y + delta.dy}px, 0) scale(${scaleVal})`;
+    bus.fire('move', delta);
+    return true;
   };
 }
 

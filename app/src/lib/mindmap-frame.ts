@@ -22,6 +22,14 @@ export interface FrameDelta {
   readonly dy: number;
 }
 
+export interface PanInput {
+  readonly container: FrameRect;
+  readonly content: FrameRect;
+  readonly dx: number;
+  readonly dy: number;
+  readonly keepVisible?: number;
+}
+
 export interface Translate {
   readonly x: number;
   readonly y: number;
@@ -56,6 +64,19 @@ export function frameDelta(input: FrameInput): FrameDelta {
   return {
     dx: fitsX ? centerX(container) - centerX(content) : overflowDx(input, padding),
     dy: fitsY ? centerY(container) - centerY(content) : overflowDy(input, padding),
+  };
+}
+
+function clampAxis(delta: number, viewStart: number, viewEnd: number, contentStart: number, contentEnd: number, keep: number): number {
+  if (delta > 0) return Math.min(delta, Math.max(0, viewEnd - keep - contentStart));
+  if (delta < 0) return Math.max(delta, Math.min(0, viewStart + keep - contentEnd));
+  return 0;
+}
+
+export function panDelta({ container, content, dx, dy, keepVisible = FRAME_PADDING_PX }: PanInput): FrameDelta {
+  return {
+    dx: clampAxis(dx, container.left, container.left + container.width, content.left, content.left + content.width, keepVisible),
+    dy: clampAxis(dy, container.top, container.top + container.height, content.top, content.top + content.height, keepVisible),
   };
 }
 

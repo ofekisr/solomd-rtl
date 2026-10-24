@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { MINDMAP_LAYOUT } from './mindmap-direction.ts';
-import { frameDelta, insetRect, parseTranslate, type FrameRect } from './mindmap-frame.ts';
+import { frameDelta, insetRect, panDelta, parseTranslate, type FrameRect } from './mindmap-frame.ts';
 
 const container: FrameRect = { left: 0, top: 0, width: 1000, height: 600 };
 const PAD = 40;
@@ -50,4 +50,23 @@ test('parseTranslate reads translate3d offsets and defaults to zero', () => {
 
 test('insetRect trims padding on both sides and never goes negative', () => {
   assert.deepEqual(insetRect({ left: 0, top: 0, width: 200, height: 100 }, 80, 50), { left: 80, top: 50, width: 40, height: 0 });
+});
+
+test('panning moves freely while the map stays well inside the view', () => {
+  const content = { left: 300, top: 200, width: 400, height: 200 };
+  assert.deepEqual(panDelta({ container, content, dx: -250, dy: 150, keepVisible: PAD }), { dx: -250, dy: 150 });
+});
+
+test('panning past the centre is allowed until only the visible strip remains', () => {
+  const content = { left: 300, top: 200, width: 400, height: 200 };
+  assert.deepEqual(panDelta({ container, content, dx: -900, dy: 0, keepVisible: PAD }), { dx: -660, dy: 0 });
+  assert.deepEqual(panDelta({ container, content, dx: 900, dy: 0, keepVisible: PAD }), { dx: 660, dy: 0 });
+  assert.deepEqual(panDelta({ container, content, dx: 0, dy: -900, keepVisible: PAD }), { dx: 0, dy: -360 });
+  assert.deepEqual(panDelta({ container, content, dx: 0, dy: 900, keepVisible: PAD }), { dx: 0, dy: 360 });
+});
+
+test('a map already pushed to the edge only pans back into view', () => {
+  const content = { left: -360, top: 200, width: 400, height: 200 };
+  assert.deepEqual(panDelta({ container, content, dx: -50, dy: 0, keepVisible: PAD }), { dx: 0, dy: 0 });
+  assert.deepEqual(panDelta({ container, content, dx: 50, dy: 0, keepVisible: PAD }), { dx: 50, dy: 0 });
 });
