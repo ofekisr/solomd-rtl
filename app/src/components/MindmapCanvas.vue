@@ -45,7 +45,7 @@ import { copyStyle, nodePathsText, pasteStyle, styleClipboard } from '../lib/min
 import { entryKey, TAB_SOURCE_PREFIX, type EntryDraft } from '../lib/mindmap-workbench';
 import { useMindmapWorkbenchStore } from '../stores/mindmapWorkbench';
 import { fileDraft, nodesDraft, openWorkbench } from '../composables/useMindmapWorkbench';
-import { closingMenuItems, hideContextMenu } from '../lib/mindmap-context-menu';
+import { closingMenuItems, hideContextMenu, unselectedTopicAt } from '../lib/mindmap-context-menu';
 import { buildFreezeStrip, canAnchor, getTabFocus, getTabStripRoot, pathTo, setTabFocus, setTabStripRoot, type FreezeStrip } from '../lib/mindmap-focus';
 import MindmapFreezeStrip from './MindmapFreezeStrip.vue';
 
@@ -841,6 +841,11 @@ function reportingErrors(run: () => Promise<void>): () => void {
   return () => { void run().catch((e: unknown) => toasts.error(String(e))); };
 }
 
+function selectTopicUnderPointer(e: MouseEvent): void {
+  const topic = e.target instanceof Element ? unselectedTopicAt<Topic>(e.target) : null;
+  if (mind && topic) mind.selectNode(topic);
+}
+
 function workbenchMenuItems(): { name: string; onclick: () => void }[] {
   return [
     { name: t('mindmap.menuAddToWorkbench'), onclick: toggleWorkbench },
@@ -994,7 +999,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="mindmap-view" @keydown.capture="keyDispatch.onCapture" @keydown="keyDispatch.onBubble" @focusin="activate" @pointerdown="activate">
+  <div class="mindmap-view" @keydown.capture="keyDispatch.onCapture" @keydown="keyDispatch.onBubble" @focusin="activate" @pointerdown="activate" @contextmenu.capture="selectTopicUnderPointer">
     <div v-if="parseError" class="mindmap-view__error" role="alert">
       <p>{{ t('mindmap.parseError') }}</p>
       <pre>{{ parseError }}</pre>
