@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import type { SplitDirection, TileBranch, TileLeaf, TileNode } from '../types';
 import { useTabsStore } from './tabs';
+import { placeTabOnSide, type PaneSide } from '../lib/pane-place';
 
 const LS_KEY = 'solomd.tiles.v1';
 
@@ -141,6 +142,18 @@ export const useTilesStore = defineStore('tiles', {
 
       this.root = replaceNode(this.root, paneId, branch);
       this.focusedPaneId = child1.id;
+      this.syncActiveTab();
+    },
+
+    /** Show `tabId` in a pane on `side`. `previous` is the pane that held focus before the tab
+     *  was opened, so the open does not also replace that pane's tab. */
+    openTabOnSide(side: PaneSide, tabId: string, previous?: { paneId: string; tabId: string }) {
+      const prior = previous && findLeaf(this.root, previous.paneId);
+      if (prior && previous.tabId) this.root = replaceNode(this.root, prior.id, { ...prior, activeTabId: previous.tabId });
+      const ids = { pane: newPaneId, branch: newBranchId };
+      const placement = placeTabOnSide(this.root, side, tabId, ids, this.focusedPaneId);
+      this.root = placement.root;
+      this.focusedPaneId = placement.paneId;
       this.syncActiveTab();
     },
 

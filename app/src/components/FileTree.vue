@@ -17,6 +17,8 @@ import { useMindmapWorkbenchStore } from '../stores/mindmapWorkbench';
 import { fileDraft, openWorkbench, useMindmapWorkbench } from '../composables/useMindmapWorkbench';
 import { copyMapText } from '../lib/mindmap-payload';
 import { useTabsStore } from '../stores/tabs';
+import { useTilesStore } from '../stores/tiles';
+import type { PaneSide } from '../lib/pane-place';
 import { useI18n } from '../i18n';
 import { isMobile } from '../lib/platform';
 import { usePendingDeletes, isDeletePending, UNDO_WINDOW_MS } from '../composables/usePendingDeletes';
@@ -164,6 +166,25 @@ async function copyNodePath(node: Node) {
   await writeText(node.path);
   toasts.success(t('explorer.copyPathDone') || 'Path copied.');
   closeCtx();
+}
+
+const PANE_SIDES: PaneSide[] = ['left', 'right', 'down', 'up'];
+
+function openedTabId(path: string, activeBefore: string | null): string | null {
+  const byPath = tabs.tabs.find((tab) => tab.filePath === path);
+  if (byPath) return byPath.id;
+  return tabs.activeId && tabs.activeId !== activeBefore ? tabs.activeId : null;
+}
+
+async function openNodeOnSide(node: Node, side: PaneSide) {
+  closeCtx();
+  const tiles = useTilesStore();
+  const previous = { paneId: tiles.focusedPaneId, tabId: tiles.focusedLeaf?.activeTabId ?? '' };
+  const activeBefore = tabs.activeId;
+  selected.value = { path: node.path, isDir: false };
+  await files.openPath(node.path, { bypassNewWindow: true });
+  const tabId = openedTabId(node.path, activeBefore);
+  if (tabId) tiles.openTabOnSide(side, tabId, previous);
 }
 
 /** #120 — copy the node's path relative to the workspace root, slash-normalised. */
@@ -1811,6 +1832,16 @@ onBeforeUnmount(() => {
         </div>
         <button class="ftree__ctx-item" @click="startNewFolder(ctx.node ? ctx.node.path : newEntryParent())">
           📁 {{ t('explorer.newFolder') || 'New Folder' }}
+        </button>
+      </template>
+      <template v-if="ctx.node && !ctx.node.is_dir">
+        <button
+          v-for="side in PANE_SIDES"
+          :key="side"
+          class="ftree__ctx-item"
+          @click="openNodeOnSide(ctx.node, side)"
+        >
+          {{ t(`paneOpen.${side}`) }}
         </button>
       </template>
       <div v-if="ctx.node" class="ftree__ctx-sep"></div>

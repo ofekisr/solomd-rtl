@@ -180,6 +180,12 @@ export const en = {
     replaceOne: 'Replace',
     replaceAll: 'All',
   },
+  paneOpen: {
+    left: 'Open on left',
+    right: 'Open on right',
+    down: 'Open below',
+    up: 'Open above',
+  },
   explorer: {
     heading: 'Explorer',
     revealHidden: 'Could not show this file in the tree — it is outside the open workspace, or hidden by a tree filter.',
@@ -2481,7 +2487,8 @@ type EnglishSettings = EnglishDictionary['settings'];
 
 type EnglishCmd = EnglishDictionary['cmd'];
 
-export type I18n = Omit<EnglishDictionary, 'settings' | 'mindmap' | 'cmd' | 'searchReplace' | 'findBar' | 'git'> & {
+export type I18n = Omit<EnglishDictionary, 'settings' | 'mindmap' | 'cmd' | 'searchReplace' | 'findBar' | 'git' | 'paneOpen'> & {
+  paneOpen?: EnglishDictionary['paneOpen'];
   searchReplace?: EnglishDictionary['searchReplace'];
   findBar?: EnglishDictionary['findBar'];
   git?: EnglishDictionary['git'];
