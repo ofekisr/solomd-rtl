@@ -1,7 +1,7 @@
 // Exports under test: closingMenuItems (mindmap-context-menu.ts)
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { closingMenuItems, unselectedTopicAt } from './mindmap-context-menu.ts';
+import { closingMenuItems } from './mindmap-context-menu.ts';
 
 test('each item runs its action, then hides the menu', () => {
   const calls: string[] = [];
@@ -25,19 +25,4 @@ test('names are kept', () => {
 test('shortcut hints are kept', () => {
   const [item] = closingMenuItems([{ name: 'Follow', key: '⌥Enter', onclick: () => {} }], () => {});
   assert.equal(item.key, '⌥Enter');
-});
-
-function fakeTopic(isSelected: boolean): { classList: { contains(name: string): boolean } } {
-  return { classList: { contains: (name) => isSelected && name === 'selected' } };
-}
-
-test('unselectedTopicAt finds the topic around an inner target', () => {
-  const topic = fakeTopic(false);
-  assert.equal(unselectedTopicAt({ closest: (sel) => (sel === 'me-tpc' ? topic : null) }), topic);
-});
-
-test('unselectedTopicAt keeps an existing selection and ignores the background', () => {
-  assert.equal(unselectedTopicAt({ closest: () => fakeTopic(true) }), null);
-  assert.equal(unselectedTopicAt({ closest: () => null }), null);
-  assert.equal(unselectedTopicAt(null), null);
 });

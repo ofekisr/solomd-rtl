@@ -1,7 +1,12 @@
 import type { NodeObj } from 'mind-elixir';
 import { nodePath } from './mindmap-node-fields.ts';
 
-export type NodeStyle = NonNullable<NodeObj['style']>;
+type Style = NonNullable<NodeObj['style']>;
+
+export interface NodeStyle {
+  readonly style: Style;
+  readonly branchColor?: string;
+}
 
 const PATH_SEPARATOR = ' › ';
 
@@ -14,23 +19,26 @@ export function nodePathsText(nodes: readonly NodeObj[]): string {
 }
 
 export function copyStyle(node: NodeObj): NodeStyle {
-  return { ...(node.style ?? {}) };
+  return { style: { ...(node.style ?? {}) }, branchColor: node.branchColor };
 }
 
 /** Shared across every open map so a style copied in one tab pastes in another. */
 export const styleClipboard: { value: NodeStyle | null } = { value: null };
 
-function isSameStyle(a: NodeObj['style'], b: NodeStyle): boolean {
-  return JSON.stringify(a ?? {}) === JSON.stringify(b);
+function isSameStyle(node: NodeObj, copied: NodeStyle): boolean {
+  return JSON.stringify(node.style ?? {}) === JSON.stringify(copied.style) && node.branchColor === copied.branchColor;
 }
 
-/** Replaces each node's style with `style`; an empty style clears it. Returns the nodes that changed. */
-export function pasteStyle(nodes: readonly NodeObj[], style: NodeStyle): NodeObj[] {
-  const changed = nodes.filter((node) => !isSameStyle(node.style, style));
-  const isEmpty = Object.keys(style).length === 0;
-  for (const node of changed) {
-    if (isEmpty) delete node.style;
-    else node.style = { ...style };
-  }
+function applyStyle(node: NodeObj, copied: NodeStyle): void {
+  if (Object.keys(copied.style).length === 0) delete node.style;
+  else node.style = { ...copied.style };
+  if (copied.branchColor === undefined) delete node.branchColor;
+  else node.branchColor = copied.branchColor;
+}
+
+/** Replaces each node's style and branch color with the copied ones; empty values clear them. Returns the nodes that changed. */
+export function pasteStyle(nodes: readonly NodeObj[], copied: NodeStyle): NodeObj[] {
+  const changed = nodes.filter((node) => !isSameStyle(node, copied));
+  for (const node of changed) applyStyle(node, copied);
   return changed;
 }

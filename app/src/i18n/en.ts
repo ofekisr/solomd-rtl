@@ -1627,6 +1627,7 @@ export const en = {
     menuAddToWorkbench: 'Add to workbench',
     menuRemoveFromWorkbench: 'Remove from workbench',
     menuOpenWorkbench: 'Open workbench',
+    menuCopyPasteGroup: 'Copy & paste',
     menuCopyPath: 'Copy path',
     menuCopyStyle: 'Copy style',
     menuPasteStyle: 'Paste style',

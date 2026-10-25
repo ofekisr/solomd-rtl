@@ -45,7 +45,7 @@ import { copyStyle, nodePathsText, pasteStyle, styleClipboard } from '../lib/min
 import { entryKey, TAB_SOURCE_PREFIX, type EntryDraft } from '../lib/mindmap-workbench';
 import { useMindmapWorkbenchStore } from '../stores/mindmapWorkbench';
 import { fileDraft, nodesDraft, openWorkbench } from '../composables/useMindmapWorkbench';
-import { closingMenuItems, hideContextMenu, unselectedTopicAt } from '../lib/mindmap-context-menu';
+import { closingMenuItems, hideContextMenu, installMenuGroup, keepMenuTopVisible, type ContextMenuItem } from '../lib/mindmap-context-menu';
 import { buildFreezeStrip, canAnchor, getTabFocus, getTabStripRoot, pathTo, setTabFocus, setTabStripRoot, type FreezeStrip } from '../lib/mindmap-focus';
 import MindmapFreezeStrip from './MindmapFreezeStrip.vue';
 
@@ -204,6 +204,8 @@ function mount(): void {
   wrapMove(mind);
   if (props.fenceLine === undefined) setDescendantsExpanded(data.nodeData, false);
   mind.init(data);
+  installMenuGroup(host.value, t('mindmap.menuCopyPasteGroup'), copyPasteMenuItems(), () => hideContextMenu(host.value));
+  mind.bus.addListener('showContextMenu', () => keepMenuTopVisible(host.value));
   direction.value = mind.direction;
   chordPan.attach(host.value);
   stage.value?.addEventListener(FULLSCREEN_CHANGE_EVENT, onFullscreenChange);
@@ -841,20 +843,20 @@ function reportingErrors(run: () => Promise<void>): () => void {
   return () => { void run().catch((e: unknown) => toasts.error(String(e))); };
 }
 
-function selectTopicUnderPointer(e: MouseEvent): void {
-  const topic = e.target instanceof Element ? unselectedTopicAt<Topic>(e.target) : null;
-  if (mind && topic) mind.selectNode(topic);
-}
-
 function workbenchMenuItems(): { name: string; onclick: () => void }[] {
   return [
     { name: t('mindmap.menuAddToWorkbench'), onclick: toggleWorkbench },
     { name: t('mindmap.menuOpenWorkbench'), onclick: openWorkbenchFromMenu },
+  ];
+}
+
+function copyPasteMenuItems(): ContextMenuItem[] {
+  return [
     { name: t('mindmap.menuCopyPath'), onclick: reportingErrors(copyNodePath) },
     { name: t('mindmap.menuCopyStyle'), onclick: copyNodeStyle },
     { name: t('mindmap.menuPasteStyle'), onclick: pasteNodeStyle },
-    { name: t('mindmap.menuCopyMap'), onclick: () => { void copyMap().catch((e: unknown) => toasts.error(String(e))); } },
-    { name: t('mindmap.menuPasteMap'), onclick: () => { void pasteMapFromClipboard().catch((e: unknown) => toasts.error(String(e))); } },
+    { name: t('mindmap.menuCopyMap'), onclick: reportingErrors(copyMap) },
+    { name: t('mindmap.menuPasteMap'), onclick: reportingErrors(pasteMapFromClipboard) },
   ];
 }
 
@@ -999,7 +1001,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="mindmap-view" @keydown.capture="keyDispatch.onCapture" @keydown="keyDispatch.onBubble" @focusin="activate" @pointerdown="activate" @contextmenu.capture="selectTopicUnderPointer">
+  <div class="mindmap-view" @keydown.capture="keyDispatch.onCapture" @keydown="keyDispatch.onBubble" @focusin="activate" @pointerdown="activate">
     <div v-if="parseError" class="mindmap-view__error" role="alert">
       <p>{{ t('mindmap.parseError') }}</p>
       <pre>{{ parseError }}</pre>
@@ -1035,6 +1037,25 @@ defineExpose({
 </template>
 
 <style scoped>
+.mindmap-view__canvas :deep(.context-menu .menu-list) { overflow: visible; }
+.mindmap-view__canvas :deep(.context-menu .menu-list li.mm-menu-group) { position: relative; overflow: visible; }
+.mindmap-view__canvas :deep(.mm-menu-group__chevron) { opacity: 0.6; }
+.mindmap-view__canvas :deep(.mm-menu-group__chevron:dir(rtl)) { transform: scaleX(-1); }
+.mindmap-view__canvas :deep(.mm-menu-group__list) {
+  display: none;
+  position: absolute;
+  top: 0;
+  inset-inline-start: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0 12px 15px #0003;
+}
+.mindmap-view__canvas :deep(.mm-menu-group:is(:hover, .is-open) > .mm-menu-group__list) { display: block; }
+.mindmap-view__canvas :deep(.mm-menu-group.is-flipped > .mm-menu-group__list) { inset-inline-start: auto; inset-inline-end: 100%; }
+.mindmap-view__canvas :deep(.context-menu .menu-list .mm-menu-group__list li span:last-child) { float: none; }
 .mindmap-view { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
 .mindmap-view__stage { position: relative; flex: 1; min-height: 0; display: flex; background: var(--bg); }
 .mindmap-view__canvas { flex: 1; min-height: 0; width: 100%; }
