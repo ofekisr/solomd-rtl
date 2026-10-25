@@ -223,6 +223,16 @@ function reshapeAll(mind: MindElixirInstance, elements: readonly Topic[], result
   return elements.length > 0;
 }
 
+function refreshSelected(): void {
+  const mind = canvas.value?.getMind() ?? null;
+  selected.value = selected.value.map((node) => findLiveElement(mind, node.id)?.nodeObj).filter((node): node is NodeObj => node !== undefined).map((node) => ({ ...node }));
+}
+
+function applyStyleTemplate(name: string): void {
+  canvas.value?.applyStyleTemplate(name);
+  refreshSelected();
+}
+
 function patchNodeById(id: string, patch: Partial<NodeObj>): void {
   const mind = canvas.value?.getMind();
   if (!mind || !isPanelEditable.value) return;
@@ -482,7 +492,7 @@ defineExpose({ setLens, canvas, lens, openFind });
       <MindmapSidePanel v-if="isPanelVisible" :has-single-node="selected.length > 0">
         <template #node>
           <p v-if="!isPanelEditable" class="mindmap-shell__hint">{{ t('mindmap.panelReadOnly') }}</p>
-          <MindmapNodeFields v-if="selected.length > 0" :nodes="selected" :effective="effectiveStyle" :disabled="!isPanelEditable" @patch="applyNodePatch" @icon="applyNodeIcon" />
+          <MindmapNodeFields v-if="selected.length > 0" :nodes="selected" :effective="effectiveStyle" :disabled="!isPanelEditable" @patch="applyNodePatch" @icon="applyNodeIcon" @template-apply="applyStyleTemplate" @template-save="canvas?.saveStyleTemplate()" />
         </template>
         <template #map>
           <MindmapMapFields :value="displayOverride" :inherited="settings.mindmapDefaults" :disabled="!isPanelEditable" @set="setOverride" @clear="clearOverride" />

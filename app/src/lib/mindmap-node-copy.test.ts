@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { NodeObj } from 'mind-elixir';
-import { copyStyle, nodePathText, nodePathsText, pasteStyle, type RenderedLook } from './mindmap-node-copy.ts';
+import { copyStyle, cssColorToHex, nodePathText, nodePathsText, pasteStyle, type RenderedLook } from './mindmap-node-copy.ts';
 
 const root: NodeObj = { id: 'r', topic: 'Root' };
 const mid: NodeObj = { id: 'm', topic: 'Mid', parent: root };
@@ -59,20 +59,20 @@ const PILL_LOOK: RenderedLook = {
 test('copyStyle with a rendered look captures theme defaults the node never saved', () => {
   const copied = copyStyle({ id: 'm', topic: 'Main' }, PILL_LOOK);
   assert.deepEqual(copied.style, {
-    color: 'rgb(255, 255, 255)',
-    background: 'rgb(60, 60, 90)',
-    border: '2px solid rgb(120, 120, 200)',
+    color: '#ffffff',
+    background: '#3c3c5a',
+    border: '2px solid #7878c8',
     borderRadius: '999px',
     fontSize: '18px',
     fontWeight: '400',
-    padding: '8px 25px 8px 25px',
+    padding: '8px 25px',
   });
 });
 
 test('copyStyle lets saved style win over the rendered look and skips cleared values', () => {
   const copied = copyStyle({ id: 'm', topic: 'Main', style: { color: '#f00', background: '' } }, PILL_LOOK);
   assert.equal(copied.style.color, '#f00');
-  assert.equal(copied.style.background, 'rgb(60, 60, 90)');
+  assert.equal(copied.style.background, '#3c3c5a');
 });
 
 test('a rendered copy differs from an unstyled target, so paste applies it', () => {
@@ -80,4 +80,23 @@ test('a rendered copy differs from an unstyled target, so paste applies it', () 
   const copied = copyStyle({ id: 'm', topic: 'Main' }, PILL_LOOK);
   assert.deepEqual(pasteStyle([leaf], copied).map((n) => n.id), ['l']);
   assert.equal((leaf.style as Record<string, string>).borderRadius, '999px');
+});
+
+test('cssColorToHex converts rgb/rgba and maps zero alpha to transparent', () => {
+  assert.equal(cssColorToHex('rgb(76, 79, 105)'), '#4c4f69');
+  assert.equal(cssColorToHex('rgba(0, 0, 0, 0)'), 'transparent');
+  assert.equal(cssColorToHex('rgba(255, 0, 0, 0.5)'), '#ff0000');
+  assert.equal(cssColorToHex('#abc'), '#abc');
+});
+
+test('rendered border rounds fractional widths and drops invisible borders', () => {
+  const fractional = copyStyle({ id: 'a', topic: 'A' }, { ...PILL_LOOK, borderTopWidth: '1.764706px' });
+  assert.equal(fractional.style.border, '2px solid #7878c8');
+  const none = copyStyle({ id: 'b', topic: 'B' }, { ...PILL_LOOK, borderTopStyle: 'none', borderTopWidth: '0px' });
+  assert.equal(none.style.border, 'none');
+});
+
+test('rendered padding keeps four values when sides differ', () => {
+  const copied = copyStyle({ id: 'a', topic: 'A' }, { ...PILL_LOOK, paddingLeft: '10.4px' });
+  assert.equal(copied.style.padding, '8px 25px 8px 10px');
 });

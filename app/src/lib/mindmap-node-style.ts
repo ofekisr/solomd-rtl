@@ -16,11 +16,15 @@ export const NODE_BORDER_STYLES: readonly string[] = ['solid', 'dashed', 'dotted
 export const NODE_SHAPES: Readonly<Record<string, string>> = { square: '0px', rounded: '8px', pill: '999px', circle: '50%' };
 
 export type NodeField = 'color' | 'background' | 'fontSize' | 'bold' | 'branchColor' | 'tags' | 'icons' | 'hyperLink' | 'note'
-  | 'fontFamily' | 'textDecoration' | 'width' | 'border' | 'shape';
+  | 'fontFamily' | 'textDecoration' | 'width' | 'border' | 'shape' | 'radius' | 'padding';
 export type NodePatchResult = { ok: true; patch: Partial<NodeObj> } | { ok: false; reason: 'invalid' };
 type FieldValue = string | number | boolean | readonly string[] | null;
-type NodeStyle = NonNullable<NodeObj['style']> & { borderRadius?: string };
+type NodeStyle = NonNullable<NodeObj['style']> & { borderRadius?: string; padding?: string };
 export interface NodeBorder { width: number; style: string; color: string }
+export interface NodePadding { vertical: number; horizontal: number }
+
+export const PADDING_MAX = 100;
+export const RADIUS_MAX = 999;
 
 const ANGLE_BRACKET_PATTERN = /[<>]/g;
 const ANGLE_BRACKET_TEST = /[<>]/;
@@ -30,6 +34,7 @@ const CLEARED_STYLE_VALUE = '';
 const PX = 'px';
 const INVALID: NodePatchResult = { ok: false, reason: 'invalid' };
 const BORDER_PATTERN = /^(\d{1,2})px (\w+) (\S+)$/;
+const PADDING_PATTERN = /^(\d{1,3})px(?: (\d{1,3})px)?(?: \d{1,3}px){0,2}$/;
 
 export function toggleIcon(icons: readonly string[] | undefined, icon: string): string[] {
   const current = icons ?? [];
@@ -49,6 +54,22 @@ export function parseBorder(value: string | undefined): NodeBorder | null {
 
 export function formatBorder(border: NodeBorder): string {
   return `${border.width}${PX} ${border.style} ${border.color}`;
+}
+
+/** Reads "Vpx Hpx" or a 4-value padding as vertical (top) / horizontal (right). */
+export function parsePadding(value: string | undefined): NodePadding | null {
+  const match = PADDING_PATTERN.exec(value?.trim() ?? '');
+  if (!match) return null;
+  const vertical = Number(match[1]);
+  return { vertical, horizontal: match[2] === undefined ? vertical : Number(match[2]) };
+}
+
+export function formatPadding(padding: NodePadding): string {
+  return `${padding.vertical}${PX} ${padding.horizontal}${PX}`;
+}
+
+function clampInt(value: number, max: number): number {
+  return Math.min(max, Math.max(0, Math.round(value)));
 }
 
 export function fontKeyOf(family: string | undefined): MapFont | '' {
@@ -86,6 +107,19 @@ function borderPatch(node: NodeObj, value: FieldValue): NodePatchResult {
   const border = typeof value === 'string' ? parseBorder(value) : null;
   if (!border || border.width > BORDER_WIDTH_MAX) return INVALID;
   return withStyle(node, 'border', formatBorder(border));
+}
+
+function radiusPatch(node: NodeObj, value: FieldValue): NodePatchResult {
+  if (isClear(value)) return withStyle(node, 'borderRadius', null);
+  if (typeof value !== 'number' || !Number.isFinite(value)) return INVALID;
+  return withStyle(node, 'borderRadius', `${clampInt(value, RADIUS_MAX)}${PX}`);
+}
+
+function paddingPatch(node: NodeObj, value: FieldValue): NodePatchResult {
+  if (isClear(value)) return withStyle(node, 'padding', null);
+  const padding = typeof value === 'string' ? parsePadding(value) : null;
+  if (!padding) return INVALID;
+  return withStyle(node, 'padding', formatPadding({ vertical: clampInt(padding.vertical, PADDING_MAX), horizontal: clampInt(padding.horizontal, PADDING_MAX) }));
 }
 
 const DECORATION_CHOICES = Object.fromEntries(NODE_DECORATIONS.map((d) => [d, d]));
@@ -140,6 +174,8 @@ export function buildNodePatch(node: NodeObj, field: NodeField, value: FieldValu
     case 'width': return widthPatch(node, value);
     case 'border': return borderPatch(node, value);
     case 'shape': return choicePatch(node, 'borderRadius', value, NODE_SHAPES);
+    case 'radius': return radiusPatch(node, value);
+    case 'padding': return paddingPatch(node, value);
     case 'note': return { ok: true, patch: { note: typeof value === 'string' && value !== '' ? value : undefined } };
   }
 }

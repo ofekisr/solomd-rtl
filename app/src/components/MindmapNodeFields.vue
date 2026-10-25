@@ -2,10 +2,11 @@
 import { computed, ref, watch } from 'vue';
 import type { NodeObj } from 'mind-elixir';
 import { useI18n } from '../i18n';
+import { useSettingsStore } from '../stores/settings';
 import type { EffectiveStyle } from '../lib/mindmap-effective-style';
 import {
-  BORDER_WIDTH_MAX, FONT_SIZE_MAX, FONT_SIZE_MIN, NODE_BORDER_STYLES, NODE_DECORATIONS, NODE_ICONS, NODE_SHAPES, NODE_WIDTH_MAX, NODE_WIDTH_MIN,
-  fontKeyOf, formatBorder, isSafeLink, parseBorder, shapeKeyOf, type NodeBorder, type NodeField,
+  BORDER_WIDTH_MAX, PADDING_MAX, RADIUS_MAX, FONT_SIZE_MAX, FONT_SIZE_MIN, NODE_BORDER_STYLES, NODE_DECORATIONS, NODE_ICONS, NODE_SHAPES, NODE_WIDTH_MAX, NODE_WIDTH_MIN,
+  fontKeyOf, formatBorder, formatPadding, isSafeLink, parseBorder, parsePadding, shapeKeyOf, type NodeBorder, type NodeField, type NodePadding,
 } from '../lib/mindmap-node-style';
 
 const DEFAULT_FONT_SIZE = 16;
@@ -19,13 +20,25 @@ const DECORATION_LABELS: Readonly<Record<string, string>> = { underline: 'mindma
 const SHAPE_LABELS: Readonly<Record<string, string>> = { square: 'mindmap.shapeSquare', rounded: 'mindmap.shapeRounded', pill: 'mindmap.shapePill', circle: 'mindmap.shapeCircle' };
 const BORDER_LABELS: Readonly<Record<string, string>> = { solid: 'mindmap.borderSolid', dashed: 'mindmap.borderDashed', dotted: 'mindmap.borderDotted', double: 'mindmap.borderDouble' };
 
-type StyleWithRadius = NonNullable<NodeObj['style']> & { borderRadius?: string };
+type StyleWithRadius = NonNullable<NodeObj['style']> & { borderRadius?: string; padding?: string };
+const CUSTOM_SHAPE = 'custom';
+const DEFAULT_PADDING: NodePadding = { vertical: 6, horizontal: 12 };
 const props = defineProps<{ nodes: readonly NodeObj[]; effective: EffectiveStyle | null; disabled: boolean }>();
 const emit = defineEmits<{
   patch: [field: NodeField, value: string | number | boolean | readonly string[] | null];
   icon: [icon: string, isOn: boolean];
+  'template-apply': [name: string];
+  'template-save': [];
 }>();
 const { t } = useI18n();
+const settings = useSettingsStore();
+
+function onTemplatePick(event: Event): void {
+  const select = event.target as HTMLSelectElement;
+  const name = select.value;
+  select.value = '';
+  if (name) emit('template-apply', name);
+}
 
 const node = computed(() => props.nodes[0]);
 const style = computed<StyleWithRadius>(() => node.value.style ?? {});
@@ -35,6 +48,9 @@ const isUrlInvalid = computed(() => url.value !== '' && !isSafeLink(url.value));
 const fontSize = computed(() => Number.parseInt(style.value.fontSize ?? '', 10) || props.effective?.fontSize || DEFAULT_FONT_SIZE);
 const width = computed(() => Number.parseInt(style.value.width ?? '', 10) || null);
 const border = computed(() => parseBorder(style.value.border));
+const padding = computed(() => parsePadding(style.value.padding));
+const radius = computed(() => { const n = Number.parseInt(style.value.borderRadius ?? '', 10); return Number.isFinite(n) ? n : null; });
+const shapeValue = computed(() => shapeKeyOf(style.value.borderRadius) || (radius.value === null ? '' : CUSTOM_SHAPE));
 const hasTopLevel = computed(() => props.nodes.some((n) => n.parent !== undefined && n.parent.parent === undefined));
 watch(node, (n) => { url.value = n.hyperLink ?? ''; }, { immediate: true });
 
@@ -53,6 +69,14 @@ function onWidth(raw: string): void {
 function onBorder(change: Partial<NodeBorder>): void {
   const next = { ...(border.value ?? DEFAULT_BORDER), ...change };
   emit('patch', 'border', formatBorder(next));
+}
+
+function onRadius(raw: string): void {
+  emit('patch', 'radius', raw === '' ? null : Number(raw));
+}
+
+function onPadding(change: Partial<NodePadding>): void {
+  emit('patch', 'padding', formatPadding({ ...(padding.value ?? DEFAULT_PADDING), ...change }));
 }
 
 function onBorderStyle(value: string): void {
@@ -84,6 +108,15 @@ function inputValue(event: Event): string {
 <template>
   <fieldset class="mm-fields" :disabled="disabled">
     <p v-if="isBatch" class="mm-fields__batch" role="status">{{ t('mindmap.panelBatch', { count: nodes.length }) }}</p>
+    <label>{{ t('mindmap.fieldStyleTemplate') }}
+      <span class="mm-fields__row">
+        <select value="" :disabled="settings.mindmapStyleTemplates.length === 0" @change="onTemplatePick">
+          <option value="">{{ settings.mindmapStyleTemplates.length === 0 ? t('mindmap.styleTemplatesEmpty') : t('mindmap.styleTemplateApply') }}</option>
+          <option v-for="tpl in settings.mindmapStyleTemplates" :key="tpl.name" :value="tpl.name">{{ tpl.name }}</option>
+        </select>
+        <button type="button" @click="emit('template-save')">{{ t('mindmap.styleTemplateSaveShort') }}</button>
+      </span>
+    </label>
     <label>{{ t('mindmap.fieldTextColor') }}
       <span class="mm-fields__row">
         <input type="color" :value="style.color || effective?.color || themeTextColor()" @change="emit('patch', 'color', inputValue($event))" />
@@ -116,10 +149,21 @@ function inputValue(event: Event): string {
       </select>
     </span>
     <label>{{ t('mindmap.fieldShape') }}
-      <select :value="shapeKeyOf(style.borderRadius)" @change="emit('patch', 'shape', selectValue($event))">
-        <option value="">{{ t('mindmap.fieldInherit') }}</option>
-        <option v-for="(_, key) in NODE_SHAPES" :key="key" :value="key">{{ t(SHAPE_LABELS[key]) }}</option>
-      </select>
+      <span class="mm-fields__row">
+        <select :value="shapeValue" @change="emit('patch', 'shape', selectValue($event))">
+          <option value="">{{ t('mindmap.fieldInherit') }}</option>
+          <option v-for="(_, key) in NODE_SHAPES" :key="key" :value="key">{{ t(SHAPE_LABELS[key]) }}</option>
+          <option v-if="shapeValue === CUSTOM_SHAPE" :value="CUSTOM_SHAPE" disabled>{{ t('mindmap.shapeCustom') }}</option>
+        </select>
+        <input class="mm-fields__num" type="number" min="0" :max="RADIUS_MAX" :value="radius ?? ''" :placeholder="t('mindmap.fieldRadius')" :aria-label="t('mindmap.fieldRadius')" @change="onRadius(inputValue($event))" />
+      </span>
+    </label>
+    <label>{{ t('mindmap.fieldPadding') }}
+      <span class="mm-fields__row">
+        <input class="mm-fields__num" type="number" min="0" :max="PADDING_MAX" :value="padding?.vertical ?? ''" :placeholder="t('mindmap.fieldPaddingVertical')" :aria-label="t('mindmap.fieldPaddingVertical')" @change="onPadding({ vertical: Number(inputValue($event)) })" />
+        <input class="mm-fields__num" type="number" min="0" :max="PADDING_MAX" :value="padding?.horizontal ?? ''" :placeholder="t('mindmap.fieldPaddingHorizontal')" :aria-label="t('mindmap.fieldPaddingHorizontal')" @change="onPadding({ horizontal: Number(inputValue($event)) })" />
+        <button type="button" @click="emit('patch', 'padding', null)">{{ t('mindmap.fieldClear') }}</button>
+      </span>
     </label>
     <label>{{ t('mindmap.fieldBorder') }}
       <span class="mm-fields__row">

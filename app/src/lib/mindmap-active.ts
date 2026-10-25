@@ -8,6 +8,8 @@ export interface MindmapCanvasApi {
   flush(): void;
   markChanged(): void;
   run(actionId: string): boolean;
+  applyStyleTemplate(name: string): void;
+  saveStyleTemplate(): void;
   getMind(): MindElixirInstance | null;
   getDisplayOverride(): MapDisplay;
   setDisplayOverride(next: MapDisplay): void;

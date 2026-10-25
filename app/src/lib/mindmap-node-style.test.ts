@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { NodeObj } from 'mind-elixir';
-import { buildNodePatch, fontKeyOf, isSafeLink, parseBorder, setIcon, shapeKeyOf, toggleIcon } from './mindmap-node-style.ts';
+import { PADDING_MAX, RADIUS_MAX, buildNodePatch, fontKeyOf, isSafeLink, parseBorder, parsePadding, setIcon, shapeKeyOf, toggleIcon } from './mindmap-node-style.ts';
 
 const node: NodeObj = { id: 'n1', topic: 'A', style: { fontWeight: 'bold', color: '#111' } };
 
@@ -112,4 +112,21 @@ test('fontKeyOf and shapeKeyOf reverse-map stored CSS', () => {
   assert.equal(fontKeyOf(serif.ok ? serif.patch.style?.fontFamily : undefined), 'serif');
   assert.equal(shapeKeyOf('50%'), 'circle');
   assert.equal(shapeKeyOf('3px'), '');
+});
+
+test('parsePadding reads 1, 2 and 4 value forms', () => {
+  assert.deepEqual(parsePadding('8px'), { vertical: 8, horizontal: 8 });
+  assert.deepEqual(parsePadding('8px 25px'), { vertical: 8, horizontal: 25 });
+  assert.deepEqual(parsePadding('8px 25px 8px 25px'), { vertical: 8, horizontal: 25 });
+  assert.equal(parsePadding('1em'), null);
+  assert.equal(parsePadding(undefined), null);
+});
+
+test('padding and radius patches clamp, format and clear', () => {
+  const node: NodeObj = { id: 'a', topic: 'A' };
+  assert.deepEqual(buildNodePatch(node, 'padding', '500px 4px'), { ok: true, patch: { style: { padding: `${PADDING_MAX}px 4px` } } });
+  assert.deepEqual(buildNodePatch(node, 'padding', 'x'), { ok: false, reason: 'invalid' });
+  assert.deepEqual(buildNodePatch(node, 'radius', 20.4), { ok: true, patch: { style: { borderRadius: '20px' } } });
+  assert.deepEqual(buildNodePatch(node, 'radius', 5000), { ok: true, patch: { style: { borderRadius: `${RADIUS_MAX}px` } } });
+  assert.deepEqual(buildNodePatch(node, 'radius', null), { ok: true, patch: { style: { borderRadius: '' } } });
 });

@@ -34,15 +34,43 @@ export function nodePathsText(nodes: readonly NodeObj[]): string {
   return nodes.map(nodePathText).join('\n');
 }
 
+const RGB_PATTERN = /^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+%?))?\s*\)$/i;
+const TRANSPARENT = 'transparent';
+const NO_BORDER = 'none';
+const MIN_BORDER_PX = 0.5;
+
+/** Computed colors come back as rgb()/rgba(); the side panel's color pickers only understand #rrggbb. */
+export function cssColorToHex(value: string): string {
+  const match = RGB_PATTERN.exec(value.trim());
+  if (!match) return value;
+  if (match[4] !== undefined && Number.parseFloat(match[4]) === 0) return TRANSPARENT;
+  return `#${match.slice(1, 4).map((n) => Number(n).toString(16).padStart(2, '0')).join('')}`;
+}
+
+function roundPx(value: string): string {
+  return `${Math.round(Number.parseFloat(value) || 0)}px`;
+}
+
+function borderOf(look: RenderedLook): string {
+  const width = Number.parseFloat(look.borderTopWidth) || 0;
+  if (look.borderTopStyle === NO_BORDER || width < MIN_BORDER_PX) return NO_BORDER;
+  return `${Math.max(1, Math.round(width))}px ${look.borderTopStyle} ${cssColorToHex(look.borderTopColor)}`;
+}
+
+function paddingOf(look: RenderedLook): string {
+  const [top, right, bottom, left] = [look.paddingTop, look.paddingRight, look.paddingBottom, look.paddingLeft].map(roundPx);
+  return top === bottom && right === left ? `${top} ${right}` : `${top} ${right} ${bottom} ${left}`;
+}
+
 export function renderedStyle(look: RenderedLook): Style {
   return {
-    color: look.color,
-    background: look.backgroundColor,
-    border: `${look.borderTopWidth} ${look.borderTopStyle} ${look.borderTopColor}`,
-    borderRadius: look.borderTopLeftRadius,
-    fontSize: look.fontSize,
+    color: cssColorToHex(look.color),
+    background: cssColorToHex(look.backgroundColor),
+    border: borderOf(look),
+    borderRadius: roundPx(look.borderTopLeftRadius),
+    fontSize: roundPx(look.fontSize),
     fontWeight: look.fontWeight,
-    padding: `${look.paddingTop} ${look.paddingRight} ${look.paddingBottom} ${look.paddingLeft}`,
+    padding: paddingOf(look),
   };
 }
 

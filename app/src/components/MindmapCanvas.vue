@@ -1058,8 +1058,15 @@ function setSnippets(next: readonly Snippet[]): void {
   scheduleSync();
 }
 
+function applyStyleTemplate(name: string): void {
+  const template = settings.mindmapStyleTemplates.find((tpl) => tpl.name === name);
+  if (template) reportingSyncErrors(() => applyStyleToSelection(template))();
+}
+
 defineExpose({
   flush: flushPendingSync,
+  applyStyleTemplate,
+  saveStyleTemplate: reportingErrors(saveStyleTemplate),
   markChanged: scheduleSync,
   run: (actionId: string) => handle.run(actionId),
   getMind: () => mind,
