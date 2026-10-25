@@ -35,11 +35,22 @@ Maps are `.mmap` files. Never read or write their JSON directly: always use the 
 | Tie this conversation to a node | `mmap_bind_session` with your `claude-session-id` |
 | Show the user | `mmap_reveal` |
 
+## Writing a note
+
+A note holds one idea. Before setting a note, count the separate items in the content: steps, parts, checks, facts, options.
+
+- **One item:** `mmap_edit` the note.
+- **Two or more items:** build a sub-map. This applies even when the user said "note" or "fill in the note". They get the same content, laid out as structure.
+  1. `mmap_add` under the node, one "- Topic" line per item (≤ 8 words). It returns the new ids in order.
+  2. `mmap_edit` each child. Its note holds that item's detail and its own source.
+  3. `mmap_edit` the parent. Its note is one sentence on how the children relate, e.g. "All must pass before merge.", plus any source shared by every child. The children's topics already show the list.
+  4. If an item already exists as a node elsewhere, `mmap_gate` link to it instead of adding a child.
+
 ## Rules
 
 - Prefer node ids for writes; paths pick the first matching sibling.
 - If no `claude-session-id` is in your context, skip session lookup/binding and tell the user the session hook isn't active.
 - Don't style nodes. Appearance changes only through legend meanings.
 - Before `mmap_remove` on a node with children, say what will go and confirm.
-- Keep topics short (≤ 8 words). Put detail in the note.
+- Keep topics short (≤ 8 words). Put one item's detail in its note.
 - After edits, tell the user the node ids you touched. SoloMD reloads an open map unless the user has unsaved changes there.
