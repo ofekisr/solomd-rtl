@@ -507,7 +507,7 @@ defineExpose({ setLens, canvas, lens, openFind });
 </template>
 
 <style scoped>
-.mindmap-shell { display: flex; flex-direction: column; width: 100%; height: 100%; }
+.mindmap-shell { position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; }
 .mindmap-shell__body { position: relative; flex: 1; min-height: 0; display: flex; }
 .mindmap-shell__body > * { flex: 1; min-width: 0; }
 .mindmap-shell__cell { display: flex; min-height: 0; }
