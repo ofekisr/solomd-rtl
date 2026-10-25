@@ -1633,6 +1633,8 @@ export const en = {
     menuPasteStyle: 'Paste style',
     pathCopied: 'Path copied',
     styleCopied: 'Style copied',
+    stylePasted: 'Style pasted to {count} node(s)',
+    styleUnchanged: 'Selected nodes already have this style',
     styleClipboardEmpty: 'Copy a node style first',
     selectNodeFirst: 'Select a node first',
     menuCopyMap: 'Copy map',
