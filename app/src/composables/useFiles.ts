@@ -969,6 +969,10 @@ export function useFiles() {
   async function closeTabSafe(id: string) {
     const tab = tabs.tabs.find((t) => t.id === id);
     if (!tab) return;
+    if (tab.pinned) {
+      toasts.info(t('tabMenu.pinnedNoClose'));
+      return;
+    }
     // #222 — same stale-window hazard as saveTab: the dirty check below reads
     // tab.content, which lags the CodeMirror doc by up to 350ms. A close
     // landing inside that window (vim `:q`, fast Ctrl+W) saw a clean tab and

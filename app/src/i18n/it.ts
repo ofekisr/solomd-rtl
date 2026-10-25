@@ -558,6 +558,9 @@ export const it: I18n = {
     hideOutline: 'Nascondi struttura',
     showData: 'Mostra dati',
     hideData: 'Nascondi dati',
+    pin: 'Fissa scheda',
+    unpin: 'Sblocca scheda',
+    pinnedNoClose: 'Scheda fissata: sbloccala per chiuderla',
     newTab: 'Nuova scheda',
   },
   unsaved: {

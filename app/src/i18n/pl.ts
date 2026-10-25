@@ -558,6 +558,9 @@ export const pl: I18n = {
     hideOutline: 'Ukryj konspekt',
     showData: 'Pokaż dane',
     hideData: 'Ukryj dane',
+    pin: 'Przypnij kartę',
+    unpin: 'Odepnij kartę',
+    pinnedNoClose: 'Przypięta karta — odepnij, aby zamknąć',
     newTab: 'Nowa karta',
   },
   unsaved: {

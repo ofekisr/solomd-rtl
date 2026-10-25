@@ -558,6 +558,9 @@ export const es: I18n = {
     hideOutline: 'Ocultar esquema',
     showData: 'Mostrar datos',
     hideData: 'Ocultar datos',
+    pin: 'Fijar pestaña',
+    unpin: 'Desfijar pestaña',
+    pinnedNoClose: 'Pestaña fijada: desfíjala para cerrarla',
     newTab: 'Nueva pestaña',
   },
   unsaved: {

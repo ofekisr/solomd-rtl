@@ -558,6 +558,9 @@ export const de: I18n = {
     hideOutline: 'Gliederung ausblenden',
     showData: 'Daten anzeigen',
     hideData: 'Daten ausblenden',
+    pin: 'Tab anheften',
+    unpin: 'Tab lösen',
+    pinnedNoClose: 'Angehefteter Tab – zum Schließen lösen',
     newTab: 'Neuer Tab',
   },
   unsaved: {

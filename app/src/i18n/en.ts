@@ -565,6 +565,9 @@ export const en = {
     hideOutline: 'Hide outline',
     showData: 'Show data',
     hideData: 'Hide data',
+    pin: 'Pin tab',
+    unpin: 'Unpin tab',
+    pinnedNoClose: 'Pinned tab — unpin it to close',
     newTab: 'New tab',
   },
   unsaved: {

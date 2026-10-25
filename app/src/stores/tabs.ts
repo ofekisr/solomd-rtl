@@ -9,6 +9,7 @@ import { stampGoalSetAtIfMissing } from '../composables/useWritingGoals';
 import { compactTabs, expandTabs, setItemWithEviction } from '../lib/tab-persistence';
 import { sessionKey } from '../lib/cm-session-restore';
 import { encodeDiffPath, type DiffTabRef } from '../lib/git-pane/diffTab';
+import { clampReorderIndex, togglePinned } from '../lib/tab-pin';
 import { dataToggleTarget, MINDMAP_SET_LENS_EVENT, resolveTabLens, type SetLensDetail } from '../lib/mindmap-lens';
 
 // Legacy / global key (used when per-workspace tabs is OFF, and as the
@@ -403,6 +404,7 @@ export const useTabsStore = defineStore('tabs', {
     reorder(tabId: string, intendedIndex: number) {
       const fromIdx = this.tabs.findIndex((t) => t.id === tabId);
       if (fromIdx < 0) return;
+      intendedIndex = clampReorderIndex(this.tabs, tabId, intendedIndex);
       // Adjust BEFORE the splice: removing the source shifts positions to the
       // right of fromIdx down by one. So when intendedIndex (in the original
       // list) is to the right of fromIdx, the actual target after removal is
@@ -412,6 +414,10 @@ export const useTabsStore = defineStore('tabs', {
       const target = Math.max(0, Math.min(adjusted, this.tabs.length));
       if (target === fromIdx) { this.tabs.splice(fromIdx, 0, moved); return; }
       this.tabs.splice(target, 0, moved);
+    },
+    togglePin(id: string) {
+      togglePinned(this.tabs, id);
+      this.persist();
     },
     toggleOutline(id: string) {
       const t = this.tabs.find((x) => x.id === id);

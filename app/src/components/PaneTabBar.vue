@@ -12,6 +12,7 @@ import { shortcutLabel } from '../lib/keybindings';
 import { isMacOS } from '../lib/platform';
 import { useI18n } from '../i18n';
 import { resolveTabLens } from '../lib/mindmap-lens';
+import { closableIds } from '../lib/tab-pin';
 import MindmapIcon from './MindmapIcon.vue';
 import type { SplitDirection } from '../types';
 
@@ -83,12 +84,14 @@ const ctxFlags = computed(() => {
   const idx = list.findIndex((t) => t.id === ctxMenu.value!.tabId);
   if (idx < 0) return null;
   const target = list[idx];
+  const closable = (ids: string[]): boolean => closableIds(ids, list).length > 0;
   return {
-    hasLeft: idx > 0,
-    hasRight: idx < list.length - 1,
-    hasOthers: list.length > 1,
-    hasSaved: list.some((x) => x.id !== ctxMenu.value!.tabId && x.content === x.savedContent),
-    hasAny: list.length > 0,
+    isPinned: !!target?.pinned,
+    hasLeft: closable(list.slice(0, idx).map((x) => x.id)),
+    hasRight: closable(list.slice(idx + 1).map((x) => x.id)),
+    hasOthers: closable(list.filter((x) => x.id !== target.id).map((x) => x.id)),
+    hasSaved: closable(list.filter((x) => x.id !== target.id && x.content === x.savedContent).map((x) => x.id)),
+    hasAny: closable(list.map((x) => x.id)),
     // Issue #64 — "Open Enclosing Folder" only meaningful when the tab
     // is backed by a real on-disk path. Untitled / unsaved buffers have
     // no path, so the menu item is rendered disabled.
@@ -97,10 +100,16 @@ const ctxFlags = computed(() => {
 });
 
 async function closeMany(ids: string[]) {
-  for (const id of ids) {
+  for (const id of closableIds(ids, tabs.tabs)) {
     if (!tabs.tabs.find((t) => t.id === id)) continue;
     await files.closeTabSafe(id);
   }
+}
+
+function togglePin() {
+  const m = ctxMenu.value;
+  closeCtxMenu();
+  if (m) tabs.togglePin(m.tabId);
 }
 
 async function onTabAction(action: 'close' | 'closeLeft' | 'closeRight' | 'closeOthers' | 'closeSaved' | 'closeAll' | 'revealInFolder' | 'revealInFileTree') {
@@ -342,7 +351,8 @@ function onMiddleUp() {
   const start = middleStart;
   middleStart = null;
   // No real motion → treat as a click and close the tab (#89 behavior).
-  if (!middleDragging && start) files.closeTabSafe(start.tabId);
+  const isPinned = !!start && !!tabs.tabs.find((x) => x.id === start.tabId)?.pinned;
+  if (!middleDragging && start && !isPinned) files.closeTabSafe(start.tabId);
   middleDragging = false;
 }
 
@@ -373,7 +383,7 @@ onBeforeUnmount(() => {
         :key="tab.id"
         :data-tab-id="tab.id"
         class="tab"
-        :class="{ 'tab--active': tab.id === activeTabId, 'tab--dragging': tiles.dragTabId === tab.id }"
+        :class="{ 'tab--active': tab.id === activeTabId, 'tab--dragging': tiles.dragTabId === tab.id, 'tab--pinned': tab.pinned }"
         @click="onTabClick(tab.id)"
         @pointerdown="onTabPointerDown($event, tab.id)"
         @mousedown.middle="onMiddlePointerDown($event, tab.id)"
@@ -397,6 +407,14 @@ onBeforeUnmount(() => {
         ><MindmapIcon name="lens-data" /></button>
         <span class="tab__dot" v-if="tabs.isDirty(tab.id)">●</span>
         <button
+          v-if="tab.pinned"
+          class="tab__pin"
+          :title="t('tabMenu.unpin')"
+          :aria-label="t('tabMenu.unpin')"
+          @click.stop="tabs.togglePin(tab.id)"
+        ><MindmapIcon name="pin" /></button>
+        <button
+          v-else
           class="tab__close"
           @click.stop="files.closeTabSafe(tab.id)"
           :aria-label="t('tabMenu.close')"
@@ -462,7 +480,8 @@ onBeforeUnmount(() => {
         :style="{ left: ctxMenu.x + 'px', top: ctxMenu.y + 'px' }"
         @click.stop
       >
-        <button class="ctx-item" @click="onTabAction('close')">{{ t('tabMenu.close') }}</button>
+        <button class="ctx-item" @click="togglePin">{{ ctxFlags?.isPinned ? t('tabMenu.unpin') : t('tabMenu.pin') }}</button>
+        <button class="ctx-item" :disabled="ctxFlags?.isPinned" @click="onTabAction('close')">{{ t('tabMenu.close') }}</button>
         <div class="ctx-sep" />
         <button class="ctx-item" :disabled="!ctxFlags?.hasLeft"   @click="onTabAction('closeLeft')">{{ t('tabMenu.closeLeft') }}</button>
         <button class="ctx-item" :disabled="!ctxFlags?.hasRight"  @click="onTabAction('closeRight')">{{ t('tabMenu.closeRight') }}</button>
@@ -570,6 +589,22 @@ onBeforeUnmount(() => {
   opacity: 1 !important;
   color: var(--accent);
   background: var(--bg-active);
+}
+.tab--pinned + .tab:not(.tab--pinned) {
+  border-inline-start: 2px solid var(--border);
+}
+.tab__pin {
+  display: inline-flex;
+  padding: 0 2px;
+  color: var(--accent);
+  line-height: 1;
+}
+.tab__pin :deep(svg) {
+  width: 12px;
+  height: 12px;
+}
+.tab__pin:hover {
+  color: var(--text);
 }
 .tab__data {
   display: inline-flex;

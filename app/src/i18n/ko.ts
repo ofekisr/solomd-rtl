@@ -558,6 +558,9 @@ export const ko: I18n = {
     hideOutline: '개요 숨기기',
     showData: '데이터 보기',
     hideData: '데이터 숨기기',
+    pin: '탭 고정',
+    unpin: '탭 고정 해제',
+    pinnedNoClose: '고정된 탭입니다. 닫으려면 고정을 해제하세요',
     newTab: '새 탭',
   },
   unsaved: {

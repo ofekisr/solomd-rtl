@@ -558,6 +558,9 @@ export const tr: I18n = {
     hideOutline: 'Ana hatları gizle',
     showData: 'Verileri göster',
     hideData: 'Verileri gizle',
+    pin: 'Sekmeyi sabitle',
+    unpin: 'Sekmeyi serbest bırak',
+    pinnedNoClose: 'Sabitlenmiş sekme — kapatmak için serbest bırakın',
     newTab: 'Yeni sekme',
   },
   unsaved: {

@@ -558,6 +558,9 @@ export const fr: I18n = {
     hideOutline: 'Masquer le plan',
     showData: 'Afficher les données',
     hideData: 'Masquer les données',
+    pin: 'Épingler l’onglet',
+    unpin: 'Désépingler l’onglet',
+    pinnedNoClose: 'Onglet épinglé : désépinglez-le pour le fermer',
     newTab: 'Nouvel onglet',
   },
   unsaved: {

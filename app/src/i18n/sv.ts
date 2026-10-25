@@ -558,6 +558,9 @@ export const sv: I18n = {
     hideOutline: 'Dölj disposition',
     showData: 'Visa data',
     hideData: 'Dölj data',
+    pin: 'Fäst flik',
+    unpin: 'Lossa flik',
+    pinnedNoClose: 'Fäst flik – lossa den för att stänga',
     newTab: 'Ny flik',
   },
   unsaved: {

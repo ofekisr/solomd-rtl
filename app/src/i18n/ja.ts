@@ -558,6 +558,9 @@ export const ja: I18n = {
     hideOutline: 'アウトラインを隠す',
     showData: 'データを表示',
     hideData: 'データを隠す',
+    pin: 'タブを固定',
+    unpin: 'タブの固定を解除',
+    pinnedNoClose: '固定タブです。閉じるには固定を解除してください',
     newTab: '新しいタブ',
   },
   unsaved: {

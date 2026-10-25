@@ -560,6 +560,9 @@ export const pt: I18n = {
     hideOutline: 'Ocultar estrutura',
     showData: 'Mostrar dados',
     hideData: 'Ocultar dados',
+    pin: 'Fixar separador',
+    unpin: 'Desafixar separador',
+    pinnedNoClose: 'Separador fixado — desafixe para fechar',
     newTab: 'Nova aba',
   },
   unsaved: {

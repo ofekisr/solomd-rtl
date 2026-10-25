@@ -558,6 +558,9 @@ export const nl: I18n = {
     hideOutline: 'Overzicht verbergen',
     showData: 'Gegevens tonen',
     hideData: 'Gegevens verbergen',
+    pin: 'Tabblad vastzetten',
+    unpin: 'Tabblad losmaken',
+    pinnedNoClose: 'Vastgezet tabblad — maak het los om te sluiten',
     newTab: 'Nieuw tabblad',
   },
   unsaved: {
