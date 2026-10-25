@@ -546,6 +546,8 @@ export const ru: I18n = {
     revealInFileTree: 'Показать в дереве файлов',
     showOutline: 'Показать оглавление',
     hideOutline: 'Скрыть оглавление',
+    showData: 'Показать данные',
+    hideData: 'Скрыть данные',
     newTab: 'Новая вкладка',
   },
   unsaved: {

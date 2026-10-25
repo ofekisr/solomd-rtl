@@ -563,6 +563,8 @@ export const en = {
     revealInFileTree: 'Reveal in File Tree',
     showOutline: 'Show outline',
     hideOutline: 'Hide outline',
+    showData: 'Show data',
+    hideData: 'Hide data',
     newTab: 'New tab',
   },
   unsaved: {

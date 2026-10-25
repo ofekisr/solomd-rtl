@@ -556,6 +556,8 @@ export const de: I18n = {
     revealInFileTree: 'In Dateibaum anzeigen',
     showOutline: 'Gliederung einblenden',
     hideOutline: 'Gliederung ausblenden',
+    showData: 'Daten anzeigen',
+    hideData: 'Daten ausblenden',
     newTab: 'Neuer Tab',
   },
   unsaved: {

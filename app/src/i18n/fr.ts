@@ -556,6 +556,8 @@ export const fr: I18n = {
     revealInFileTree: 'Afficher dans l\'arborescence',
     showOutline: 'Afficher le plan',
     hideOutline: 'Masquer le plan',
+    showData: 'Afficher les données',
+    hideData: 'Masquer les données',
     newTab: 'Nouvel onglet',
   },
   unsaved: {

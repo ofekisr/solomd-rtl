@@ -556,6 +556,8 @@ export const uk: I18n = {
     revealInFileTree: 'Показати в дереві файлів',
     showOutline: 'Показати структуру',
     hideOutline: 'Приховати структуру',
+    showData: 'Показати дані',
+    hideData: 'Приховати дані',
     newTab: 'Нова вкладка',
   },
   unsaved: {

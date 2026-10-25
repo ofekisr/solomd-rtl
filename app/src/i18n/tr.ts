@@ -556,6 +556,8 @@ export const tr: I18n = {
     revealInFileTree: 'Dosya ağacında göster',
     showOutline: 'Ana hatları göster',
     hideOutline: 'Ana hatları gizle',
+    showData: 'Verileri göster',
+    hideData: 'Verileri gizle',
     newTab: 'Yeni sekme',
   },
   unsaved: {

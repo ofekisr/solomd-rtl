@@ -11,6 +11,8 @@ import { requestRevealInTree } from '../composables/useFileTreeReveal';
 import { shortcutLabel } from '../lib/keybindings';
 import { isMacOS } from '../lib/platform';
 import { useI18n } from '../i18n';
+import { resolveTabLens } from '../lib/mindmap-lens';
+import MindmapIcon from './MindmapIcon.vue';
 import type { SplitDirection } from '../types';
 
 const props = defineProps<{
@@ -386,6 +388,13 @@ onBeforeUnmount(() => {
           :title="tab.showOutline ? t('tabMenu.hideOutline') : t('tabMenu.showOutline')"
           @click.stop="tabs.toggleOutline(tab.id)"
         >≡</button>
+        <button
+          v-else-if="tab.language === 'mindmap'"
+          class="tab__outline tab__data"
+          :class="{ 'tab__outline--active': resolveTabLens(tab) === 'data' }"
+          :title="resolveTabLens(tab) === 'data' ? t('tabMenu.hideData') : t('tabMenu.showData')"
+          @click.stop="tabs.toggleMindmapData(tab.id)"
+        ><MindmapIcon name="lens-data" /></button>
         <span class="tab__dot" v-if="tabs.isDirty(tab.id)">●</span>
         <button
           class="tab__close"
@@ -561,6 +570,14 @@ onBeforeUnmount(() => {
   opacity: 1 !important;
   color: var(--accent);
   background: var(--bg-active);
+}
+.tab__data {
+  display: inline-flex;
+  padding: 1px 2px;
+}
+.tab__data :deep(svg) {
+  width: 13px;
+  height: 13px;
 }
 .tab__outline:hover {
   color: var(--accent);

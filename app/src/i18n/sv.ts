@@ -556,6 +556,8 @@ export const sv: I18n = {
     revealInFileTree: 'Visa i filträd',
     showOutline: 'Visa disposition',
     hideOutline: 'Dölj disposition',
+    showData: 'Visa data',
+    hideData: 'Dölj data',
     newTab: 'Ny flik',
   },
   unsaved: {

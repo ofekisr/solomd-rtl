@@ -556,6 +556,8 @@ export const nl: I18n = {
     revealInFileTree: 'Toon in bestandsboom',
     showOutline: 'Overzicht tonen',
     hideOutline: 'Overzicht verbergen',
+    showData: 'Gegevens tonen',
+    hideData: 'Gegevens verbergen',
     newTab: 'Nieuw tabblad',
   },
   unsaved: {

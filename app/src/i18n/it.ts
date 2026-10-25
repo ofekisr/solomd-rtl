@@ -556,6 +556,8 @@ export const it: I18n = {
     revealInFileTree: 'Mostra nell\'albero file',
     showOutline: 'Mostra struttura',
     hideOutline: 'Nascondi struttura',
+    showData: 'Mostra dati',
+    hideData: 'Nascondi dati',
     newTab: 'Nuova scheda',
   },
   unsaved: {

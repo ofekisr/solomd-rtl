@@ -556,6 +556,8 @@ export const ko: I18n = {
     revealInFileTree: '파일 트리에서 표시',
     showOutline: '개요 표시',
     hideOutline: '개요 숨기기',
+    showData: '데이터 보기',
+    hideData: '데이터 숨기기',
     newTab: '새 탭',
   },
   unsaved: {

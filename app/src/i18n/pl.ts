@@ -556,6 +556,8 @@ export const pl: I18n = {
     revealInFileTree: 'Pokaż w drzewie plików',
     showOutline: 'Pokaż konspekt',
     hideOutline: 'Ukryj konspekt',
+    showData: 'Pokaż dane',
+    hideData: 'Ukryj dane',
     newTab: 'Nowa karta',
   },
   unsaved: {

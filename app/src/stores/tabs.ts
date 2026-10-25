@@ -9,6 +9,7 @@ import { stampGoalSetAtIfMissing } from '../composables/useWritingGoals';
 import { compactTabs, expandTabs, setItemWithEviction } from '../lib/tab-persistence';
 import { sessionKey } from '../lib/cm-session-restore';
 import { encodeDiffPath, type DiffTabRef } from '../lib/git-pane/diffTab';
+import { dataToggleTarget, MINDMAP_SET_LENS_EVENT, resolveTabLens, type SetLensDetail } from '../lib/mindmap-lens';
 
 // Legacy / global key (used when per-workspace tabs is OFF, and as the
 // migration source on first upgrade).
@@ -422,6 +423,18 @@ export const useTabsStore = defineStore('tabs', {
         // flag invisibly, with no surface left to re-open it from.
         if (t.showOutline) useSettingsStore().ensureRightSidebarVisible();
       }
+    },
+    /** A mounted MindmapView claims the event so its JSON-exit guard runs;
+     *  a tab with no live view has no editor to guard, so write the lens directly. */
+    toggleMindmapData(id: string) {
+      const t = this.tabs.find((x) => x.id === id);
+      if (!t || t.language !== 'mindmap') return;
+      const detail: SetLensDetail = { tabId: id, lens: dataToggleTarget(resolveTabLens(t)) };
+      const event = new CustomEvent<SetLensDetail>(MINDMAP_SET_LENS_EVENT, { detail, cancelable: true });
+      if (!window.dispatchEvent(event)) return;
+      t.mindmapLens = detail.lens;
+      delete t.mindmapMode;
+      this.persist();
     },
     setShowOutlineAll(value: boolean) {
       for (const t of this.tabs) {

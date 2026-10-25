@@ -6,6 +6,8 @@ export type JsonExit = { ok: true } | { ok: false; error: string };
 
 export const MINDMAP_LENSES: readonly MindmapLens[] = ['data', 'map', 'doc'];
 export const DEFAULT_MINDMAP_LENS: MindmapLens = 'map';
+export const MINDMAP_SET_LENS_EVENT = 'solomd:mindmap-set-lens';
+export type SetLensDetail = { tabId: string; lens: MindmapLens };
 const CYCLE = 'cycle';
 
 const LEGACY_MODE_TO_LENS: Readonly<Record<string, MindmapLens>> = { source: 'data', outline: 'doc', map: 'map' };
@@ -49,6 +51,10 @@ export function resolveTabLens(tab: { mindmapLens?: unknown; mindmapMode?: unkno
 
 export function nextLens(lens: MindmapLens): MindmapLens {
   return MINDMAP_LENSES[(MINDMAP_LENSES.indexOf(lens) + 1) % MINDMAP_LENSES.length];
+}
+
+export function dataToggleTarget(lens: MindmapLens): MindmapLens {
+  return lens === 'data' ? DEFAULT_MINDMAP_LENS : 'data';
 }
 
 export function isLensAction(actionId: string): boolean {

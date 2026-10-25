@@ -14,7 +14,7 @@ import { useToastsStore } from '../stores/toasts';
 import { useSettingsStore } from '../stores/settings';
 import { mmapCodec } from '../lib/mindmap-format';
 import { outlineMarkdownOf } from '../lib/mindmap-outline';
-import { cellHas, checkJsonExit, isLensAction, lensCell, resolveTabLens, targetLensFor, type CellPart, type MindmapLens } from '../lib/mindmap-lens';
+import { cellHas, checkJsonExit, isLensAction, lensCell, MINDMAP_SET_LENS_EVENT, resolveTabLens, targetLensFor, type CellPart, type MindmapLens, type SetLensDetail } from '../lib/mindmap-lens';
 import { addViewModeGuard } from '../lib/view-mode-guard';
 import { clearActiveMindmap, setActiveMindmap, type MindmapCanvasApi, type MindmapHandle } from '../lib/mindmap-active';
 import { eventToCombo, resolveBindings } from '../lib/keybindings';
@@ -177,6 +177,13 @@ function setLens(next: MindmapLens): void {
   sourceError.value = null;
   selected.value = [];
   storeLens(next);
+}
+
+function onSetLensRequest(e: Event): void {
+  const { tabId, lens: next } = (e as CustomEvent<SetLensDetail>).detail;
+  if (tabId !== props.tab.id) return;
+  e.preventDefault();
+  setLens(next);
 }
 
 function migrateLegacyMode(): void {
@@ -395,12 +402,14 @@ let removeViewGuard: (() => void) | null = null;
 
 onMounted(() => {
   window.addEventListener(MINDMAP_REVEAL_EVENT, revealPending);
+  window.addEventListener(MINDMAP_SET_LENS_EVENT, onSetLensRequest);
   migrateLegacyMode();
   removeViewGuard = addViewModeGuard(guardViewChange);
   activate();
 });
 onBeforeUnmount(() => {
   window.removeEventListener(MINDMAP_REVEAL_EVENT, revealPending);
+  window.removeEventListener(MINDMAP_SET_LENS_EVENT, onSetLensRequest);
   if (parseTimer !== null) window.clearTimeout(parseTimer);
   removeViewGuard?.();
   clearActiveMindmap(handle);

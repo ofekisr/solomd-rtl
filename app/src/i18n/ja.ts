@@ -556,6 +556,8 @@ export const ja: I18n = {
     revealInFileTree: 'ファイルツリーで表示',
     showOutline: 'アウトラインを表示',
     hideOutline: 'アウトラインを隠す',
+    showData: 'データを表示',
+    hideData: 'データを隠す',
     newTab: '新しいタブ',
   },
   unsaved: {

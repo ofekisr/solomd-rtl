@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  cellHas, checkJsonExit, isLensAction, lensCell, migrateLensKeybindings, nextLens,
+  cellHas, checkJsonExit, dataToggleTarget, isLensAction, lensCell, migrateLensKeybindings, nextLens,
   normalizeLens, resolveTabLens, targetLensFor, type CellPart, type MindmapLens,
 } from './mindmap-lens.ts';
 import type { ViewMode } from '../types.ts';
@@ -29,6 +29,12 @@ test('nextLens cycles data → map → doc → data', () => {
   assert.equal(nextLens('data'), 'map');
   assert.equal(nextLens('map'), 'doc');
   assert.equal(nextLens('doc'), 'data');
+});
+
+test('dataToggleTarget flips into data and back to the default lens', () => {
+  assert.equal(dataToggleTarget('map'), 'data');
+  assert.equal(dataToggleTarget('doc'), 'data');
+  assert.equal(dataToggleTarget('data'), 'map');
 });
 
 test('targetLensFor maps lens commands and ignores others', () => {

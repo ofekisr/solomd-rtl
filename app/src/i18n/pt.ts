@@ -558,6 +558,8 @@ export const pt: I18n = {
     revealInFileTree: 'Mostrar na árvore de arquivos',
     showOutline: 'Mostrar estrutura',
     hideOutline: 'Ocultar estrutura',
+    showData: 'Mostrar dados',
+    hideData: 'Ocultar dados',
     newTab: 'Nova aba',
   },
   unsaved: {
