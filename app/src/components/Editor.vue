@@ -68,6 +68,7 @@ import {findTableSpan} from '../lib/markdown-table';
 import {applyFormat, FORMAT_KINDS, type FormatKind} from '../lib/md-format';
 import {encodeImageDestination, markdownImage} from '../lib/md-image-url';
 import {initMermaid} from '../lib/mermaid-lazy';
+import {renderGraphvizBlocks} from '../lib/graphviz';
 import {nativeDirectiveCompletion} from '../lib/native-directive-completions';
 import {registerPlainSelectionGetter} from '../lib/plain-selection';
 import {plantumlSvgUrl} from '../lib/plantuml';
@@ -631,6 +632,15 @@ async function processPlainLiveRenderedBlocks() {
       pre.classList.add('plain-block__broken');
       pre.textContent = `Mermaid error: ${(e as Error).message}`;
     }
+  }
+
+  const renderRoots = hostEl.querySelectorAll('.plain-block__render');
+  for (const root of Array.from(renderRoots)) {
+    await renderGraphvizBlocks(root, {
+      theme: mermaidThemeFor(settings.theme),
+      blockClass: 'plain-graphviz-block',
+      errorClass: 'plain-block__broken',
+    });
   }
 
   const tldrawBlocks = hostEl.querySelectorAll('.plain-block__render pre > code.language-tldraw');
@@ -4930,6 +4940,7 @@ const cls = computed(() => ({
   text-align: center;
 }
 .plain-block__render :deep(.plain-mermaid-block),
+.plain-block__render :deep(.plain-graphviz-block),
 .plain-block__render :deep(.plain-plantuml-block),
 .plain-block__render :deep(.plain-whiteboard-block) {
   margin: 1em 0;
@@ -4937,6 +4948,7 @@ const cls = computed(() => ({
   overflow: auto;
 }
 .plain-block__render :deep(.plain-mermaid-block svg),
+.plain-block__render :deep(.plain-graphviz-block svg),
 .plain-block__render :deep(.plain-plantuml-block img),
 .plain-block__render :deep(.plain-whiteboard-block svg) {
   max-width: 100%;

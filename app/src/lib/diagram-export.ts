@@ -17,6 +17,7 @@
  * reachable.
  */
 import { initMermaid } from './mermaid-lazy';
+import { renderGraphvizBlocks } from './graphviz';
 import { isPlantumlLang, plantumlSvgUrl } from './plantuml';
 
 // Ids must be unique per render across the whole session — mermaid keys
@@ -39,7 +40,8 @@ export async function inlineDiagramsInHtml(
 ): Promise<string> {
   const hasMermaid = html.includes('language-mermaid');
   const hasPuml = !!opts.plantumlServer && /language-(plantuml|puml)/.test(html);
-  if (!hasMermaid && !hasPuml) return html;
+  const hasGraphviz = /language-(dot|graphviz|gv)\b/.test(html);
+  if (!hasMermaid && !hasPuml && !hasGraphviz) return html;
 
   const tpl = document.createElement('template');
   tpl.innerHTML = html;
@@ -75,6 +77,8 @@ export async function inlineDiagramsInHtml(
       }
     }
   }
+
+  if (hasGraphviz) await renderGraphvizBlocks(root);
 
   if (hasPuml && opts.plantumlServer) {
     const blocks = Array.from(root.querySelectorAll('pre > code')).filter((c) =>

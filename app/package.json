@@ -47,6 +47,7 @@
     "@tauri-apps/plugin-dialog": "^2.7.0",
     "@tauri-apps/plugin-fs": "^2.5.1",
     "@tauri-apps/plugin-opener": "^2",
+    "@viz-js/viz": "3.31.0",
     "@vscode/markdown-it-katex": "^1.1.2",
     "cm6-graphql": "^0.2.2",
     "codemirror": "^6.0.2",

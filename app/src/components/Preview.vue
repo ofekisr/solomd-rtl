@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { initMermaid } from '../lib/mermaid-lazy';
+import { renderGraphvizBlocks } from '../lib/graphviz';
 import { mermaidThemeFor, themeFamily } from '../lib/themes';
 import { findMindmapFences, MINDMAP_OPEN_EVENT, type MindmapOpenDetail } from '../lib/mindmap-fence';
 import type { ReadOnlyMindmap } from '../lib/mindmap-readonly';
@@ -227,6 +228,11 @@ async function processMermaid() {
   }
 }
 
+function processGraphviz(): Promise<void> {
+  if (!host.value) return Promise.resolve();
+  return renderGraphvizBlocks(host.value, { theme: mermaidThemeFor(settings.theme) });
+}
+
 // v4.6 F7 — render ```tldraw fences as static board thumbnails in the preview.
 // The fence body is a TLStoreSnapshot; we ask the runtime adapter (dynamic
 // import) to export it to a printable SVG so non-editing surfaces stay light.
@@ -391,8 +397,17 @@ watch(() => settings.theme, () => {
       pre.appendChild(code);
       wrap.replaceWith(pre);
     }
+    for (const wrap of Array.from(host.value.querySelectorAll<HTMLElement>('.graphviz-block[data-graphviz-source]'))) {
+      const pre = document.createElement('pre');
+      const code = document.createElement('code');
+      code.className = 'language-dot';
+      code.textContent = wrap.dataset.graphvizSource ?? '';
+      pre.appendChild(code);
+      wrap.replaceWith(pre);
+    }
   }
   void processMermaid();
+  void processGraphviz();
 });
 
 function overlayStrings(): OverlayStrings {
@@ -426,7 +441,7 @@ function attachImageOverlayHandlers() {
     });
   }
 
-  const blocks = host.value.querySelectorAll('.mermaid-block');
+  const blocks = host.value.querySelectorAll('.mermaid-block, .graphviz-block');
   for (const block of Array.from(blocks)) {
     if ((block as HTMLElement).dataset.overlayBound === '1') continue;
     (block as HTMLElement).dataset.overlayBound = '1';
@@ -526,6 +541,7 @@ watch(html, async () => {
   await nextTick();
   processPlantuml();
   await processMermaid();
+  await processGraphviz();
   await processWhiteboards();
   await processMindmaps();
   attachImageOverlayHandlers();
@@ -545,6 +561,7 @@ watch(
     await nextTick();
     processPlantuml();
     await processMermaid();
+    await processGraphviz();
     await processWhiteboards();
     await processMindmaps();
     attachImageOverlayHandlers();
@@ -638,6 +655,7 @@ onMounted(async () => {
   await nextTick();
   processPlantuml();
   await processMermaid();
+  await processGraphviz();
   await processWhiteboards();
   await processMindmaps();
   attachImageOverlayHandlers();
@@ -1097,7 +1115,8 @@ defineExpose({ scrollToLine, openSearch });
 :where(.preview-content) img:hover {
   opacity: 0.85;
 }
-:where(.preview-content) .mermaid-block {
+:where(.preview-content) .mermaid-block,
+:where(.preview-content) .graphviz-block {
   display: flex;
   justify-content: center;
   margin: 1.5em 0;
@@ -1119,14 +1138,17 @@ defineExpose({ scrollToLine, openSearch });
   border-left: 3px solid var(--accent);
   white-space: pre-wrap;
 }
-:where(.preview-content) .mermaid-block:hover {
+:where(.preview-content) .mermaid-block:hover,
+:where(.preview-content) .graphviz-block:hover {
   opacity: 0.85;
 }
-:where(.preview-content) .mermaid-block svg {
+:where(.preview-content) .mermaid-block svg,
+:where(.preview-content) .graphviz-block svg {
   max-width: 100%;
   height: auto;
 }
-:where(.preview-content) .mermaid-error {
+:where(.preview-content) .mermaid-error,
+:where(.preview-content) .graphviz-error {
   color: var(--danger);
   background: rgba(214, 69, 69, 0.08);
   border-left: 3px solid var(--danger);

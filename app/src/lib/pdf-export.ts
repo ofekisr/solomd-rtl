@@ -12,6 +12,7 @@
  */
 
 // @ts-ignore — html2pdf.js ships no types
+import { renderGraphvizBlocks } from './graphviz';
 import { initMermaid } from './mermaid-lazy';
 import { renderMarkdown, extractImageRoot } from './markdown';
 import type { ResolvedPdfOptions } from './pdf-options';
@@ -179,6 +180,7 @@ const PDF_CSS = `
 let mermaidId = 0;
 
 async function processMermaidBlocks(container: HTMLElement) {
+  await renderGraphvizBlocks(container);
   const blocks = container.querySelectorAll('pre > code.language-mermaid');
   if (!blocks.length) return;   // no diagrams: never pay for the renderer
   const mermaid = await initMermaid({

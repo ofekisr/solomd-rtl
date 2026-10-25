@@ -120,6 +120,9 @@ importers:
       '@tauri-apps/plugin-opener':
         specifier: ^2
         version: 2.5.3
+      '@viz-js/viz':
+        specifier: 3.31.0
+        version: 3.31.0
       '@vscode/markdown-it-katex':
         specifier: ^1.1.2
         version: 1.1.2
@@ -1919,6 +1922,9 @@ packages:
     peerDependencies:
       vite: ^5.0.0 || ^6.0.0
       vue: ^3.2.25
+
+  '@viz-js/viz@3.31.0':
+    resolution: {integrity: sha512-r7zlQdRvcwvIpjHGgs+KNWHeE/P5/Dq7k8ZAKaMCbZqomxCBJV78gVuQYaHzFVca+kB0mX0fMW9UFevCOBG50A==}
 
   '@volar/language-core@2.4.15':
     resolution: {integrity: sha512-3VHw+QZU0ZG9IuQmzT68IyN4hZNd9GchGPhbD9+pa8CVv7rnoOZwo7T8weIbrRmihqy3ATpdfXFnqRrfPVK6CA==}
@@ -4716,6 +4722,8 @@ snapshots:
     dependencies:
       vite: 6.4.2(@types/node@25.5.2)
       vue: 3.5.32(typescript@5.6.3)
+
+  '@viz-js/viz@3.31.0': {}
 
   '@volar/language-core@2.4.15':
     dependencies:

@@ -9,6 +9,7 @@
 
 // html2pdf.js bundles html2canvas; we import it directly for image-only use.
 // @ts-ignore — no types
+import { renderGraphvizBlocks } from './graphviz';
 import { initMermaid } from './mermaid-lazy';
 import { renderMarkdown, extractImageRoot } from './markdown';
 import { rewriteImageUrls } from './image-resolve';
@@ -105,6 +106,7 @@ const IMAGE_CSS = `
 let mermaidId = 0;
 
 async function processMermaidBlocks(container: HTMLElement) {
+  await renderGraphvizBlocks(container, { isSilent: true });
   const blocks = container.querySelectorAll('pre > code.language-mermaid');
   if (!blocks.length) return;
   const mermaid = await initMermaid({

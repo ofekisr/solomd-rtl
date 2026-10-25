@@ -48,6 +48,7 @@ import { findHtmlBlockEnd } from './html-live-render';
 import { findInlineFences } from './inline-fence';
 import { plantumlSvgUrl } from './plantuml';
 import { initMermaid } from './mermaid-lazy';
+import { renderDot } from './graphviz';
 import 'katex/contrib/mhchem';
 import katex from 'katex';
 import {
@@ -103,6 +104,24 @@ function ensureMermaidRendered(source: string, theme: MermaidTheme): Promise<voi
     }
   })();
   mermaidInflight.set(key, job);
+  return job;
+}
+
+// ```dot / ```graphviz / ```gv — same cache-then-relayout model as mermaid,
+// keyed by theme so a theme switch renders fresh SVG.
+const graphvizSvgCache = new Map<string, { svg: string | null; error: string | null }>();
+const graphvizInflight = new Map<string, Promise<void>>();
+function ensureGraphvizRendered(source: string, theme: MermaidTheme): Promise<void> {
+  const key = mermaidKey(source, theme);
+  const pending = graphvizInflight.get(key);
+  if (pending) return pending;
+  if (graphvizSvgCache.has(key)) return Promise.resolve();
+  graphvizSvgCache.set(key, { svg: null, error: null });
+  const job = renderDot(source, theme)
+    .then((svg) => { graphvizSvgCache.set(key, { svg, error: null }); })
+    .catch((e: Error) => { graphvizSvgCache.set(key, { svg: null, error: e.message }); })
+    .finally(() => { graphvizInflight.delete(key); });
+  graphvizInflight.set(key, job);
   return job;
 }
 
@@ -448,6 +467,47 @@ class MermaidWidget extends WidgetType {
         // can't hold an EditorView here (block decorations live in a state
         // field, built without a view), so signal via a window event that
         // the companion relayout plugin turns into a `relayoutEffect`.
+        try {
+          window.dispatchEvent(new CustomEvent('solomd:cm-relayout'));
+        } catch {}
+      });
+    }
+    return wrap;
+  }
+
+  ignoreEvent(): boolean {
+    return false;
+  }
+}
+
+class GraphvizWidget extends WidgetType {
+  private readonly settled: boolean;
+
+  constructor(
+    private readonly source: string,
+    private readonly theme: MermaidTheme,
+  ) {
+    super();
+    const cached = graphvizSvgCache.get(mermaidKey(source, theme));
+    this.settled = !!(cached && (cached.svg || cached.error));
+  }
+
+  eq(other: GraphvizWidget): boolean {
+    return other.source === this.source && other.theme === this.theme && other.settled === this.settled;
+  }
+
+  toDOM(): HTMLElement {
+    const wrap = document.createElement('div');
+    wrap.className = 'cm-live-block cm-live-block--graphviz';
+    const cached = graphvizSvgCache.get(mermaidKey(this.source, this.theme));
+    if (cached?.svg) {
+      wrap.innerHTML = cached.svg;
+    } else if (cached?.error) {
+      wrap.classList.add('cm-live-block--broken');
+      wrap.textContent = `Graphviz: ${cached.error}`;
+    } else {
+      wrap.textContent = '⌛ Rendering Graphviz…';
+      ensureGraphvizRendered(this.source, this.theme).then(() => {
         try {
           window.dispatchEvent(new CustomEvent('solomd:cm-relayout'));
         } catch {}
@@ -1101,6 +1161,29 @@ function buildBlockDecorations(state: EditorState, opts: BlockOptions): Decorati
             }
           }
 
+          if (/^\s*```\s*(dot|graphviz|gv)\s*$/i.test(line.text)) {
+            let endI = i + 1;
+            while (endI <= lastLine && !/^\s*```\s*$/.test(doc.line(endI).text)) endI += 1;
+            if (endI <= lastLine) {
+              const cursorInside = keepSource || (cursorLine >= i && cursorLine <= endI);
+              const cursorInsideEnd = cursorLineEnd >= i && cursorLineEnd <= endI;
+              if (!cursorInside && !cursorInsideEnd) {
+                const lines: string[] = [];
+                for (let k = i + 1; k < endI; k++) lines.push(doc.line(k).text);
+                const body = lines.join('\n');
+                const theme = opts.getMermaidTheme?.() ?? 'default';
+                ensureGraphvizRendered(body, theme);
+                builder.add(
+                  doc.line(i).from,
+                  doc.line(endI).to,
+                  Decoration.replace({ widget: new GraphvizWidget(body, theme), block: true }),
+                );
+              }
+              i = endI + 1;
+              continue;
+            }
+          }
+
           // v4.10 issue #163 — ```plantuml / ```puml fence (opt-in).
           const plantumlCfg = opts.getPlantuml?.();
           if (
@@ -1411,6 +1494,14 @@ export const liveBlocksTheme = EditorView.theme({
     textAlign: 'center',
   },
   '.cm-live-block--mermaid svg': {
+    maxWidth: '100%',
+    height: 'auto',
+  },
+  '.cm-live-block--graphviz': {
+    padding: '1.2em 0',
+    textAlign: 'center',
+  },
+  '.cm-live-block--graphviz svg': {
     maxWidth: '100%',
     height: 'auto',
   },

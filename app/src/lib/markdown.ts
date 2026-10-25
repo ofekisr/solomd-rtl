@@ -20,6 +20,7 @@ import { numberEquations } from './equations.ts';
 import { renderNumberedBlocks } from './markdown-block-badges.ts';
 import { sanitizeRenderedHtml } from './sanitize-html.ts';
 import { documentDirection } from './doc-direction.ts';
+import { isGraphvizLang } from './graphviz.ts';
 
 // NOTE: `@hedgedoc/markdown-it-task-lists` is installed but unusable here —
 // its compiled ESM entry does `import Token from 'markdown-it/lib/token.js'`
@@ -78,7 +79,7 @@ export const md = new MarkdownIt({
     // and must keep the `language-mermaid` class untouched. Return '' so
     // markdown-it falls through to its default HTML-escape path for this
     // lang; the class is still emitted via langPrefix on the <code> tag.
-    if (lang === 'mermaid') return '';
+    if (lang === 'mermaid' || isGraphvizLang(lang)) return '';
     if (lang && hljs.getLanguage(lang)) {
       try {
         return hljs.highlight(code, { language: lang, ignoreIllegals: true }).value;
@@ -242,7 +243,7 @@ md.renderer.rules.fence = function (tokens, idx, options, env, self) {
   const tok = tokens[idx];
   const info = (tok.info || '').trim().toLowerCase();
   const lang = info.split(/\s+/)[0];
-  if (lang === 'mermaid' || lang === 'tldraw' || lang === 'mindmap') return html;
+  if (lang === 'mermaid' || lang === 'tldraw' || lang === 'mindmap' || isGraphvizLang(lang)) return html;
   // Inject .cb-line wrappers on each line. We do this on the rendered HTML
   // because the highlight has already produced <span class="hljs-..."> spans
   // that may straddle multiple lines (a few hljs grammars emit multi-line

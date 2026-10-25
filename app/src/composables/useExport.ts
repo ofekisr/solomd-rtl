@@ -18,6 +18,7 @@ import { renderMarkdown, extractImageRoot } from '../lib/markdown';
 // Tiny shim: the mermaid bundle itself stays behind a dynamic import inside
 // it, so touching this module costs nothing at startup.
 import { initMermaid } from '../lib/mermaid-lazy';
+import { renderGraphvizBlocks } from '../lib/graphviz';
 // Lazy like the three above: it carries KaTeX's stylesheet as a string and
 // is only needed when a note is actually exported to HTML.
 const buildStandaloneHtml: typeof import('../lib/html-export')['buildStandaloneHtml'] =
@@ -375,6 +376,7 @@ export function useExport() {
    * width-clamped on paper without any extra CSS.
    */
   async function renderPrintMermaid(container: HTMLElement, dark: boolean) {
+    await renderGraphvizBlocks(container, { theme: dark ? 'dark' : 'default' });
     const blocks = container.querySelectorAll('pre > code.language-mermaid');
     if (!blocks.length) return;   // no diagrams: never load the renderer
     const mermaid = await initMermaid({
