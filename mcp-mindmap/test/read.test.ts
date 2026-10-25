@@ -41,3 +41,16 @@ test('legend schema rejects unsafe colours', () => {
   assert.ok(!bad.success);
   assert.match(bad.error.issues[0].message, /CSS colour/);
 });
+
+test('reads never expose styling: node summary, outline and exports stay style-free', async () => {
+  const { store } = await workspace();
+  const doc = await store.load('plan.mmap');
+  const styled = doc.data.nodeData.children![1];
+  styled.style = { color: 'rgb(1, 2, 3)', background: 'rgb(4, 5, 6)', border: '2px solid rgb(7, 8, 9)' };
+  styled.branchColor = '#abcdef';
+  styled.icons = ['⭐'];
+  await store.save('plan.mmap', doc);
+  const summary = JSON.stringify(await node(store, { file: 'plan.mmap', node: 'b' }));
+  const texts = [summary, await outline(store, { file: 'plan.mmap' }), await find(store, { file: 'plan.mmap', query: 'design' })];
+  for (const text of texts) assert.doesNotMatch(text, /rgb\(|#abcdef|style|branchColor|⭐/);
+});
