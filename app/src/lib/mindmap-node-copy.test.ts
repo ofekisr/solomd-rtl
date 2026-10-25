@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { NodeObj } from 'mind-elixir';
-import { copyStyle, nodePathText, nodePathsText, pasteStyle } from './mindmap-node-copy.ts';
+import { copyStyle, nodePathText, nodePathsText, pasteStyle, type RenderedLook } from './mindmap-node-copy.ts';
 
 const root: NodeObj = { id: 'r', topic: 'Root' };
 const mid: NodeObj = { id: 'm', topic: 'Mid', parent: root };
@@ -39,4 +39,45 @@ test('pasteStyle copies the branch color and clears empty values', () => {
   assert.equal(node.branchColor, '#0f0');
   pasteStyle([node], { style: {} });
   assert.equal('branchColor' in node, false);
+});
+
+const PILL_LOOK: RenderedLook = {
+  color: 'rgb(255, 255, 255)',
+  backgroundColor: 'rgb(60, 60, 90)',
+  borderTopWidth: '2px',
+  borderTopStyle: 'solid',
+  borderTopColor: 'rgb(120, 120, 200)',
+  borderTopLeftRadius: '999px',
+  fontSize: '18px',
+  fontWeight: '400',
+  paddingTop: '8px',
+  paddingRight: '25px',
+  paddingBottom: '8px',
+  paddingLeft: '25px',
+};
+
+test('copyStyle with a rendered look captures theme defaults the node never saved', () => {
+  const copied = copyStyle({ id: 'm', topic: 'Main' }, PILL_LOOK);
+  assert.deepEqual(copied.style, {
+    color: 'rgb(255, 255, 255)',
+    background: 'rgb(60, 60, 90)',
+    border: '2px solid rgb(120, 120, 200)',
+    borderRadius: '999px',
+    fontSize: '18px',
+    fontWeight: '400',
+    padding: '8px 25px 8px 25px',
+  });
+});
+
+test('copyStyle lets saved style win over the rendered look and skips cleared values', () => {
+  const copied = copyStyle({ id: 'm', topic: 'Main', style: { color: '#f00', background: '' } }, PILL_LOOK);
+  assert.equal(copied.style.color, '#f00');
+  assert.equal(copied.style.background, 'rgb(60, 60, 90)');
+});
+
+test('a rendered copy differs from an unstyled target, so paste applies it', () => {
+  const leaf: NodeObj = { id: 'l', topic: 'Leaf' };
+  const copied = copyStyle({ id: 'm', topic: 'Main' }, PILL_LOOK);
+  assert.deepEqual(pasteStyle([leaf], copied).map((n) => n.id), ['l']);
+  assert.equal((leaf.style as Record<string, string>).borderRadius, '999px');
 });

@@ -41,7 +41,7 @@ import { buildIdMap, remapArrows, remapGates, remapSummaries } from '../lib/mind
 import { withoutGateArrows } from '../lib/mindmap-graph';
 import { copyPlainText, readPlainText } from '../lib/code-copy';
 import { copyMapText, subtreeData } from '../lib/mindmap-payload';
-import { copyStyle, nodePathsText, pasteStyle, styleClipboard } from '../lib/mindmap-node-copy';
+import { copyStyle, nodePathsText, pasteStyle, styleClipboard, type RenderedLook } from '../lib/mindmap-node-copy';
 import { entryKey, TAB_SOURCE_PREFIX, type EntryDraft } from '../lib/mindmap-workbench';
 import { useMindmapWorkbenchStore } from '../stores/mindmapWorkbench';
 import { fileDraft, nodesDraft, openWorkbench } from '../composables/useMindmapWorkbench';
@@ -829,13 +829,22 @@ function liveSelectedNodes(): NodeObj[] {
   return selectedNodes().map((node) => liveNode(node.id)).filter((node): node is NodeObj => node !== null);
 }
 
+function renderedLookOf(id: string): RenderedLook | undefined {
+  try {
+    const element = mind?.findEle(id);
+    return element ? getComputedStyle(element) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function copyNodeStyle(): void {
   const node = liveSelectedNodes()[0];
   if (!node) {
     toasts.info(t('mindmap.selectNodeFirst'));
     return;
   }
-  styleClipboard.value = copyStyle(node);
+  styleClipboard.value = copyStyle(node, renderedLookOf(node.id));
   toasts.success(t('mindmap.styleCopied'));
 }
 

@@ -22,6 +22,7 @@ const ALLOWED_STYLE_KEYS: readonly string[] = [
   'width',
   'border',
   'borderRadius',
+  'padding',
 ];
 const UNSAFE_CSS_VALUE_PATTERN = /url\(|image-set\(|expression\(|@import|javascript:/i;
 const CSS_ESCAPE_PATTERN = /[\\\u0000-\u001f\u007f]/;
