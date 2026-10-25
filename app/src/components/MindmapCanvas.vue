@@ -41,6 +41,7 @@ import { buildIdMap, remapArrows, remapGates, remapSummaries } from '../lib/mind
 import { withoutGateArrows } from '../lib/mindmap-graph';
 import { copyPlainText, readPlainText } from '../lib/code-copy';
 import { copyMapText, subtreeData } from '../lib/mindmap-payload';
+import { copyStyle, nodePathsText, pasteStyle, styleClipboard } from '../lib/mindmap-node-copy';
 import { entryKey, TAB_SOURCE_PREFIX, type EntryDraft } from '../lib/mindmap-workbench';
 import { useMindmapWorkbenchStore } from '../stores/mindmapWorkbench';
 import { fileDraft, nodesDraft, openWorkbench } from '../composables/useMindmapWorkbench';
@@ -804,10 +805,49 @@ async function pasteMapFromClipboard(): Promise<void> {
   routePaste(result.payload);
 }
 
+async function copyNodePath(): Promise<void> {
+  const nodes = selectedNodes();
+  if (nodes.length === 0) {
+    toasts.info(t('mindmap.selectNodeFirst'));
+    return;
+  }
+  await copyPlainText(nodePathsText(nodes));
+  toasts.success(t('mindmap.pathCopied'));
+}
+
+function copyNodeStyle(): void {
+  const node = mind?.currentNode?.nodeObj;
+  if (!node) {
+    toasts.info(t('mindmap.selectNodeFirst'));
+    return;
+  }
+  styleClipboard.value = copyStyle(node);
+  toasts.success(t('mindmap.styleCopied'));
+}
+
+function pasteNodeStyle(): void {
+  const style = styleClipboard.value;
+  const selected = selectedNodes();
+  if (!style) {
+    toasts.info(t('mindmap.styleClipboardEmpty'));
+    return;
+  }
+  if (!mind || selected.length === 0 || !canEditTree()) return;
+  commitTreeEdit(mind, selected[0], () => pasteStyle(selected, style));
+  reselect(mind, selected);
+}
+
+function reportingErrors(run: () => Promise<void>): () => void {
+  return () => { void run().catch((e: unknown) => toasts.error(String(e))); };
+}
+
 function workbenchMenuItems(): { name: string; onclick: () => void }[] {
   return [
     { name: t('mindmap.menuAddToWorkbench'), onclick: toggleWorkbench },
     { name: t('mindmap.menuOpenWorkbench'), onclick: openWorkbenchFromMenu },
+    { name: t('mindmap.menuCopyPath'), onclick: reportingErrors(copyNodePath) },
+    { name: t('mindmap.menuCopyStyle'), onclick: copyNodeStyle },
+    { name: t('mindmap.menuPasteStyle'), onclick: pasteNodeStyle },
     { name: t('mindmap.menuCopyMap'), onclick: () => { void copyMap().catch((e: unknown) => toasts.error(String(e))); } },
     { name: t('mindmap.menuPasteMap'), onclick: () => { void pasteMapFromClipboard().catch((e: unknown) => toasts.error(String(e))); } },
   ];
