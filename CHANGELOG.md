@@ -2,14 +2,29 @@
 
 Changes added in **solomd-rtl** on top of upstream SoloMD. Newest first.
 
+## 4.34.0 — 2026-10-25
+- **Added:** Style panel: Corner radius (with a Custom shape state) and Padding fields.
+- **Added:** Style panel: apply a style template, or save the node's look as one.
+- **Added:** File explorer right-click: Open on left / right / below / above (splits or reuses the outermost pane).
+- **Changed:** Copied styles save hex colors and whole-pixel sizes, so the style panel can show and edit them.
+
+## 4.33.0 — 2026-10-25
+- **Added:** Style templates: save a node's look under a name and apply it from the node context menu (global, up to 30).
+- **Added:** View-mode toggle beside the sidebar toggles, synced with the view buttons.
+- **Changed:** `padding` is an allowed node style key.
+
+## 4.32.2 — 2026-10-25
+- **Fixed:** Copy style copies what the node looks like, including theme styling of main-branch nodes.
+
 ## 4.32.1 — 2026-10-25
 - **Fixed:** Copy / Paste style acts on the live node and always reports the result.
 
 ## 4.32.0 — 2026-10-25
 - **Added:** "Copy & paste" submenu is the first item in the node context menu.
+- **Changed:** Copy style also copies the branch color.
 
 ## 4.31.1 — 2026-10-25
-- **Fixed:** Right-click selects the node under the pointer.
+- **Fixed:** Right-click selects the node under the pointer (reverted in 4.32.0; it wasn't needed).
 
 ## 4.31.0 — 2026-10-25
 - **Added:** Node context menu: Copy path, Copy style, Paste style.
