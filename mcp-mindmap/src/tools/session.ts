@@ -24,7 +24,7 @@ export async function bindSession(store: MapStore, a: { file: string; node: stri
 }
 
 async function matchesIn(store: MapStore, file: string, session: string): Promise<string[]> {
-  const root = (await store.load(file)).data.nodeData;
+  const root = (await store.peek(file)).data.nodeData;
   return walkNodes(root).filter((n) => boundSession(n) === session).map((n) => `${file}  [^${n.id}] ${pathOf(root, n.id)}`);
 }
 

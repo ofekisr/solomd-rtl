@@ -1606,6 +1606,8 @@ export const en = {
     exportDone: 'Mind map exported',
     exportFailed: 'Mind map export failed',
     readOnlyBadge: 'Read-only',
+    aiWorking: 'AI working on this map — editing paused',
+    aiWorkingDismiss: 'Hide warning',
     graphViewBadge: 'Graph view',
     noActiveMap: 'Click a mind map first',
     copiedPlaintext: 'Mind map copied as plaintext',

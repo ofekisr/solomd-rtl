@@ -41,6 +41,8 @@ import type { Snippet } from '../lib/mindmap-snippets';
 import MindmapSnippets from './MindmapSnippets.vue';
 import { hasAnyNote } from '../lib/mindmap-view-defaults';
 import MindmapOutlineInvalid from './MindmapOutlineInvalid.vue';
+import AiWorkingBanner from './AiWorkingBanner.vue';
+import { useAiWorkingTab } from '../composables/useAiWorkingTab';
 
 const SOURCE_LANGUAGE = 'json';
 const JSON_PARSE_DEBOUNCE_MS = 250;
@@ -107,7 +109,8 @@ const liveJsonError = computed<string | null>(() => {
   if (!has('json') || !has('map') || parsedContent.value.ok) return null;
   return parsedContent.value.error;
 });
-const isMapLocked = computed(() => liveJsonError.value !== null);
+const aiWorking = useAiWorkingTab(computed(() => props.tab));
+const isMapLocked = computed(() => liveJsonError.value !== null || aiWorking.isWorking.value);
 const railState = computed<RailState>(() => ({
   lens: lens.value,
   hasCanvas: hasCanvas.value,
@@ -429,6 +432,7 @@ defineExpose({ setLens, canvas, lens, openFind });
 
 <template>
   <div class="mindmap-shell" @keydown.capture="onViewKey" @focusin="activate" @pointerdown="activate">
+    <AiWorkingBanner v-if="aiWorking.isBannerVisible.value" @close="aiWorking.dismiss" />
     <div class="mindmap-shell__body">
       <MindmapRail v-if="!hasCanvas" :state="railState" @set-lens="setLens" @run="(id) => handle.run(id)" @toggle-panel="settings.toggleMindmapPanel()" />
       <div class="mindmap-shell__cell" :class="{ 'mindmap-shell__cell--split': isSplit }">

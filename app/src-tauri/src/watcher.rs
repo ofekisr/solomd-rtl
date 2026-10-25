@@ -135,6 +135,25 @@ impl WatcherState {
     }
 }
 
+/// The mindmap MCP server drops `.<name>.ai-lock` next to a map while an AI
+/// agent is working on it; map the sidecar back to the file it guards.
+const AI_LOCK_SUFFIX: &str = ".ai-lock";
+
+#[derive(Clone, serde::Serialize)]
+struct AiActivity {
+    path: String,
+    active: bool,
+}
+
+fn ai_lock_target(path: &std::path::Path) -> Option<PathBuf> {
+    let name = path.file_name()?.to_str()?;
+    let target = name.strip_prefix('.')?.strip_suffix(AI_LOCK_SUFFIX)?;
+    if target.is_empty() {
+        return None;
+    }
+    Some(path.with_file_name(target))
+}
+
 fn ensure_watcher(app: &AppHandle, state: &WatcherState) {
     let mut guard = state.debouncer.lock().unwrap();
     if guard.is_some() {
@@ -160,6 +179,15 @@ fn ensure_watcher(app: &AppHandle, state: &WatcherState) {
             // too — filter to just the files the UI cares about. Look
             // up the original user-supplied path while we hold the lock
             // so the emit downstream uses the form the JS side stored.
+            if let Some(target) = ai_lock_target(&canonical) {
+                let watched = inner.lock().unwrap().watched_files.get(&target).cloned();
+                if let Some(original) = watched {
+                    let active = canonical.exists();
+                    let _ = app_handle.emit("solomd://ai-activity", AiActivity { path: original, active });
+                }
+                continue;
+            }
+
             let original_path = {
                 let g = inner.lock().unwrap();
                 match g.watched_files.get(&canonical) {
@@ -439,6 +467,14 @@ mod tests {
         // Removing the last → release the OS watch
         assert!(untrack(&inner, "/tmp/notes/b.md"));
         assert!(inner.lock().unwrap().watched_dirs.is_empty());
+    }
+
+    #[test]
+    fn ai_lock_target_maps_sidecar_to_map() {
+        let p = std::path::Path::new("/w/plans/.q4.mmap.ai-lock");
+        assert_eq!(ai_lock_target(p), Some(PathBuf::from("/w/plans/q4.mmap")));
+        assert_eq!(ai_lock_target(std::path::Path::new("/w/q4.mmap")), None);
+        assert_eq!(ai_lock_target(std::path::Path::new("/w/.ai-lock")), None);
     }
 
     #[test]

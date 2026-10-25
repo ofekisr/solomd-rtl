@@ -5,6 +5,7 @@ import { useTabsStore } from '../stores/tabs';
 import { useSettingsStore } from '../stores/settings';
 import type { FileReadResult } from '../types';
 import { isDiffPath } from '../lib/git-pane/diffTab';
+import { AI_ACTIVITY_EVENT, applyAiActivity, type AiActivityEvent } from '../lib/ai-activity';
 
 type FileChangedAction = 'reload' | 'overwrite' | 'cancel';
 type ShowDialog = (fileName: string) => Promise<FileChangedAction>;
@@ -20,6 +21,7 @@ export function useFileWatcher(showDialog: ShowDialog) {
   const settings = useSettingsStore();
   const watchedPaths = new Set<string>();
   let unlisten: UnlistenFn | null = null;
+  let unlistenAi: UnlistenFn | null = null;
   /** Disk bytes the user has already been asked about, per path. */
   const lastPrompted = new Map<string, string>();
   let revalidating = false;
@@ -218,6 +220,11 @@ export function useFileWatcher(showDialog: ShowDialog) {
     } catch (e) {
       console.warn('file-changed listener failed:', e);
     }
+    try {
+      unlistenAi = await listen<AiActivityEvent>(AI_ACTIVITY_EVENT, (e) => applyAiActivity(e.payload));
+    } catch (e) {
+      console.warn('ai-activity listener failed:', e);
+    }
 
     // #317 — the restored buffers are whatever was open last time; check them
     // against disk before the user reads a stale document.
@@ -234,6 +241,8 @@ export function useFileWatcher(showDialog: ShowDialog) {
       unlisten();
       unlisten = null;
     }
+    unlistenAi?.();
+    unlistenAi = null;
     for (const path of watchedPaths) {
       try {
         await invoke('unwatch_file', { path });

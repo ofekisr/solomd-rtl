@@ -7,6 +7,7 @@ import type { Snippet } from '../../app/src/lib/mindmap-snippets.ts';
 import { resolveNode } from '../../app/src/lib/mindmap-address.ts';
 import { withGateLabels } from '../../app/src/lib/mindmap-gates.ts';
 import type { ServerConfig } from './config.ts';
+import { AiActivity, NO_ACTIVITY, type ActivityMarker } from './ai-activity.ts';
 
 export interface MapDoc { data: MindElixirData; display: MapDisplay; snippets: Snippet[] }
 
@@ -30,10 +31,12 @@ export class MapStore {
   private readonly cfg: ServerConfig;
   private readonly root: string;
   private realRootPromise?: Promise<string>;
+  private readonly activity: ActivityMarker;
 
-  constructor(cfg: ServerConfig) {
+  constructor(cfg: ServerConfig, activity: ActivityMarker = cfg.allowWrite ? new AiActivity() : NO_ACTIVITY) {
     this.cfg = cfg;
     this.root = resolve(cfg.workspace);
+    this.activity = activity;
   }
 
   resolve(file: string): string {
@@ -75,6 +78,15 @@ export class MapStore {
 
   async load(file: string): Promise<MapDoc> {
     const abs = await this.resolveReal(file);
+    await this.activity.touch(abs);
+    return this.parse(file, abs);
+  }
+
+  async peek(file: string): Promise<MapDoc> {
+    return this.parse(file, await this.resolveReal(file));
+  }
+
+  private async parse(file: string, abs: string): Promise<MapDoc> {
     const parsed = parseMindmap(await this.readMap(file, abs), rootTopicFromFileName(abs));
     if (!parsed.ok) throw new Error(`${file}: ${parsed.error}`);
     return { data: parsed.data, display: parsed.display, snippets: parsed.snippets };
@@ -83,6 +95,7 @@ export class MapStore {
   async save(file: string, doc: MapDoc): Promise<void> {
     this.assertWritable();
     const abs = await this.resolveReal(file);
+    await this.activity.touch(abs);
     const tmp = `${abs}.${process.pid}.${tmpCounter++}${TMP_SUFFIX}`;
     try {
       await writeFile(tmp, serializeMindmap(withGateLabels(doc.data, BROKEN_GATE_LABEL), doc.display, doc.snippets), { flag: 'wx' });
