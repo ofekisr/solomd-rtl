@@ -66,6 +66,7 @@ import {
   type LiveInlineHtmlKind,
 } from './html-live-render';
 import { copyPlainText, dedentFenced, dedentIndented } from './code-copy';
+import { diagramFenceKind, fenceModeField, fenceModeToolbar, setFenceMode, type FenceViewMode } from './cm-fence-modes';
 import { isTerminalLang, terminalCommands } from './terminal-block';
 
 // ---------------------------------------------------------------------------
@@ -211,6 +212,31 @@ export function listItemHasTask(listMark: MdSyntaxNode): boolean {
     if (child.name === 'TaskMarker' || child.name === 'Task') return true;
   }
   return false;
+}
+
+// ---------------------------------------------------------------------------
+// Code-block mode toggle (edit / split / preview) per-block widget. Shown on
+// a diagram fence while its source is visible; the mode itself lives in
+// `fenceModeField` (cm-fence-modes.ts), which cm-live-blocks reads to decide
+// what to render.
+// ---------------------------------------------------------------------------
+
+export class CodeModeWidget extends WidgetType {
+  constructor(readonly linePos: number, readonly active: FenceViewMode) {
+    super();
+  }
+
+  eq(other: CodeModeWidget) {
+    return other.linePos === this.linePos && other.active === this.active;
+  }
+
+  toDOM(view: EditorView) {
+    return fenceModeToolbar(view, this.linePos, this.active);
+  }
+
+  ignoreEvent() {
+    return true;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -510,6 +536,15 @@ function buildDecorations(view: EditorView, showMarkers = false): DecorationSet 
               endLine,
             );
             if (code.trim()) {
+              if (diagramFenceKind(firstLine.text)) {
+                const mode = view.state.field(fenceModeField, false)?.get(firstLine.from) ?? 'edit';
+                ranges.push(
+                  Decoration.widget({
+                    widget: new CodeModeWidget(firstLine.from, mode),
+                    side: -2,
+                  }).range(firstLine.from),
+                );
+              }
               ranges.push(
                 Decoration.widget({
                   widget: new CodeCopyWidget(code),
@@ -620,7 +655,8 @@ const makeLiveRenderPlugin = (showMarkers: boolean) => ViewPlugin.fromClass(
       // so Windows WebView2 doesn't lose pointer capture mid-selection.
       const dragEnded = u.transactions.some(isDragEndTransaction);
       const imeFlush = u.transactions.some(isImeSafeFlushTransaction);
-      if (u.docChanged || u.viewportChanged || dragEnded || imeFlush) {
+      const modeChanged = u.transactions.some((tr) => tr.effects.some((e) => e.is(setFenceMode)));
+      if (u.docChanged || u.viewportChanged || dragEnded || imeFlush || modeChanged) {
         this.decorations = buildDecorations(u.view, showMarkers);
         return;
       }
@@ -836,6 +872,43 @@ const liveEditTheme = EditorView.theme({
     border: '1px solid var(--border)',
     borderRadius: '4px',
     padding: '0 6px',
+  },
+
+  // Code-block mode toggle (edit/split/preview)
+  '.cm-md-code-mode-toggle': {
+    position: 'absolute',
+    zIndex: '4',
+    top: '1px',
+    right: '54px',
+    display: 'flex',
+    gap: '2px',
+    padding: '0',
+    margin: '0',
+    lineHeight: '1',
+  },
+  '.cm-md-code-mode-btn': {
+    minWidth: '28px',
+    height: '20px',
+    padding: '0 6px',
+    border: '1px solid var(--border)',
+    borderRadius: '3px',
+    background: 'color-mix(in srgb, var(--bg) 85%, transparent)',
+    color: 'var(--text-muted)',
+    font: '10px/18px var(--font-ui)',
+    cursor: 'pointer',
+    opacity: '0.45',
+    userSelect: 'none',
+    transition: 'opacity 0.15s, color 0.15s, border-color 0.15s, background-color 0.15s',
+  },
+  '.cm-md-code-mode-btn:hover': {
+    opacity: '0.7',
+    color: 'var(--text)',
+  },
+  '.cm-md-code-mode-btn.cm-md-code-mode-active': {
+    opacity: '1',
+    color: 'var(--accent)',
+    borderColor: 'var(--accent)',
+    background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
   },
 
   // v4.11.18 — code-block copy button. Same visual language as the preview

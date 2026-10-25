@@ -48,13 +48,18 @@ import { findHtmlBlockEnd } from './html-live-render';
 import { findInlineFences } from './inline-fence';
 import { plantumlSvgUrl } from './plantuml';
 import { initMermaid } from './mermaid-lazy';
-import { isGraphvizLang, renderDot } from './graphviz';
+import { renderDot } from './graphviz';
 import {
-  FenceModeWidget,
   ModedDiagramWidget,
+  SplitPaneWidget,
+  SplitSpacerWidget,
+  diagramFenceKind,
   fenceModeField,
-  fenceModesTheme,
+  fenceModesExtension,
   setFenceMode,
+  setSplitSide,
+  splitSideField,
+  type DiagramKind,
   type FenceViewMode,
 } from './cm-fence-modes';
 import 'katex/contrib/mhchem';
@@ -912,14 +917,6 @@ interface BlockOptions {
   keepSource?: () => boolean;
 }
 
-type DiagramKind = 'mermaid' | 'graphviz';
-
-function diagramFenceKind(text: string): DiagramKind | null {
-  const lang = /^\s*```\s*([\w-]+)\s*$/.exec(text)?.[1]?.toLowerCase();
-  if (lang === 'mermaid') return 'mermaid';
-  return lang && isGraphvizLang(lang) ? 'graphviz' : null;
-}
-
 function diagramWidget(kind: DiagramKind, body: string, theme: MermaidTheme): WidgetType {
   if (kind === 'mermaid') {
     ensureMermaidRendered(body, theme);
@@ -936,6 +933,7 @@ interface DiagramFenceContext {
   keepSource: boolean;
   opts: BlockOptions;
   modes: ReadonlyMap<number, FenceViewMode>;
+  isSplitSide: boolean;
 }
 
 function addDiagramFence(
@@ -961,11 +959,21 @@ function addDiagramFence(
     }));
     return;
   }
-  builder.add(open.to, open.to, Decoration.widget({ widget: new FenceModeWidget(open.from, mode ?? 'edit'), side: 1 }));
-  if (mode === 'split') {
-    builder.add(close.to, close.to, Decoration.widget({ widget: diagramWidget(kind, body, theme), block: true, side: 1 }));
+  if (mode !== 'split') return;
+  const diagram = diagramWidget(kind, body, theme);
+  if (!ctx.isSplitSide) {
+    builder.add(close.to, close.to, Decoration.widget({ widget: diagram, block: true, side: 1 }));
+    return;
   }
+  builder.add(open.to, open.to, Decoration.widget({ widget: new SplitPaneWidget(diagram, open.from), side: 1 }));
+  for (let ln = openLine + 1; ln <= closeLine; ln++) {
+    const from = ctx.doc.line(ln).from;
+    builder.add(from, from, splitSideLine);
+  }
+  builder.add(close.to, close.to, Decoration.widget({ widget: new SplitSpacerWidget(open.from), block: true, side: 1 }));
 }
+
+const splitSideLine = Decoration.line({ class: 'cm-fence-split-side' });
 
 function buildBlockDecorations(state: EditorState, opts: BlockOptions): DecorationSet {
         const builder = new RangeSetBuilder<Decoration>();
@@ -1198,6 +1206,7 @@ function buildBlockDecorations(state: EditorState, opts: BlockOptions): Decorati
               addDiagramFence(builder, diagramKind, i, endI, {
                 doc, cursorLine, cursorLineEnd, keepSource, opts,
                 modes: state.field(fenceModeField, false) ?? new Map(),
+                isSplitSide: state.field(splitSideField, false) ?? false,
               });
               i = endI + 1;
               continue;
@@ -1319,7 +1328,7 @@ export function liveBlocksExtension(opts: BlockOptions = {}) {
       if (frozen) return frozen;
       if (isImeSafeFlushTransaction(tr)) return buildBlockDecorations(tr.state, opts);
       if (tr.docChanged) return buildBlockDecorations(tr.state, opts);
-      if (tr.effects.some((e) => e.is(relayoutEffect) || e.is(setFenceMode))) {
+      if (tr.effects.some((e) => e.is(relayoutEffect) || e.is(setFenceMode) || e.is(setSplitSide))) {
         return buildBlockDecorations(tr.state, opts);
       }
       if (isDragEndTransaction(tr)) return buildBlockDecorations(tr.state, opts);
@@ -1437,7 +1446,7 @@ export function liveBlocksExtension(opts: BlockOptions = {}) {
     return [tr, { selection: EditorSelection.cursor(retarget), scrollIntoView: true, sequential: true }];
   });
 
-  return [fenceModeField, field, relayout, blockArrowKeymap, vimBlockHop, fenceModesTheme];
+  return [fenceModesExtension, field, relayout, blockArrowKeymap, vimBlockHop];
 }
 
 /** Suggested CSS — pulled out so the editor's theme owns the rule set. */
