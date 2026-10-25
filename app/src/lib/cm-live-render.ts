@@ -121,10 +121,26 @@ function inlineHtmlMark(kind: LiveInlineHtmlKind): Decoration {
   }
 }
 
+function fencedPosition(line: number, first: number, last: number): 'first' | 'mid' | 'last' | 'only' {
+  if (first === last) return 'only';
+  if (line === first) return 'first';
+  return line === last ? 'last' : 'mid';
+}
+
 // Block-level line decorations.
 const lineClass = (cls: string) => Decoration.line({ class: cls });
 const quoteLine = lineClass('cm-md-quote-line');
-const fencedLine = lineClass('cm-md-fenced-line');
+const fencedLineCache = new Map<string, Decoration>();
+function fencedLine(position: 'first' | 'mid' | 'last' | 'only', isActive: boolean): Decoration {
+  const cls = `cm-md-fenced-line cm-md-fenced-${position}${isActive ? ' cm-md-fenced-active' : ''}`;
+  let deco = fencedLineCache.get(cls);
+  if (!deco) {
+    deco = lineClass(cls);
+    fencedLineCache.set(cls, deco);
+  }
+  return deco;
+}
+const fenceLangMark = Decoration.mark({ class: 'cm-md-fence-lang' });
 const headingLine = (level: number) => lineClass(`cm-md-heading-line cm-md-heading-line-${level}`);
 
 const hideDeco = Decoration.replace({});
@@ -341,7 +357,13 @@ function buildDecorations(view: EditorView, showMarkers = false): DecorationSet 
         const lineEndAtNode = view.state.doc.lineAt(
           Math.min(nTo, view.state.doc.length),
         ).number;
-        const caretTouches = lineEndAtNode >= fromLine && lineAtNode <= toLine;
+        const fenceParent = node.node.parent?.name === 'FencedCode' ? node.node.parent : null;
+        // A fence's ``` lines reveal while the caret is anywhere in the block,
+        // so the block's start and end stay visible while editing it.
+        const caretTouches = fenceParent
+          ? view.state.doc.lineAt(Math.min(fenceParent.to, view.state.doc.length)).number >= fromLine
+            && view.state.doc.lineAt(fenceParent.from).number <= toLine
+          : lineEndAtNode >= fromLine && lineAtNode <= toLine;
 
         // ---- Marker hiding (off-line only) ----
         if (HIDDEN_MARK_NODES.has(name)) {
@@ -353,6 +375,14 @@ function buildDecorations(view: EditorView, showMarkers = false): DecorationSet 
             // Dimmed, never removed — so the line looks the same whether or
             // not the caret is on it (#353).
             if (nTo > nFrom) ranges.push(markerMark.range(nFrom, nTo));
+            return;
+          }
+          if (fenceParent && caretTouches && nTo > nFrom) {
+            ranges.push(markerMark.range(nFrom, nTo));
+            return;
+          }
+          if (name === 'CodeInfo' && fenceParent && nTo > nFrom) {
+            ranges.push(fenceLangMark.range(nFrom, nTo));
             return;
           }
           if (!caretTouches && nTo > nFrom) {
@@ -453,11 +483,12 @@ function buildDecorations(view: EditorView, showMarkers = false): DecorationSet 
           const endLine = view.state.doc.lineAt(
             Math.min(nTo, view.state.doc.length),
           ).number;
+          const isActive = endLine >= fromLine && startLine <= toLine;
           for (let ln = startLine; ln <= endLine; ln++) {
             const lineObj = view.state.doc.line(ln);
             if (!seenFencedLines.has(lineObj.from)) {
               seenFencedLines.add(lineObj.from);
-              ranges.push(fencedLine.range(lineObj.from));
+              ranges.push(fencedLine(fencedPosition(ln, startLine, endLine), isActive).range(lineObj.from));
             }
           }
           // v4.11.18 — the copy button rides the block's first line and is
@@ -762,11 +793,49 @@ const liveEditTheme = EditorView.theme({
     backgroundColor: 'var(--bg-elev, transparent)',
   },
 
+  // One bordered box per block: every line carries the side borders, the
+  // first/last lines close it at the top/bottom.
   '.cm-md-fenced-line': {
     backgroundColor: 'var(--md-code-bg)',
     fontFamily: 'var(--font-mono)',
     // Containing block for the copy button that rides the block's first line.
     position: 'relative',
+    borderLeft: '1px solid var(--md-code-border, var(--border))',
+    borderRight: '1px solid var(--md-code-border, var(--border))',
+  },
+  '.cm-md-fenced-first, .cm-md-fenced-only': {
+    borderTop: '1px solid var(--md-code-border, var(--border))',
+    borderTopLeftRadius: '6px',
+    borderTopRightRadius: '6px',
+  },
+  '.cm-md-fenced-last, .cm-md-fenced-only': {
+    borderBottom: '1px solid var(--md-code-border, var(--border))',
+    borderBottomLeftRadius: '6px',
+    borderBottomRightRadius: '6px',
+  },
+  '.cm-md-fenced-line.cm-md-fenced-active': {
+    borderLeftColor: 'var(--accent)',
+    borderRightColor: 'var(--accent)',
+  },
+  '.cm-md-fenced-first.cm-md-fenced-active, .cm-md-fenced-only.cm-md-fenced-active': {
+    borderTopColor: 'var(--accent)',
+  },
+  '.cm-md-fenced-last.cm-md-fenced-active, .cm-md-fenced-only.cm-md-fenced-active': {
+    borderBottomColor: 'var(--accent)',
+  },
+  // The whole block is the active unit; a per-line highlight would split it.
+  '.cm-md-fenced-line.cm-activeLine': {
+    backgroundColor: 'var(--md-code-bg)',
+  },
+  '.cm-md-fenced-line .cm-md-marker': {
+    color: 'var(--text-muted)',
+  },
+  '.cm-md-fence-lang': {
+    fontSize: '0.8em',
+    color: 'var(--text-muted)',
+    border: '1px solid var(--border)',
+    borderRadius: '4px',
+    padding: '0 6px',
   },
 
   // v4.11.18 — code-block copy button. Same visual language as the preview
@@ -870,6 +939,7 @@ export const LIVE_EDIT_CLASSES = [
   'cm-md-link',
   'cm-md-quote-line',
   'cm-md-fenced-line',
+  'cm-md-fence-lang',
   'cm-md-code-copy',
   'cm-md-bullet',
   'cm-md-hr',

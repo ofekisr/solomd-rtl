@@ -48,7 +48,15 @@ import { findHtmlBlockEnd } from './html-live-render';
 import { findInlineFences } from './inline-fence';
 import { plantumlSvgUrl } from './plantuml';
 import { initMermaid } from './mermaid-lazy';
-import { renderDot } from './graphviz';
+import { isGraphvizLang, renderDot } from './graphviz';
+import {
+  FenceModeWidget,
+  ModedDiagramWidget,
+  fenceModeField,
+  fenceModesTheme,
+  setFenceMode,
+  type FenceViewMode,
+} from './cm-fence-modes';
 import 'katex/contrib/mhchem';
 import katex from 'katex';
 import {
@@ -904,6 +912,61 @@ interface BlockOptions {
   keepSource?: () => boolean;
 }
 
+type DiagramKind = 'mermaid' | 'graphviz';
+
+function diagramFenceKind(text: string): DiagramKind | null {
+  const lang = /^\s*```\s*([\w-]+)\s*$/.exec(text)?.[1]?.toLowerCase();
+  if (lang === 'mermaid') return 'mermaid';
+  return lang && isGraphvizLang(lang) ? 'graphviz' : null;
+}
+
+function diagramWidget(kind: DiagramKind, body: string, theme: MermaidTheme): WidgetType {
+  if (kind === 'mermaid') {
+    ensureMermaidRendered(body, theme);
+    return new MermaidWidget(body, theme);
+  }
+  ensureGraphvizRendered(body, theme);
+  return new GraphvizWidget(body, theme);
+}
+
+interface DiagramFenceContext {
+  doc: Text;
+  cursorLine: number;
+  cursorLineEnd: number;
+  keepSource: boolean;
+  opts: BlockOptions;
+  modes: ReadonlyMap<number, FenceViewMode>;
+}
+
+function addDiagramFence(
+  builder: RangeSetBuilder<Decoration>,
+  kind: DiagramKind,
+  openLine: number,
+  closeLine: number,
+  ctx: DiagramFenceContext,
+): void {
+  const open = ctx.doc.line(openLine);
+  const close = ctx.doc.line(closeLine);
+  const mode = ctx.modes.get(open.from);
+  const isCaretInside = ctx.keepSource
+    || isLineWithin(ctx.cursorLine, openLine, closeLine)
+    || isLineWithin(ctx.cursorLineEnd, openLine, closeLine);
+  const isRendered = mode === 'preview' || (!mode && !isCaretInside);
+  const body = ctx.doc.sliceString(ctx.doc.line(openLine + 1).from, close.from).replace(/\n$/, '');
+  const theme = ctx.opts.getMermaidTheme?.() ?? 'default';
+  if (isRendered) {
+    builder.add(open.from, close.to, Decoration.replace({
+      widget: new ModedDiagramWidget(diagramWidget(kind, body, theme), open.from, 'preview'),
+      block: true,
+    }));
+    return;
+  }
+  builder.add(open.to, open.to, Decoration.widget({ widget: new FenceModeWidget(open.from, mode ?? 'edit'), side: 1 }));
+  if (mode === 'split') {
+    builder.add(close.to, close.to, Decoration.widget({ widget: diagramWidget(kind, body, theme), block: true, side: 1 }));
+  }
+}
+
 function buildBlockDecorations(state: EditorState, opts: BlockOptions): DecorationSet {
         const builder = new RangeSetBuilder<Decoration>();
         const sel = state.selection.main;
@@ -1123,62 +1186,19 @@ function buildBlockDecorations(state: EditorState, opts: BlockOptions): Decorati
             }
           }
 
-          // v4.3.0 issue #57a — ```mermaid fenced block. Pre-render to SVG
-          // via the mermaid cache; the widget waits for the SVG and asks
-          // CM to rebuild decorations once ready.
-          if (/^\s*```\s*mermaid\s*$/i.test(line.text)) {
-            let endI = i + 1;
-            while (endI <= lastLine) {
-              const next = doc.line(endI);
-              if (/^\s*```\s*$/.test(next.text)) break;
-              endI += 1;
-            }
-            if (endI <= lastLine) {
-              const cursorInside = keepSource || (cursorLine >= i && cursorLine <= endI);
-              const cursorInsideEnd = cursorLineEnd >= i && cursorLineEnd <= endI;
-              if (!cursorInside && !cursorInsideEnd) {
-                // Body is between the opening and closing fence.
-                let body = '';
-                for (let k = i + 1; k < endI; k++) {
-                  body += (k > i + 1 ? '\n' : '') + doc.line(k).text;
-                }
-                const blockFrom = doc.line(i).from;
-                const blockTo = doc.line(endI).to;
-                // Kick off async render outside the build loop.
-                const mermaidTheme = opts.getMermaidTheme?.() ?? 'default';
-                ensureMermaidRendered(body, mermaidTheme);
-                builder.add(
-                  blockFrom,
-                  blockTo,
-                  Decoration.replace({
-                    widget: new MermaidWidget(body, mermaidTheme),
-                    block: true,
-                  }),
-                );
-              }
-              i = endI + 1;
-              continue;
-            }
-          }
-
-          if (/^\s*```\s*(dot|graphviz|gv)\s*$/i.test(line.text)) {
+          // v4.3.0 issue #57a — ```mermaid and ```dot / ```graphviz / ```gv
+          // fences. Each renders async into its cache; the widget asks CM to
+          // rebuild once the SVG is ready. The per-block view mode (edit /
+          // split / preview) decides what shows — see cm-fence-modes.ts.
+          const diagramKind = diagramFenceKind(line.text);
+          if (diagramKind) {
             let endI = i + 1;
             while (endI <= lastLine && !/^\s*```\s*$/.test(doc.line(endI).text)) endI += 1;
             if (endI <= lastLine) {
-              const cursorInside = keepSource || (cursorLine >= i && cursorLine <= endI);
-              const cursorInsideEnd = cursorLineEnd >= i && cursorLineEnd <= endI;
-              if (!cursorInside && !cursorInsideEnd) {
-                const lines: string[] = [];
-                for (let k = i + 1; k < endI; k++) lines.push(doc.line(k).text);
-                const body = lines.join('\n');
-                const theme = opts.getMermaidTheme?.() ?? 'default';
-                ensureGraphvizRendered(body, theme);
-                builder.add(
-                  doc.line(i).from,
-                  doc.line(endI).to,
-                  Decoration.replace({ widget: new GraphvizWidget(body, theme), block: true }),
-                );
-              }
+              addDiagramFence(builder, diagramKind, i, endI, {
+                doc, cursorLine, cursorLineEnd, keepSource, opts,
+                modes: state.field(fenceModeField, false) ?? new Map(),
+              });
               i = endI + 1;
               continue;
             }
@@ -1299,7 +1319,7 @@ export function liveBlocksExtension(opts: BlockOptions = {}) {
       if (frozen) return frozen;
       if (isImeSafeFlushTransaction(tr)) return buildBlockDecorations(tr.state, opts);
       if (tr.docChanged) return buildBlockDecorations(tr.state, opts);
-      if (tr.effects.some((e) => e.is(relayoutEffect))) {
+      if (tr.effects.some((e) => e.is(relayoutEffect) || e.is(setFenceMode))) {
         return buildBlockDecorations(tr.state, opts);
       }
       if (isDragEndTransaction(tr)) return buildBlockDecorations(tr.state, opts);
@@ -1417,7 +1437,7 @@ export function liveBlocksExtension(opts: BlockOptions = {}) {
     return [tr, { selection: EditorSelection.cursor(retarget), scrollIntoView: true, sequential: true }];
   });
 
-  return [field, relayout, blockArrowKeymap, vimBlockHop];
+  return [fenceModeField, field, relayout, blockArrowKeymap, vimBlockHop, fenceModesTheme];
 }
 
 /** Suggested CSS — pulled out so the editor's theme owns the rule set. */

@@ -85,6 +85,7 @@
   --md-url: #7cc7ff;
   --md-code: #7cc7ff;
   --md-code-bg: #131c29;
+  --md-code-border: rgba(124, 199, 255, 0.4);
   --md-quote: #5d7183;
   --md-list: #67e8b9;
   --md-hr: #263440;
@@ -316,11 +317,15 @@ body {
 }
 
 /* 实时预览代码块 */
-.cm-md-code,
-.cm-md-fenced-line {
+.cm-md-code {
   background: transparent !important;
   border: 1px solid rgba(124, 199, 255, 0.4) !important;
   border-radius: 4px;
+}
+/* Fenced block: the editor draws one box around the whole block from
+   --md-code-border; a border per line would split it into rows. */
+.cm-md-fenced-line {
+  background: transparent !important;
 }
 /* #endregion */
 
