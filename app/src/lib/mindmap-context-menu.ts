@@ -28,11 +28,33 @@ const GROUP_LIST_CLASS = 'mm-menu-group__list';
 const GROUP_OPEN_CLASS = 'is-open';
 const GROUP_FLIP_CLASS = 'is-flipped';
 
-function groupItemElement(item: ContextMenuItem, hide: () => void): HTMLLIElement {
+export interface GroupMenuItem extends ContextMenuItem {
+  readonly removeLabel?: string;
+  readonly onremove?: () => void;
+}
+
+type GroupItems = readonly GroupMenuItem[] | (() => readonly GroupMenuItem[]);
+
+function removeButton(item: GroupMenuItem, hide: () => void): HTMLButtonElement {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = `${GROUP_CLASS}__remove`;
+  button.textContent = '×';
+  button.title = item.removeLabel ?? '';
+  button.setAttribute('aria-label', item.removeLabel ?? '');
+  button.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closingMenuItems([{ name: item.name, onclick: item.onremove! }], hide)[0].onclick();
+  });
+  return button;
+}
+
+function groupItemElement(item: GroupMenuItem, hide: () => void): HTMLLIElement {
   const li = document.createElement('li');
   const label = document.createElement('span');
   label.textContent = item.name;
   li.append(label);
+  if (item.onremove) li.append(removeButton(item, hide));
   li.addEventListener('click', (e) => {
     e.stopPropagation();
     closingMenuItems([item], hide)[0].onclick();
@@ -53,7 +75,8 @@ function fitSubmenu(group: HTMLElement, list: HTMLElement): void {
 }
 
 /** Prepends a submenu row to mind-elixir's context menu; items close the menu like extend items do. */
-export function installMenuGroup(container: HTMLElement, label: string, items: readonly ContextMenuItem[], hide: () => void): void {
+/** Items may be a function so the submenu reflects current state (e.g. saved templates) each time it opens. */
+export function installMenuGroup(container: HTMLElement, label: string, items: GroupItems, hide: () => void): void {
   const menu = container.querySelector<HTMLElement>(MENU_LIST_SELECTOR);
   if (!menu) return;
   const group = document.createElement('li');
@@ -65,11 +88,19 @@ export function installMenuGroup(container: HTMLElement, label: string, items: r
   chevron.textContent = '›';
   const list = document.createElement('ul');
   list.className = GROUP_LIST_CLASS;
-  list.append(...items.map((item) => groupItemElement(item, hide)));
+  const render = (): void => {
+    const current = typeof items === 'function' ? items() : items;
+    list.replaceChildren(...current.map((item) => groupItemElement(item, hide)));
+  };
+  render();
   group.append(title, chevron, list);
-  group.addEventListener('mouseenter', () => fitSubmenu(group, list));
+  group.addEventListener('mouseenter', () => {
+    render();
+    fitSubmenu(group, list);
+  });
   group.addEventListener('click', () => {
     group.classList.toggle(GROUP_OPEN_CLASS);
+    render();
     fitSubmenu(group, list);
   });
   menu.prepend(group);

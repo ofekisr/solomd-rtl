@@ -139,7 +139,7 @@ function isUnsafeCssValue(value: string): boolean {
   return UNSAFE_CSS_VALUE_PATTERN.test(value) || CSS_ESCAPE_PATTERN.test(value);
 }
 
-function sanitizeStyle(style: unknown): NodeObj['style'] | undefined {
+export function sanitizeStyle(style: unknown): NodeObj['style'] | undefined {
   if (!isRecord(style)) return undefined;
   const safe: Record<string, string> = {};
   for (const [key, value] of Object.entries(style)) {

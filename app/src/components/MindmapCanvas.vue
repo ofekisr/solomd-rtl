@@ -41,11 +41,13 @@ import { buildIdMap, remapArrows, remapGates, remapSummaries } from '../lib/mind
 import { withoutGateArrows } from '../lib/mindmap-graph';
 import { copyPlainText, readPlainText } from '../lib/code-copy';
 import { copyMapText, subtreeData } from '../lib/mindmap-payload';
-import { copyStyle, nodePathsText, pasteStyle, styleClipboard, type RenderedLook } from '../lib/mindmap-node-copy';
+import { copyStyle, nodePathsText, pasteStyle, styleClipboard, type NodeStyle, type RenderedLook } from '../lib/mindmap-node-copy';
+import { templateName } from '../lib/mindmap-style-templates';
+import { promptText } from '../composables/useGitPrompt';
 import { entryKey, TAB_SOURCE_PREFIX, type EntryDraft } from '../lib/mindmap-workbench';
 import { useMindmapWorkbenchStore } from '../stores/mindmapWorkbench';
 import { fileDraft, nodesDraft, openWorkbench } from '../composables/useMindmapWorkbench';
-import { closingMenuItems, hideContextMenu, installMenuGroup, keepMenuTopVisible, type ContextMenuItem } from '../lib/mindmap-context-menu';
+import { closingMenuItems, hideContextMenu, installMenuGroup, keepMenuTopVisible, type ContextMenuItem, type GroupMenuItem } from '../lib/mindmap-context-menu';
 import { buildFreezeStrip, canAnchor, getTabFocus, getTabStripRoot, pathTo, setTabFocus, setTabStripRoot, type FreezeStrip } from '../lib/mindmap-focus';
 import MindmapFreezeStrip from './MindmapFreezeStrip.vue';
 
@@ -204,6 +206,7 @@ function mount(): void {
   wrapMove(mind);
   if (props.fenceLine === undefined) setDescendantsExpanded(data.nodeData, false);
   mind.init(data);
+  installMenuGroup(host.value, t('mindmap.menuStyleTemplatesGroup'), styleTemplateMenuItems, () => hideContextMenu(host.value));
   installMenuGroup(host.value, t('mindmap.menuCopyPasteGroup'), copyPasteMenuItems(), () => hideContextMenu(host.value));
   mind.bus.addListener('showContextMenu', () => keepMenuTopVisible(host.value));
   direction.value = mind.direction;
@@ -848,13 +851,8 @@ function copyNodeStyle(): void {
   toasts.success(t('mindmap.styleCopied'));
 }
 
-function pasteNodeStyle(): void {
-  const style = styleClipboard.value;
+function applyStyleToSelection(style: NodeStyle): void {
   const targets = liveSelectedNodes();
-  if (!style) {
-    toasts.info(t('mindmap.styleClipboardEmpty'));
-    return;
-  }
   if (!mind || targets.length === 0) {
     toasts.info(t('mindmap.selectNodeFirst'));
     return;
@@ -872,6 +870,38 @@ function pasteNodeStyle(): void {
   reselect(mind, targets);
   if (count === 0) toasts.info(t('mindmap.styleUnchanged'));
   else toasts.success(t('mindmap.stylePasted', { count }));
+}
+
+function pasteNodeStyle(): void {
+  const style = styleClipboard.value;
+  if (!style) {
+    toasts.info(t('mindmap.styleClipboardEmpty'));
+    return;
+  }
+  applyStyleToSelection(style);
+}
+
+async function saveStyleTemplate(): Promise<void> {
+  const node = liveSelectedNodes()[0];
+  if (!node) {
+    toasts.info(t('mindmap.selectNodeFirst'));
+    return;
+  }
+  const copied = copyStyle(node, renderedLookOf(node.id));
+  const name = templateName((await promptText({ title: t('mindmap.styleTemplateNamePrompt'), placeholder: node.topic })) ?? '');
+  if (name === '') return;
+  settings.saveMindmapStyleTemplate({ name, ...copied });
+  toasts.success(t('mindmap.styleTemplateSaved', { name }));
+}
+
+function styleTemplateMenuItems(): GroupMenuItem[] {
+  const templates = settings.mindmapStyleTemplates.map((template) => ({
+    name: template.name,
+    onclick: reportingSyncErrors(() => applyStyleToSelection(template)),
+    removeLabel: t('mindmap.styleTemplateRemove'),
+    onremove: () => settings.removeMindmapStyleTemplate(template.name),
+  }));
+  return [{ name: t('mindmap.menuSaveStyleTemplate'), onclick: reportingErrors(saveStyleTemplate) }, ...templates];
 }
 
 function reportingSyncErrors(run: () => void): () => void {
@@ -1082,6 +1112,10 @@ defineExpose({
 </template>
 
 <style scoped>
+.mindmap-view__canvas :deep(.mm-menu-group__list li) { display: flex; align-items: center; gap: 8px; }
+.mindmap-view__canvas :deep(.mm-menu-group__list li > span) { flex: 1; }
+.mindmap-view__canvas :deep(.mm-menu-group__remove) { border: 0; background: none; color: inherit; opacity: 0.5; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 2px; }
+.mindmap-view__canvas :deep(.mm-menu-group__remove:hover) { opacity: 1; }
 .mindmap-view__canvas :deep(.context-menu .menu-list) { overflow: visible; }
 .mindmap-view__canvas :deep(.context-menu .menu-list li.mm-menu-group) { position: relative; overflow: visible; }
 .mindmap-view__canvas :deep(.mm-menu-group__chevron) { opacity: 0.6; }

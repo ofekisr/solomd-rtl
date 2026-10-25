@@ -6,6 +6,7 @@ import { parseMapDisplay, type MapDisplay } from '../lib/mindmap-display';
 import { migrateLensKeybindings } from '../lib/mindmap-lens';
 import { isViewModeChangeAllowed } from '../lib/view-mode-guard';
 import { normalizePasteMapSetting, type PasteMapSetting } from '../lib/mindmap-insert';
+import { normalizeStyleTemplates, removeTemplate, upsertTemplate, type StyleTemplate } from '../lib/mindmap-style-templates';
 import { DEFAULT_MINDMAP_CONTROL_STYLE, normalizeControlStyle, type MindmapControlStyle } from '../lib/mindmap-icon-names';
 import { parseTagRules, type TagRule } from '../lib/mindmap-folder-tree';
 import { clampAutoSaveDelay, DEFAULT_AUTO_SAVE_DELAY_MS } from '../lib/auto-save';
@@ -277,6 +278,7 @@ interface Settings {
   mindmapDetailsHeight: number;
   mindmapControlStyle: MindmapControlStyle;
   mindmapPasteMapTarget: PasteMapSetting;
+  mindmapStyleTemplates: StyleTemplate[];
   mindmapFolderTagRules: TagRule[];
   // v2.5 F4: Pomodoro / focus session timer.
   pomodoroShowControls: boolean;
@@ -694,6 +696,7 @@ function defaults(): Settings {
     mindmapDetailsHeight: 220,
     mindmapControlStyle: DEFAULT_MINDMAP_CONTROL_STYLE,
     mindmapPasteMapTarget: 'ask',
+    mindmapStyleTemplates: [],
     mindmapFolderTagRules: [
       { suffix: '.spec.ts', tag: 'tests' },
       { suffix: '.test.ts', tag: 'tests' },
@@ -806,6 +809,7 @@ function load(): Settings {
       merged.convertConflictChoice = normalizeConvertConflictSetting(parsed.convertConflictChoice);
       merged.mindmapControlStyle = normalizeControlStyle(parsed.mindmapControlStyle);
       merged.mindmapPasteMapTarget = normalizePasteMapSetting(parsed.mindmapPasteMapTarget);
+      merged.mindmapStyleTemplates = normalizeStyleTemplates(parsed.mindmapStyleTemplates);
       if (parsed.mindmapFolderTagRules !== undefined) merged.mindmapFolderTagRules = parseTagRules(parsed.mindmapFolderTagRules);
       // #180 — keybindings is a free-form map, so a tampered or older blob
       // could put anything here; keep only string/null values.
@@ -1472,6 +1476,14 @@ export const useSettingsStore = defineStore('settings', {
     },
     setMindmapPasteMapTarget(value: PasteMapSetting) {
       this.mindmapPasteMapTarget = normalizePasteMapSetting(value);
+      this.persist();
+    },
+    saveMindmapStyleTemplate(template: StyleTemplate) {
+      this.mindmapStyleTemplates = upsertTemplate(this.mindmapStyleTemplates, template);
+      this.persist();
+    },
+    removeMindmapStyleTemplate(name: string) {
+      this.mindmapStyleTemplates = removeTemplate(this.mindmapStyleTemplates, name);
       this.persist();
     },
     togglePomodoroShowControls() {

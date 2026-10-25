@@ -1990,7 +1990,7 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
             <TileRoot v-else :node="tiles.root" @cursor="onCursor" @selection="onSelection" />
           </div>
           <GitBottomDock v-if="showGitLog" />
-          <GitPromptDialog v-if="isGitPaneAvailable" />
+          <GitPromptDialog />
           <template v-if="isGitPaneAvailable">
             <GitPushDialog />
             <GitCheckoutDialog />
