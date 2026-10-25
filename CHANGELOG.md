@@ -2,6 +2,13 @@
 
 Changes added in **solomd-rtl** on top of upstream SoloMD. Newest first.
 
+## 4.35.1 — 2026-10-25
+- **Changed:** The AI-working warning is a large card over a dimmed tab instead of a thin strip.
+
+## 4.35.0 — 2026-10-25
+- **Added:** A mind map tab locks while an AI edits it through the mindmap MCP: it switches to preview, shows a closable "AI working" warning, and returns to your view mode when the AI stops.
+- **Added:** Mindmap MCP server marks a map busy with a hidden `.<name>.mmap.ai-lock` file next to it (removed after 4s idle; read-only servers and session scans write none).
+
 ## 4.34.0 — 2026-10-25
 - **Added:** Style panel: Corner radius (with a Custom shape state) and Padding fields.
 - **Added:** Style panel: apply a style template, or save the node's look as one.
