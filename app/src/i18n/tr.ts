@@ -114,6 +114,7 @@ export const tr: I18n = {
     liveEditMode: 'Canlı düzenleme (WYSIWYG) — yazarken markdown anında işlenir',
     previewOnly: 'Yalnızca önizleme',
     readingMode: 'Okuma modu — tam ekran serif, sade arayüz',
+    viewCycleTooltip: 'Görünüm: {mode} — değiştirmek için tıklayın',
     livePreviewOn: 'Canlı önizleme AÇIK — ham kaynak için tıklayın',
     livePreviewOff: 'Ham kaynak — canlı önizleme için tıklayın',
     fitWidthTooltip: 'Önizlemeyi genişliğe sığdır (aç/kapat)',

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ViewMode } from '../types';
 import { computed, onBeforeUnmount, onMounted, onUpdated, ref } from 'vue';
 import Icon from './Icons.vue';
 import BrandMark from './BrandMark.vue';
@@ -113,6 +114,25 @@ const toasts = useToastsStore();
 const isMarkdown = computed(() => tabs.activeTab?.language === 'markdown');
 const isMindmap = computed(() => tabs.activeTab?.language === 'mindmap');
 const hasViewButtons = computed(() => isMarkdown.value || isMindmap.value);
+
+const VIEW_MODE_META: Readonly<Record<ViewMode, { icon: string; labelKey: string }>> = {
+  edit: { icon: 'view-edit', labelKey: 'toolbar.editOnly' },
+  split: { icon: 'view-split', labelKey: 'toolbar.splitPane' },
+  liveEdit: { icon: 'view-live', labelKey: 'toolbar.liveEditMode' },
+  preview: { icon: 'view-preview', labelKey: 'toolbar.previewOnly' },
+  reading: { icon: 'view-reading', labelKey: 'toolbar.readingMode' },
+};
+
+const viewCycleTitle = computed(() => {
+  const label = t('toolbar.viewCycleTooltip', { mode: t(VIEW_MODE_META[settings.viewMode].labelKey) });
+  const chord = shortcutLabel('view.cycleView', settings.keybindings, macChord);
+  return chord ? `${label} (${chord})` : label;
+});
+
+function cycleViewFromToolbar(): void {
+  settings.cycleViewMode();
+  track('view_mode', { mode: settings.viewMode });
+}
 
 // v4.6 unified title bar (macOS only). With `titleBarStyle: "Overlay"` in
 // tauri.conf, the red/yellow/green traffic lights float over the top-left of
@@ -872,6 +892,16 @@ onBeforeUnmount(() => {
         :title="tip('toolbar.rightSidebarTooltip', 'view.toggleRightSidebar')"
       >
         <Icon name="sidebar-right" />
+      </button>
+      <button
+        v-if="hasViewButtons"
+        class="icon-btn"
+        data-view-cycle
+        @click="cycleViewFromToolbar"
+        :title="viewCycleTitle"
+        :aria-label="viewCycleTitle"
+      >
+        <Icon :name="VIEW_MODE_META[settings.viewMode].icon" />
       </button>
     </div>
 

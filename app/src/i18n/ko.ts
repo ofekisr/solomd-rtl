@@ -114,6 +114,7 @@ export const ko: I18n = {
     liveEditMode: '라이브 편집(WYSIWYG) — 입력하면서 Markdown을 즉시 렌더링',
     previewOnly: '미리 보기만',
     readingMode: '읽기 모드 — 전체 화면 세리프, 장식 없음',
+    viewCycleTooltip: '보기: {mode} — 클릭하여 전환',
     livePreviewOn: '라이브 미리 보기 켜짐 — 클릭하면 원본 표시',
     livePreviewOff: '원본 표시 — 클릭하면 라이브 미리 보기',
     fitWidthTooltip: '미리 보기 너비 맞춤(토글)',

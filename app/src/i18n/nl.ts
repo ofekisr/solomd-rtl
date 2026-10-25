@@ -114,6 +114,7 @@ export const nl: I18n = {
     liveEditMode: 'Live bewerken (WYSIWYG) — markdown direct renderen tijdens het typen',
     previewOnly: 'Alleen voorvertoning',
     readingMode: 'Leesmodus — schermvullend serif, geen interface',
+    viewCycleTooltip: 'Weergave: {mode} — klik om te wisselen',
     livePreviewOn: 'Live-voorvertoning AAN — klik voor ruwe broncode',
     livePreviewOff: 'Ruwe broncode — klik voor live-voorvertoning',
     fitWidthTooltip: 'Voorvertoning passend in breedte (aan/uit)',

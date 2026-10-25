@@ -114,6 +114,7 @@ export const es: I18n = {
     liveEditMode: 'Edición en vivo (WYSIWYG) — renderizar Markdown en línea mientras escribes',
     previewOnly: 'Solo vista previa',
     readingMode: 'Modo lectura — serif a página completa, sin interfaz',
+    viewCycleTooltip: 'Vista: {mode} — clic para cambiar',
     livePreviewOn: 'Vista previa en vivo ACTIVADA — clic para fuente',
     livePreviewOff: 'Fuente bruta — clic para vista previa en vivo',
     fitWidthTooltip: 'Vista previa ajustada al ancho (alternar)',

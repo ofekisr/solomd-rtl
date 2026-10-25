@@ -114,6 +114,7 @@ export const fr: I18n = {
     liveEditMode: 'Édition en direct (WYSIWYG) — rendu Markdown en ligne pendant la frappe',
     previewOnly: 'Aperçu seul',
     readingMode: 'Mode lecture — serif pleine page, sans interface',
+    viewCycleTooltip: 'Vue : {mode} — cliquer pour changer',
     livePreviewOn: 'Aperçu en direct ACTIVÉ — cliquer pour la source',
     livePreviewOff: 'Source brute — cliquer pour l\'aperçu en direct',
     fitWidthTooltip: 'Aperçu adapté à la largeur (basculer)',

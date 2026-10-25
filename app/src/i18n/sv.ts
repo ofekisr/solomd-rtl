@@ -114,6 +114,7 @@ export const sv: I18n = {
     liveEditMode: 'Liveredigering (WYSIWYG) — rendera markdown direkt medan du skriver',
     previewOnly: 'Endast förhandsgranskning',
     readingMode: 'Läsläge — full bredd, serif, ingen ram',
+    viewCycleTooltip: 'Vy: {mode} — klicka för att byta',
     livePreviewOn: 'Liveförhandsgranskning PÅ — klicka för rå källkod',
     livePreviewOff: 'Rå källkod — klicka för liveförhandsgranskning',
     fitWidthTooltip: 'Anpassa förhandsgranskning till bredd (växla)',

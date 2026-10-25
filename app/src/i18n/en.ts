@@ -114,6 +114,7 @@ export const en = {
     liveEditMode: 'Live edit (WYSIWYG) — render markdown inline as you type',
     previewOnly: 'Preview only',
     readingMode: 'Reading mode — full-bleed serif, no chrome',
+    viewCycleTooltip: 'View: {mode} — click to switch',
     livePreviewOn: 'Live preview ON — click for raw source',
     livePreviewOff: 'Raw source — click for live preview',
     fitWidthTooltip: 'Preview Fit Width (toggle)',

@@ -114,6 +114,7 @@ export const de: I18n = {
     liveEditMode: 'Live-Bearbeitung (WYSIWYG) — Markdown beim Tippen direkt rendern',
     previewOnly: 'Nur Vorschau',
     readingMode: 'Lesemodus — bildschirmfüllende Serif, ohne UI',
+    viewCycleTooltip: 'Ansicht: {mode} — klicken zum Wechseln',
     livePreviewOn: 'Live-Vorschau AN — klicken für Quelltext',
     livePreviewOff: 'Quelltext — klicken für Live-Vorschau',
     fitWidthTooltip: 'Vorschaubreite anpassen (umschalten)',

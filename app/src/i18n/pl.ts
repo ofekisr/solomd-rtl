@@ -114,6 +114,7 @@ export const pl: I18n = {
     liveEditMode: 'Edycja na żywo (WYSIWYG) — renderuj Markdown w trakcie pisania',
     previewOnly: 'Tylko podgląd',
     readingMode: 'Tryb czytania — szeryfowy, bez paneli',
+    viewCycleTooltip: 'Widok: {mode} — kliknij, aby przełączyć',
     livePreviewOn: 'Podgląd na żywo WŁĄCZONY — kliknij, aby zobaczyć źródło',
     livePreviewOff: 'Źródło — kliknij, aby włączyć podgląd na żywo',
     fitWidthTooltip: 'Dopasuj szerokość podglądu (przełącz)',

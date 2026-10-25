@@ -114,6 +114,7 @@ export const ja: I18n = {
     liveEditMode: 'ライブ編集（WYSIWYG）— 入力中に Markdown を即時レンダリング',
     previewOnly: 'プレビューのみ',
     readingMode: '読書モード — 全画面セリフ、装飾なし',
+    viewCycleTooltip: '表示: {mode} — クリックで切替',
     livePreviewOn: 'ライブプレビュー ON — クリックでソース表示',
     livePreviewOff: 'ソース表示 — クリックでライブプレビュー',
     fitWidthTooltip: 'プレビュー幅を合わせる（切替）',

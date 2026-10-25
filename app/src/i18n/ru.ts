@@ -114,6 +114,7 @@ export const ru: I18n = {
     liveEditMode: 'Живое редактирование (WYSIWYG) — Markdown отображается прямо при наборе',
     previewOnly: 'Только просмотр',
     readingMode: 'Режим чтения — шрифт с засечками, без панелей',
+    viewCycleTooltip: 'Вид: {mode} — нажмите для переключения',
     livePreviewOn: 'Живой просмотр ВКЛ — нажмите для исходного текста',
     livePreviewOff: 'Исходный текст — нажмите для живого просмотра',
     fitWidthTooltip: 'Просмотр по ширине (вкл/выкл)',

@@ -116,6 +116,7 @@ export const pt: I18n = {
     liveEditMode: 'Edição ao vivo (WYSIWYG) — renderizar Markdown enquanto você digita',
     previewOnly: 'Somente pré-visualização',
     readingMode: 'Modo leitura — serif tela cheia, sem interface',
+    viewCycleTooltip: 'Visualização: {mode} — clique para alternar',
     livePreviewOn: 'Pré-visualização ao vivo ATIVA — clique para fonte',
     livePreviewOff: 'Fonte bruta — clique para pré-visualização ao vivo',
     fitWidthTooltip: 'Pré-visualização ajustar largura (alternar)',
