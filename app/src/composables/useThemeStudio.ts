@@ -1,7 +1,19 @@
 import { computed, ref, watchEffect } from 'vue';
 import { useSettingsStore } from '../stores/settings';
 import { themeOverride, type ThemeOverride } from '../lib/themes';
-import { applyUserTheme, flashColorFor, type Palette, type ThemeMode, type UserTheme } from '../lib/user-theme';
+import {
+  CUSTOM_CSS_BASE,
+  applyUserTheme,
+  fitBackdrops,
+  flashColorFor,
+  hasCustomCssLoaded,
+  isLightColor,
+  readThemePalette,
+  type Palette,
+  type ThemeMode,
+  type UserTheme,
+} from '../lib/user-theme';
+import { customCssRevision } from '../lib/custom-theme';
 import type { Theme } from '../types';
 
 /**
@@ -58,8 +70,19 @@ export function locateToken(mode: ThemeMode, key: string, current: string): void
   }, FLASH_STEP_MS);
 }
 
+const cssLightness = new Map<string, boolean>();
+
+/** Whether the loaded CSS theme paints `mode` light; read once per CSS revision. */
+export function customCssIsLight(mode: ThemeMode): boolean | null {
+  const key = `${customCssRevision.value}:${mode}`;
+  if (!hasCustomCssLoaded()) return null;
+  if (!cssLightness.has(key)) cssLightness.set(key, isLightColor(readThemePalette(CUSTOM_CSS_BASE, mode)['--bg']));
+  return cssLightness.get(key) as boolean;
+}
+
 function shownTheme(theme: UserTheme): UserTheme {
-  return { ...theme, light: flashedPalette(theme.light, 'light'), dark: flashedPalette(theme.dark, 'dark') };
+  const flashed = { ...theme, light: flashedPalette(theme.light, 'light'), dark: flashedPalette(theme.dark, 'dark') };
+  return fitBackdrops(flashed, customCssIsLight);
 }
 
 /**

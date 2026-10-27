@@ -7,7 +7,7 @@ import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
 import { themeFamily, themeLabels } from '../lib/themes';
-import { flashedPalette, locateToken, useThemeStudio } from '../composables/useThemeStudio';
+import { customCssIsLight, flashedPalette, locateToken, useThemeStudio } from '../composables/useThemeStudio';
 import ThemeMock from './ThemeMock.vue';
 import ThemeTokenRow from './ThemeTokenRow.vue';
 import ColorPicker from './ColorPicker.vue';
@@ -22,7 +22,6 @@ import {
   THEME_TOKEN_PAIRS,
   contrastRatio,
   harmonize,
-  luminance,
   mergeKeeping,
   isHexColor,
   newUserThemeId,
@@ -62,13 +61,9 @@ const customCssName = settings.customCssPath && hasCustomCssLoaded()
   : '';
 const lightBases = computed(() => (customCssName ? [CUSTOM_CSS_BASE, ...LIGHT_BASES] : [...LIGHT_BASES]));
 const darkBases = computed(() => (customCssName ? [CUSTOM_CSS_BASE, ...DARK_BASES] : [...DARK_BASES]));
-const LIGHT_BG_SPLIT = 0.5;
-
 /** Many CSS themes are dark-only; one only seeds the mode its own background matches. */
 function customCssFits(mode: ThemeMode): boolean {
-  if (!customCssName) return false;
-  const isLight = luminance(readThemePalette(CUSTOM_CSS_BASE, mode)['--bg']) > LIGHT_BG_SPLIT;
-  return isLight === (mode === 'light');
+  return !!customCssName && customCssIsLight(mode) === (mode === 'light');
 }
 
 function initialBase(mode: ThemeMode, bases: readonly string[]): string {
@@ -341,7 +336,7 @@ onMounted(() => {
       >
         <option value="plain">{{ t('themeStudio.backdropPlain') }}</option>
         <option value="gradient">{{ t('themeStudio.backdropGradient') }}</option>
-        <option v-if="customCssName || backdropKind(m) === 'keep'" value="keep">
+        <option v-if="customCssFits(m) || backdropKind(m) === 'keep'" value="keep">
           {{ t('themeStudio.backdropKeep', { name: customCssName || 'CSS' }) }}
         </option>
       </select>

@@ -254,6 +254,29 @@ export function mix(a: string, b: string, amount: number): string {
   return rgbToHex(ca.map((c, i) => c + (cb[i] - c) * amount));
 }
 
+const LIGHT_BG_SPLIT = 0.5;
+
+export function isLightColor(hex: string): boolean {
+  return luminance(hex) > LIGHT_BG_SPLIT;
+}
+
+/**
+ * A kept CSS-theme background only suits a mode whose own background is as
+ * light (or dark) as that CSS theme's: Aurora's dark gradient behind a light
+ * palette leaves dark text on a dark window. Mismatches fall back to plain.
+ * `cssIsLight` answers null when no CSS theme is loaded.
+ */
+export function fitBackdrops(theme: UserTheme, cssIsLight: (mode: ThemeMode) => boolean | null): UserTheme {
+  const fit = (mode: ThemeMode): Backdrop => {
+    const backdrop = theme.gradient[mode];
+    if (backdrop !== KEEP_CSS_BACKDROP) return backdrop;
+    const css = cssIsLight(mode);
+    if (css === null) return backdrop;
+    return css === isLightColor(theme[mode]['--bg'] ?? FALLBACK_COLOR) ? backdrop : null;
+  };
+  return { ...theme, gradient: { light: fit('light'), dark: fit('dark') } };
+}
+
 export function luminance(hex: string): number {
   const [r, g, b] = hexToRgb(hex);
   return (r * 299 + g * 587 + b * 114) / 1000 / 255;

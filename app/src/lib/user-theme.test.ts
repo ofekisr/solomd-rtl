@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  contrastRatio, flashColorFor, harmonize, mergeKeeping, mix, normalizeUserThemes,
+  contrastRatio, fitBackdrops, flashColorFor, harmonize, mergeKeeping, mix, normalizeUserThemes,
   THEME_TOKEN_GROUPS, THEME_TOKEN_KEYS, THEME_TOKEN_PAIRS, toHex6, userThemeCss,
 } from './user-theme.ts';
 import type { UserTheme } from './user-theme.ts';
@@ -143,5 +143,22 @@ describe('backdrop', () => {
   it('drops malformed gradients to a plain background', () => {
     const [t] = normalizeUserThemes([{ id: 'x', name: 'X', gradient: { light: { from: 'red', to: '#000' }, dark: 5 } }]);
     assert.deepEqual(t.gradient, { light: null, dark: null });
+  });
+});
+
+describe('fitBackdrops', () => {
+  const theme: UserTheme = {
+    id: 'a', name: 'A', light: { '--bg': '#ffffff' }, dark: { '--bg': '#101010' },
+    edited: { light: [], dark: [] }, radius: 1, gradient: { light: 'inherit', dark: 'inherit' },
+  };
+  it('keeps a dark CSS background only for the dark half', () => {
+    assert.deepEqual(fitBackdrops(theme, () => false).gradient, { light: null, dark: 'inherit' });
+  });
+  it('leaves everything alone with no CSS theme loaded', () => {
+    assert.deepEqual(fitBackdrops(theme, () => null).gradient, { light: 'inherit', dark: 'inherit' });
+  });
+  it('never touches a gradient of the user\'s own', () => {
+    const g = { from: '#ffffff', to: '#eeeeee', angle: 10 };
+    assert.deepEqual(fitBackdrops({ ...theme, gradient: { light: g, dark: null } }, () => false).gradient, { light: g, dark: null });
   });
 });

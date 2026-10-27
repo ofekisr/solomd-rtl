@@ -9,6 +9,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
+import { ref } from 'vue';
 
 const STYLE_ID = 'solomd-custom-theme';
 
@@ -81,6 +82,9 @@ export async function loadCustomTheme(path: string): Promise<boolean> {
   }
 }
 
+/** Bumps whenever the custom CSS changes, so code that reads its colours can re-read. */
+export const customCssRevision = ref(0);
+
 function applyCss(css: string) {
   let el = document.getElementById(STYLE_ID) as HTMLStyleElement | null;
   if (!el) {
@@ -89,9 +93,11 @@ function applyCss(css: string) {
     document.head.appendChild(el);
   }
   el.textContent = css;
+  customCssRevision.value += 1;
 }
 
 export function removeCustomTheme() {
   const el = document.getElementById(STYLE_ID);
   if (el) el.remove();
+  customCssRevision.value += 1;
 }
