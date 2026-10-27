@@ -120,6 +120,32 @@ export const draculaTheme = mkTheme(
 import { oneDark } from '@codemirror/theme-one-dark';
 import type { Theme } from '../types';
 
+/** What owns the palette besides the built-in theme: nothing, a custom .css file, or a Theme Studio theme. */
+export type ThemeOverride = 'none' | 'css' | 'user';
+
+/**
+ * Theme Studio themes paint the editor through the same CSS variables as the
+ * shell, so a colour change repaints CodeMirror without reconfiguring it.
+ */
+function mkVarTheme(dark: boolean): Extension {
+  return EditorView.theme(
+    {
+      '&': { backgroundColor: 'var(--bg)', color: 'var(--text)' },
+      '.cm-content': { caretColor: 'var(--accent)' },
+      '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--accent)' },
+      '.cm-selectionBackground, ::selection': {
+        backgroundColor: 'color-mix(in srgb, var(--accent) 22%, transparent) !important',
+      },
+      '.cm-gutters': { backgroundColor: 'var(--bg)', color: 'var(--text-faint)', border: 'none' },
+      '.cm-activeLineGutter': { color: 'var(--accent)' },
+    },
+    { dark },
+  );
+}
+
+const userLightTheme = mkVarTheme(false);
+const userDarkTheme = mkVarTheme(true);
+
 /** Which half of a light/dark pair a built-in theme belongs to. */
 export function themeFamily(theme: Theme): 'light' | 'dark' {
   switch (theme) {
@@ -152,8 +178,9 @@ export function mermaidThemeFor(theme: Theme): 'dark' | 'default' {
  * dark panels, so text went dark on dark. The built-in's CodeMirror theme also
  * kept its own white editor background.
  */
-export function cmThemeFor(theme: Theme, customTheme = false): Extension {
-  if (customTheme) return themeFamily(theme) === 'dark' ? oneDark : [];
+export function cmThemeFor(theme: Theme, override: ThemeOverride = 'none'): Extension {
+  if (override === 'user') return themeFamily(theme) === 'dark' ? userDarkTheme : userLightTheme;
+  if (override === 'css') return themeFamily(theme) === 'dark' ? oneDark : [];
   switch (theme) {
     case 'dark': return oneDark;
     case 'nord': return nordTheme;
@@ -168,8 +195,8 @@ export function cmThemeFor(theme: Theme, customTheme = false): Extension {
 
 // Each theme gets its own data-theme value so the UI shell (toolbar, tabs,
 // status bar) can style itself with theme-specific CSS variables.
-export function dataThemeFor(theme: Theme, customTheme = false): string {
-  return customTheme ? themeFamily(theme) : theme;
+export function dataThemeFor(theme: Theme, override: ThemeOverride = 'none'): string {
+  return override === 'none' ? theme : themeFamily(theme);
 }
 
 export const themeLabels: { value: Theme; label: string }[] = [
@@ -182,3 +209,8 @@ export const themeLabels: { value: Theme; label: string }[] = [
   { value: 'github-light', label: 'GitHub Light' },
   { value: 'dracula', label: 'Dracula' },
 ];
+
+export function themeOverride(s: { customCssPath: string; activeUserThemeId: string }): ThemeOverride {
+  if (s.activeUserThemeId) return 'user';
+  return s.customCssPath ? 'css' : 'none';
+}

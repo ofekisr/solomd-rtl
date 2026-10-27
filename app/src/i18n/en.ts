@@ -1894,6 +1894,39 @@ export const en = {
     pushBlockedByBranchProtection: 'Push blocked by branch protection on remote. Create a Pull Request instead.',
     pushRejectedPullFirst: 'Push rejected: remote has newer commits. Pull first, then try again.',
   },
+  themeStudio: {
+    title: 'Theme Studio',
+    open: 'Create / edit my theme…',
+    myThemes: 'My themes',
+    builtIn: 'Built-in',
+    defaultName: 'My theme',
+    newTheme: '+ New theme',
+    name: 'Theme name',
+    preview: 'Preview',
+    mode_light: 'Light',
+    mode_dark: 'Dark',
+    mode_both: 'Both',
+    startFrom: 'Start from a built-in theme',
+    loadBases: 'Load these colours',
+    customCss: 'custom CSS',
+    harmonize: 'Fill the rest from Basics',
+    harmonizeHint: 'Derives hover, headings, links and code colours from the six Basics for the mode(s) shown. Syntax colours stay as they are.',
+    group_basics: 'Basics',
+    group_surfaces: 'Surfaces & states',
+    group_markdown: 'Markdown',
+    group_syntax: 'Code syntax',
+    save: 'Save',
+    discard: 'Discard',
+    keepEditing: 'Keep editing',
+    delete: 'Delete',
+    close: 'Close',
+    copyCss: 'Copy CSS',
+    copied: 'Theme CSS copied to the clipboard',
+    copyFailed: 'Could not copy to the clipboard',
+    saved: 'Saved and applied “{name}”',
+    unsaved: 'Unsaved changes',
+    unsavedPrompt: 'Unsaved changes.',
+  },
   themes: {
     title: 'Theme marketplace',
     browseBtn: 'Browse community themes',
@@ -2499,7 +2532,8 @@ type EnglishSettings = EnglishDictionary['settings'];
 
 type EnglishCmd = EnglishDictionary['cmd'];
 
-export type I18n = Omit<EnglishDictionary, 'settings' | 'mindmap' | 'cmd' | 'searchReplace' | 'findBar' | 'git' | 'paneOpen'> & {
+export type I18n = Omit<EnglishDictionary, 'settings' | 'mindmap' | 'cmd' | 'searchReplace' | 'findBar' | 'git' | 'paneOpen' | 'themeStudio'> & {
+  themeStudio?: EnglishDictionary['themeStudio'];
   paneOpen?: EnglishDictionary['paneOpen'];
   searchReplace?: EnglishDictionary['searchReplace'];
   findBar?: EnglishDictionary['findBar'];

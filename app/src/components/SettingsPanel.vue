@@ -55,6 +55,7 @@ import ThemeMarketplace from './ThemeMarketplace.vue';
 import MindmapMapFields from './MindmapMapFields.vue';
 import { isIOS, isMobile, hasGitBackend, isWindowsEditorRuntime } from '../lib/platform';
 import { loadCustomTheme } from '../lib/custom-theme';
+import { useThemeStudio } from '../composables/useThemeStudio';
 import { openPath } from '@tauri-apps/plugin-opener';
 import { DsModal } from '../ui';
 import { getDict } from '../i18n';
@@ -582,6 +583,24 @@ async function refreshCustomCss() {
   }
 }
 
+const USER_THEME_PREFIX = 'user:';
+const themeSelectValue = computed(() =>
+  settings.activeUserThemeId ? USER_THEME_PREFIX + settings.activeUserThemeId : settings.theme,
+);
+function onThemeSelect(value: string) {
+  if (value.startsWith(USER_THEME_PREFIX)) {
+    settings.setActiveUserTheme(value.slice(USER_THEME_PREFIX.length));
+    return;
+  }
+  settings.setActiveUserTheme('');
+  settings.setTheme(value as Theme);
+}
+/* The studio previews on the real app, so the settings modal gets out of the way. */
+function openThemeStudio() {
+  useThemeStudio().studioOpen.value = true;
+  emit('close');
+}
+
 // v2.5: theme marketplace modal — opened from the Custom CSS section.
 const themeMarketplaceOpen = ref(false);
 function openThemeMarketplace() {
@@ -757,12 +776,15 @@ function onSelectPdfFont(v: string) {
 
         <section data-cat="basics">
           <label>{{ t('settings.theme') }}</label>
-          <select
-            :value="settings.theme"
-            @change="settings.setTheme(($event.target as HTMLSelectElement).value as Theme)"
-          >
-            <option v-for="th in themeLabels" :key="th.value" :value="th.value">{{ th.label }}</option>
+          <select :value="themeSelectValue" @change="onThemeSelect(($event.target as HTMLSelectElement).value)">
+            <optgroup :label="t('themeStudio.builtIn')">
+              <option v-for="th in themeLabels" :key="th.value" :value="th.value">{{ th.label }}</option>
+            </optgroup>
+            <optgroup v-if="settings.userThemes.length" :label="t('themeStudio.myThemes')">
+              <option v-for="ut in settings.userThemes" :key="ut.id" :value="USER_THEME_PREFIX + ut.id">{{ ut.name }}</option>
+            </optgroup>
           </select>
+          <button type="button" class="hint-btn" @click="openThemeStudio">🎨 {{ t('themeStudio.open') }}</button>
           <!-- #282 — the reporter picked "Dark (One Dark)" and the app stayed
                light (his screenshots read #e6e5e0, which is Soft UI's --bg to
                the byte). It was doing exactly what it was told: 14 of the 15

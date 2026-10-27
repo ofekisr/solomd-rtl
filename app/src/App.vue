@@ -520,6 +520,8 @@ function onOutlineGoto(line: number) {
 }
 
 import { dataThemeFor } from './lib/themes';
+import { effectiveThemeOverride, installUserThemeSync, useThemeStudio } from './composables/useThemeStudio';
+import ThemeStudio from './components/ThemeStudio.vue';
 
 // Auto-persist tabs and tiles on every change.
 watch(
@@ -720,9 +722,11 @@ watchEffect(() => {
 // explanation, and concluded the theme switch was broken. Say it once, when
 // he acts — never on startup, where it would be a scold about a choice he
 // already made.
+installUserThemeSync();
+const { studioOpen: themeStudioOpen } = useThemeStudio();
 let themeAppliedOnce = false;
 watchEffect(() => {
-  document.documentElement.setAttribute('data-theme', dataThemeFor(settings.theme, !!settings.customCssPath));
+  document.documentElement.setAttribute('data-theme', dataThemeFor(settings.theme, effectiveThemeOverride()));
   const overriddenBy = settings.customCssPath;
   if (!themeAppliedOnce) {
     themeAppliedOnce = true;
@@ -2140,6 +2144,7 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
     />
     <CommandPalette :open="paletteOpen" @close="paletteOpen = false" />
     <QuickSwitcher :open="quickSwitcherOpen" @close="quickSwitcherOpen = false" />
+    <ThemeStudio v-if="themeStudioOpen" />
     <SettingsPanel
       :open="settingsOpen"
       :initial-section="settingsInitialSection"

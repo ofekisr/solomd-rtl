@@ -6,6 +6,8 @@ import { parseMapDisplay, type MapDisplay } from '../lib/mindmap-display';
 import { migrateLensKeybindings } from '../lib/mindmap-lens';
 import { isViewModeChangeAllowed } from '../lib/view-mode-guard';
 import { normalizePasteMapSetting, type PasteMapSetting } from '../lib/mindmap-insert';
+import { normalizeUserThemes, type UserTheme } from '../lib/user-theme';
+import { themeFamily } from '../lib/themes';
 import { normalizeStyleTemplates, removeTemplate, upsertTemplate, type StyleTemplate } from '../lib/mindmap-style-templates';
 import { DEFAULT_MINDMAP_CONTROL_STYLE, normalizeControlStyle, type MindmapControlStyle } from '../lib/mindmap-icon-names';
 import { parseTagRules, type TagRule } from '../lib/mindmap-folder-tree';
@@ -127,6 +129,9 @@ interface Settings {
   limitEditorWidth: boolean;
   // Custom CSS theme override (path to a .css file on disk)
   customCssPath: string;
+  // Theme Studio — user-built light+dark palettes; one may be active.
+  userThemes: UserTheme[];
+  activeUserThemeId: string;
   // Anonymous telemetry (Aptabase). Defaults true but user can opt out.
   telemetryEnabled: boolean;
   // First-run banner dismissal. Shown once, never again.
@@ -625,6 +630,8 @@ function defaults(): Settings {
     plantumlServer: 'https://www.plantuml.com/plantuml',
     limitEditorWidth: false,
     customCssPath: '',
+    userThemes: [],
+    activeUserThemeId: '',
     telemetryEnabled: false,
     telemetryNoticeAck: true,
     restoreSession: true,
@@ -810,6 +817,8 @@ function load(): Settings {
       merged.mindmapControlStyle = normalizeControlStyle(parsed.mindmapControlStyle);
       merged.mindmapPasteMapTarget = normalizePasteMapSetting(parsed.mindmapPasteMapTarget);
       merged.mindmapStyleTemplates = normalizeStyleTemplates(parsed.mindmapStyleTemplates);
+      merged.userThemes = normalizeUserThemes(parsed.userThemes);
+      if (!merged.userThemes.some((ut) => ut.id === merged.activeUserThemeId)) merged.activeUserThemeId = '';
       if (parsed.mindmapFolderTagRules !== undefined) merged.mindmapFolderTagRules = parseTagRules(parsed.mindmapFolderTagRules);
       // #180 — keybindings is a free-form map, so a tampered or older blob
       // could put anything here; keep only string/null values.
@@ -1382,6 +1391,25 @@ export const useSettingsStore = defineStore('settings', {
     },
     setCustomCssPath(p: string) {
       this.customCssPath = p;
+      if (p) this.activeUserThemeId = '';
+      this.persist();
+    },
+    /** A user theme and a custom CSS file both own the palette; the last one picked wins. */
+    setActiveUserTheme(id: string) {
+      this.activeUserThemeId = id;
+      if (id) this.customCssPath = '';
+      if (id && themeFamily(this.theme) !== this.theme) this.theme = themeFamily(this.theme);
+      this.persist();
+    },
+    saveUserTheme(theme: UserTheme) {
+      const i = this.userThemes.findIndex((ut) => ut.id === theme.id);
+      if (i === -1) this.userThemes.push(theme);
+      else this.userThemes.splice(i, 1, theme);
+      this.persist();
+    },
+    deleteUserTheme(id: string) {
+      this.userThemes = this.userThemes.filter((ut) => ut.id !== id);
+      if (this.activeUserThemeId === id) this.activeUserThemeId = '';
       this.persist();
     },
     togglePreviewFitWidth() {
