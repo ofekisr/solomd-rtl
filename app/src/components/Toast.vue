@@ -71,7 +71,7 @@ function onToastAction(t: Toast) {
   font-size: 13px;
   background: var(--bg-elev);
   border: 1px solid var(--border);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: inset 3px 0 0 var(--toast-tone, transparent), 0 8px 24px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   min-width: 220px;
   max-width: 380px;
@@ -107,13 +107,13 @@ function onToastAction(t: Toast) {
   background: var(--bg-hover);
 }
 .toast--success .toast__icon { background: #2ea043; }
-.toast--success { border-left: 3px solid #2ea043; }
+.toast--success { --toast-tone: #2ea043; }
 .toast--error .toast__icon { background: #d64545; }
-.toast--error { border-left: 3px solid #d64545; }
+.toast--error { --toast-tone: #d64545; }
 .toast--info .toast__icon { background: var(--accent); color: var(--accent-fg); }
-.toast--info { border-left: 3px solid var(--accent); }
+.toast--info { --toast-tone: var(--accent); }
 .toast--warning .toast__icon { background: #d4a017; }
-.toast--warning { border-left: 3px solid #d4a017; }
+.toast--warning { --toast-tone: #d4a017; }
 
 .toast-enter-from { opacity: 0; transform: translateX(20px); }
 .toast-enter-active { transition: all 0.2s ease-out; }

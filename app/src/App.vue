@@ -722,14 +722,11 @@ watchEffect(() => {
 // he acts — never on startup, where it would be a scold about a choice he
 // already made.
 installUserThemeSync();
-let themeAppliedOnce = false;
 watchEffect(() => {
   document.documentElement.setAttribute('data-theme', dataThemeFor(effectiveTheme(), effectiveThemeOverride()));
+});
+watch(() => settings.theme, () => {
   const overriddenBy = effectiveThemeOverride() === 'css' ? settings.customCssPath : '';
-  if (!themeAppliedOnce) {
-    themeAppliedOnce = true;
-    return;
-  }
   if (!overriddenBy) return;
   const name = (overriddenBy.split(/[\\/]/).pop() || overriddenBy).replace(/\.css$/i, '');
   void import('./stores/toasts').then(({ useToastsStore }) => {
