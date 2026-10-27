@@ -1,25 +1,38 @@
 import { computed, watch, type ComputedRef, type Ref } from 'vue';
 import type { Tab, ViewMode } from '../types';
-import { dismissAiWarning, isAiWarningVisible, isAiWorking } from '../lib/ai-activity';
+import {
+  expandAiWarning,
+  isAiWarningMinimized,
+  isAiWorking,
+  keepAiWarningMinimizedForTab,
+  minimizeAiWarning,
+} from '../lib/ai-activity';
 import { useSettingsStore } from '../stores/settings';
 import { useTabsStore } from '../stores/tabs';
 
 const AI_VIEW_MODE: ViewMode = 'preview';
+const PREVIEW_LANGUAGES = new Set(['markdown', 'mindmap']);
 
 export interface AiWorkingTab {
   isWorking: ComputedRef<boolean>;
-  isBannerVisible: ComputedRef<boolean>;
-  dismiss: () => void;
+  isMinimized: ComputedRef<boolean>;
+  minimize: () => void;
+  keepMinimizedForTab: () => void;
+  alwaysMinimize: () => void;
+  expand: () => void;
 }
 
-export function useAiWorkingTab(tab: Ref<Tab> | ComputedRef<Tab>): AiWorkingTab {
+export function useAiWorkingTab(tab: Ref<Tab | undefined> | ComputedRef<Tab | undefined>): AiWorkingTab {
   const settings = useSettingsStore();
   const tabs = useTabsStore();
-  const isWorking = computed(() => isAiWorking(tab.value.filePath));
+  const path = (): string | null => tab.value?.filePath ?? null;
+  const isWorking = computed(() => isAiWorking(path()));
   let restoreMode: ViewMode | null = null;
 
   function enterPreview(): void {
-    if (tabs.activeTab?.id !== tab.value.id || settings.viewMode === AI_VIEW_MODE) return;
+    const current = tab.value;
+    if (!current || !PREVIEW_LANGUAGES.has(current.language ?? '')) return;
+    if (tabs.activeTab?.id !== current.id || settings.viewMode === AI_VIEW_MODE) return;
     restoreMode = settings.viewMode;
     settings.setViewMode(AI_VIEW_MODE);
   }
@@ -37,7 +50,17 @@ export function useAiWorkingTab(tab: Ref<Tab> | ComputedRef<Tab>): AiWorkingTab 
 
   return {
     isWorking,
-    isBannerVisible: computed(() => isAiWarningVisible(tab.value.filePath)),
-    dismiss: () => dismissAiWarning(tab.value.filePath),
+    isMinimized: computed(() => isAiWarningMinimized({
+      path: path(),
+      tabId: tab.value?.id ?? '',
+      alwaysMinimized: settings.aiWarningAlwaysMinimized,
+    })),
+    minimize: () => minimizeAiWarning(path()),
+    keepMinimizedForTab: () => keepAiWarningMinimizedForTab(path(), tab.value?.id ?? ''),
+    alwaysMinimize: () => {
+      settings.setAiWarningAlwaysMinimized(true);
+      minimizeAiWarning(path());
+    },
+    expand: () => expandAiWarning(path(), tab.value?.id ?? ''),
   };
 }

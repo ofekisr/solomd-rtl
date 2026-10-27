@@ -41,8 +41,7 @@ import type { Snippet } from '../lib/mindmap-snippets';
 import MindmapSnippets from './MindmapSnippets.vue';
 import { hasAnyNote } from '../lib/mindmap-view-defaults';
 import MindmapOutlineInvalid from './MindmapOutlineInvalid.vue';
-import AiWorkingBanner from './AiWorkingBanner.vue';
-import { useAiWorkingTab } from '../composables/useAiWorkingTab';
+import { isAiWorking } from '../lib/ai-activity';
 
 const SOURCE_LANGUAGE = 'json';
 const JSON_PARSE_DEBOUNCE_MS = 250;
@@ -109,8 +108,7 @@ const liveJsonError = computed<string | null>(() => {
   if (!has('json') || !has('map') || parsedContent.value.ok) return null;
   return parsedContent.value.error;
 });
-const aiWorking = useAiWorkingTab(computed(() => props.tab));
-const isMapLocked = computed(() => liveJsonError.value !== null || aiWorking.isWorking.value);
+const isMapLocked = computed(() => liveJsonError.value !== null || isAiWorking(props.tab.filePath));
 const railState = computed<RailState>(() => ({
   lens: lens.value,
   hasCanvas: hasCanvas.value,
@@ -432,7 +430,6 @@ defineExpose({ setLens, canvas, lens, openFind });
 
 <template>
   <div class="mindmap-shell" @keydown.capture="onViewKey" @focusin="activate" @pointerdown="activate">
-    <AiWorkingBanner v-if="aiWorking.isBannerVisible.value" @close="aiWorking.dismiss" />
     <div class="mindmap-shell__body">
       <MindmapRail v-if="!hasCanvas" :state="railState" @set-lens="setLens" @run="(id) => handle.run(id)" @toggle-panel="settings.toggleMindmapPanel()" />
       <div class="mindmap-shell__cell" :class="{ 'mindmap-shell__cell--split': isSplit }">
@@ -507,7 +504,7 @@ defineExpose({ setLens, canvas, lens, openFind });
 </template>
 
 <style scoped>
-.mindmap-shell { position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; }
+.mindmap-shell { display: flex; flex-direction: column; width: 100%; height: 100%; }
 .mindmap-shell__body { position: relative; flex: 1; min-height: 0; display: flex; }
 .mindmap-shell__body > * { flex: 1; min-width: 0; }
 .mindmap-shell__cell { display: flex; min-height: 0; }

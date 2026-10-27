@@ -2,6 +2,9 @@
 import { ref, computed } from 'vue';
 import PaneTabBar from './PaneTabBar.vue';
 import PaneContent from './PaneContent.vue';
+import AiWorkingBanner from './AiWorkingBanner.vue';
+import { useAiWorkingTab } from '../composables/useAiWorkingTab';
+import { useSettingsStore } from '../stores/settings';
 import { useTabsStore } from '../stores/tabs';
 import { useTilesStore } from '../stores/tiles';
 import type { SplitDirection } from '../types';
@@ -22,6 +25,8 @@ const tiles = useTilesStore();
 
 const activeTab = computed(() => tabs.tabs.find((t) => t.id === props.activeTabId));
 const paneContentRef = ref<InstanceType<typeof PaneContent> | null>(null);
+const settings = useSettingsStore();
+const aiWorking = useAiWorkingTab(activeTab);
 
 // ---- Drop-zone overlay for drag-to-split ----
 // The drag itself is driven by PaneTabBar using pointer events (HTML5 DnD is
@@ -53,12 +58,28 @@ function onSelection(text: string) {
     @click="tiles.setFocusedPane(paneId)"
   >
     <PaneTabBar :pane-id="paneId" :active-tab-id="activeTabId" />
-    <PaneContent
-      ref="paneContentRef"
-      :pane-id="paneId"
-      :tab="activeTab"
-      @cursor="onCursor"
-      @selection="onSelection"
+    <div class="pane-host__body">
+      <PaneContent
+        ref="paneContentRef"
+        :pane-id="paneId"
+        :tab="activeTab"
+        @cursor="onCursor"
+        @selection="onSelection"
+      />
+      <AiWorkingBanner
+        v-if="aiWorking.isWorking.value && !aiWorking.isMinimized.value"
+        :minimized="false"
+        :always-minimized="settings.aiWarningAlwaysMinimized"
+        @minimize="aiWorking.minimize"
+        @keep-for-tab="aiWorking.keepMinimizedForTab"
+        @always="aiWorking.alwaysMinimize"
+      />
+    </div>
+    <AiWorkingBanner
+      v-if="aiWorking.isWorking.value && aiWorking.isMinimized.value"
+      :minimized="true"
+      :always-minimized="settings.aiWarningAlwaysMinimized"
+      @expand="aiWorking.expand"
     />
     <!-- Drop zone overlay indicators -->
     <div class="drop-zone drop-zone--left" v-if="dropZone === 'horizontal'" />
@@ -78,6 +99,13 @@ function onSelection(text: string) {
   overflow: hidden;
   position: relative;
   background: var(--bg);
+}
+.pane-host__body {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
 }
 .pane-host--focused {
   /* subtle indicator for focused pane */

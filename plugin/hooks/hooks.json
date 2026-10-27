@@ -1,7 +1,22 @@
 {
   "hooks": {
     "SessionStart": [
-      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-id.mjs\"" }] }
+      { "hooks": [
+        { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-id.mjs\"" },
+        { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/ai-lock.mjs\"" }
+      ] }
+    ],
+    "PreToolUse": [
+      { "matcher": "Edit|Write|MultiEdit|NotebookEdit", "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/ai-lock.mjs\"" }] }
+    ],
+    "PostToolUse": [
+      { "matcher": "Edit|Write|MultiEdit|NotebookEdit", "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/ai-lock.mjs\"" }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/ai-lock.mjs\"" }] }
+    ],
+    "SessionEnd": [
+      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/ai-lock.mjs\"" }] }
     ]
   }
 }

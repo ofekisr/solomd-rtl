@@ -135,23 +135,56 @@ impl WatcherState {
     }
 }
 
-/// The mindmap MCP server drops `.<name>.ai-lock` next to a map while an AI
-/// agent is working on it; map the sidecar back to the file it guards.
+/// AI agents (Claude Code hooks, the mindmap MCP server) drop
+/// `.<name>.ai-lock-<holder>` next to a file while they work on it. Each
+/// holder owns one marker, so the UI can count holders like a semaphore.
 const AI_LOCK_SUFFIX: &str = ".ai-lock";
 
 #[derive(Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 struct AiActivity {
     path: String,
+    holder: String,
     active: bool,
+    age_ms: u64,
 }
 
-fn ai_lock_target(path: &std::path::Path) -> Option<PathBuf> {
-    let name = path.file_name()?.to_str()?;
-    let target = name.strip_prefix('.')?.strip_suffix(AI_LOCK_SUFFIX)?;
+fn marker_age_ms(marker: &std::path::Path) -> u64 {
+    std::fs::metadata(marker)
+        .and_then(|m| m.modified())
+        .ok()
+        .and_then(|t| t.elapsed().ok())
+        .map_or(0, |d| d.as_millis() as u64)
+}
+
+/// Markers written before the file was opened never produce an event, so
+/// report the ones already sitting next to it.
+fn emit_existing_ai_locks(app: &AppHandle, canonical: &std::path::Path, original: &str) {
+    let Some(dir) = canonical.parent() else { return };
+    let Ok(entries) = std::fs::read_dir(dir) else { return };
+    for entry in entries.flatten() {
+        let marker = entry.path();
+        let Some((target, holder)) = ai_lock_target(&marker) else { continue };
+        if target != canonical {
+            continue;
+        }
+        let age_ms = marker_age_ms(&marker);
+        let _ = app.emit("solomd://ai-activity", AiActivity { path: original.to_string(), holder, active: true, age_ms });
+    }
+}
+
+fn ai_lock_target(path: &std::path::Path) -> Option<(PathBuf, String)> {
+    let name = path.file_name()?.to_str()?.strip_prefix('.')?;
+    let at = name.rfind(AI_LOCK_SUFFIX)?;
+    let (target, rest) = (&name[..at], &name[at + AI_LOCK_SUFFIX.len()..]);
+    let holder = match rest {
+        "" => "",
+        _ => rest.strip_prefix('-').filter(|h| !h.is_empty())?,
+    };
     if target.is_empty() {
         return None;
     }
-    Some(path.with_file_name(target))
+    Some((path.with_file_name(target), holder.to_string()))
 }
 
 fn ensure_watcher(app: &AppHandle, state: &WatcherState) {
@@ -179,11 +212,12 @@ fn ensure_watcher(app: &AppHandle, state: &WatcherState) {
             // too — filter to just the files the UI cares about. Look
             // up the original user-supplied path while we hold the lock
             // so the emit downstream uses the form the JS side stored.
-            if let Some(target) = ai_lock_target(&canonical) {
+            if let Some((target, holder)) = ai_lock_target(&canonical) {
                 let watched = inner.lock().unwrap().watched_files.get(&target).cloned();
                 if let Some(original) = watched {
                     let active = canonical.exists();
-                    let _ = app_handle.emit("solomd://ai-activity", AiActivity { path: original, active });
+                    let age_ms = if active { marker_age_ms(&canonical) } else { 0 };
+                    let _ = app_handle.emit("solomd://ai-activity", AiActivity { path: original, holder, active, age_ms });
                 }
                 continue;
             }
@@ -287,6 +321,7 @@ pub fn watch_file(
         }
     }
 
+    emit_existing_ai_locks(&app, &canonical, &path);
     Ok(())
 }
 
@@ -470,11 +505,14 @@ mod tests {
     }
 
     #[test]
-    fn ai_lock_target_maps_sidecar_to_map() {
-        let p = std::path::Path::new("/w/plans/.q4.mmap.ai-lock");
-        assert_eq!(ai_lock_target(p), Some(PathBuf::from("/w/plans/q4.mmap")));
-        assert_eq!(ai_lock_target(std::path::Path::new("/w/q4.mmap")), None);
-        assert_eq!(ai_lock_target(std::path::Path::new("/w/.ai-lock")), None);
+    fn ai_lock_target_maps_marker_to_file_and_holder() {
+        let target = |p: &str| ai_lock_target(std::path::Path::new(p));
+        assert_eq!(target("/w/plans/.q4.mmap.ai-lock"), Some((PathBuf::from("/w/plans/q4.mmap"), String::new())));
+        assert_eq!(target("/w/.a.md.ai-lock-abc-123"), Some((PathBuf::from("/w/a.md"), "abc-123".to_string())));
+        assert_eq!(target("/w/q4.mmap"), None);
+        assert_eq!(target("/w/.ai-lock"), None);
+        assert_eq!(target("/w/.a.md.ai-lock-"), None);
+        assert_eq!(target("/w/.a.md.ai-locked"), None);
     }
 
     #[test]

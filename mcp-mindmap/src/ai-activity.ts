@@ -5,13 +5,14 @@ import { basename, dirname, join } from 'node:path';
 export const AI_LOCK_SUFFIX = '.ai-lock';
 const DEFAULT_IDLE_MS = 4000;
 const LOCK_MODE = 0o600;
+const SIGNAL_EXIT_CODES: Record<string, number> = { SIGTERM: 143, SIGINT: 130, SIGHUP: 129 };
 
 export interface ActivityMarker { touch(abs: string): Promise<void> }
 
 export const NO_ACTIVITY: ActivityMarker = { touch: async () => undefined };
 
-export function aiLockPath(abs: string): string {
-  return join(dirname(abs), `.${basename(abs)}${AI_LOCK_SUFFIX}`);
+export function aiLockPath(abs: string, holder: string = `mcp-${process.pid}`): string {
+  return join(dirname(abs), `.${basename(abs)}${AI_LOCK_SUFFIX}-${holder}`);
 }
 
 export class AiActivity implements ActivityMarker {
@@ -21,6 +22,12 @@ export class AiActivity implements ActivityMarker {
   constructor(idleMs: number = DEFAULT_IDLE_MS) {
     this.idleMs = idleMs;
     process.once('exit', () => this.clearAllSync());
+    for (const [signal, code] of Object.entries(SIGNAL_EXIT_CODES)) {
+      process.once(signal, () => {
+        this.clearAllSync();
+        process.exit(code);
+      });
+    }
   }
 
   async touch(abs: string): Promise<void> {

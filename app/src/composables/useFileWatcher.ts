@@ -5,7 +5,7 @@ import { useTabsStore } from '../stores/tabs';
 import { useSettingsStore } from '../stores/settings';
 import type { FileReadResult } from '../types';
 import { isDiffPath } from '../lib/git-pane/diffTab';
-import { AI_ACTIVITY_EVENT, applyAiActivity, type AiActivityEvent } from '../lib/ai-activity';
+import { AI_ACTIVITY_EVENT, applyAiActivity, configureAiActivity, type AiActivityEvent } from '../lib/ai-activity';
 
 type FileChangedAction = 'reload' | 'overwrite' | 'cancel';
 type ShowDialog = (fileName: string) => Promise<FileChangedAction>;
@@ -19,6 +19,11 @@ export function isFileConflictPending(filePath: string): boolean {
 export function useFileWatcher(showDialog: ShowDialog) {
   const tabs = useTabsStore();
   const settings = useSettingsStore();
+  watch(
+    () => [settings.aiReleaseDelayMs, settings.aiStaleTimeoutMs] as const,
+    ([releaseDelayMs, staleMs]) => configureAiActivity({ releaseDelayMs, staleMs }),
+    { immediate: true },
+  );
   const watchedPaths = new Set<string>();
   let unlisten: UnlistenFn | null = null;
   let unlistenAi: UnlistenFn | null = null;
@@ -211,6 +216,11 @@ export function useFileWatcher(showDialog: ShowDialog) {
   );
 
   onMounted(async () => {
+    try {
+      unlistenAi = await listen<AiActivityEvent>(AI_ACTIVITY_EVENT, (e) => applyAiActivity(e.payload));
+    } catch (e) {
+      console.warn('ai-activity listener failed:', e);
+    }
     await syncWatchedPaths();
 
     try {
@@ -219,11 +229,6 @@ export function useFileWatcher(showDialog: ShowDialog) {
       });
     } catch (e) {
       console.warn('file-changed listener failed:', e);
-    }
-    try {
-      unlistenAi = await listen<AiActivityEvent>(AI_ACTIVITY_EVENT, (e) => applyAiActivity(e.payload));
-    } catch (e) {
-      console.warn('ai-activity listener failed:', e);
     }
 
     // #317 — the restored buffers are whatever was open last time; check them

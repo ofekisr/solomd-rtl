@@ -500,6 +500,10 @@ export const en = {
     convertConflictHint: 'Applies when opening a PDF, Word or other document next to a .md of the same name. Pick “Ask every time” to reset a remembered choice.',
     autoSaveAfterDelay: 'Auto-save after typing stops',
     autoSaveDelay: 'Auto-save delay',
+    aiReleaseDelay: 'AI-working release delay',
+    aiStaleTimeout: 'AI-working timeout',
+    aiWarningAlwaysMinimized: 'Always show the AI-working warning minimized',
+    aiWorkingHint: 'While an AI agent edits an open file, its tab goes read-only and shows an "AI working" warning. The release delay keeps the lock a moment after the AI stops (default 2000 ms, 0 = none). The timeout drops a lock nobody refreshed, e.g. after an interrupted turn (default 60000 ms).',
     autoSaveAfterDelayHint: 'Saves open files a moment after you stop typing (default 1000 ms). Untitled tabs and files with an unresolved external change are never auto-saved.',
 
     autoReloadExternalChangesHint: 'When on (default), the editor reloads in place if another program writes the file you have open (other editors, git checkout, sync clients). Unsaved tabs always prompt — your edits are never silently lost.',
@@ -1392,6 +1396,14 @@ export const en = {
       frontmatter: '--- yaml ---',
     },
   },
+  aiWorking: {
+    title: 'AI working',
+    text: 'Editing is paused while AI changes this file',
+    minimize: 'Minimize',
+    keepForTab: 'Keep minimized for this tab',
+    always: 'Always minimize',
+    expand: 'Show warning',
+  },
   mindmap: {
     sortChildrenMenu: 'Sort children by name',
     numberMenu: 'Number children',
@@ -1606,9 +1618,6 @@ export const en = {
     exportDone: 'Mind map exported',
     exportFailed: 'Mind map export failed',
     readOnlyBadge: 'Read-only',
-    aiWorkingTitle: 'AI working',
-    aiWorking: 'Editing is paused while AI changes this map',
-    aiWorkingDismiss: 'Hide warning',
     graphViewBadge: 'Graph view',
     noActiveMap: 'Click a mind map first',
     copiedPlaintext: 'Mind map copied as plaintext',
@@ -2531,14 +2540,19 @@ type DirectiveCompletionFallbackKey =
   | 'mindmapPasteMapTarget_ask'
   | 'mindmapPasteMapTarget_selected'
   | 'mindmapPasteMapTarget_root'
-  | 'mindmapPasteMapReset';
+  | 'mindmapPasteMapReset'
+  | 'aiReleaseDelay'
+  | 'aiStaleTimeout'
+  | 'aiWarningAlwaysMinimized'
+  | 'aiWorkingHint';
 
 type EnglishDictionary = typeof en;
 type EnglishSettings = EnglishDictionary['settings'];
 
 type EnglishCmd = EnglishDictionary['cmd'];
 
-export type I18n = Omit<EnglishDictionary, 'settings' | 'mindmap' | 'cmd' | 'searchReplace' | 'findBar' | 'git' | 'paneOpen' | 'themeStudio'> & {
+export type I18n = Omit<EnglishDictionary, 'settings' | 'mindmap' | 'cmd' | 'searchReplace' | 'findBar' | 'git' | 'paneOpen' | 'themeStudio' | 'aiWorking'> & {
+  aiWorking?: EnglishDictionary['aiWorking'];
   themeStudio?: EnglishDictionary['themeStudio'];
   paneOpen?: EnglishDictionary['paneOpen'];
   searchReplace?: EnglishDictionary['searchReplace'];

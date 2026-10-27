@@ -6,7 +6,7 @@ import {
 } from '@codemirror/language';
 import {getSearchQuery, openSearchPanel, search, searchKeymap, setSearchQuery} from '@codemirror/search';
 import { createFindPanel } from '../lib/cm-find-panel';
-import {Compartment, EditorState} from '@codemirror/state';
+import {Compartment, EditorState, type Extension} from '@codemirror/state';
 import {
   crosshairCursor, drawSelection, EditorView, highlightActiveLine, keymap, lineNumbers, rectangularSelection
 } from '@codemirror/view';
@@ -21,6 +21,7 @@ import {useI18n} from '../i18n';
 import {IS_APP_STORE_BUILD} from '../lib/app-build';
 import type {CitationEntry} from '../lib/citations';
 import {aiRewriteExtension} from '../lib/cm-ai-rewrite';
+import {isAiWorking} from '../lib/ai-activity';
 import {bidiExtension} from '../lib/cm-bidi';
 import {citationCompleteSource, citationsExtension} from '../lib/cm-citations';
 import {directiveCompletionExtension, directiveCompletionSource} from '../lib/cm-directive-completions';
@@ -211,6 +212,7 @@ const typewriterCompartment = new Compartment();
 const vimCompartment = new Compartment();
 const slashCompartment = new Compartment();
 const foldCompartment = new Compartment();
+const aiLockCompartment = new Compartment();
 
 // #222 — Vim's `:w` / `:wq` / `:q` were dead: @replit/codemirror-vim ships no
 // Ex-command handlers (there is no file system in the browser), so typing `:w`
@@ -3064,6 +3066,7 @@ function buildExtensions() {
     vimCompartment.of(settings.vimMode ? vim() : []),
     fontSizeCompartment.of(fontSizeTheme(settings.fontSize, settings.fontFamily)),
     spellCheckCompartment.of(spellCheckExt(props.spellCheck)),
+    aiLockCompartment.of(aiLockExtension(isAiWorking(props.tab.filePath))),
     focusCompartment.of(props.focusMode ? focusModeExtension() : []),
     typewriterCompartment.of(props.typewriterMode ? typewriterModeExtension() : []),
     imagePasteExtension(imagePasteOpts()),
@@ -3720,6 +3723,17 @@ watch(
   (key) => {
     if (IS_APP_STORE_BUILD) return;
     view?.dispatch({ effects: aiKeyCompartment.reconfigure(aiRewriteExtension(key)) });
+  },
+);
+
+function aiLockExtension(isLocked: boolean): Extension {
+  return isLocked ? [EditorState.readOnly.of(true), EditorView.editable.of(false)] : [];
+}
+
+watch(
+  () => isAiWorking(props.tab.filePath),
+  (isLocked) => {
+    view?.dispatch({ effects: aiLockCompartment.reconfigure(aiLockExtension(isLocked)) });
   },
 );
 

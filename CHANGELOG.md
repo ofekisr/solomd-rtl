@@ -2,6 +2,14 @@
 
 Changes added in **solomd-rtl** on top of upstream SoloMD. Newest first.
 
+## 4.37.0 — 2026-10-27
+- **Added:** Any open file locks while an AI agent edits it: the editor goes read-only, Markdown and mind map tabs switch to preview, and an "AI working" warning shows.
+- **Added:** The warning's "−" minimizes it to a strip below the editor; "Keep minimized for this tab" and "Always minimize" make that stick. The strip disappears when the AI stops.
+- **Added:** Claude Code plugin hooks mark files busy with a per-session `.<name>.ai-lock-<session>` file on Edit / Write / MultiEdit / NotebookEdit and clear them on Stop / SessionEnd; abandoned sessions are swept at session start.
+- **Added:** Settings → Advanced: AI-working release delay (default 2 s), timeout (default 60 s), and Always minimize.
+- **Changed:** Several AI sessions on one file count as a semaphore — the file unlocks only when all of them finish. The mindmap MCP server writes a per-server marker and removes it on SIGTERM / SIGINT.
+- **Fixed:** A file opened while an AI is already editing it locks at once; old leftover markers are ignored.
+
 ## 4.35.1 — 2026-10-25
 - **Changed:** The AI-working warning is a large card over a dimmed tab instead of a thin strip.
 

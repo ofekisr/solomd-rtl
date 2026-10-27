@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { MAX_AUTO_SAVE_DELAY_MS, MIN_AUTO_SAVE_DELAY_MS } from '../lib/auto-save';
+import { AI_DELAY_LIMITS } from '../lib/ai-activity';
 import type { ConvertConflictSetting } from '../lib/convert-conflict';
 import { PASTE_MAP_SETTINGS, type PasteMapSetting } from '../lib/mindmap-insert';
 import { MINDMAP_CONTROL_STYLES, type MindmapControlStyle } from '../lib/mindmap-icon-names';
@@ -2128,6 +2129,42 @@ function onSelectPdfFont(v: string) {
           </label>
           <div style="font-size: 11px; color: var(--text-faint); margin-top: 4px; line-height: 1.5;">
             {{ t('settings.autoSaveAfterDelayHint') }}
+          </div>
+        </section>
+
+        <section data-cat="advanced">
+          <label>
+            <input type="checkbox" :checked="settings.aiWarningAlwaysMinimized" @change="settings.setAiWarningAlwaysMinimized(($event.target as HTMLInputElement).checked)" />
+            {{ t('settings.aiWarningAlwaysMinimized') }}
+          </label>
+          <label style="margin-top: 6px;">
+            {{ t('settings.aiReleaseDelay') }}
+            <input
+              type="number"
+              :min="AI_DELAY_LIMITS.releaseDelayMs.min"
+              :max="AI_DELAY_LIMITS.releaseDelayMs.max"
+              step="500"
+              style="width: 90px;"
+              :value="settings.aiReleaseDelayMs"
+              @change="settings.setAiReleaseDelayMs(Number(($event.target as HTMLInputElement).value))"
+            />
+            ms
+          </label>
+          <label style="margin-top: 6px;">
+            {{ t('settings.aiStaleTimeout') }}
+            <input
+              type="number"
+              :min="AI_DELAY_LIMITS.staleMs.min"
+              :max="AI_DELAY_LIMITS.staleMs.max"
+              step="5000"
+              style="width: 90px;"
+              :value="settings.aiStaleTimeoutMs"
+              @change="settings.setAiStaleTimeoutMs(Number(($event.target as HTMLInputElement).value))"
+            />
+            ms
+          </label>
+          <div style="font-size: 11px; color: var(--text-faint); margin-top: 4px; line-height: 1.5;">
+            {{ t('settings.aiWorkingHint') }}
           </div>
         </section>
 
