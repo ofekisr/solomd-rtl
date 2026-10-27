@@ -14,7 +14,7 @@ import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useRagStore } from '../stores/rag';
 import { open as openFileDialog } from '@tauri-apps/plugin-dialog';
-import { themeLabels } from '../lib/themes';
+import { themeLabels, themeOverride } from '../lib/themes';
 import { useI18n } from '../i18n';
 import { quickCaptureError } from '../lib/quick-capture-status';
 import {
@@ -517,7 +517,7 @@ const rag = useRagStore();
 // once the marketplace modal is opened, and a hand-picked .css file has no
 // manifest entry at all.
 const customThemeName = computed(() => {
-  const path = settings.customCssPath;
+  const path = themeOverride(settings) === 'css' ? settings.customCssPath : '';
   if (!path) return '';
   const base = path.split(/[\\/]/).pop() || path;
   return base.replace(/\.css$/i, '');

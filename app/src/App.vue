@@ -725,7 +725,7 @@ installUserThemeSync();
 let themeAppliedOnce = false;
 watchEffect(() => {
   document.documentElement.setAttribute('data-theme', dataThemeFor(effectiveTheme(), effectiveThemeOverride()));
-  const overriddenBy = settings.customCssPath;
+  const overriddenBy = effectiveThemeOverride() === 'css' ? settings.customCssPath : '';
   if (!themeAppliedOnce) {
     themeAppliedOnce = true;
     return;
