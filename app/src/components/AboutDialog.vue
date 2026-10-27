@@ -41,7 +41,8 @@ watch(() => props.open, (o) => { if (o) loadSponsors(); }, { immediate: true });
 
 const links = {
   website: 'https://solomd.app',
-  github: 'https://github.com/zhitongblog/solomd',
+  github: 'https://github.com/ofekisr/solomd-rtl',
+  upstream: 'https://github.com/zhitongblog/solomd',
   // Update/version-history surfaces point at solomd.app, not GitHub: the
   // site serves mainland users (Cloudflare edge + Gitee mirror links) where
   // github.com often doesn't resolve. Same policy as the update toast (#154).
@@ -99,7 +100,7 @@ async function visit(url: string) {
           <span class="about__link-icon">⭐</span>
           <div>
             <div class="about__link-title">GitHub</div>
-            <div class="about__link-url">zhitongblog/solomd</div>
+            <div class="about__link-url">ofekisr/solomd-rtl</div>
           </div>
         </button>
         <button class="about__link" @click="visit(links.releases)">
@@ -124,7 +125,8 @@ async function visit(url: string) {
       </div>
 
       <div class="about__footer">
-        © 2026 xiangdong li · MIT License<br />
+        SoloMD RTL by <a class="about__credit-link" href="#" @click.prevent="visit(links.github)">Ofekisr</a><br />
+        Fork of <a class="about__credit-link" href="#" @click.prevent="visit(links.upstream)">SoloMD</a> · © 2026 xiangdong li · MIT License<br />
         Git pane based on <a class="about__credit-link" href="#" @click.prevent="visit('https://github.com/ftuyama/git-light')">git-light</a> by ftuyama · MIT License<br />
         Tauri 2 · Vue 3 · CodeMirror 6 · Rust
       </div>
