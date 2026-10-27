@@ -21,11 +21,15 @@ export interface UserTheme {
 export interface ThemeToken {
   key: string;
   label: string;
+  /** Where on screen this colour shows up. */
+  hint: string;
 }
 
 export interface ThemeTokenGroup {
   id: string;
   label: string;
+  /** Which part of the app the whole group paints. */
+  area: string;
   tokens: ThemeToken[];
 }
 
@@ -33,61 +37,65 @@ export const THEME_TOKEN_GROUPS: ThemeTokenGroup[] = [
   {
     id: 'basics',
     label: 'Basics',
+    area: 'Whole app — window, editor, preview, panels',
     tokens: [
-      { key: '--bg', label: 'Background' },
-      { key: '--bg-elev', label: 'Panels & sidebars' },
-      { key: '--text', label: 'Text' },
-      { key: '--text-muted', label: 'Secondary text' },
-      { key: '--accent', label: 'Accent' },
-      { key: '--border', label: 'Borders' },
+      { key: '--bg', label: 'Background', hint: 'Editor, preview and window background' },
+      { key: '--bg-elev', label: 'Panels & sidebars', hint: 'Toolbar, tab bar, sidebars, menus, dialogs' },
+      { key: '--text', label: 'Text', hint: 'Body text everywhere, incl. preview headings' },
+      { key: '--text-muted', label: 'Secondary text', hint: 'Labels, file tree, status bar, hints' },
+      { key: '--accent', label: 'Accent', hint: 'Buttons, selection, cursor, active tab, preview links' },
+      { key: '--border', label: 'Borders', hint: 'Dividers, panel edges, preview heading rules' },
     ],
   },
   {
     id: 'surfaces',
     label: 'Surfaces & states',
+    area: 'App shell — sidebars, toolbar, lists, menus',
     tokens: [
-      { key: '--bg-hover', label: 'Hover' },
-      { key: '--bg-active', label: 'Selected' },
-      { key: '--bg-soft', label: 'Side panels' },
-      { key: '--text-faint', label: 'Faint text' },
-      { key: '--accent-fg', label: 'Text on accent' },
-      { key: '--danger', label: 'Danger / errors' },
+      { key: '--bg-hover', label: 'Hover', hint: 'Rows and buttons under the mouse' },
+      { key: '--bg-active', label: 'Selected', hint: 'Selected file, pressed toolbar button' },
+      { key: '--bg-soft', label: 'Side panels', hint: 'Find bar, history and side tool panels' },
+      { key: '--text-faint', label: 'Faint text', hint: 'Line numbers, placeholders, timestamps' },
+      { key: '--accent-fg', label: 'Text on accent', hint: 'Text drawn on accent buttons' },
+      { key: '--danger', label: 'Danger / errors', hint: 'Errors, delete buttons, warnings' },
     ],
   },
   {
     id: 'markdown',
     label: 'Markdown',
+    area: 'Editor only (Edit / Live Edit). Preview uses Text, Accent and Borders.',
     tokens: [
-      { key: '--md-h1', label: 'Heading 1' },
-      { key: '--md-h2', label: 'Heading 2' },
-      { key: '--md-h3', label: 'Heading 3' },
-      { key: '--md-h4', label: 'Heading 4' },
-      { key: '--md-h5', label: 'Heading 5' },
-      { key: '--md-h6', label: 'Heading 6' },
-      { key: '--md-strong', label: 'Bold' },
-      { key: '--md-em', label: 'Italic' },
-      { key: '--md-link', label: 'Link' },
-      { key: '--md-url', label: 'URL' },
-      { key: '--md-code', label: 'Inline code' },
-      { key: '--md-code-bg', label: 'Code background' },
-      { key: '--md-quote', label: 'Blockquote' },
-      { key: '--md-list', label: 'List marker' },
-      { key: '--md-hr', label: 'Horizontal rule' },
+      { key: '--md-h1', label: 'Heading 1', hint: '# heading' },
+      { key: '--md-h2', label: 'Heading 2', hint: '## heading' },
+      { key: '--md-h3', label: 'Heading 3', hint: '### heading' },
+      { key: '--md-h4', label: 'Heading 4', hint: '#### heading' },
+      { key: '--md-h5', label: 'Heading 5', hint: '##### heading' },
+      { key: '--md-h6', label: 'Heading 6', hint: '###### heading' },
+      { key: '--md-strong', label: 'Bold', hint: '**bold**' },
+      { key: '--md-em', label: 'Italic', hint: '*italic*' },
+      { key: '--md-link', label: 'Link', hint: '[link text]' },
+      { key: '--md-url', label: 'URL', hint: '(https://…) part of a link' },
+      { key: '--md-code', label: 'Inline code', hint: '`inline code`' },
+      { key: '--md-code-bg', label: 'Code background', hint: 'Behind inline code and code blocks' },
+      { key: '--md-quote', label: 'Blockquote', hint: '> blockquote' },
+      { key: '--md-list', label: 'List marker', hint: '- and 1. list markers' },
+      { key: '--md-hr', label: 'Horizontal rule', hint: '--- horizontal rule' },
     ],
   },
   {
     id: 'syntax',
     label: 'Code syntax',
+    area: 'Code blocks — in the editor and in the preview',
     tokens: [
-      { key: '--syn-keyword', label: 'Keyword' },
-      { key: '--syn-string', label: 'String' },
-      { key: '--syn-number', label: 'Number' },
-      { key: '--syn-comment', label: 'Comment' },
-      { key: '--syn-function', label: 'Function' },
-      { key: '--syn-variable', label: 'Variable' },
-      { key: '--syn-type', label: 'Type' },
-      { key: '--syn-property', label: 'Property' },
-      { key: '--syn-operator', label: 'Operator' },
+      { key: '--syn-keyword', label: 'Keyword', hint: 'const, if, return' },
+      { key: '--syn-string', label: 'String', hint: '"text"' },
+      { key: '--syn-number', label: 'Number', hint: '42, true' },
+      { key: '--syn-comment', label: 'Comment', hint: '// comment' },
+      { key: '--syn-function', label: 'Function', hint: 'greet()' },
+      { key: '--syn-variable', label: 'Variable', hint: 'variable names' },
+      { key: '--syn-type', label: 'Type', hint: 'class and type names' },
+      { key: '--syn-property', label: 'Property', hint: 'obj.property' },
+      { key: '--syn-operator', label: 'Operator', hint: '= + => &&' },
     ],
   },
 ];

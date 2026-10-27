@@ -231,13 +231,17 @@ onMounted(() => {
         <button class="group__head" :aria-expanded="!!openGroups[g.id]" @click="openGroups[g.id] = !openGroups[g.id]">
           <span>{{ openGroups[g.id] ? '▾' : '▸' }}</span> {{ t(`themeStudio.group_${g.id}`) }}
         </button>
+        <p class="group__area">📍 {{ g.area }}</p>
         <table v-if="openGroups[g.id]" class="tokens">
           <thead v-if="shownModes.length > 1">
             <tr><th></th><th v-for="m in shownModes" :key="m">{{ t(`themeStudio.mode_${m}`) }}</th></tr>
           </thead>
           <tbody>
             <tr v-for="tk in g.tokens" :key="tk.key">
-              <td class="tok-label" :title="tk.key">{{ tk.label }}</td>
+              <td class="tok-label" :title="tk.key">
+                {{ tk.label }}
+                <span class="tok-hint">{{ tk.hint }}</span>
+              </td>
               <td v-for="m in shownModes" :key="m" class="tok-cell">
                 <input
                   type="color"
@@ -352,7 +356,9 @@ button.danger { margin-left: auto; color: var(--danger); }
 .tokens { width: 100%; border-collapse: collapse; }
 .tokens th { font-weight: 500; color: var(--text-muted); text-align: start; padding-bottom: 2px; }
 .tokens td { padding: 3px 0; }
-.tok-label { color: var(--text-muted); padding-inline-end: var(--sp-2); }
+.tok-label { color: var(--text); padding-inline-end: var(--sp-2); }
+.tok-hint { display: block; font-size: 10.5px; color: var(--text-muted); line-height: 1.3; }
+.group__area { margin: 0 0 var(--sp-1); font-size: 11px; color: var(--text-muted); }
 .tok-cell { white-space: nowrap; }
 .tok-cell input[type='color'] {
   width: 28px;
