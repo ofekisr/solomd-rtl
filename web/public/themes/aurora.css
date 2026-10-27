@@ -276,16 +276,6 @@ body {
   font-size: 11px !important;
 }
 
-/* 编辑区行 hover */
-.cm-line {
-  transition:
-    background-color 0.18s ease,
-    border-color 0.18s ease;
-}
-.cm-line:hover {
-  background-color: var(--bg-hover) !important;
-  border-left: 2px solid var(--accent) !important;
-}
 /* #endregion */
 
 /* #region 代码区 */
