@@ -131,6 +131,8 @@ export const LIGHT_BASES = ['light', 'github-light', 'solarized-light'] as const
 export const DARK_BASES = ['dark', 'nord', 'solarized-dark', 'monokai', 'dracula'] as const;
 
 const STYLE_ID = 'solomd-user-theme';
+/** `html:root` outranks the `:root` a custom CSS theme uses, whichever <style> loads last. */
+const OUTRANK_CSS_THEMES = 'html:root';
 const HEX6_RE = /^#[0-9a-f]{6}$/i;
 const HEX3_RE = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i;
 const FALLBACK_COLOR = '#808080';
@@ -149,8 +151,8 @@ function paletteCss(selector: string, palette: Palette, mode: ThemeMode, radius:
 export function userThemeCss(theme: UserTheme): string {
   return [
     `/* ${theme.name.replace(/\*\//g, '')} — made with SoloMD Theme Studio */`,
-    paletteCss(':root[data-theme="light"]', theme.light, 'light', theme.radius),
-    paletteCss(':root[data-theme="dark"]', theme.dark, 'dark', theme.radius),
+    paletteCss(`${OUTRANK_CSS_THEMES}[data-theme="light"]`, theme.light, 'light', theme.radius),
+    paletteCss(`${OUTRANK_CSS_THEMES}[data-theme="dark"]`, theme.dark, 'dark', theme.radius),
   ].join('\n\n');
 }
 

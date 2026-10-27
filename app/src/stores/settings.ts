@@ -1415,10 +1415,9 @@ export const useSettingsStore = defineStore('settings', {
       if (p) this.activeUserThemeId = '';
       this.persist();
     },
-    /** A user theme and a custom CSS file both own the palette; the last one picked wins. */
+    /** A user theme paints its colours over any custom CSS theme, keeping that theme's other styling. */
     setActiveUserTheme(id: string) {
       this.activeUserThemeId = id;
-      if (id) this.customCssPath = '';
       this.persist();
     },
     saveUserTheme(theme: UserTheme) {

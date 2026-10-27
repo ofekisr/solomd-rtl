@@ -89,6 +89,13 @@ describe('flashColorFor', () => {
   });
 });
 
+describe('userThemeCss layering', () => {
+  it('outranks a custom CSS theme keyed on :root', () => {
+    const css = userThemeCss({ id: 'a', name: 'A', light: { '--bg': '#ffffff' }, dark: {}, edited: { light: [], dark: [] }, radius: 1 });
+    assert.match(css, /html:root\[data-theme="light"\]/);
+  });
+});
+
 describe('radius', () => {
   const theme = { id: 'a', name: 'A', light: {}, dark: {}, edited: { light: [], dark: [] } };
   it('writes corner sizes only when changed from the default', () => {

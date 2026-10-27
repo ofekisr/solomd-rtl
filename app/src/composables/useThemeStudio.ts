@@ -21,7 +21,6 @@ const flash = ref<{ mode: ThemeMode; key: string; color: string } | null>(null);
 
 const isDirty = computed(() => !!draft.value && JSON.stringify(draft.value) !== savedSnapshot.value);
 
-const CUSTOM_CSS_STYLE_ID = 'solomd-custom-theme';
 const FLASH_BLINKS = 6;
 const FLASH_STEP_MS = 220;
 let flashTimer: ReturnType<typeof setInterval> | null = null;
@@ -63,15 +62,17 @@ function shownTheme(theme: UserTheme): UserTheme {
   return { ...theme, light: flashedPalette(theme.light, 'light'), dark: flashedPalette(theme.dark, 'dark') };
 }
 
-/** Call once from App: keeps the injected palette in step with studio + settings. */
+/**
+ * Call once from App: keeps the injected palette in step with studio + settings.
+ * A custom CSS theme stays on underneath, so its gradients and component
+ * styling survive; the user theme only replaces its colours.
+ */
 export function installUserThemeSync(): void {
   const settings = useSettingsStore();
   watchEffect(() => {
     const saved = settings.userThemes.find((ut) => ut.id === settings.activeUserThemeId) ?? null;
     const shown = studioOpen.value && draft.value ? draft.value : saved;
     applyUserTheme(shown ? shownTheme(shown) : null);
-    const customCss = document.getElementById(CUSTOM_CSS_STYLE_ID) as HTMLStyleElement | null;
-    if (customCss) customCss.disabled = !!shown;
   });
 }
 
