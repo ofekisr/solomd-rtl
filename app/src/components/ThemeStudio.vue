@@ -1,17 +1,25 @@
 <script setup lang="ts">
-/* Theme Studio — a non-modal side panel for building a light+dark theme with
- * colour pickers. The draft drives the real app palette while the panel is
- * open (see useThemeStudio), so every pick is visible at once. */
+/* Theme Studio — the Theme page in Settings. Builds a light+dark theme with
+ * colour pickers. The draft drives a miniature app here and the real app
+ * behind Settings (see useThemeStudio), so every pick is visible at once. */
 import { computed, onMounted, ref } from 'vue';
 import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
 import { themeFamily, themeLabels } from '../lib/themes';
-import { useThemeStudio } from '../composables/useThemeStudio';
+import { flashedPalette, locateToken, useThemeStudio } from '../composables/useThemeStudio';
+import ThemeMock from './ThemeMock.vue';
+import ThemeTokenRow from './ThemeTokenRow.vue';
 import {
   DARK_BASES,
+  DEFAULT_RADIUS,
   LIGHT_BASES,
+  MAX_RADIUS,
+  MIN_RADIUS,
+  READABLE_CONTRAST,
   THEME_TOKEN_GROUPS,
+  THEME_TOKEN_PAIRS,
+  contrastRatio,
   harmonize,
   mergeKeeping,
   isHexColor,
@@ -21,20 +29,25 @@ import {
   readThemePalette,
   toHex6,
   userThemeCss,
-  type Palette,
   type ThemeMode,
+  type ThemeToken,
+  type ThemeTokenGroup,
   type UserTheme,
 } from '../lib/user-theme';
 
 type PreviewMode = ThemeMode | 'both';
+type TokenRow =
+  | { kind: 'single'; token: ThemeToken }
+  | { kind: 'pair'; fg: ThemeToken; bg: ThemeToken; label: string };
+
+const RADIUS_STEP = 0.25;
 
 const settings = useSettingsStore();
 const toasts = useToastsStore();
 const { t } = useI18n();
-const { studioOpen, draft, previewFamily } = useThemeStudio();
+const { draft, savedSnapshot, isDirty, previewFamily } = useThemeStudio();
 
-const savedSnapshot = ref('');
-const previewMode = ref<PreviewMode>(themeFamily(settings.theme));
+const previewMode = ref<PreviewMode>(previewFamily.value ?? themeFamily(settings.theme));
 const customCssName = settings.customCssPath && hasCustomCssLoaded()
   ? (settings.customCssPath.split(/[\\/]/).pop() ?? '').replace(/\.css$/i, '')
   : '';
@@ -47,13 +60,31 @@ function initialBase(bases: readonly string[], fallback: string): string {
 const lightBase = ref<string>(initialBase(LIGHT_BASES, 'light'));
 const darkBase = ref<string>(initialBase(DARK_BASES, 'dark'));
 const openGroups = ref<Record<string, boolean>>({ basics: true });
-const confirmingClose = ref(false);
 
 const current = computed(() => draft.value as UserTheme);
 const isSaved = computed(() => settings.userThemes.some((ut) => ut.id === current.value.id));
 const isInUse = computed(() => settings.activeUserThemeId === current.value.id);
-const isDirty = computed(() => JSON.stringify(current.value) !== savedSnapshot.value);
 const shownModes = computed<ThemeMode[]>(() => (previewMode.value === 'both' ? ['light', 'dark'] : [previewMode.value]));
+
+function rowsOf(group: ThemeTokenGroup): TokenRow[] {
+  const byKey = new Map(group.tokens.map((tk) => [tk.key, tk]));
+  const paired = new Set<string>();
+  const rows: TokenRow[] = [];
+  for (const token of group.tokens) {
+    if (paired.has(token.key)) continue;
+    const pair = THEME_TOKEN_PAIRS.find((p) => p.fg === token.key || p.bg === token.key);
+    const fg = pair && byKey.get(pair.fg);
+    const bg = pair && byKey.get(pair.bg);
+    if (!pair || !fg || !bg) {
+      rows.push({ kind: 'single', token });
+      continue;
+    }
+    paired.add(fg.key).add(bg.key);
+    rows.push({ kind: 'pair', fg, bg, label: pair.label });
+  }
+  return rows;
+}
+const groups = THEME_TOKEN_GROUPS.map((g) => ({ ...g, rows: rowsOf(g) }));
 
 function baseLabel(name: string): string {
   if (name === CUSTOM_CSS_BASE) return `${customCssName} (${t('themeStudio.customCss')})`;
@@ -67,6 +98,7 @@ function freshTheme(): UserTheme {
     light: readThemePalette(lightBase.value, 'light'),
     dark: readThemePalette(darkBase.value, 'dark'),
     edited: { light: [], dark: [] },
+    radius: DEFAULT_RADIUS,
   };
 }
 
@@ -74,8 +106,12 @@ function baseFor(mode: ThemeMode): string {
   return mode === 'light' ? lightBase.value : darkBase.value;
 }
 
-function isEdited(mode: ThemeMode, key: string): boolean {
-  return current.value.edited[mode].includes(key);
+function otherMode(mode: ThemeMode): ThemeMode {
+  return mode === 'light' ? 'dark' : 'light';
+}
+
+function resetTitle(mode: ThemeMode): string {
+  return t('themeStudio.resetToken', { base: baseLabel(baseFor(mode)) });
 }
 
 function cloneTheme(theme: UserTheme): UserTheme {
@@ -87,10 +123,10 @@ function cloneTheme(theme: UserTheme): UserTheme {
   };
 }
 
+/** A fresh theme counts as unchanged until the first edit. */
 function startEditing(theme: UserTheme) {
   draft.value = cloneTheme(theme);
-  savedSnapshot.value = isSaved.value ? JSON.stringify(theme) : '';
-  confirmingClose.value = false;
+  savedSnapshot.value = JSON.stringify(theme);
 }
 
 function onPickTheme(id: string) {
@@ -106,13 +142,36 @@ function setPreviewMode(mode: PreviewMode) {
 function setColor(mode: ThemeMode, key: string, value: string) {
   if (!isHexColor(value)) return;
   current.value[mode][key] = toHex6(value);
-  if (!isEdited(mode, key)) current.value.edited[mode].push(key);
+  if (!current.value.edited[mode].includes(key)) current.value.edited[mode].push(key);
 }
 
 /** Back to the base theme's colour, and no longer counted as hand-picked. */
 function resetToken(mode: ThemeMode, key: string) {
   current.value[mode][key] = readThemePalette(baseFor(mode), mode)[key];
   current.value.edited[mode] = current.value.edited[mode].filter((k) => k !== key);
+}
+
+function locate(mode: ThemeMode, key: string) {
+  if (previewMode.value !== 'both' && previewMode.value !== mode) setPreviewMode(mode);
+  locateToken(mode, key, current.value[mode][key] ?? '');
+}
+
+function swapPair(mode: ThemeMode, fg: string, bg: string) {
+  const [fgColor, bgColor] = [current.value[mode][fg], current.value[mode][bg]];
+  setColor(mode, fg, bgColor);
+  setColor(mode, bg, fgColor);
+}
+
+/** Give the other mode this pair's colours, then show that mode. */
+function copyPairToOther(mode: ThemeMode, fg: string, bg: string) {
+  const target = otherMode(mode);
+  setColor(target, fg, current.value[mode][fg]);
+  setColor(target, bg, current.value[mode][bg]);
+  if (previewMode.value !== 'both') setPreviewMode(target);
+}
+
+function ratio(mode: ThemeMode, fg: string, bg: string): number {
+  return contrastRatio(toHex6(current.value[mode][fg] ?? ''), toHex6(current.value[mode][bg] ?? ''));
 }
 
 /* Automatic fills only touch the mode(s) on screen, and never a hand-picked colour. */
@@ -130,8 +189,7 @@ function save() {
   const theme = cloneTheme(current.value);
   theme.name = theme.name.trim() || t('themeStudio.defaultName');
   settings.saveUserTheme(theme);
-  savedSnapshot.value = JSON.stringify(theme);
-  draft.value = cloneTheme(theme);
+  startEditing(theme);
   toasts.success(t('themeStudio.saved', { name: theme.name }), 2500);
 }
 
@@ -140,6 +198,10 @@ function useTheme() {
   if (isDirty.value) save();
   settings.setActiveUserTheme(current.value.id);
   toasts.success(t('themeStudio.applied', { name: current.value.name }), 2500);
+}
+
+function discard() {
+  onPickTheme(isSaved.value ? current.value.id : '');
 }
 
 function removeTheme() {
@@ -156,25 +218,6 @@ async function copyCss() {
   }
 }
 
-function close(discard = false) {
-  if (isDirty.value && !discard) {
-    confirmingClose.value = true;
-    return;
-  }
-  studioOpen.value = false;
-  previewFamily.value = null;
-  draft.value = null;
-}
-
-function saveAndClose() {
-  save();
-  close(true);
-}
-
-function paletteStyle(p: Palette): Record<string, string> {
-  return { ...p };
-}
-
 onMounted(() => {
   if (previewMode.value !== 'both') previewFamily.value = previewMode.value;
   if (draft.value) return;
@@ -184,29 +227,17 @@ onMounted(() => {
 </script>
 
 <template>
-  <aside v-if="draft" class="studio" role="dialog" :aria-label="t('themeStudio.title')">
-    <header class="studio__head">
-      <strong>{{ t('themeStudio.title') }}</strong>
-      <span v-if="isDirty" class="studio__dirty" :title="t('themeStudio.unsaved')">●</span>
-      <button class="studio__x" :title="t('themeStudio.close')" @click="close()">×</button>
-    </header>
-
-    <div v-if="confirmingClose" class="studio__confirm">
-      <span>{{ t('themeStudio.unsavedPrompt') }}</span>
-      <button class="primary" @click="saveAndClose">{{ t('themeStudio.save') }}</button>
-      <button @click="close(true)">{{ t('themeStudio.discard') }}</button>
-      <button @click="confirmingClose = false">{{ t('themeStudio.keepEditing') }}</button>
+  <div v-if="draft" class="studio">
+    <div class="row">
+      <select :value="isSaved ? current.id : ''" @change="onPickTheme(($event.target as HTMLSelectElement).value)">
+        <option value="">{{ t('themeStudio.newTheme') }}</option>
+        <option v-for="ut in settings.userThemes" :key="ut.id" :value="ut.id">{{ ut.name }}</option>
+      </select>
+      <input v-model="current.name" class="name" :placeholder="t('themeStudio.name')" maxlength="80" />
+      <span v-if="isDirty" class="dirty" :title="t('themeStudio.unsaved')">● {{ t('themeStudio.unsaved') }}</span>
     </div>
 
-    <div class="studio__body">
-      <div class="row">
-        <select :value="isSaved ? current.id : ''" @change="onPickTheme(($event.target as HTMLSelectElement).value)">
-          <option value="">{{ t('themeStudio.newTheme') }}</option>
-          <option v-for="ut in settings.userThemes" :key="ut.id" :value="ut.id">{{ ut.name }}</option>
-        </select>
-        <input v-model="current.name" class="name" :placeholder="t('themeStudio.name')" maxlength="80" />
-      </div>
-
+    <div class="stage">
       <div class="row">
         <span class="lbl">{{ t('themeStudio.preview') }}</span>
         <div class="seg" role="radiogroup">
@@ -220,150 +251,139 @@ onMounted(() => {
           >{{ t(`themeStudio.mode_${m}`) }}</button>
         </div>
       </div>
-
-      <div v-if="previewMode === 'both'" class="minis">
-        <div v-for="m in shownModes" :key="m" class="mini" :style="paletteStyle(current[m])">
-          <div class="mini__bar">{{ t(`themeStudio.mode_${m}`) }}</div>
-          <div class="mini__doc">
-            <div class="mini__h1">Heading</div>
-            <p>Text with <b>bold</b>, <i>italic</i>, <a>a link</a> and <code>code</code>.</p>
-            <p class="mini__muted">Secondary text</p>
-            <blockquote>A quote</blockquote>
-            <pre><span class="k">const</span> <span class="v">n</span> <span class="o">=</span> <span class="n">42</span>; <span class="c">// note</span>
-<span class="f">greet</span>(<span class="s">"hi"</span>)</pre>
-            <span class="mini__btn">Accent</span>
-          </div>
-        </div>
+      <div class="mocks" :class="{ 'mocks--two': shownModes.length > 1 }">
+        <ThemeMock
+          v-for="m in shownModes"
+          :key="m"
+          :palette="flashedPalette(current[m], m)"
+          :radius="current.radius"
+          :label="t(`themeStudio.mode_${m}`)"
+        />
       </div>
-
-      <details class="base">
-        <summary>{{ t('themeStudio.startFrom') }}</summary>
-        <div class="row">
-          <span class="lbl">{{ t('themeStudio.mode_light') }}</span>
-          <select v-model="lightBase">
-            <option v-for="b in lightBases" :key="b" :value="b">{{ baseLabel(b) }}</option>
-          </select>
-        </div>
-        <div class="row">
-          <span class="lbl">{{ t('themeStudio.mode_dark') }}</span>
-          <select v-model="darkBase">
-            <option v-for="b in darkBases" :key="b" :value="b">{{ baseLabel(b) }}</option>
-          </select>
-        </div>
-        <button @click="resetFromBases">{{ t('themeStudio.loadBases') }}</button>
-      </details>
-
-      <button class="harmonize" :title="t('themeStudio.harmonizeHint')" @click="harmonizeShown">
-        ✨ {{ t('themeStudio.harmonize') }}
-      </button>
-      <p class="note">{{ t('themeStudio.safetyNote') }}</p>
-
-      <section v-for="g in THEME_TOKEN_GROUPS" :key="g.id" class="group">
-        <button class="group__head" :aria-expanded="!!openGroups[g.id]" @click="openGroups[g.id] = !openGroups[g.id]">
-          <span>{{ openGroups[g.id] ? '▾' : '▸' }}</span> {{ t(`themeStudio.group_${g.id}`) }}
-        </button>
-        <p class="group__area">📍 {{ g.area }}</p>
-        <table v-if="openGroups[g.id]" class="tokens">
-          <thead v-if="shownModes.length > 1">
-            <tr><th></th><th v-for="m in shownModes" :key="m">{{ t(`themeStudio.mode_${m}`) }}</th></tr>
-          </thead>
-          <tbody>
-            <tr v-for="tk in g.tokens" :key="tk.key">
-              <td class="tok-label" :title="tk.key">
-                {{ tk.label }}
-                <span class="tok-hint">{{ tk.hint }}</span>
-              </td>
-              <td v-for="m in shownModes" :key="m" class="tok-cell">
-                <input
-                  type="color"
-                  :value="toHex6(current[m][tk.key] ?? '#808080')"
-                  :aria-label="`${tk.label} (${m})`"
-                  @input="setColor(m, tk.key, ($event.target as HTMLInputElement).value)"
-                />
-                <input
-                  class="hex"
-                  :value="current[m][tk.key]"
-                  spellcheck="false"
-                  maxlength="7"
-                  @change="setColor(m, tk.key, ($event.target as HTMLInputElement).value)"
-                />
-                <button
-                  v-if="isEdited(m, tk.key)"
-                  class="tok-reset"
-                  :title="t('themeStudio.resetToken', { base: baseLabel(baseFor(m)) })"
-                  @click="resetToken(m, tk.key)"
-                >↺</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
     </div>
 
-    <footer class="studio__foot">
+    <div class="row">
+      <span class="lbl">{{ t('themeStudio.corners') }}</span>
+      <span class="hint">{{ t('themeStudio.cornersSquare') }}</span>
+      <input
+        v-model.number="current.radius"
+        type="range"
+        class="radius"
+        :min="MIN_RADIUS"
+        :max="MAX_RADIUS"
+        :step="RADIUS_STEP"
+        :aria-label="t('themeStudio.corners')"
+      />
+      <span class="hint">{{ t('themeStudio.cornersRound') }}</span>
+      <button v-if="current.radius !== DEFAULT_RADIUS" class="link" @click="current.radius = DEFAULT_RADIUS">↺</button>
+    </div>
+
+    <details class="base">
+      <summary>{{ t('themeStudio.startFrom') }}</summary>
+      <div class="row">
+        <span class="lbl">{{ t('themeStudio.mode_light') }}</span>
+        <select v-model="lightBase">
+          <option v-for="b in lightBases" :key="b" :value="b">{{ baseLabel(b) }}</option>
+        </select>
+        <span class="lbl">{{ t('themeStudio.mode_dark') }}</span>
+        <select v-model="darkBase">
+          <option v-for="b in darkBases" :key="b" :value="b">{{ baseLabel(b) }}</option>
+        </select>
+        <button @click="resetFromBases">{{ t('themeStudio.loadBases') }}</button>
+      </div>
+    </details>
+
+    <div class="row">
+      <button :title="t('themeStudio.harmonizeHint')" @click="harmonizeShown">✨ {{ t('themeStudio.harmonize') }}</button>
+      <span class="hint">{{ t('themeStudio.locateHint') }}</span>
+    </div>
+    <p class="hint">{{ t('themeStudio.safetyNote') }}</p>
+
+    <section v-for="g in groups" :key="g.id" class="group">
+      <button class="group__head" :aria-expanded="!!openGroups[g.id]" @click="openGroups[g.id] = !openGroups[g.id]">
+        <span>{{ openGroups[g.id] ? '▾' : '▸' }}</span> {{ t(`themeStudio.group_${g.id}`) }}
+        <span class="group__area">📍 {{ g.area }}</span>
+      </button>
+      <div v-if="openGroups[g.id]">
+        <div v-if="shownModes.length > 1" class="modes-head" :style="{ '--cols': shownModes.length }">
+          <span v-for="m in shownModes" :key="m">{{ t(`themeStudio.mode_${m}`) }}</span>
+        </div>
+        <template v-for="row in g.rows" :key="row.kind === 'pair' ? row.fg.key : row.token.key">
+          <ThemeTokenRow
+            v-if="row.kind === 'single'"
+            :token="row.token"
+            :modes="shownModes"
+            :theme="current"
+            :reset-title="resetTitle"
+            @set="setColor"
+            @reset="resetToken"
+            @locate="locate"
+          />
+          <div v-else class="pair">
+            <div class="pair__title">{{ row.label }}</div>
+            <ThemeTokenRow
+              v-for="tk in [row.fg, row.bg]"
+              :key="tk.key"
+              :token="tk"
+              :modes="shownModes"
+              :theme="current"
+              :reset-title="resetTitle"
+              @set="setColor"
+              @reset="resetToken"
+              @locate="locate"
+            />
+            <div class="pair__bar" :style="{ '--cols': shownModes.length }">
+              <div v-for="m in shownModes" :key="m" class="pair__mode">
+                <span
+                  class="chip"
+                  :style="{ color: current[m][row.fg.key], background: current[m][row.bg.key] }"
+                >Aa</span>
+                <span
+                  class="ratio"
+                  :class="{ 'ratio--low': ratio(m, row.fg.key, row.bg.key) < READABLE_CONTRAST }"
+                  :title="t('themeStudio.contrastHint')"
+                >{{ ratio(m, row.fg.key, row.bg.key).toFixed(1) }}:1
+                  {{ ratio(m, row.fg.key, row.bg.key) < READABLE_CONTRAST ? '⚠' : '✓' }}</span>
+                <span class="pair__acts">
+                  <button :title="t('themeStudio.swapHint')" @click="swapPair(m, row.fg.key, row.bg.key)">⇄ {{ t('themeStudio.swap') }}</button>
+                  <button
+                    :title="t('themeStudio.copyToHint', { mode: t(`themeStudio.mode_${otherMode(m)}`) })"
+                    @click="copyPairToOther(m, row.fg.key, row.bg.key)"
+                  >→ {{ t(`themeStudio.mode_${otherMode(m)}`) }}</button>
+                </span>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </section>
+
+    <footer class="foot">
       <button :class="{ primary: isInUse }" @click="save">{{ t('themeStudio.save') }}</button>
       <button v-if="!isInUse" class="primary" :title="t('themeStudio.useHint')" @click="useTheme">{{ t('themeStudio.use') }}</button>
-      <span v-else class="in-use">✓ {{ t('themeStudio.inUse') }}</span>
+      <span v-else class="hint">✓ {{ t('themeStudio.inUse') }}</span>
+      <button v-if="isDirty" @click="discard">{{ t('themeStudio.discard') }}</button>
       <button @click="copyCss">{{ t('themeStudio.copyCss') }}</button>
       <button v-if="isSaved" class="danger" @click="removeTheme">{{ t('themeStudio.delete') }}</button>
     </footer>
-  </aside>
+  </div>
 </template>
 
 <style scoped>
 .studio {
-  position: fixed;
-  top: calc(var(--titlebar-h) + 8px);
-  right: 8px;
-  bottom: calc(var(--statusbar-h) + 8px);
-  width: min(400px, calc(100vw - 16px));
-  z-index: var(--z-pop);
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-elev);
-  color: var(--text);
-  border: var(--bd);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sh-pop);
-  font-size: 12px;
-}
-.studio__head {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  padding: var(--sp-2) var(--sp-3);
-  border-bottom: var(--bd);
-  font-size: 13px;
-}
-.studio__dirty { color: var(--accent); }
-.studio__x { margin-left: auto; font-size: 18px; line-height: 1; }
-.studio__confirm {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-2);
-  padding: var(--sp-2) var(--sp-3);
-  background: var(--accent-soft);
-  border-bottom: var(--bd);
-}
-.studio__body {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--sp-3);
+  --tok-col: 170px;
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
+  font-size: 12px;
+  color: var(--text);
 }
-.studio__foot {
-  display: flex;
-  gap: var(--sp-2);
-  padding: var(--sp-2) var(--sp-3);
-  border-top: var(--bd);
-}
-.row { display: flex; align-items: center; gap: var(--sp-2); }
-.lbl { min-width: 56px; color: var(--text-muted); }
-.name { flex: 1; min-width: 0; }
-button, select, input:not([type='color']) {
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+.lbl { color: var(--text-muted); }
+.hint { margin: 0; font-size: 11px; color: var(--text-muted); }
+.name { flex: 1; min-width: 120px; }
+.dirty { color: var(--accent); font-size: 11px; }
+button, select, input:not([type='color']):not([type='range']) {
   font: inherit;
   color: var(--text);
   background: var(--bg);
@@ -372,69 +392,74 @@ button, select, input:not([type='color']) {
   padding: 4px 8px;
   cursor: pointer;
 }
-input:not([type='color']) { cursor: text; }
+input:not([type='color']):not([type='range']) { cursor: text; }
 button:hover { background: var(--bg-hover); }
 button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
-button.danger { margin-left: auto; color: var(--danger); }
-.studio__x { border: none; background: transparent; }
+button.danger { margin-inline-start: auto; color: var(--danger); }
+button.link { border: none; background: transparent; color: var(--accent); padding: 0 4px; }
 .seg { display: inline-flex; border: var(--bd); border-radius: var(--r-sm); overflow: hidden; }
 .seg button { border: none; border-radius: 0; }
 .seg button.on { background: var(--accent); color: var(--accent-fg); }
+.stage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-2) 0;
+  background: var(--bg-elev);
+  border-bottom: var(--bd);
+}
+@media (min-height: 1000px) {
+  .stage { position: sticky; top: calc(-1 * var(--sp-4)); z-index: 1; }
+}
+.mocks { display: grid; grid-template-columns: 1fr; gap: var(--sp-2); }
+.mocks--two { grid-template-columns: 1fr 1fr; }
+.radius { flex: 0 1 180px; accent-color: var(--accent); }
 .base summary { cursor: pointer; color: var(--text-muted); margin-bottom: var(--sp-2); }
-.base { display: flex; flex-direction: column; gap: var(--sp-2); }
-.base .row { margin-bottom: var(--sp-2); }
-.harmonize { align-self: flex-start; }
+.group { display: flex; flex-direction: column; }
 .group__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
   width: 100%;
   text-align: start;
   border: none;
   background: transparent;
   font-weight: 600;
-  padding: 2px 0;
+  padding: 4px 0;
 }
-.tokens { width: 100%; border-collapse: collapse; }
-.tokens th { font-weight: 500; color: var(--text-muted); text-align: start; padding-bottom: 2px; }
-.tokens td { padding: 3px 0; }
-.tok-label { color: var(--text); padding-inline-end: var(--sp-2); }
-.tok-hint { display: block; font-size: 10.5px; color: var(--text-muted); line-height: 1.3; }
-.group__area { margin: 0 0 var(--sp-1); font-size: 11px; color: var(--text-muted); }
-.tok-cell { white-space: nowrap; }
-.tok-cell input[type='color'] {
-  width: 28px;
-  height: 22px;
-  padding: 0;
+.group__area { font-weight: 400; font-size: 11px; color: var(--text-muted); }
+.modes-head, .pair__bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(var(--cols), var(--tok-col));
+  column-gap: var(--sp-3);
+}
+.modes-head > :first-child, .pair__bar > :first-child { grid-column: 2; }
+.modes-head { color: var(--text-muted); }
+.pair {
+  margin: 4px 0;
+  padding: 4px 8px;
   border: var(--bd);
+  border-inline-start: 3px solid var(--accent);
   border-radius: var(--r-sm);
-  background: none;
-  vertical-align: middle;
-  cursor: pointer;
 }
-.tok-reset { border: none; background: transparent; padding: 0 4px; color: var(--accent); }
-.in-use { align-self: center; color: var(--text-muted); }
-.note { margin: 0; font-size: 11px; color: var(--text-muted); }
-.hex { width: 74px; margin-inline-start: 4px; font-family: var(--font-mono); font-size: 11px; }
-.minis { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
-.mini {
-  background: var(--bg);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  overflow: hidden;
-  font-size: 11px;
+.pair__title { font-weight: 600; font-size: 11px; color: var(--text-muted); }
+.pair__bar { padding-top: 2px; }
+.pair__mode { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.chip { padding: 0 8px; border: var(--bd); border-radius: var(--r-sm); font-weight: 700; }
+.ratio { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.ratio--low { color: var(--danger); }
+.pair__acts { display: inline-flex; gap: 4px; opacity: 0; transition: opacity 0.12s; }
+.pair__acts button { padding: 1px 6px; font-size: 11px; }
+.pair:hover .pair__acts, .pair:focus-within .pair__acts { opacity: 1; }
+.foot {
+  position: sticky;
+  bottom: calc(-1 * var(--sp-4));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) 0;
+  background: var(--bg-elev);
+  border-top: var(--bd);
 }
-.mini__bar { background: var(--bg-elev); color: var(--text-muted); padding: 3px 8px; border-bottom: 1px solid var(--border); }
-.mini__doc { padding: 6px 8px; }
-.mini__doc p { margin: 4px 0; }
-.mini__h1 { color: var(--md-h1); font-weight: 700; font-size: 14px; }
-.mini__doc b { color: var(--md-strong); }
-.mini__doc i { color: var(--md-em); }
-.mini__doc a { color: var(--md-link); text-decoration: underline; }
-.mini__doc code { color: var(--md-code); background: var(--md-code-bg); padding: 0 3px; border-radius: 3px; }
-.mini__muted { color: var(--text-muted); }
-.mini__doc blockquote { margin: 4px 0; padding-inline-start: 6px; border-inline-start: 2px solid var(--md-hr); color: var(--md-quote); }
-.mini__doc pre { margin: 4px 0; padding: 4px 6px; background: var(--md-code-bg); border-radius: 4px; font-size: 10px; white-space: pre-wrap; }
-.k { color: var(--syn-keyword); } .v { color: var(--syn-variable); } .o { color: var(--syn-operator); }
-.n { color: var(--syn-number); } .c { color: var(--syn-comment); font-style: italic; }
-.f { color: var(--syn-function); } .s { color: var(--syn-string); }
-.mini__btn { display: inline-block; background: var(--accent); color: var(--accent-fg); border-radius: 4px; padding: 1px 8px; }
 </style>

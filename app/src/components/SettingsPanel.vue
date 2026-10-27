@@ -57,6 +57,7 @@ import MindmapMapFields from './MindmapMapFields.vue';
 import { isIOS, isMobile, hasGitBackend, isWindowsEditorRuntime } from '../lib/platform';
 import { loadCustomTheme } from '../lib/custom-theme';
 import { useThemeStudio } from '../composables/useThemeStudio';
+import ThemeStudio from './ThemeStudio.vue';
 import { openPath } from '@tauri-apps/plugin-opener';
 import { DsModal } from '../ui';
 import { getDict } from '../i18n';
@@ -87,7 +88,7 @@ function withChord(key: string, actionId: string): string {
 
 // v3.0 — left-side category nav. Settings was a 30+ item single scroll;
 // split into 6 groups so the user navigates by category, not by scroll.
-type SettingsCategory = 'basics' | 'writing' | 'mindmap' | 'sync' | 'integrations' | 'export' | 'keys' | 'advanced';
+type SettingsCategory = 'basics' | 'theme' | 'writing' | 'mindmap' | 'sync' | 'integrations' | 'export' | 'keys' | 'advanced';
 const activeCategory = ref<SettingsCategory>('basics');
 // #144 — all six category pages share the single scrolling `.settings__body`
 // (pages are toggled via CSS display), so one page's scrollTop leaked into
@@ -213,6 +214,7 @@ onUnmounted(stopRecording);
 
 const categories: { id: SettingsCategory; icon: string; labelKey: string }[] = [
   { id: 'basics', icon: '⚙️', labelKey: 'settings.catBasics' },
+  { id: 'theme', icon: '🎨', labelKey: 'themeStudio.navLabel' },
   { id: 'writing', icon: '✍️', labelKey: 'settings.catWriting' },
   { id: 'mindmap', icon: '🧠', labelKey: 'settings.catMindmap' },
   { id: 'sync', icon: '☁️', labelKey: 'settings.catSync' },
@@ -267,7 +269,7 @@ const emit = defineEmits<{ (e: 'close'): void }>();
 // section value alone, because the parent leaves the section ref in place
 // after close — re-opening would otherwise jump back to the same anchor.
 const VALID_CATEGORIES = new Set<SettingsCategory>([
-  'basics', 'writing', 'mindmap', 'sync', 'integrations', 'export', 'advanced',
+  'basics', 'theme', 'writing', 'mindmap', 'sync', 'integrations', 'export', 'advanced',
 ]);
 watch(
   () => props.open,
@@ -281,6 +283,7 @@ watch(
 );
 
 const settings = useSettingsStore();
+
 // #328/#344 — the editor-engine choice only exists where there are two
 // editors, i.e. Windows (and the ?forcePlain dev hook).
 const windowsEditorRuntime = isWindowsEditorRuntime();
@@ -298,6 +301,14 @@ const windowsEditorRuntime = isWindowsEditorRuntime();
 const searchQuery = ref('');
 const searchInput = ref<HTMLInputElement | null>(null);
 const searching = computed(() => normalize(searchQuery.value).length > 0);
+/* The Theme page owns the app palette only while it is on screen. */
+const { studioOpen: themeStudioOpen, isDirty: themeDraftDirty } = useThemeStudio();
+const themePageShown = computed(() => props.open && !searching.value && activeCategory.value === 'theme');
+watch(themePageShown, (shown) => { themeStudioOpen.value = shown; }, { immediate: true });
+const THEME_PAGE_WIDTH = '1040px';
+const DEFAULT_WIDTH = '820px';
+const modalWidth = computed(() => (themePageShown.value ? THEME_PAGE_WIDTH : DEFAULT_WIDTH));
+
 const searchHitCount = ref(0);
 const catsWithHits = ref<Set<string>>(new Set());
 const catOrder = new Map(categories.map((c, i) => [c.id as string, i]));
@@ -596,10 +607,8 @@ function onThemeSelect(value: string) {
   settings.setActiveUserTheme('');
   settings.setTheme(value as Theme);
 }
-/* The studio previews on the real app, so the settings modal gets out of the way. */
 function openThemeStudio() {
-  useThemeStudio().studioOpen.value = true;
-  emit('close');
+  pickCategory('theme');
 }
 
 // v2.5: theme marketplace modal — opened from the Custom CSS section.
@@ -702,7 +711,7 @@ function onSelectPdfFont(v: string) {
   <DsModal
     :model-value="open"
     :title="t('settings.title')"
-    width="820px"
+    :width="modalWidth"
     class="settings-modal"
     @update:model-value="emit('close')"
   >
@@ -732,6 +741,7 @@ function onSelectPdfFont(v: string) {
           >
             <span class="settings__nav-icon">{{ c.icon }}</span>
             <span class="settings__nav-label">{{ t(c.labelKey) }}</span>
+            <span v-if="c.id === 'theme' && themeDraftDirty" class="settings__nav-dot" :title="t('themeStudio.unsaved')">●</span>
           </button>
         </nav>
       <div
@@ -1197,6 +1207,11 @@ function onSelectPdfFont(v: string) {
             <input type="checkbox" :checked="settings.showTagsPanel" @change="settings.toggleTagsPanel()" />
             {{ t('settings.showTagsPanel') }}
           </label>
+        </section>
+
+        <section data-cat="theme">
+          <p class="setting-hint">{{ t('themeStudio.pageIntro') }}</p>
+          <ThemeStudio v-if="themePageShown" />
         </section>
 
         <section data-cat="writing">
@@ -2445,6 +2460,10 @@ function onSelectPdfFont(v: string) {
 .settings__nav-label {
   flex: 1;
 }
+.settings__nav-dot {
+  color: var(--accent);
+  font-size: 10px;
+}
 /* v3.0 — single-source-of-truth visibility: each section/component
    gets data-cat="basics|writing|mindmap|sync|integrations|export|keys|advanced",
    the body's data-active-cat determines which subset renders. Saves
@@ -2457,6 +2476,7 @@ function onSelectPdfFont(v: string) {
   display: none;
 }
 .settings__body[data-active-cat="basics"] > [data-cat="basics"],
+.settings__body[data-active-cat="theme"] > [data-cat="theme"],
 .settings__body[data-active-cat="writing"] > [data-cat="writing"],
 .settings__body[data-active-cat="mindmap"] > [data-cat="mindmap"],
 .settings__body[data-active-cat="sync"] > [data-cat="sync"],

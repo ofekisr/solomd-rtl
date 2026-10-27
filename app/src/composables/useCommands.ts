@@ -40,7 +40,6 @@ import { IS_APP_STORE_BUILD } from '../lib/app-build';
 import { hasGitBackend } from '../lib/platform';
 import { useGitPaneAvailable } from './useGitPaneAvailable';
 import { useGitPaneStore } from '../stores/gitPane';
-import { useThemeStudio } from './useThemeStudio';
 
 export interface Command {
   id: string;
@@ -275,7 +274,7 @@ export function useCommands(): Command[] {
     { id: 'view.toggleWrap', title: 'View: Toggle Word Wrap', run: () => settings.toggleWordWrap() },
     { id: 'view.toggleLineNumbers', title: 'View: Toggle Line Numbers', run: () => settings.toggleLineNumbers() },
     { id: 'view.toggleTheme', title: 'View: Toggle Theme', run: () => settings.toggleTheme() },
-    { id: 'view.themeStudio', title: 'View: Theme Studio', hint: 'Build a light + dark theme with colour pickers and live preview', run: () => { useThemeStudio().studioOpen.value = true; } },
+    { id: 'view.themeStudio', title: 'View: Theme Studio', hint: 'Build a light + dark theme with colour pickers and live preview', run: () => window.dispatchEvent(new CustomEvent('solomd:open-settings', { detail: { section: 'theme' } })) },
     { id: 'view.toggleLivePreview', title: 'View: Toggle Live Preview / Raw Source (Markdown)', run: () => settings.toggleLivePreview() },
     { id: 'view.toggleSpellCheck', title: 'View: Toggle Spell Check', run: () => settings.toggleSpellCheck() },
     { id: 'view.toggleFocusMode', title: 'View: Toggle Focus Mode', run: () => settings.toggleFocusMode() },

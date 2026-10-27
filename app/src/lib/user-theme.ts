@@ -20,6 +20,8 @@ export interface UserTheme {
   light: Palette;
   dark: Palette;
   edited: EditedTokens;
+  /** Corner roundness: 0 = square, 1 = the app's default, 2 = extra round. */
+  radius: number;
 }
 
 export interface ThemeToken {
@@ -48,6 +50,7 @@ export const THEME_TOKEN_GROUPS: ThemeTokenGroup[] = [
       { key: '--text', label: 'Text', hint: 'Body text everywhere, incl. preview headings' },
       { key: '--text-muted', label: 'Secondary text', hint: 'Labels, file tree, status bar, hints' },
       { key: '--accent', label: 'Accent', hint: 'Buttons, selection, cursor, active tab, preview links' },
+      { key: '--accent-fg', label: 'Text on accent', hint: 'Text drawn on accent buttons' },
       { key: '--border', label: 'Borders', hint: 'Dividers, panel edges, preview heading rules' },
     ],
   },
@@ -60,7 +63,6 @@ export const THEME_TOKEN_GROUPS: ThemeTokenGroup[] = [
       { key: '--bg-active', label: 'Selected', hint: 'Selected file, pressed toolbar button' },
       { key: '--bg-soft', label: 'Side panels', hint: 'Find bar, history and side tool panels' },
       { key: '--text-faint', label: 'Faint text', hint: 'Line numbers, placeholders, timestamps' },
-      { key: '--accent-fg', label: 'Text on accent', hint: 'Text drawn on accent buttons' },
       { key: '--danger', label: 'Danger / errors', hint: 'Errors, delete buttons, warnings' },
     ],
   },
@@ -104,6 +106,25 @@ export const THEME_TOKEN_GROUPS: ThemeTokenGroup[] = [
   },
 ];
 
+export interface ThemeTokenPair {
+  fg: string;
+  /** The background `fg` is read on. */
+  bg: string;
+  label: string;
+}
+
+/** Colours that are only ever seen together; the studio edits each pair side by side. */
+export const THEME_TOKEN_PAIRS: ThemeTokenPair[] = [
+  { fg: '--text', bg: '--bg', label: 'Text on background' },
+  { fg: '--accent-fg', bg: '--accent', label: 'Button text on accent' },
+  { fg: '--md-code', bg: '--md-code-bg', label: 'Inline code on its background' },
+];
+
+export const DEFAULT_RADIUS = 1;
+export const MIN_RADIUS = 0;
+export const MAX_RADIUS = 2;
+const RADIUS_PX: Record<string, number> = { '--r-sm': 4, '--r-md': 8, '--r-lg': 12 };
+
 export const THEME_TOKEN_KEYS: string[] = THEME_TOKEN_GROUPS.flatMap((g) => g.tokens.map((tk) => tk.key));
 
 export const LIGHT_BASES = ['light', 'github-light', 'solarized-light'] as const;
@@ -114,17 +135,22 @@ const HEX6_RE = /^#[0-9a-f]{6}$/i;
 const HEX3_RE = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i;
 const FALLBACK_COLOR = '#808080';
 
-function paletteCss(selector: string, palette: Palette, mode: ThemeMode): string {
+function radiusDecls(radius: number): string[] {
+  if (radius === DEFAULT_RADIUS) return [];
+  return Object.entries(RADIUS_PX).map(([k, px]) => `  ${k}: ${Math.round(px * radius * 10) / 10}px;`);
+}
+
+function paletteCss(selector: string, palette: Palette, mode: ThemeMode, radius: number): string {
   const decls = THEME_TOKEN_KEYS.filter((k) => palette[k]).map((k) => `  ${k}: ${palette[k]};`);
-  return `${selector} {\n  color-scheme: ${mode};\n${decls.join('\n')}\n}`;
+  return `${selector} {\n  color-scheme: ${mode};\n${[...decls, ...radiusDecls(radius)].join('\n')}\n}`;
 }
 
 /** Marketplace-compatible CSS for a theme: one block per mode. */
 export function userThemeCss(theme: UserTheme): string {
   return [
     `/* ${theme.name.replace(/\*\//g, '')} — made with SoloMD Theme Studio */`,
-    paletteCss(':root[data-theme="light"]', theme.light, 'light'),
-    paletteCss(':root[data-theme="dark"]', theme.dark, 'dark'),
+    paletteCss(':root[data-theme="light"]', theme.light, 'light', theme.radius),
+    paletteCss(':root[data-theme="dark"]', theme.dark, 'dark', theme.radius),
   ].join('\n\n');
 }
 
@@ -176,6 +202,31 @@ export function mix(a: string, b: string, amount: number): string {
 export function luminance(hex: string): number {
   const [r, g, b] = hexToRgb(hex);
   return (r * 299 + g * 587 + b * 114) / 1000 / 255;
+}
+
+function relativeLuminance(hex: string): number {
+  const linear = hexToRgb(hex).map((c) => {
+    const v = c / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+}
+
+/** WCAG contrast ratio, 1 (none) … 21 (black on white). */
+export function contrastRatio(a: string, b: string): number {
+  const [hi, lo] = [relativeLuminance(a), relativeLuminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/** WCAG AA for body text. */
+export const READABLE_CONTRAST = 4.5;
+
+const FLASH_COLORS = ['#ff00c8', '#00e5ff'] as const;
+
+/** A loud colour far from `hex`, for showing where a token is used. */
+export function flashColorFor(hex: string): string {
+  const [pink, cyan] = FLASH_COLORS;
+  return contrastRatio(hex, pink) >= contrastRatio(hex, cyan) ? pink : cyan;
 }
 
 const LIGHT_TEXT_ON_ACCENT = '#ffffff';
@@ -284,7 +335,13 @@ export function normalizeUserThemes(raw: unknown): UserTheme[] {
       light: normalizePalette(t.light),
       dark: normalizePalette(t.dark),
       edited: normalizeEdited(t.edited),
+      radius: normalizeRadius(t.radius),
     }));
+}
+
+function normalizeRadius(raw: unknown): number {
+  if (typeof raw !== 'number' || !Number.isFinite(raw)) return DEFAULT_RADIUS;
+  return Math.min(MAX_RADIUS, Math.max(MIN_RADIUS, raw));
 }
 
 function normalizeEdited(raw: unknown): EditedTokens {

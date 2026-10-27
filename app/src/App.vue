@@ -520,8 +520,7 @@ function onOutlineGoto(line: number) {
 }
 
 import { dataThemeFor } from './lib/themes';
-import { effectiveTheme, effectiveThemeOverride, installUserThemeSync, useThemeStudio } from './composables/useThemeStudio';
-import ThemeStudio from './components/ThemeStudio.vue';
+import { effectiveTheme, effectiveThemeOverride, installUserThemeSync } from './composables/useThemeStudio';
 
 // Auto-persist tabs and tiles on every change.
 watch(
@@ -723,7 +722,6 @@ watchEffect(() => {
 // he acts — never on startup, where it would be a scold about a choice he
 // already made.
 installUserThemeSync();
-const { studioOpen: themeStudioOpen } = useThemeStudio();
 let themeAppliedOnce = false;
 watchEffect(() => {
   document.documentElement.setAttribute('data-theme', dataThemeFor(effectiveTheme(), effectiveThemeOverride()));
@@ -2144,7 +2142,6 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
     />
     <CommandPalette :open="paletteOpen" @close="paletteOpen = false" />
     <QuickSwitcher :open="quickSwitcherOpen" @close="quickSwitcherOpen = false" />
-    <ThemeStudio v-if="themeStudioOpen" />
     <SettingsPanel
       :open="settingsOpen"
       :initial-section="settingsInitialSection"
