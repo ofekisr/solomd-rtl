@@ -520,7 +520,7 @@ function onOutlineGoto(line: number) {
 }
 
 import { dataThemeFor } from './lib/themes';
-import { effectiveThemeOverride, installUserThemeSync, useThemeStudio } from './composables/useThemeStudio';
+import { effectiveTheme, effectiveThemeOverride, installUserThemeSync, useThemeStudio } from './composables/useThemeStudio';
 import ThemeStudio from './components/ThemeStudio.vue';
 
 // Auto-persist tabs and tiles on every change.
@@ -726,7 +726,7 @@ installUserThemeSync();
 const { studioOpen: themeStudioOpen } = useThemeStudio();
 let themeAppliedOnce = false;
 watchEffect(() => {
-  document.documentElement.setAttribute('data-theme', dataThemeFor(settings.theme, effectiveThemeOverride()));
+  document.documentElement.setAttribute('data-theme', dataThemeFor(effectiveTheme(), effectiveThemeOverride()));
   const overriddenBy = settings.customCssPath;
   if (!themeAppliedOnce) {
     themeAppliedOnce = true;

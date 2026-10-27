@@ -13,6 +13,7 @@ import {
   LIGHT_BASES,
   THEME_TOKEN_GROUPS,
   harmonize,
+  mergeKeeping,
   isHexColor,
   newUserThemeId,
   CUSTOM_CSS_BASE,
@@ -24,16 +25,14 @@ import {
   type ThemeMode,
   type UserTheme,
 } from '../lib/user-theme';
-import type { Theme } from '../types';
 
 type PreviewMode = ThemeMode | 'both';
 
 const settings = useSettingsStore();
 const toasts = useToastsStore();
 const { t } = useI18n();
-const { studioOpen, draft } = useThemeStudio();
+const { studioOpen, draft, previewFamily } = useThemeStudio();
 
-const themeOnOpen = settings.theme;
 const savedSnapshot = ref('');
 const previewMode = ref<PreviewMode>(themeFamily(settings.theme));
 const customCssName = settings.customCssPath && hasCustomCssLoaded()
@@ -52,6 +51,7 @@ const confirmingClose = ref(false);
 
 const current = computed(() => draft.value as UserTheme);
 const isSaved = computed(() => settings.userThemes.some((ut) => ut.id === current.value.id));
+const isInUse = computed(() => settings.activeUserThemeId === current.value.id);
 const isDirty = computed(() => JSON.stringify(current.value) !== savedSnapshot.value);
 const shownModes = computed<ThemeMode[]>(() => (previewMode.value === 'both' ? ['light', 'dark'] : [previewMode.value]));
 
@@ -66,11 +66,25 @@ function freshTheme(): UserTheme {
     name: `${t('themeStudio.defaultName')} ${settings.userThemes.length + 1}`,
     light: readThemePalette(lightBase.value, 'light'),
     dark: readThemePalette(darkBase.value, 'dark'),
+    edited: { light: [], dark: [] },
   };
 }
 
+function baseFor(mode: ThemeMode): string {
+  return mode === 'light' ? lightBase.value : darkBase.value;
+}
+
+function isEdited(mode: ThemeMode, key: string): boolean {
+  return current.value.edited[mode].includes(key);
+}
+
 function cloneTheme(theme: UserTheme): UserTheme {
-  return { ...theme, light: { ...theme.light }, dark: { ...theme.dark } };
+  return {
+    ...theme,
+    light: { ...theme.light },
+    dark: { ...theme.dark },
+    edited: { light: [...theme.edited.light], dark: [...theme.edited.dark] },
+  };
 }
 
 function startEditing(theme: UserTheme) {
@@ -86,31 +100,46 @@ function onPickTheme(id: string) {
 
 function setPreviewMode(mode: PreviewMode) {
   previewMode.value = mode;
-  if (mode !== 'both') settings.setTheme(mode as Theme);
+  if (mode !== 'both') previewFamily.value = mode;
 }
 
 function setColor(mode: ThemeMode, key: string, value: string) {
   if (!isHexColor(value)) return;
   current.value[mode][key] = toHex6(value);
+  if (!isEdited(mode, key)) current.value.edited[mode].push(key);
 }
 
+/** Back to the base theme's colour, and no longer counted as hand-picked. */
+function resetToken(mode: ThemeMode, key: string) {
+  current.value[mode][key] = readThemePalette(baseFor(mode), mode)[key];
+  current.value.edited[mode] = current.value.edited[mode].filter((k) => k !== key);
+}
+
+/* Automatic fills only touch the mode(s) on screen, and never a hand-picked colour. */
 function resetFromBases() {
-  current.value.light = readThemePalette(lightBase.value, 'light');
-  current.value.dark = readThemePalette(darkBase.value, 'dark');
+  for (const mode of shownModes.value) {
+    current.value[mode] = mergeKeeping(current.value[mode], readThemePalette(baseFor(mode), mode), current.value.edited[mode]);
+  }
 }
 
 function harmonizeShown() {
-  for (const mode of shownModes.value) current.value[mode] = harmonize(current.value[mode]);
+  for (const mode of shownModes.value) current.value[mode] = harmonize(current.value[mode], current.value.edited[mode]);
 }
 
 function save() {
   const theme = cloneTheme(current.value);
   theme.name = theme.name.trim() || t('themeStudio.defaultName');
   settings.saveUserTheme(theme);
-  settings.setActiveUserTheme(theme.id);
   savedSnapshot.value = JSON.stringify(theme);
   draft.value = cloneTheme(theme);
   toasts.success(t('themeStudio.saved', { name: theme.name }), 2500);
+}
+
+/** The only action that changes which theme the app uses. */
+function useTheme() {
+  if (isDirty.value) save();
+  settings.setActiveUserTheme(current.value.id);
+  toasts.success(t('themeStudio.applied', { name: current.value.name }), 2500);
 }
 
 function removeTheme() {
@@ -132,8 +161,8 @@ function close(discard = false) {
     confirmingClose.value = true;
     return;
   }
-  if (discard && !settings.activeUserThemeId) settings.setTheme(themeOnOpen);
   studioOpen.value = false;
+  previewFamily.value = null;
   draft.value = null;
 }
 
@@ -147,6 +176,7 @@ function paletteStyle(p: Palette): Record<string, string> {
 }
 
 onMounted(() => {
+  if (previewMode.value !== 'both') previewFamily.value = previewMode.value;
   if (draft.value) return;
   const active = settings.userThemes.find((ut) => ut.id === settings.activeUserThemeId);
   startEditing(active ?? freshTheme());
@@ -226,6 +256,7 @@ onMounted(() => {
       <button class="harmonize" :title="t('themeStudio.harmonizeHint')" @click="harmonizeShown">
         ✨ {{ t('themeStudio.harmonize') }}
       </button>
+      <p class="note">{{ t('themeStudio.safetyNote') }}</p>
 
       <section v-for="g in THEME_TOKEN_GROUPS" :key="g.id" class="group">
         <button class="group__head" :aria-expanded="!!openGroups[g.id]" @click="openGroups[g.id] = !openGroups[g.id]">
@@ -256,6 +287,12 @@ onMounted(() => {
                   maxlength="7"
                   @change="setColor(m, tk.key, ($event.target as HTMLInputElement).value)"
                 />
+                <button
+                  v-if="isEdited(m, tk.key)"
+                  class="tok-reset"
+                  :title="t('themeStudio.resetToken', { base: baseLabel(baseFor(m)) })"
+                  @click="resetToken(m, tk.key)"
+                >↺</button>
               </td>
             </tr>
           </tbody>
@@ -264,7 +301,9 @@ onMounted(() => {
     </div>
 
     <footer class="studio__foot">
-      <button class="primary" @click="save">{{ t('themeStudio.save') }}</button>
+      <button :class="{ primary: isInUse }" @click="save">{{ t('themeStudio.save') }}</button>
+      <button v-if="!isInUse" class="primary" :title="t('themeStudio.useHint')" @click="useTheme">{{ t('themeStudio.use') }}</button>
+      <span v-else class="in-use">✓ {{ t('themeStudio.inUse') }}</span>
       <button @click="copyCss">{{ t('themeStudio.copyCss') }}</button>
       <button v-if="isSaved" class="danger" @click="removeTheme">{{ t('themeStudio.delete') }}</button>
     </footer>
@@ -370,6 +409,9 @@ button.danger { margin-left: auto; color: var(--danger); }
   vertical-align: middle;
   cursor: pointer;
 }
+.tok-reset { border: none; background: transparent; padding: 0 4px; color: var(--accent); }
+.in-use { align-self: center; color: var(--text-muted); }
+.note { margin: 0; font-size: 11px; color: var(--text-muted); }
 .hex { width: 74px; margin-inline-start: 4px; font-family: var(--font-mono); font-size: 11px; }
 .minis { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
 .mini {

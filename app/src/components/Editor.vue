@@ -80,7 +80,7 @@ import {
   caretPointPx, caretRowInfo, caretTopPx, firstVisualRowEnd, lastVisualRowStart, measureLineHeights
 } from '../lib/textarea-metrics';
 import {cmThemeFor, mermaidThemeFor} from '../lib/themes';
-import {effectiveThemeOverride} from '../composables/useThemeStudio';
+import {effectiveTheme, effectiveThemeOverride} from '../composables/useThemeStudio';
 import {findTldrawFences, replaceBoardSnapshot} from '../lib/tldraw-board';
 import {buildEditorFontStack, useSettingsStore} from '../stores/settings';
 import {useTabsStore} from '../stores/tabs';
@@ -3060,7 +3060,7 @@ function buildExtensions() {
     richCompartment.of(
       windowsImeSafeMode ? [] : richExtensionsFor(props.tab),
     ),
-    themeCompartment.of(cmThemeFor(settings.theme, effectiveThemeOverride())),
+    themeCompartment.of(cmThemeFor(effectiveTheme(), effectiveThemeOverride())),
     vimCompartment.of(settings.vimMode ? vim() : []),
     fontSizeCompartment.of(fontSizeTheme(settings.fontSize, settings.fontFamily)),
     spellCheckCompartment.of(spellCheckExt(props.spellCheck)),
@@ -3783,7 +3783,7 @@ watch(
 );
 
 watch(
-  () => [settings.theme, effectiveThemeOverride()] as const,
+  () => [effectiveTheme(), effectiveThemeOverride()] as const,
   ([t, custom]) => {
     view?.dispatch({ effects: themeCompartment.reconfigure(cmThemeFor(t, custom)) });
     // Live-edit Mermaid widgets carry their theme; rebuild the block field so

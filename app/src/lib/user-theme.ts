@@ -11,11 +11,15 @@
 export type ThemeMode = 'light' | 'dark';
 export type Palette = Record<string, string>;
 
+/** Tokens the user picked by hand, per mode. Automatic fills never overwrite these. */
+export type EditedTokens = Record<ThemeMode, string[]>;
+
 export interface UserTheme {
   id: string;
   name: string;
   light: Palette;
   dark: Palette;
+  edited: EditedTokens;
 }
 
 export interface ThemeToken {
@@ -183,11 +187,10 @@ const ACCENT_LUMINANCE_SPLIT = 0.6;
  * by picking six colours. Syntax colours are left alone — they don't follow
  * from a background and the base theme's set is a better start.
  */
-export function harmonize(p: Palette): Palette {
+export function harmonize(p: Palette, keep: readonly string[] = []): Palette {
   const { '--bg': bg, '--text': text, '--accent': accent } = p;
   const muted = p['--text-muted'];
-  return {
-    ...p,
+  const derived: Palette = {
     '--bg-hover': mix(bg, text, 0.06),
     '--bg-active': mix(bg, text, 0.12),
     '--text-faint': mix(muted, bg, 0.35),
@@ -209,6 +212,14 @@ export function harmonize(p: Palette): Palette {
     '--md-hr': p['--border'],
     '--bg-soft': p['--bg-elev'],
   };
+  return mergeKeeping(p, derived, keep);
+}
+
+/** `incoming` over `current`, except the `keep` tokens, which stay as they are. */
+export function mergeKeeping(current: Palette, incoming: Palette, keep: readonly string[]): Palette {
+  const out: Palette = { ...current, ...incoming };
+  for (const key of keep) if (current[key]) out[key] = current[key];
+  return out;
 }
 
 /** Built-ins leave some tokens unset; the app then falls back like this. */
@@ -272,7 +283,15 @@ export function normalizeUserThemes(raw: unknown): UserTheme[] {
       name: (t.name as string).slice(0, 80),
       light: normalizePalette(t.light),
       dark: normalizePalette(t.dark),
+      edited: normalizeEdited(t.edited),
     }));
+}
+
+function normalizeEdited(raw: unknown): EditedTokens {
+  const pick = (v: unknown): string[] =>
+    Array.isArray(v) ? v.filter((k): k is string => typeof k === 'string' && THEME_TOKEN_KEYS.includes(k)) : [];
+  const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  return { light: pick(r.light), dark: pick(r.dark) };
 }
 
 export function newUserThemeId(): string {

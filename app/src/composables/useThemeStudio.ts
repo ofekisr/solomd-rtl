@@ -1,7 +1,8 @@
 import { ref, watchEffect } from 'vue';
 import { useSettingsStore } from '../stores/settings';
 import { themeOverride, type ThemeOverride } from '../lib/themes';
-import { applyUserTheme, type UserTheme } from '../lib/user-theme';
+import { applyUserTheme, type ThemeMode, type UserTheme } from '../lib/user-theme';
+import type { Theme } from '../types';
 
 /**
  * Shared Theme Studio state. While the studio is open its draft owns the
@@ -10,8 +11,15 @@ import { applyUserTheme, type UserTheme } from '../lib/user-theme';
  */
 const studioOpen = ref(false);
 const draft = ref<UserTheme | null>(null);
+/** Light/dark the studio is previewing. Never written to settings, so closing leaves the user's theme choice as it was. */
+const previewFamily = ref<ThemeMode | null>(null);
 
 const CUSTOM_CSS_STYLE_ID = 'solomd-custom-theme';
+
+export function effectiveTheme(): Theme {
+  if (studioOpen.value && previewFamily.value) return previewFamily.value;
+  return useSettingsStore().theme;
+}
 
 export function effectiveThemeOverride(): ThemeOverride {
   if (studioOpen.value && draft.value) return 'user';
@@ -31,5 +39,5 @@ export function installUserThemeSync(): void {
 }
 
 export function useThemeStudio() {
-  return { studioOpen, draft };
+  return { studioOpen, draft, previewFamily };
 }

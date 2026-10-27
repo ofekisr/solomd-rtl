@@ -7,7 +7,6 @@ import { migrateLensKeybindings } from '../lib/mindmap-lens';
 import { isViewModeChangeAllowed } from '../lib/view-mode-guard';
 import { normalizePasteMapSetting, type PasteMapSetting } from '../lib/mindmap-insert';
 import { normalizeUserThemes, type UserTheme } from '../lib/user-theme';
-import { themeFamily } from '../lib/themes';
 import { normalizeStyleTemplates, removeTemplate, upsertTemplate, type StyleTemplate } from '../lib/mindmap-style-templates';
 import { DEFAULT_MINDMAP_CONTROL_STYLE, normalizeControlStyle, type MindmapControlStyle } from '../lib/mindmap-icon-names';
 import { parseTagRules, type TagRule } from '../lib/mindmap-folder-tree';
@@ -1398,7 +1397,6 @@ export const useSettingsStore = defineStore('settings', {
     setActiveUserTheme(id: string) {
       this.activeUserThemeId = id;
       if (id) this.customCssPath = '';
-      if (id && themeFamily(this.theme) !== this.theme) this.theme = themeFamily(this.theme);
       this.persist();
     },
     saveUserTheme(theme: UserTheme) {
