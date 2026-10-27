@@ -305,7 +305,7 @@ const searching = computed(() => normalize(searchQuery.value).length > 0);
 const { studioOpen: themeStudioOpen, isDirty: themeDraftDirty } = useThemeStudio();
 const themePageShown = computed(() => props.open && !searching.value && activeCategory.value === 'theme');
 watch(themePageShown, (shown) => { themeStudioOpen.value = shown; }, { immediate: true });
-const THEME_PAGE_WIDTH = '1040px';
+const THEME_PAGE_WIDTH = '1280px';
 const DEFAULT_WIDTH = '820px';
 const modalWidth = computed(() => (themePageShown.value ? THEME_PAGE_WIDTH : DEFAULT_WIDTH));
 
@@ -715,6 +715,8 @@ function onSelectPdfFont(v: string) {
     class="settings-modal"
     @update:model-value="emit('close')"
   >
+      <div class="settings__frame" :class="{ 'settings__frame--theme': themePageShown }">
+      <div v-if="themePageShown" id="settings-theme-preview" class="settings__preview" />
       <div class="settings__search">
         <input
           ref="searchInput"
@@ -2287,6 +2289,7 @@ function onSelectPdfFont(v: string) {
         <div data-cat="integrations"><RestApiSettings /></div>
       </div>
       </div>
+      </div>
     <!-- v2.5: theme marketplace modal. Lives outside settings__body so it
          overlays the entire viewport; it self-teleports to body so closing
          settings (which unmounts DsModal) closes it too. -->
@@ -2417,6 +2420,18 @@ function onSelectPdfFont(v: string) {
   display: flex;
   min-height: 0;
   height: min(560px, 78vh);
+}
+.settings__frame--theme {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 190px);
+}
+.settings__frame--theme .settings__layout { height: auto; }
+.settings__preview {
+  flex-shrink: 0;
+  margin-bottom: var(--sp-3);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--border);
 }
 .settings__nav {
   width: 160px;

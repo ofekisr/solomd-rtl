@@ -237,6 +237,7 @@ onMounted(() => {
       <span v-if="isDirty" class="dirty" :title="t('themeStudio.unsaved')">● {{ t('themeStudio.unsaved') }}</span>
     </div>
 
+    <Teleport defer to="#settings-theme-preview">
     <div class="stage">
       <div class="row">
         <span class="lbl">{{ t('themeStudio.preview') }}</span>
@@ -261,6 +262,7 @@ onMounted(() => {
         />
       </div>
     </div>
+    </Teleport>
 
     <div class="row">
       <span class="lbl">{{ t('themeStudio.corners') }}</span>
@@ -404,12 +406,8 @@ button.link { border: none; background: transparent; color: var(--accent); paddi
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
-  padding: var(--sp-2) 0;
-  background: var(--bg-elev);
-  border-bottom: var(--bd);
-}
-@media (min-height: 1000px) {
-  .stage { position: sticky; top: calc(-1 * var(--sp-4)); z-index: 1; }
+  font-size: 12px;
+  color: var(--text);
 }
 .mocks { display: grid; grid-template-columns: 1fr; gap: var(--sp-2); }
 .mocks--two { grid-template-columns: 1fr 1fr; }
@@ -439,9 +437,10 @@ button.link { border: none; background: transparent; color: var(--accent); paddi
   margin: 4px 0;
   padding: 4px 8px;
   border: var(--bd);
-  border-inline-start: 3px solid var(--accent);
   border-radius: var(--r-sm);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
+.pair:dir(rtl) { box-shadow: inset -3px 0 0 var(--accent); }
 .pair__title { font-weight: 600; font-size: 11px; color: var(--text-muted); }
 .pair__bar { padding-top: 2px; }
 .pair__mode { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
