@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toHex6, type ThemeMode, type ThemeToken, type UserTheme } from '../lib/user-theme';
 import { useI18n } from '../i18n';
+import ColorPicker from './ColorPicker.vue';
 
 defineProps<{ token: ThemeToken; modes: ThemeMode[]; theme: UserTheme; resetTitle: (mode: ThemeMode) => string }>();
 const emit = defineEmits<{
@@ -24,11 +25,11 @@ const { t } = useI18n();
         :aria-label="`${t('themeStudio.locate')}: ${token.label} (${m})`"
         @click="emit('locate', m, token.key)"
       >🔍</button>
-      <input
-        type="color"
-        :value="toHex6(theme[m][token.key] ?? '#808080')"
-        :aria-label="`${token.label} (${m})`"
-        @input="emit('set', m, token.key, ($event.target as HTMLInputElement).value)"
+      <ColorPicker
+        :model-value="toHex6(theme[m][token.key] ?? '#808080')"
+        :label="`${token.label} (${m})`"
+        :swatches="Object.values(theme[m])"
+        @update:model-value="emit('set', m, token.key, $event)"
       />
       <input
         class="hex"
@@ -59,15 +60,6 @@ const { t } = useI18n();
 .tok-label { color: var(--text); }
 .tok-hint { display: block; font-size: 10.5px; color: var(--text-muted); line-height: 1.3; }
 .tok-cell { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
-.tok-cell input[type='color'] {
-  width: 28px;
-  height: 22px;
-  padding: 0;
-  border: var(--bd);
-  border-radius: var(--r-sm);
-  background: none;
-  cursor: pointer;
-}
 .hex {
   width: 74px;
   font: inherit;

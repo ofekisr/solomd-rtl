@@ -4,6 +4,7 @@ import {
   contrastRatio, flashColorFor, harmonize, mergeKeeping, mix, normalizeUserThemes,
   THEME_TOKEN_GROUPS, THEME_TOKEN_KEYS, THEME_TOKEN_PAIRS, toHex6, userThemeCss,
 } from './user-theme.ts';
+import type { UserTheme } from './user-theme.ts';
 
 const BASICS = {
   '--bg': '#ffffff', '--bg-elev': '#f0f0f0', '--text': '#000000',
@@ -53,7 +54,7 @@ describe('hand-picked colours', () => {
 
 describe('userThemeCss', () => {
   it('keys each palette on its data-theme mode', () => {
-    const css = userThemeCss({ id: 'a', name: 'X */ y', light: { '--bg': '#ffffff' }, dark: { '--bg': '#000000' }, edited: { light: [], dark: [] }, radius: 1 });
+    const css = userThemeCss({ id: 'a', name: 'X */ y', light: { '--bg': '#ffffff' }, dark: { '--bg': '#000000' }, edited: { light: [], dark: [] }, radius: 1, gradient: { light: 'inherit', dark: 'inherit' } });
     assert.ok(css.includes(':root[data-theme="light"] {\n  color-scheme: light;\n  --bg: #ffffff;'));
     assert.ok(css.includes(':root[data-theme="dark"] {\n  color-scheme: dark;\n  --bg: #000000;'));
     assert.ok(!css.includes('X */'));
@@ -67,7 +68,7 @@ describe('normalizeUserThemes', () => {
       { name: 'no id' },
       'junk',
     ]);
-    assert.deepEqual(out, [{ id: 'ok', name: 'Ok', light: { '--bg': '#ffffff' }, dark: {}, edited: { light: [], dark: [] }, radius: 1 }]);
+    assert.deepEqual(out, [{ id: 'ok', name: 'Ok', light: { '--bg': '#ffffff' }, dark: {}, edited: { light: [], dark: [] }, radius: 1, gradient: { light: 'inherit', dark: 'inherit' } }]);
   });
   it('covers the tokens the marketplace themes set', () => {
     for (const key of ['--danger', '--bg-soft', '--syn-comment', '--md-hr']) assert.ok(THEME_TOKEN_KEYS.includes(key), key);
@@ -91,13 +92,13 @@ describe('flashColorFor', () => {
 
 describe('userThemeCss layering', () => {
   it('outranks a custom CSS theme keyed on :root', () => {
-    const css = userThemeCss({ id: 'a', name: 'A', light: { '--bg': '#ffffff' }, dark: {}, edited: { light: [], dark: [] }, radius: 1 });
+    const css = userThemeCss({ id: 'a', name: 'A', light: { '--bg': '#ffffff' }, dark: {}, edited: { light: [], dark: [] }, radius: 1, gradient: { light: 'inherit', dark: 'inherit' } });
     assert.match(css, /html:root\[data-theme="light"\]/);
   });
 });
 
 describe('radius', () => {
-  const theme = { id: 'a', name: 'A', light: {}, dark: {}, edited: { light: [], dark: [] } };
+  const theme = { id: 'a', name: 'A', light: {}, dark: {}, edited: { light: [], dark: [] }, gradient: { light: 'inherit', dark: 'inherit' } };
   it('writes corner sizes only when changed from the default', () => {
     assert.ok(!userThemeCss({ ...theme, radius: 1 }).includes('--r-sm'));
     assert.match(userThemeCss({ ...theme, radius: 0 }), /--r-sm: 0px;/);
@@ -116,5 +117,31 @@ describe('THEME_TOKEN_PAIRS', () => {
       const group = THEME_TOKEN_GROUPS.find((g) => g.tokens.some((tk) => tk.key === fg));
       assert.ok(group?.tokens.some((tk) => tk.key === bg), `${fg} / ${bg}`);
     }
+  });
+});
+
+describe('backdrop', () => {
+  const theme = (gradient: UserTheme['gradient']): UserTheme => ({
+    id: 'a', name: 'A', light: {}, dark: {}, edited: { light: [], dark: [] }, radius: 1, gradient,
+  });
+  it('leaves a custom CSS theme\'s background alone when kept', () => {
+    assert.ok(!userThemeCss(theme({ light: 'inherit', dark: 'inherit' })).includes('--bg-grad'));
+  });
+  it('clears an inherited gradient for a plain mode', () => {
+    assert.match(userThemeCss(theme({ light: null, dark: 'inherit' })), /\[data-theme="light"\] \{[^}]*--bg-grad: none;/);
+  });
+  it('paints a gradient and lets it show through the panels', () => {
+    const css = userThemeCss(theme({ light: null, dark: { from: '#000000', to: '#112233', angle: 90 } }));
+    assert.match(css, /--bg-grad: linear-gradient\(90deg, #000000, #112233\);/);
+    assert.match(css, /html:root\[data-theme="dark"\] body \{\n {2}background-image: var\(--bg-grad\);/);
+    assert.ok(!css.includes('[data-theme="light"] body'));
+  });
+  it('keeps the background of themes saved before backdrops existed', () => {
+    const [t] = normalizeUserThemes([{ id: 'x', name: 'X', light: {}, dark: {} }]);
+    assert.deepEqual(t.gradient, { light: 'inherit', dark: 'inherit' });
+  });
+  it('drops malformed gradients to a plain background', () => {
+    const [t] = normalizeUserThemes([{ id: 'x', name: 'X', gradient: { light: { from: 'red', to: '#000' }, dark: 5 } }]);
+    assert.deepEqual(t.gradient, { light: null, dark: null });
   });
 });

@@ -10,6 +10,7 @@ import { themeFamily, themeLabels } from '../lib/themes';
 import { flashedPalette, locateToken, useThemeStudio } from '../composables/useThemeStudio';
 import ThemeMock from './ThemeMock.vue';
 import ThemeTokenRow from './ThemeTokenRow.vue';
+import ColorPicker from './ColorPicker.vue';
 import {
   DARK_BASES,
   DEFAULT_RADIUS,
@@ -21,10 +22,16 @@ import {
   THEME_TOKEN_PAIRS,
   contrastRatio,
   harmonize,
+  luminance,
   mergeKeeping,
   isHexColor,
   newUserThemeId,
   CUSTOM_CSS_BASE,
+  KEEP_CSS_BACKDROP,
+  defaultGradient,
+  isGradient,
+  type Backdrop,
+  type BgGradient,
   hasCustomCssLoaded,
   readThemePalette,
   toHex6,
@@ -36,6 +43,8 @@ import {
 } from '../lib/user-theme';
 
 type PreviewMode = ThemeMode | 'both';
+type BackdropKind = 'plain' | 'gradient' | 'keep';
+const FULL_TURN = 360;
 type TokenRow =
   | { kind: 'single'; token: ThemeToken }
   | { kind: 'pair'; fg: ThemeToken; bg: ThemeToken; label: string };
@@ -53,12 +62,21 @@ const customCssName = settings.customCssPath && hasCustomCssLoaded()
   : '';
 const lightBases = computed(() => (customCssName ? [CUSTOM_CSS_BASE, ...LIGHT_BASES] : [...LIGHT_BASES]));
 const darkBases = computed(() => (customCssName ? [CUSTOM_CSS_BASE, ...DARK_BASES] : [...DARK_BASES]));
-function initialBase(bases: readonly string[], fallback: string): string {
-  if (customCssName) return CUSTOM_CSS_BASE;
-  return bases.includes(settings.theme) ? settings.theme : fallback;
+const LIGHT_BG_SPLIT = 0.5;
+
+/** Many CSS themes are dark-only; one only seeds the mode its own background matches. */
+function customCssFits(mode: ThemeMode): boolean {
+  if (!customCssName) return false;
+  const isLight = luminance(readThemePalette(CUSTOM_CSS_BASE, mode)['--bg']) > LIGHT_BG_SPLIT;
+  return isLight === (mode === 'light');
 }
-const lightBase = ref<string>(initialBase(LIGHT_BASES, 'light'));
-const darkBase = ref<string>(initialBase(DARK_BASES, 'dark'));
+
+function initialBase(mode: ThemeMode, bases: readonly string[]): string {
+  if (customCssFits(mode)) return CUSTOM_CSS_BASE;
+  return bases.includes(settings.theme) ? settings.theme : mode;
+}
+const lightBase = ref<string>(initialBase('light', LIGHT_BASES));
+const darkBase = ref<string>(initialBase('dark', DARK_BASES));
 const openGroups = ref<Record<string, boolean>>({ basics: true });
 
 const current = computed(() => draft.value as UserTheme);
@@ -99,7 +117,36 @@ function freshTheme(): UserTheme {
     dark: readThemePalette(darkBase.value, 'dark'),
     edited: { light: [], dark: [] },
     radius: DEFAULT_RADIUS,
+    gradient: { light: startingBackdrop(lightBase.value), dark: startingBackdrop(darkBase.value) },
   };
+}
+
+/** Starting from the custom CSS theme keeps its background; a built-in base starts plain. */
+function startingBackdrop(base: string): Backdrop {
+  return base === CUSTOM_CSS_BASE ? KEEP_CSS_BACKDROP : null;
+}
+
+function backdropKind(mode: ThemeMode): BackdropKind {
+  const b = current.value.gradient[mode];
+  if (b === KEEP_CSS_BACKDROP) return 'keep';
+  return isGradient(b) ? 'gradient' : 'plain';
+}
+
+function setBackdropKind(mode: ThemeMode, kind: BackdropKind) {
+  const next: Record<BackdropKind, () => Backdrop> = {
+    plain: () => null,
+    keep: () => KEEP_CSS_BACKDROP,
+    gradient: () => defaultGradient(current.value[mode]),
+  };
+  current.value.gradient[mode] = next[kind]();
+}
+
+function gradientOf(mode: ThemeMode): BgGradient {
+  return current.value.gradient[mode] as BgGradient;
+}
+
+function setGradient(mode: ThemeMode, patch: Partial<BgGradient>) {
+  current.value.gradient[mode] = { ...gradientOf(mode), ...patch };
 }
 
 function baseFor(mode: ThemeMode): string {
@@ -120,7 +167,12 @@ function cloneTheme(theme: UserTheme): UserTheme {
     light: { ...theme.light },
     dark: { ...theme.dark },
     edited: { light: [...theme.edited.light], dark: [...theme.edited.dark] },
+    gradient: { light: copyBackdrop(theme.gradient.light), dark: copyBackdrop(theme.gradient.dark) },
   };
+}
+
+function copyBackdrop(b: Backdrop): Backdrop {
+  return isGradient(b) ? { ...b } : b;
 }
 
 /** A fresh theme counts as unchanged until the first edit. */
@@ -258,6 +310,7 @@ onMounted(() => {
           :key="m"
           :palette="flashedPalette(current[m], m)"
           :radius="current.radius"
+          :backdrop="current.gradient[m]"
           :label="t(`themeStudio.mode_${m}`)"
         />
       </div>
@@ -278,6 +331,45 @@ onMounted(() => {
       />
       <span class="hint">{{ t('themeStudio.cornersRound') }}</span>
       <button v-if="current.radius !== DEFAULT_RADIUS" class="link" @click="current.radius = DEFAULT_RADIUS">↺</button>
+    </div>
+
+    <div v-for="m in shownModes" :key="`bg-${m}`" class="row">
+      <span class="lbl">{{ t('themeStudio.backdrop', { mode: t(`themeStudio.mode_${m}`) }) }}</span>
+      <select
+        :value="backdropKind(m)"
+        @change="setBackdropKind(m, ($event.target as HTMLSelectElement).value as BackdropKind)"
+      >
+        <option value="plain">{{ t('themeStudio.backdropPlain') }}</option>
+        <option value="gradient">{{ t('themeStudio.backdropGradient') }}</option>
+        <option v-if="customCssName || backdropKind(m) === 'keep'" value="keep">
+          {{ t('themeStudio.backdropKeep', { name: customCssName || 'CSS' }) }}
+        </option>
+      </select>
+      <template v-if="backdropKind(m) === 'gradient'">
+        <ColorPicker
+          :model-value="gradientOf(m).from"
+          :label="t('themeStudio.gradientFrom')"
+          :swatches="Object.values(current[m])"
+          @update:model-value="setGradient(m, { from: $event })"
+        />
+        <span class="hint">→</span>
+        <ColorPicker
+          :model-value="gradientOf(m).to"
+          :label="t('themeStudio.gradientTo')"
+          :swatches="Object.values(current[m])"
+          @update:model-value="setGradient(m, { to: $event })"
+        />
+        <input
+          type="range"
+          class="radius"
+          min="0"
+          :max="FULL_TURN - 1"
+          :value="gradientOf(m).angle"
+          :aria-label="t('themeStudio.gradientAngle')"
+          @input="setGradient(m, { angle: Number(($event.target as HTMLInputElement).value) })"
+        />
+        <span class="hint">{{ gradientOf(m).angle }}°</span>
+      </template>
     </div>
 
     <details class="base">

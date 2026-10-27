@@ -3,20 +3,22 @@
  * shows up somewhere in it, so a blinking token is always visible here even
  * when the real app behind Settings hides that part of the screen. */
 import { computed } from 'vue';
-import type { Palette } from '../lib/user-theme';
+import { gradientCss, isGradient, type Backdrop, type Palette } from '../lib/user-theme';
 
-const props = defineProps<{ palette: Palette; radius: number; label: string }>();
+const props = defineProps<{ palette: Palette; radius: number; label: string; backdrop?: Backdrop }>();
 
 const RADIUS_PX: Record<string, number> = { '--r-sm': 4, '--r-md': 8, '--r-lg': 12 };
 
 const style = computed<Record<string, string>>(() => {
   const corners = Object.fromEntries(Object.entries(RADIUS_PX).map(([k, px]) => [k, `${px * props.radius}px`]));
-  return { ...props.palette, ...corners };
+  const backdrop = props.backdrop ?? null;
+  return { ...props.palette, ...corners, ...(isGradient(backdrop) ? { backgroundImage: gradientCss(backdrop) } : {}) };
 });
+const hasGradient = computed(() => isGradient(props.backdrop ?? null));
 </script>
 
 <template>
-  <div class="mock" :style="style" :aria-label="label">
+  <div class="mock" :class="{ 'mock--grad': hasGradient }" :style="style" :aria-label="label">
     <div class="mock__bar">
       <span class="mock__tab mock__tab--on">notes.md</span>
       <span class="mock__tab">todo.md</span>
@@ -142,6 +144,7 @@ const style = computed<Record<string, string>>(() => {
   color: var(--text-muted);
   font-size: 10px;
 }
+.mock--grad :is(.mock__bar, .mock__side, .mock__status) { background: transparent; }
 @container (max-width: 420px) {
   .mock__side { display: none; }
   .mock__editor { flex: 1; }

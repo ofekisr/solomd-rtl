@@ -22,6 +22,25 @@ export interface UserTheme {
   edited: EditedTokens;
   /** Corner roundness: 0 = square, 1 = the app's default, 2 = extra round. */
   radius: number;
+  gradient: Record<ThemeMode, Backdrop>;
+}
+
+export interface BgGradient {
+  from: string;
+  to: string;
+  /** CSS linear-gradient angle in degrees. */
+  angle: number;
+}
+
+/**
+ * What paints behind the window, per mode: a gradient of mine, the plain
+ * background colour (null), or whatever a custom CSS theme underneath paints.
+ */
+export type Backdrop = BgGradient | null | typeof KEEP_CSS_BACKDROP;
+export const KEEP_CSS_BACKDROP = 'inherit';
+
+export function isGradient(b: Backdrop): b is BgGradient {
+  return !!b && typeof b === 'object';
 }
 
 export interface ThemeToken {
@@ -130,6 +149,18 @@ export const THEME_TOKEN_KEYS: string[] = THEME_TOKEN_GROUPS.flatMap((g) => g.to
 export const LIGHT_BASES = ['light', 'github-light', 'solarized-light'] as const;
 export const DARK_BASES = ['dark', 'nord', 'solarized-dark', 'monokai', 'dracula'] as const;
 
+export const DEFAULT_GRADIENT_ANGLE = 165;
+const GRADIENT_ACCENT_MIX = 0.25;
+
+/**
+ * Regions that paint their own background over <body>. A gradient only shows
+ * if they turn see-through — the same list the Aurora marketplace theme uses.
+ */
+const SHOW_THROUGH = [
+  '.app', '.pane-host', '.preview-host', '.cm-host', '.plain-editor', '.pane--editor', '.pane--preview',
+  '.toolbar', '.statusbar', '.ftree', '.outline', '.side-sidebar', '.pane-tabbar',
+];
+
 const STYLE_ID = 'solomd-user-theme';
 /** `html:root` outranks the `:root` a custom CSS theme uses, whichever <style> loads last. */
 const OUTRANK_CSS_THEMES = 'html:root';
@@ -142,17 +173,39 @@ function radiusDecls(radius: number): string[] {
   return Object.entries(RADIUS_PX).map(([k, px]) => `  ${k}: ${Math.round(px * radius * 10) / 10}px;`);
 }
 
-function paletteCss(selector: string, palette: Palette, mode: ThemeMode, radius: number): string {
+export function gradientCss(g: BgGradient): string {
+  return `linear-gradient(${g.angle}deg, ${g.from}, ${g.to})`;
+}
+
+/** A starting gradient that stays close to the mode's background. */
+export function defaultGradient(palette: Palette): BgGradient {
+  const bg = palette['--bg'] ?? FALLBACK_COLOR;
+  return { from: bg, to: mix(bg, palette['--accent'] ?? bg, GRADIENT_ACCENT_MIX), angle: DEFAULT_GRADIENT_ANGLE };
+}
+
+function paletteCss(selector: string, theme: UserTheme, mode: ThemeMode): string {
+  const palette = theme[mode];
+  const backdrop = theme.gradient[mode];
   const decls = THEME_TOKEN_KEYS.filter((k) => palette[k]).map((k) => `  ${k}: ${palette[k]};`);
-  return `${selector} {\n  color-scheme: ${mode};\n${[...decls, ...radiusDecls(radius)].join('\n')}\n}`;
+  if (backdrop !== KEEP_CSS_BACKDROP) decls.push(`  --bg-grad: ${isGradient(backdrop) ? gradientCss(backdrop) : 'none'};`);
+  return `${selector} {\n  color-scheme: ${mode};\n${[...decls, ...radiusDecls(theme.radius)].join('\n')}\n}`;
+}
+
+function showThroughCss(selector: string): string {
+  return [
+    `${selector} body {\n  background-image: var(--bg-grad);\n}`,
+    `${selector} :is(${SHOW_THROUGH.join(', ')}) {\n  background: transparent !important;\n}`,
+  ].join('\n\n');
 }
 
 /** Marketplace-compatible CSS for a theme: one block per mode. */
 export function userThemeCss(theme: UserTheme): string {
+  const modes: ThemeMode[] = ['light', 'dark'];
+  const selector = (mode: ThemeMode): string => `${OUTRANK_CSS_THEMES}[data-theme="${mode}"]`;
   return [
     `/* ${theme.name.replace(/\*\//g, '')} — made with SoloMD Theme Studio */`,
-    paletteCss(`${OUTRANK_CSS_THEMES}[data-theme="light"]`, theme.light, 'light', theme.radius),
-    paletteCss(`${OUTRANK_CSS_THEMES}[data-theme="dark"]`, theme.dark, 'dark', theme.radius),
+    ...modes.map((mode) => paletteCss(selector(mode), theme, mode)),
+    ...modes.filter((mode) => isGradient(theme.gradient[mode])).map((mode) => showThroughCss(selector(mode))),
   ].join('\n\n');
 }
 
@@ -338,7 +391,23 @@ export function normalizeUserThemes(raw: unknown): UserTheme[] {
       dark: normalizePalette(t.dark),
       edited: normalizeEdited(t.edited),
       radius: normalizeRadius(t.radius),
+      gradient: normalizeGradients(t.gradient),
     }));
+}
+
+/** Themes saved before backdrops existed never touched the background, so they keep it. */
+function normalizeGradient(raw: unknown): Backdrop {
+  if (raw === undefined || raw === KEEP_CSS_BACKDROP) return KEEP_CSS_BACKDROP;
+  if (!raw || typeof raw !== 'object') return null;
+  const g = raw as Record<string, unknown>;
+  if (typeof g.from !== 'string' || !isHexColor(g.from) || typeof g.to !== 'string' || !isHexColor(g.to)) return null;
+  const angle = typeof g.angle === 'number' && Number.isFinite(g.angle) ? g.angle : DEFAULT_GRADIENT_ANGLE;
+  return { from: toHex6(g.from), to: toHex6(g.to), angle: Math.round(angle) % 360 };
+}
+
+function normalizeGradients(raw: unknown): Record<ThemeMode, Backdrop> {
+  const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  return { light: normalizeGradient(r.light), dark: normalizeGradient(r.dark) };
 }
 
 function normalizeRadius(raw: unknown): number {
