@@ -4,7 +4,7 @@ import { Compartment, EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 import { classHighlighter, highlightTree } from '@lezer/highlight';
-import { createLanguageExtension } from './editor-language.ts';
+import { createLanguageExtension, loadLanguageExtension } from './editor-language.ts';
 import { bidiExtension } from './cm-bidi.ts';
 
 test('Shell source and each fence alias highlight keywords, strings and comments', () => {
@@ -84,4 +84,20 @@ test('Reconfiguration changes parsers and direction without changing source', ()
   assert.equal(computed.find((value) => value.dir)?.dir, 'ltr');
   state = state.update({ effects: language.reconfigure(createLanguageExtension('markdown')) }).state;
   assert.equal(syntaxTree(state).topNode.name, 'Document');
+});
+
+test('Vue file loads its lazy grammar and highlights script and template', async () => {
+  const doc = '<template>\n  <div class="a">{{ msg }}</div>\n</template>\n<script setup lang="ts">\nconst msg: string = "hi";\n</script>';
+  assert.deepEqual(createLanguageExtension('vue'), []);
+  const support = await loadLanguageExtension('vue');
+  assert.ok(support);
+  const state = EditorState.create({ doc, extensions: support });
+  const classes: string[] = [];
+  highlightTree(syntaxTree(state), classHighlighter, (_from, _to, value) => classes.push(value));
+  const highlighted = classes.join(' ');
+  assert.match(highlighted, /tok-typeName/);
+  assert.match(highlighted, /tok-keyword/);
+  assert.match(highlighted, /tok-string/);
+  assert.equal(loadLanguageExtension('vue'), null);
+  assert.equal(loadLanguageExtension('typescript'), null);
 });

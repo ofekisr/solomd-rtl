@@ -17,7 +17,12 @@ export function createLanguageExtension(
     return markdownExt();
   }
   return languagesByName.get(language)?.support ?? [];
+}
 
+export function loadLanguageExtension(language: string): Promise<LanguageSupport> | null {
+  const description = languagesByName.get(language);
+  if (!description || description.support) return null;
+  return description.load();
 }
 
 function markdownExt(): LanguageSupport {

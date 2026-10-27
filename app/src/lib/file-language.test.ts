@@ -52,3 +52,13 @@ test('untitled names follow the language', () => {
   assert.equal(untitledFileName('plaintext'), 'Untitled.txt');
   assert.equal(untitledFileName('python'), 'Untitled.txt');
 });
+
+test('Selects the parser for JS/TS ecosystem files', () => {
+  const cases = {
+    mts: 'typescript', cts: 'typescript', jsonc: 'json',
+    vue: 'vue', svelte: 'svelte', scss: 'scss', less: 'less', sass: 'sass',
+  };
+  for (const [extension, language] of Object.entries(cases)) {
+    assert.equal(inferFileLanguage(`example.${extension}`), language);
+  }
+});

@@ -4,8 +4,10 @@ import { MINDMAP_EXTENSIONS } from './mindmap-format.ts';
 const languagesByExtension = new Map<string, Language>([
   ['md', 'markdown'], ['markdown', 'markdown'], ['mdown', 'markdown'], ['mkd', 'markdown'],
   ['js', 'javascript'], ['jsx', 'javascript'], ['mjs', 'javascript'], ['cjs', 'javascript'],
-  ['ts', 'typescript'], ['tsx', 'typescript'], ['py', 'python'], ['pyj', 'python'], ['rs', 'rust'],
-  ['html', 'html'], ['htm', 'html'], ['css', 'css'], ['json', 'json'], ['java', 'java'],
+  ['ts', 'typescript'], ['tsx', 'typescript'], ['mts', 'typescript'], ['cts', 'typescript'],
+  ['vue', 'vue'], ['svelte', 'svelte'], ['scss', 'scss'], ['less', 'less'], ['sass', 'sass'],
+  ['py', 'python'], ['pyj', 'python'], ['rs', 'rust'],
+  ['html', 'html'], ['htm', 'html'], ['css', 'css'], ['json', 'json'], ['jsonc', 'json'], ['java', 'java'],
   ['yaml', 'yaml'], ['yml', 'yaml'], ['xml', 'xml'],
   ['c', 'cpp'], ['cpp', 'cpp'], ['cc', 'cpp'], ['h', 'cpp'], ['hpp', 'cpp'],
   ['go', 'go'], ['sql', 'sql'],

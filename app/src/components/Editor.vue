@@ -51,7 +51,7 @@ import {attachCodeCopyButtons} from '../lib/code-copy';
 // The grammar imports and the `codeLanguages` list they feed now live in
 // `lib/code-languages.ts`: the ``` fence-language picker (#297) derives its
 // catalogue from that same list, so there is only one copy to keep in sync.
-import {createLanguageExtension} from '../lib/editor-language.ts';
+import {createLanguageExtension, loadLanguageExtension} from '../lib/editor-language.ts';
 import {collectLabels, findMathSpanAt} from '../lib/equations';
 import {filterFenceLanguages, isInsideFenceBefore, matchFenceOpener} from '../lib/fence-languages';
 import { getRecentFenceLanguages, recordFenceLanguage } from '../lib/fence-recents';
@@ -196,6 +196,13 @@ let contentSyncTimer: ReturnType<typeof setTimeout> | null = null;
 
 const themeCompartment = new Compartment();
 const langCompartment = new Compartment();
+
+function applyLazyLanguage(language: string): void {
+  void loadLanguageExtension(language)?.then((support) => {
+    if (props.tab.language !== language) return;
+    view?.dispatch({ effects: langCompartment.reconfigure(support) });
+  });
+}
 const directionCompartment = new Compartment();
 const wrapCompartment = new Compartment();
 const lineNumCompartment = new Compartment();
@@ -3215,6 +3222,7 @@ onMounted(() => {
     state: EditorState.create({ doc: props.tab.content, extensions: buildExtensions() }),
     parent: host.value,
   });
+  applyLazyLanguage(props.tab.language);
   maybeRestoreSession();
   // Expose the focused EditorView on `window` for dev-bridge / self-test
   // harnesses. Vite injects `import.meta.env.DEV === true` only in dev
@@ -3685,6 +3693,7 @@ watch(
         selection: { anchor: Math.min(saved?.caret ?? 0, props.tab.content.length) },
       })
     );
+    applyLazyLanguage(props.tab.language);
     maybeRestoreSession();
     if (saved) {
       // #169 — one synchronous assignment is not enough: async widget renders
@@ -3892,6 +3901,7 @@ watch(
         richCompartment.reconfigure(richExtensionsFor(props.tab)),
       ],
     });
+    applyLazyLanguage(l);
   }
 );
 
