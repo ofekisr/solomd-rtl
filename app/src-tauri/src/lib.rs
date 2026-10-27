@@ -1,4 +1,5 @@
 pub mod app_build;
+pub mod devtools;
 pub mod commands;
 // Image-bed upload: PicGo / shell command / sm.ms / S3-compatible / GitHub.
 pub mod directive_completions;
@@ -180,6 +181,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             app_build::app_build_info,
+            devtools::open_devtools,
             commands::read_file,
             commands::read_binary_file,
             commands::write_file,

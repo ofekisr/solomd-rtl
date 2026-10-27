@@ -81,7 +81,8 @@ unset APPLE_SIGNING_IDENTITY APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID
 export SOLOMD_APP_STORE_BUILD=1
 export VITE_APP_STORE_BUILD=true
 export VITE_MAS_BUILD=1
-pnpm tauri build --target universal-apple-darwin --bundles app
+# --no-default-features drops the `devtools` feature (private WebKit API).
+pnpm tauri build --target universal-apple-darwin --bundles app -- --no-default-features
 
 APP="src-tauri/target/universal-apple-darwin/release/bundle/macos/SoloMD.app"
 [ -d "$APP" ] || { echo "ERROR: .app not found at $APP" >&2; exit 1; }

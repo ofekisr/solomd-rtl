@@ -218,3 +218,10 @@ gio = "0.18"
 
 [dev-dependencies]
 tempfile = "3"
+
+[features]
+default = ["devtools"]
+# Web Inspector in release builds (Developer: Reload with Web Inspector).
+# scripts/build-mas.sh builds with --no-default-features: on macOS this uses
+# private WebKit API, which App Review rejects.
+devtools = ["tauri/devtools"]

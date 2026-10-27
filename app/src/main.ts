@@ -7,6 +7,7 @@ import {
   type DirectiveCompletionLoadResult,
 } from './lib/directive-completion-registry';
 import { useToastsStore } from './stores/toasts';
+import { openInspectorIfRequested } from './lib/devtools';
 import './styles/cjk-font.css';
 import './styles/main.css';
 import './styles/hljs-theme.css';
@@ -34,6 +35,8 @@ async function bootstrap(): Promise<void> {
   const pinia = createPinia();
   const app = createApp(rootComponent);
   app.use(pinia);
+
+  void openInspectorIfRequested();
 
   const result = await startupDirectiveCompletions();
   installDirectiveCompletionLoadResult(result);

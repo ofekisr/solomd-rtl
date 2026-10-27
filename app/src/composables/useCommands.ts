@@ -40,6 +40,7 @@ import { IS_APP_STORE_BUILD } from '../lib/app-build';
 import { hasGitBackend } from '../lib/platform';
 import { useGitPaneAvailable } from './useGitPaneAvailable';
 import { useGitPaneStore } from '../stores/gitPane';
+import { openInspector, reloadWithInspector } from '../lib/devtools';
 
 export interface Command {
   id: string;
@@ -193,6 +194,26 @@ export function useCommands(): Command[] {
     shortcut: kb(MINDMAP_FOLDER_TREE_ACTION),
     run: () => { window.dispatchEvent(new CustomEvent(MINDMAP_FOLDER_TREE_EVENT)); },
   };
+
+  const developerCommands: Command[] = [
+    {
+      id: 'dev.reloadWithInspector',
+      title: 'Developer: Reload with Web Inspector',
+      hint: 'Reload the window and open the Web Inspector (debug console, elements, network)',
+      run: () => reloadWithInspector(),
+    },
+    {
+      id: 'dev.openInspector',
+      title: 'Developer: Open Web Inspector',
+      run: async () => {
+        try {
+          await openInspector();
+        } catch (e) {
+          toasts.warning(`Web Inspector unavailable: ${e}`);
+        }
+      },
+    },
+  ];
 
   const all: Command[] = [
     { id: 'file.new', title: 'New Markdown File', shortcut: kb('file.new'), run: () => files.newFile() },
@@ -805,6 +826,8 @@ export function useCommands(): Command[] {
     ? all.filter((c) => c.id !== 'view.toggleAgentPanel')
     : all;
   built.push(...mindmapCommands, ...mindmapConvertCommands, mindmapFolderCommand, mindmapFolderTreeCommand, mindmapWorkbenchCommand);
+  // MAS builds ship without the `devtools` Cargo feature (private WebKit API).
+  if (!IS_APP_STORE_BUILD && !isMobile()) built.push(...developerCommands);
 
   // #230 — Android has no libgit2, so every `history.*` / `sync.*` entry would
   // resolve to a `Command … not found`. Keep them out of the palette entirely
