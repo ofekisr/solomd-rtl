@@ -2,7 +2,7 @@
 import {autocompletion} from '@codemirror/autocomplete';
 import {defaultKeymap, history, historyKeymap, indentWithTab} from '@codemirror/commands';
 import {
-  bracketMatching, indentOnInput, syntaxHighlighting
+  bracketMatching, indentOnInput
 } from '@codemirror/language';
 import {getSearchQuery, openSearchPanel, search, searchKeymap, setSearchQuery} from '@codemirror/search';
 import { createFindPanel } from '../lib/cm-find-panel';

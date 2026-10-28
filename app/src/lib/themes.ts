@@ -202,17 +202,22 @@ export function mermaidThemeFor(theme: Theme): 'dark' | 'default' {
  * kept its own white editor background.
  */
 export function cmThemeFor(theme: Theme, override: ThemeOverride = 'none'): Extension {
+  return [cmChromeFor(theme, override), syntaxHighlighting(unifiedHighlightStyle)];
+}
+
+/** Every theme takes its code colours from `--syn-*`, so only the editor chrome varies. */
+function cmChromeFor(theme: Theme, override: ThemeOverride): Extension {
   if (override === 'user') return themeFamily(theme) === 'dark' ? userDarkTheme : userLightTheme;
   if (override === 'css') return themeFamily(theme) === 'dark' ? oneDark : [];
   switch (theme) {
-    case 'dark': return [oneDark, syntaxHighlighting(unifiedHighlightStyle)];
-    case 'nord': return [nordTheme, syntaxHighlighting(unifiedHighlightStyle)];
-    case 'solarized-light': return [solarizedLightTheme, syntaxHighlighting(unifiedHighlightStyle)];
-    case 'solarized-dark': return [solarizedDarkTheme, syntaxHighlighting(unifiedHighlightStyle)];
-    case 'monokai': return [monokaiTheme, syntaxHighlighting(unifiedHighlightStyle)];
-    case 'github-light': return [githubLightTheme, syntaxHighlighting(unifiedHighlightStyle)];
-    case 'dracula': return [draculaTheme, syntaxHighlighting(unifiedHighlightStyle)];
-    default: return [syntaxHighlighting(unifiedHighlightStyle)];
+    case 'dark': return oneDark;
+    case 'nord': return nordTheme;
+    case 'solarized-light': return solarizedLightTheme;
+    case 'solarized-dark': return solarizedDarkTheme;
+    case 'monokai': return monokaiTheme;
+    case 'github-light': return githubLightTheme;
+    case 'dracula': return draculaTheme;
+    default: return [];
   }
 }
 
