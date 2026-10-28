@@ -3,6 +3,29 @@ import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { tags as t } from '@lezer/highlight';
 import { Extension } from '@codemirror/state';
 
+/** Unified highlight style using CSS variables for all themes. */
+const unifiedHighlightStyle = HighlightStyle.define([
+  { tag: t.keyword, color: 'var(--syn-keyword)' },
+  { tag: [t.name, t.deleted, t.character, t.macroName], color: 'var(--syn-variable)' },
+  { tag: [t.function(t.variableName), t.labelName], color: 'var(--syn-function)' },
+  { tag: [t.color, t.constant(t.name), t.standard(t.name)], color: 'var(--syn-keyword)' },
+  { tag: [t.definition(t.name), t.separator], color: 'var(--text)' },
+  { tag: [t.typeName, t.className, t.changed, t.annotation, t.modifier, t.self, t.namespace], color: 'var(--syn-type)' },
+  { tag: [t.number, t.bool], color: 'var(--syn-number)' },
+  { tag: [t.string, t.special(t.brace)], color: 'var(--syn-string)' },
+  { tag: [t.comment, t.lineComment, t.blockComment], color: 'var(--syn-comment)', fontStyle: 'italic' },
+  { tag: t.meta, color: 'var(--syn-comment)' },
+  { tag: t.link, color: 'var(--syn-string)', textDecoration: 'underline' },
+  { tag: t.heading, color: 'var(--syn-keyword)', fontWeight: 'bold' },
+  { tag: [t.atom, t.special(t.variableName)], color: 'var(--syn-function)' },
+  { tag: t.invalid, color: '#ff0000' },
+  { tag: t.strikethrough, textDecoration: 'line-through' },
+  { tag: t.processingInstruction, color: 'var(--syn-comment)' },
+  { tag: t.propertyName, color: 'var(--syn-property)' },
+  { tag: t.operator, color: 'var(--syn-operator)' },
+  { tag: t.punctuation, color: 'var(--text)' },
+]);
+
 function mkTheme(
   bg: string,
   fg: string,
@@ -182,14 +205,14 @@ export function cmThemeFor(theme: Theme, override: ThemeOverride = 'none'): Exte
   if (override === 'user') return themeFamily(theme) === 'dark' ? userDarkTheme : userLightTheme;
   if (override === 'css') return themeFamily(theme) === 'dark' ? oneDark : [];
   switch (theme) {
-    case 'dark': return oneDark;
-    case 'nord': return nordTheme;
-    case 'solarized-light': return solarizedLightTheme;
-    case 'solarized-dark': return solarizedDarkTheme;
-    case 'monokai': return monokaiTheme;
-    case 'github-light': return githubLightTheme;
-    case 'dracula': return draculaTheme;
-    default: return [];
+    case 'dark': return [oneDark, syntaxHighlighting(unifiedHighlightStyle)];
+    case 'nord': return [nordTheme, syntaxHighlighting(unifiedHighlightStyle)];
+    case 'solarized-light': return [solarizedLightTheme, syntaxHighlighting(unifiedHighlightStyle)];
+    case 'solarized-dark': return [solarizedDarkTheme, syntaxHighlighting(unifiedHighlightStyle)];
+    case 'monokai': return [monokaiTheme, syntaxHighlighting(unifiedHighlightStyle)];
+    case 'github-light': return [githubLightTheme, syntaxHighlighting(unifiedHighlightStyle)];
+    case 'dracula': return [draculaTheme, syntaxHighlighting(unifiedHighlightStyle)];
+    default: return [syntaxHighlighting(unifiedHighlightStyle)];
   }
 }
 

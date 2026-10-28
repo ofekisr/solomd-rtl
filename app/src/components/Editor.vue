@@ -2,7 +2,7 @@
 import {autocompletion} from '@codemirror/autocomplete';
 import {defaultKeymap, history, historyKeymap, indentWithTab} from '@codemirror/commands';
 import {
-  bracketMatching, defaultHighlightStyle, indentOnInput, syntaxHighlighting
+  bracketMatching, indentOnInput, syntaxHighlighting
 } from '@codemirror/language';
 import {getSearchQuery, openSearchPanel, search, searchKeymap, setSearchQuery} from '@codemirror/search';
 import { createFindPanel } from '../lib/cm-find-panel';
@@ -3053,7 +3053,7 @@ function buildExtensions() {
           highlightActiveLine(),
           search({ top: true, createPanel: createFindPanel(() => props.tab.filePath) }),
           incrementalFindScroll,
-          syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+
         ]),
     // #296 — Mod-i is CodeMirror's selectParentSyntax. The app-level Italic
     // shortcut listens on window, so CodeMirror would run first and widen the
