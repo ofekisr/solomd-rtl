@@ -2,6 +2,9 @@
 
 Changes added in **solomd-rtl** on top of upstream SoloMD. Newest first.
 
+## 4.38.8 — 2026-10-28
+- **Added:** Syntax highlighting for whole `.vue`, `.svelte`, `.scss`, `.less`, `.sass`, `.mts`, `.cts` and `.jsonc` files (previously only inside Markdown code fences).
+
 ## 4.37.0 — 2026-10-27
 - **Added:** Any open file locks while an AI agent edits it: the editor goes read-only, Markdown and mind map tabs switch to preview, and an "AI working" warning shows.
 - **Added:** The warning's "−" minimizes it to a strip below the editor; "Keep minimized for this tab" and "Always minimize" make that stick. The strip disappears when the AI stops.
