@@ -112,6 +112,7 @@ const exporter = useExport();
 const toasts = useToastsStore();
 
 const isMarkdown = computed(() => tabs.activeTab?.language === 'markdown');
+const isDevBuild = import.meta.env.DEV;
 const isMindmap = computed(() => tabs.activeTab?.language === 'mindmap');
 const hasViewButtons = computed(() => isMarkdown.value || isMindmap.value);
 
@@ -702,6 +703,7 @@ onBeforeUnmount(() => {
     @click="onToolbarActivate"
   >
     <BrandMark class="toolbar__brand" :size="22" />
+    <span v-if="isDevBuild" class="toolbar__dev-badge" title="Dev build — sources load live from Vite">DEV</span>
 
     <!-- Windows unified title bar: in-app File/Edit/View/Help menubar
          (replaces the removed native menu bar row). -->
@@ -1356,6 +1358,16 @@ onBeforeUnmount(() => {
   flex: 0 0 22px;
   margin-right: 4px;
   pointer-events: none;
+}
+.toolbar__dev-badge {
+  padding: 1px 6px;
+  margin-right: 6px;
+  border-radius: 4px;
+  background: #ff6a00;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .toolbar__group {

@@ -564,7 +564,8 @@ watch(
 //   2. Await `setTitle()` so a rejection is actually caught + logged,
 //      instead of floating off as an unhandled promise.
 const applyWindowTitle = async (name?: string) => {
-  const title = name ? `${name} — SoloMD` : 'SoloMD';
+  const appName = import.meta.env.DEV ? 'SoloMD DEV' : 'SoloMD';
+  const title = name ? `${name} — ${appName}` : appName;
   document.title = title;
   // macOS uses `titleBarStyle: "Overlay"` + `hiddenTitle: true` — the
   // document name is shown in the in-app toolbar (SoloMD mark + filename).

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "SoloMD DEV",
+  "identifier": "app.solomd.dev",
+  "app": {
+    "windows": [
+      {
+        "title": "SoloMD DEV",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 480,
+        "minHeight": 360,
+        "visible": false,
+        "center": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
+      }
+    ]
+  },
+  "bundle": {
+    "icon": [
+      "icons-dev/icon.png",
+      "icons-dev/icon.icns"
+    ]
+  }
+}

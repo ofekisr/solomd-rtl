@@ -17,8 +17,13 @@ export function reloadWithInspector(): void {
   window.location.reload();
 }
 
+/** The dev app always opens the inspector; release builds only after "Reload with Web Inspector". */
 export async function openInspectorIfRequested(): Promise<void> {
   try {
+    if (import.meta.env.DEV) {
+      await openInspector();
+      return;
+    }
     if (sessionStorage.getItem(OPEN_ON_LOAD_KEY) !== '1') return;
     sessionStorage.removeItem(OPEN_ON_LOAD_KEY);
     await openInspector();

@@ -32,6 +32,9 @@ const rootComponent = isSlideshow
     : App;
 
 async function bootstrap(): Promise<void> {
+  if (import.meta.env.DEV && !isSlideshow && !isQuickCapture) {
+    await (await import('./lib/dev-seed')).applyDevSeed();
+  }
   const pinia = createPinia();
   const app = createApp(rootComponent);
   app.use(pinia);

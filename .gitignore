@@ -71,3 +71,6 @@ dist/
 __pycache__/
 *.pyc
 .solomd/
+
+# Dev app seed (copy of the installed app's localStorage)
+app/dev-seed/
