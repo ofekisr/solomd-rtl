@@ -2,6 +2,9 @@
 
 Changes added in **solomd-rtl** on top of upstream SoloMD. Newest first.
 
+## 4.38.9 — 2026-10-28
+- **Fixed:** Editor and preview syntax highlighting now use the same colours. Unified HighlightStyle in themes.ts references `--syn-*` CSS variables instead of hardcoded theme palettes, so both rendering paths pick up colours from main.css.
+
 ## 4.38.8 — 2026-10-28
 - **Added:** Syntax highlighting for whole `.vue`, `.svelte`, `.scss`, `.less`, `.sass`, `.mts`, `.cts` and `.jsonc` files (previously only inside Markdown code fences).
 
