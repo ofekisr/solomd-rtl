@@ -66,7 +66,7 @@ TextStyle = { italic?: boolean; bold?: boolean; underline?: boolean }
 | Section | Colours | Style props (what each changes) |
 |---|---|---|
 | app | bg, text, textMuted, textFaint, accent, accentFg, danger | `radius` 0–2 — corner roundness of buttons, panels, dialogs |
-| surfaces | panel, hover, active, soft, border | `backdrop` — gradient `{from,to,angle}` or none behind the window; `panelOpacity` 0–1 — how see-through sidebars/toolbars are; `panelBlur` px — blur behind see-through panels |
+| surfaces | panel, hover, active, soft, border | `backdrop` — list of gradient layers behind the window (`linear {angle, stops}` / `radial {x, y, color, fade}`; empty = none); `panelOpacity` 0–1 — how see-through sidebars/toolbars are; `panelBlur` px — blur behind see-through panels |
 | markdown | h1–h6, strong, em, link, url, code, codeBg, quote, list, hr | `heading`, `link`, `quote`: TextStyle |
 | code | keyword, string, number, comment, function, variable, type, property, operator, punctuation, tag, attribute, regexp, constant, invalid | `comment`, `keyword`, `function`, `string`: TextStyle |
 | editor | background, gutterBg, gutterFg, activeLine, selection, cursor, bracket, search, searchActive | `activeLine` boolean — highlight the cursor's line |
