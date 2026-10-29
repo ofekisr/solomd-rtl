@@ -24,6 +24,7 @@ import { MMAP_EXTENSION, MINDMAP_EXTENSIONS, isXmindPath, mmapPathFor } from '..
 import { XMIND_TOO_LARGE_ERROR, XMIND_CONTENT_TOO_LARGE_ERROR } from '../lib/xmind-limits';
 import { untitledFileName } from '../lib/file-language';
 import { isVirtualLanguage } from '../lib/virtual-tabs';
+import { useThemeStudio } from './useThemeStudio';
 import { convertedMarkdownPath } from '../lib/convert-conflict';
 import { useConvertedOutput } from './useConvertedOutput';
 
@@ -967,6 +968,18 @@ export function useFiles() {
     return w.__solomd_showUnsavedDialog as UnsavedDialog | undefined;
   }
 
+  async function closeThemeStudioTab(id: string): Promise<void> {
+    const studio = useThemeStudio();
+    const showUnsavedDialog = getUnsavedDialog();
+    if (studio.isDirty.value && showUnsavedDialog) {
+      const action = await showUnsavedDialog('tab', t('themeStudio.tabTitle'), 1);
+      if (action === 'cancel') return;
+      if (action === 'save' && !(await studio.saveDraft())) return;
+    }
+    studio.resetDraft();
+    tabs.closeTab(id);
+  }
+
   async function closeTabSafe(id: string) {
     const tab = tabs.tabs.find((t) => t.id === id);
     if (!tab) return;
@@ -974,6 +987,7 @@ export function useFiles() {
       toasts.info(t('tabMenu.pinnedNoClose'));
       return;
     }
+    if (tab.language === 'theme-studio') return closeThemeStudioTab(id);
     // #222 — same stale-window hazard as saveTab: the dirty check below reads
     // tab.content, which lags the CodeMirror doc by up to 350ms. A close
     // landing inside that window (vim `:q`, fast Ctrl+W) saw a clean tab and

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { inferFileLanguage } from '../lib/file-language';
 import { isVirtualLanguage } from '../lib/virtual-tabs';
+import { useThemeStudio } from '../composables/useThemeStudio';
 import type { Language, Tab } from '../types';
 import { useSettingsStore } from './settings';
 import { useTilesStore } from './tiles';
@@ -133,7 +134,10 @@ function bucketKey(folder: string | null): string {
   return LS_BUCKET_PREFIX + (folder || NO_WORKSPACE) + windowScopeSuffix();
 }
 
+const THEME_STUDIO_TITLE = 'Theme Studio';
+
 function isDirty(t: Tab): boolean {
+  if (t.language === 'theme-studio') return useThemeStudio().isDirty.value;
   if (isVirtualLanguage(t.language)) return false;
   return t.content !== t.savedContent;
 }
@@ -453,6 +457,14 @@ export const useTabsStore = defineStore('tabs', {
       const tabs = this.persistableTabs;
       const activeKept = tabs.some((x) => x.id === this.activeId);
       return { tabs, activeId: activeKept ? this.activeId : tabs[0]?.id ?? '' };
+    },
+    openThemeStudio() {
+      const existing = this.tabs.find((x) => x.language === 'theme-studio');
+      if (existing) {
+        this.activeId = existing.id;
+        return;
+      }
+      this.newTab({ fileName: THEME_STUDIO_TITLE, language: 'theme-studio' });
     },
     openGitDiff(ref: DiffTabRef) {
       const filePath = encodeDiffPath(ref);

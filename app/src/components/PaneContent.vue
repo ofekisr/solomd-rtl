@@ -30,8 +30,11 @@ const MindmapView = defineAsyncComponent(() => import('./MindmapView.vue'));
 
 const GitDiff = defineAsyncComponent(() => import('./git/GitDiff.vue'));
 
+const ThemeStudioTab = defineAsyncComponent(() => import('./ThemeStudioTab.vue'));
+
 const isMindmap = computed(() => props.tab?.language === 'mindmap');
 const isGitDiff = computed(() => props.tab?.language === 'git-diff');
+const isThemeStudio = computed(() => props.tab?.language === 'theme-studio');
 
 const showEditor = computed(
   () => !isMindmap.value && !isVirtualLanguage(props.tab?.language) && (props.tab?.language !== 'markdown' || settings.viewMode !== 'preview')
@@ -471,6 +474,9 @@ function onPreviewSearchEvent(e: Event) {
   >
     <div class="pane pane--git-diff" v-if="isGitDiff && tab">
       <GitDiff :key="tab.id" :uri="tab.filePath ?? ''" />
+    </div>
+    <div class="pane pane--theme-studio" v-if="isThemeStudio && tab">
+      <ThemeStudioTab :key="tab.id" />
     </div>
     <div class="pane pane--mindmap" v-if="isMindmap && tab">
       <MindmapView :key="tab.id" ref="mindmapRef" :tab="tab" />

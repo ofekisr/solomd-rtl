@@ -1916,6 +1916,8 @@ export const en = {
     pushRejectedPullFirst: 'Push rejected: remote has newer commits. Pull first, then try again.',
   },
   themeStudio: {
+    tabTitle: 'Theme Studio',
+    openInTab: 'Customize in Theme Studio',
     title: 'Theme Studio',
     open: 'Create / edit my theme…',
     myThemes: 'My themes',
@@ -1951,7 +1953,7 @@ export const en = {
     resetToken: 'Undo your pick: back to {base}',
     safetyNote: 'Changes are a preview until you save. Only “Use this theme” switches your theme. Automatic fills only touch the mode on screen and skip colours you picked by hand (↺ undoes a pick).',
     unsaved: 'Unsaved changes',
-    navLabel: 'Theme',
+    navLabel: 'Appearance',
     pageIntro: 'Build your own theme: colours for light and dark mode, plus corner roundness. Fonts and sizes are under Basics and Writing.',
     backdrop: '{mode} background',
     backdropPlain: 'Plain colour',

@@ -2,7 +2,7 @@
 /* Theme Studio — the Theme page in Settings. Builds a light+dark theme with
  * colour pickers. The draft drives a miniature app here and the real app
  * behind Settings (see useThemeStudio), so every pick is visible at once. */
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
 import { useThemeStore } from '../stores/theme';
@@ -10,7 +10,7 @@ import { useI18n } from '../i18n';
 import type { Theme } from '../lib/theme/schema';
 import { findVariant } from '../lib/theme/slots';
 import { paletteOf, studioToTheme } from '../lib/theme/from-studio';
-import { flashedPalette, locateToken, useThemeStudio } from '../composables/useThemeStudio';
+import { flashedPalette, locateToken, THEME_STUDIO_PREVIEW_ID, useThemeStudio } from '../composables/useThemeStudio';
 import ThemeMock from './ThemeMock.vue';
 import ThemeTokenRow from './ThemeTokenRow.vue';
 import ColorPicker from './ColorPicker.vue';
@@ -52,7 +52,7 @@ const ERROR_TOAST_MS = 4000;
 const settings = useSettingsStore();
 const toasts = useToastsStore();
 const { t } = useI18n();
-const { draft, savedSnapshot, isDirty, previewFamily } = useThemeStudio();
+const { draft, savedSnapshot, isDirty, previewFamily, registerSave } = useThemeStudio();
 
 const themeStore = useThemeStore();
 const previewMode = ref<PreviewMode>(previewFamily.value ?? themeStore.mode);
@@ -293,6 +293,9 @@ onMounted(() => {
   const active = settings.userThemes.find((ut) => ut.id === themeStore.active.theme.id);
   startEditing(active ?? freshTheme());
 });
+
+const unregisterSave = registerSave(save);
+onUnmounted(unregisterSave);
 </script>
 
 <template>
@@ -306,7 +309,7 @@ onMounted(() => {
       <span v-if="isDirty" class="dirty" :title="t('themeStudio.unsaved')">● {{ t('themeStudio.unsaved') }}</span>
     </div>
 
-    <Teleport defer to="#settings-theme-preview">
+    <Teleport defer :to="'#' + THEME_STUDIO_PREVIEW_ID">
     <div class="stage">
       <div class="row">
         <span class="lbl">{{ t('themeStudio.preview') }}</span>

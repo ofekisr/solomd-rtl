@@ -1,4 +1,4 @@
-import { computed, ref, watchEffect } from 'vue';
+import { computed, ref, shallowRef, watchEffect } from 'vue';
 import { useSettingsStore } from '../stores/settings';
 import { useThemeStore } from '../stores/theme';
 import { studioToTheme } from '../lib/theme/from-studio';
@@ -19,6 +19,26 @@ const savedSnapshot = ref('');
 const previewFamily = ref<ThemeMode | null>(null);
 /** A token blinking in a loud colour, to show where it is used. */
 const flash = ref<{ mode: ThemeMode; key: string; color: string } | null>(null);
+
+export const THEME_STUDIO_PREVIEW_ID = 'theme-studio-preview';
+
+const saveHandler = shallowRef<(() => Promise<boolean>) | null>(null);
+
+function registerSave(fn: () => Promise<boolean>): () => void {
+  saveHandler.value = fn;
+  return () => {
+    if (saveHandler.value === fn) saveHandler.value = null;
+  };
+}
+
+function saveDraft(): Promise<boolean> {
+  return saveHandler.value ? saveHandler.value() : Promise.resolve(false);
+}
+
+function resetDraft(): void {
+  draft.value = null;
+  savedSnapshot.value = '';
+}
 
 const isDirty = computed(() => !!draft.value && JSON.stringify(draft.value) !== savedSnapshot.value);
 
@@ -70,5 +90,5 @@ export function installStudioPreview(): void {
 }
 
 export function useThemeStudio() {
-  return { studioOpen, draft, savedSnapshot, isDirty, previewFamily, flash };
+  return { studioOpen, draft, savedSnapshot, isDirty, previewFamily, flash, registerSave, saveDraft, resetDraft };
 }
