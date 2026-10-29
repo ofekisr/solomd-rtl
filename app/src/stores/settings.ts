@@ -7,6 +7,8 @@ import { migrateLensKeybindings } from '../lib/mindmap-lens';
 import { isViewModeChangeAllowed } from '../lib/view-mode-guard';
 import { normalizePasteMapSetting, type PasteMapSetting } from '../lib/mindmap-insert';
 import { normalizeUserThemes, type UserTheme } from '../lib/user-theme';
+import type { Appearance, MigrationPlan } from '../lib/theme/migrate';
+import { DEFAULT_SLOTS, type SlotRef } from '../lib/theme/legacy';
 import { normalizeStyleTemplates, removeTemplate, upsertTemplate, type StyleTemplate } from '../lib/mindmap-style-templates';
 import { DEFAULT_MINDMAP_CONTROL_STYLE, normalizeControlStyle, type MindmapControlStyle } from '../lib/mindmap-icon-names';
 import { parseTagRules, type TagRule } from '../lib/mindmap-folder-tree';
@@ -132,6 +134,12 @@ interface Settings {
   // Theme Studio — user-built light+dark palettes; one may be active.
   userThemes: UserTheme[];
   activeUserThemeId: string;
+  /** Light / Dark / follow the OS. Picks which slot paints the app. */
+  appearance: Appearance;
+  lightSlot: SlotRef;
+  darkSlot: SlotRef;
+  /** 0 until the one-time migration to the theme layer ran. */
+  themeLayerVersion: number;
   // Anonymous telemetry (Aptabase). Defaults true but user can opt out.
   telemetryEnabled: boolean;
   // First-run banner dismissal. Shown once, never again.
@@ -635,6 +643,10 @@ function defaults(): Settings {
     customCssPath: '',
     userThemes: [],
     activeUserThemeId: '',
+    appearance: 'system',
+    lightSlot: DEFAULT_SLOTS.light,
+    darkSlot: DEFAULT_SLOTS.dark,
+    themeLayerVersion: 0,
     telemetryEnabled: false,
     telemetryNoticeAck: true,
     restoreSession: true,
@@ -806,10 +818,17 @@ function mergePdfDefaults(saved: unknown): PdfDefaults {
   };
 }
 
+let hadStoredSettingsAtLoad = false;
+
+export function hadStoredSettings(): boolean {
+  return hadStoredSettingsAtLoad;
+}
+
 function load(): Settings {
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) {
+      hadStoredSettingsAtLoad = true;
       const parsed = JSON.parse(raw) as Partial<Settings>;
       const merged: Settings = { ...defaults(), ...parsed };
       // pdfDefaults is a nested object: do a clamping merge so a missing
@@ -828,6 +847,7 @@ function load(): Settings {
       merged.mindmapStyleTemplates = normalizeStyleTemplates(parsed.mindmapStyleTemplates);
       merged.userThemes = normalizeUserThemes(parsed.userThemes);
       if (!merged.userThemes.some((ut) => ut.id === merged.activeUserThemeId)) merged.activeUserThemeId = '';
+      if (!['light', 'dark', 'system'].includes(merged.appearance)) merged.appearance = 'system';
       if (parsed.mindmapFolderTagRules !== undefined) merged.mindmapFolderTagRules = parseTagRules(parsed.mindmapFolderTagRules);
       // #180 — keybindings is a free-form map, so a tampered or older blob
       // could put anything here; keep only string/null values.
@@ -910,12 +930,25 @@ export const useSettingsStore = defineStore('settings', {
         localStorage.setItem(LS_KEY, JSON.stringify(rest));
       } catch {}
     },
-    setTheme(theme: Theme) {
-      this.theme = theme;
+    setAppearance(appearance: Appearance) {
+      this.appearance = appearance;
       this.persist();
     },
-    toggleTheme() {
-      this.setTheme(this.theme === 'light' ? 'dark' : 'light');
+    setSlot(mode: 'light' | 'dark', ref: SlotRef) {
+      if (mode === 'light') this.lightSlot = ref;
+      else this.darkSlot = ref;
+      this.persist();
+    },
+    applyMigration(plan: MigrationPlan, version: number) {
+      this.appearance = plan.appearance;
+      this.lightSlot = plan.lightSlot;
+      this.darkSlot = plan.darkSlot;
+      this.themeLayerVersion = version;
+      this.persist();
+    },
+    /** Toolbar button: flip to the other mode of what is showing now. */
+    toggleTheme(currentMode: 'light' | 'dark') {
+      this.setAppearance(currentMode === 'dark' ? 'light' : 'dark');
     },
     setStartupViewMode(mode: ViewMode | null) {
       this.startupViewMode = mode;
