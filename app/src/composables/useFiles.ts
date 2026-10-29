@@ -23,6 +23,7 @@ import { planXmindOpen } from '../lib/mindmap-xmind-open';
 import { MMAP_EXTENSION, MINDMAP_EXTENSIONS, isXmindPath, mmapPathFor } from '../lib/mindmap-format';
 import { XMIND_TOO_LARGE_ERROR, XMIND_CONTENT_TOO_LARGE_ERROR } from '../lib/xmind-limits';
 import { untitledFileName } from '../lib/file-language';
+import { isVirtualLanguage } from '../lib/virtual-tabs';
 import { convertedMarkdownPath } from '../lib/convert-conflict';
 import { useConvertedOutput } from './useConvertedOutput';
 
@@ -794,7 +795,7 @@ export function useFiles() {
   }
 
   async function saveTab(tab: Tab, opts: { silent?: boolean } = {}): Promise<boolean> {
-    if (tab.language === 'git-diff') return false;
+    if (isVirtualLanguage(tab.language)) return false;
     // #222 — the CodeMirror editor syncs doc→tab.content on a 350ms debounce.
     // A save issued inside that window (vim `:w`/`:wq`, a fast Ctrl+S) would
     // read a stale document; for `:wq` the tab then closes and the tail of the
@@ -865,7 +866,7 @@ export function useFiles() {
   }
 
   async function saveTabAs(tab: Tab): Promise<boolean> {
-    if (tab.language === 'git-diff') return false;
+    if (isVirtualLanguage(tab.language)) return false;
     const defaultName =
       deriveNameFromHeading(tab) ||
       tab.fileName ||

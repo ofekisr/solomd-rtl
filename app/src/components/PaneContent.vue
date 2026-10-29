@@ -7,6 +7,7 @@ import { useTilesStore } from '../stores/tiles';
 import type { Tab } from '../types';
 import { MINDMAP_CONVERT_EVENT, useMindmapConvert, type LineSelection, type MindmapConvertDetail } from '../composables/useMindmapConvert';
 import { isWindowsEditorRuntime, shouldUsePlainWindowsEditor } from '../lib/platform';
+import { isVirtualLanguage } from '../lib/virtual-tabs';
 
 const props = defineProps<{
   paneId: string;
@@ -33,7 +34,7 @@ const isMindmap = computed(() => props.tab?.language === 'mindmap');
 const isGitDiff = computed(() => props.tab?.language === 'git-diff');
 
 const showEditor = computed(
-  () => !isMindmap.value && !isGitDiff.value && (props.tab?.language !== 'markdown' || settings.viewMode !== 'preview')
+  () => !isMindmap.value && !isVirtualLanguage(props.tab?.language) && (props.tab?.language !== 'markdown' || settings.viewMode !== 'preview')
 );
 // `liveEdit` mode is editor-only: the inline-rendered markdown IS the
 // preview, so we don't show the separate Preview pane next to it.

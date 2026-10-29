@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { inferFileLanguage } from '../lib/file-language';
+import { isVirtualLanguage } from '../lib/virtual-tabs';
 import type { Language, Tab } from '../types';
 import { useSettingsStore } from './settings';
 import { useTilesStore } from './tiles';
@@ -133,7 +134,7 @@ function bucketKey(folder: string | null): string {
 }
 
 function isDirty(t: Tab): boolean {
-  if (t.language === 'git-diff') return false;
+  if (isVirtualLanguage(t.language)) return false;
   return t.content !== t.savedContent;
 }
 
@@ -203,7 +204,7 @@ export const useTabsStore = defineStore('tabs', {
       };
     },
     persistableTabs(state): Tab[] {
-      return state.tabs.filter((t) => t.language !== 'git-diff');
+      return state.tabs.filter((t) => !isVirtualLanguage(t.language));
     },
   },
   actions: {
