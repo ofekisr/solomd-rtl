@@ -82,6 +82,20 @@ function applyFolds(view: EditorView, ranges: FoldRange[]): boolean {
   return true;
 }
 
+/** Every folded range, in document order. */
+export function currentFoldRanges(state: EditorState): FoldRange[] {
+  const ranges: FoldRange[] = [];
+  foldedRanges(state).between(0, state.doc.length, (from, to) => {
+    ranges.push({ from, to });
+  });
+  return ranges;
+}
+
+/** Re-fold previously captured ranges, e.g. when a tab comes back. */
+export function restoreFoldRanges(view: EditorView, ranges: FoldRange[]): boolean {
+  return applyFolds(view, ranges.filter((r) => r.to <= view.state.doc.length));
+}
+
 /** Is anything folded right now? */
 export function hasFolds(state: EditorState): boolean {
   let any = false;

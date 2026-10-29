@@ -29,8 +29,10 @@ import {dragAwareExtension} from '../lib/cm-drag-aware';
 import {fenceLanguageComplete, fenceLanguageExtension} from '../lib/cm-fence-completion';
 import {focusModeExtension, typewriterModeExtension} from '../lib/cm-focus-mode';
 import {
-  foldAllHeadings, foldHeadingsToLevel, headingFoldExtension, toggleHeadingFoldAtCursor, unfoldAllFolds,
+  currentFoldRanges, foldAllHeadings, foldHeadingsToLevel, headingFoldExtension, restoreFoldRanges,
+  toggleHeadingFoldAtCursor, unfoldAllFolds,
 } from '../lib/cm-heading-fold';
+import {anchorSnapshot, captureFolds, foldAnchorsFor, foldRangesFor, recallFolds, rememberFolds} from '../lib/fold-memory';
 import {
   handleTextareaImagePaste, imagePasteExtension, type ImagePasteOptions, imageTextFromPath,
   insertImageFromPath as cmInsertImageFromPath
@@ -3208,6 +3210,7 @@ onMounted(() => {
   if (usePlainWindowsEditor) {
     syncPlainEditorFromStore(props.tab.content);
     maybeRestoreSession();
+    restoreFolds();
     void processPlainLiveRenderedBlocks();
     focusPlainEditor();
     // #126 — let the toolbar AI-rewrite button read this editor's selection
@@ -3226,6 +3229,7 @@ onMounted(() => {
   });
   applyLazyLanguage(props.tab.language);
   maybeRestoreSession();
+  restoreFolds();
   // Expose the focused EditorView on `window` for dev-bridge / self-test
   // harnesses. Vite injects `import.meta.env.DEV === true` only in dev
   // builds; production bundles dead-code-eliminate this entire block.
@@ -3566,6 +3570,7 @@ function applyFold(action: 'toggle' | 'all' | 'none' | 'level', level = 2): void
 }
 
 onBeforeUnmount(() => {
+  saveFolds();
   cleanupRelayout?.();
   cleanupTransformCase?.();
   cleanupTransformCase = null;
@@ -3601,6 +3606,28 @@ onBeforeUnmount(() => {
 // re-sync moves the caret to the END of the document, and the CodeMirror
 // `setState` reset it to 0.
 const tabCaretMemory = new Map<string, { caret: number; scrollTop: number }>();
+
+// Folds are remembered per document (file path, else tab id) rather than per
+// pane, so they also come back when a closed file is reopened this session.
+function foldMemoryKey(tab: Tab): string {
+  return tab.filePath ?? tab.id;
+}
+let foldKey = foldMemoryKey(props.tab);
+
+function saveFolds(): void {
+  if (usePlainWindowsEditor) rememberFolds(foldKey, anchorSnapshot(plainText.value, plainFolds.value));
+  else if (view) rememberFolds(foldKey, captureFolds(view.state.doc.toString(), currentFoldRanges(view.state)));
+}
+
+function restoreFolds(): void {
+  foldKey = foldMemoryKey(props.tab);
+  const snapshot = settings.foldingEnabled ? recallFolds(foldKey) : null;
+  if (usePlainWindowsEditor) {
+    plainFolds.value = snapshot ? foldAnchorsFor(plainText.value, snapshot) : [];
+    return;
+  }
+  if (view && snapshot) restoreFoldRanges(view, foldRangesFor(view.state.doc.toString(), snapshot));
+}
 
 // #169 (Windows) — one synchronous scrollTop assignment is not enough on the
 // plain paths: focusPlainEditor() focuses on nextTick, and the browser then
@@ -3646,6 +3673,7 @@ watch(
     // Snapshot the OUTGOING tab first — at this point the editor DOM/state
     // still holds the old document (re-sync happens below).
     if (oldId) {
+      saveFolds();
       if (usePlainWindowsEditor) {
         if (plainLiveEnabled.value) {
           tabCaretMemory.set(oldId, {
@@ -3679,6 +3707,7 @@ watch(
       closePlainFind();
       syncPlainEditorFromStore(props.tab.content);
       maybeRestoreSession();
+      restoreFolds();
       void processPlainLiveRenderedBlocks();
       focusPlainEditor();
       // Restore the caret/scroll (default: document START, not end — the
@@ -3697,6 +3726,7 @@ watch(
     );
     applyLazyLanguage(props.tab.language);
     maybeRestoreSession();
+    restoreFolds();
     if (saved) {
       // #169 — one synchronous assignment is not enough: async widget renders
       // (tables / images / mermaid) and CM's post-setState measure pass can
