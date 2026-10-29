@@ -1,0 +1,71 @@
+{
+  "id": "dracula",
+  "name": "Dracula",
+  "version": 1,
+  "source": "builtin",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "#282a36",
+          "text": "#f8f8f2",
+          "textMuted": "#bfbfdc",
+          "textFaint": "#6272a4",
+          "accent": "#bd93f9",
+          "accentFg": "#282a36",
+          "danger": "#d64545"
+        }
+      },
+      "surfaces": {
+        "colors": {
+          "panel": "#44475a",
+          "hover": "#4e5172",
+          "active": "#5a5d8a",
+          "border": "#44475a"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "#f8f8f2",
+          "h2": "#f8f8f2",
+          "h3": "#bfbfdc",
+          "h4": "#bfbfdc",
+          "h5": "#6272a4",
+          "h6": "#6272a4",
+          "strong": "#f8f8f2",
+          "em": "#f1fa8c",
+          "link": "#8be9fd",
+          "url": "#50fa7b",
+          "code": "#ff79c6",
+          "codeBg": "#44475a",
+          "quote": "#6272a4",
+          "list": "#50fa7b",
+          "hr": "#44475a"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "#ff79c6",
+          "string": "#f1fa8c",
+          "number": "#bd93f9",
+          "comment": "#6272a4",
+          "function": "#50fa7b",
+          "variable": "#f8f8f2",
+          "type": "#8be9fd",
+          "property": "#50fa7b",
+          "operator": "#ff79c6"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "#282a36",
+          "gutterBg": "#282a36",
+          "gutterFg": "#6272a4",
+          "selection": "rgba(189,147,249,0.18)",
+          "cursor": "#bd93f9"
+        }
+      }
+    }
+  }
+}

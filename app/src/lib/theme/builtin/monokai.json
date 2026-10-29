@@ -1,0 +1,71 @@
+{
+  "id": "monokai",
+  "name": "Monokai",
+  "version": 1,
+  "source": "builtin",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "#272822",
+          "text": "#f8f8f2",
+          "textMuted": "#a6a68a",
+          "textFaint": "#75715e",
+          "accent": "#f92672",
+          "accentFg": "#ffffff",
+          "danger": "#d64545"
+        }
+      },
+      "surfaces": {
+        "colors": {
+          "panel": "#3e3d32",
+          "hover": "#49483e",
+          "active": "#575648",
+          "border": "#49483e"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "#f8f8f2",
+          "h2": "#f8f8f2",
+          "h3": "#e8e8d2",
+          "h4": "#a6a68a",
+          "h5": "#a6a68a",
+          "h6": "#75715e",
+          "strong": "#f8f8f2",
+          "em": "#e6db74",
+          "link": "#66d9ef",
+          "url": "#a6e22e",
+          "code": "#f92672",
+          "codeBg": "#3e3d32",
+          "quote": "#75715e",
+          "list": "#a6e22e",
+          "hr": "#49483e"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "#f92672",
+          "string": "#e6db74",
+          "number": "#ae81ff",
+          "comment": "#75715e",
+          "function": "#a6e22e",
+          "variable": "#f8f8f2",
+          "type": "#66d9ef",
+          "property": "#a6e22e",
+          "operator": "#f92672"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "#272822",
+          "gutterBg": "#272822",
+          "gutterFg": "#75715e",
+          "selection": "rgba(249,38,114,0.18)",
+          "cursor": "#f92672"
+        }
+      }
+    }
+  }
+}

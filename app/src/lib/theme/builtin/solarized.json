@@ -1,0 +1,134 @@
+{
+  "id": "solarized",
+  "name": "Solarized",
+  "version": 1,
+  "source": "builtin",
+  "variants": {
+    "light": {
+      "mode": "light",
+      "app": {
+        "colors": {
+          "bg": "#fdf6e3",
+          "text": "#657b83",
+          "textMuted": "#839496",
+          "textFaint": "#93a1a1",
+          "accent": "#268bd2",
+          "accentFg": "#fdf6e3",
+          "danger": "#d64545"
+        }
+      },
+      "surfaces": {
+        "colors": {
+          "panel": "#eee8d5",
+          "hover": "#e8e1cb",
+          "active": "#ddd6c1",
+          "border": "#d3cbb7"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "#073642",
+          "h2": "#586e75",
+          "h3": "#657b83",
+          "h4": "#839496",
+          "h5": "#93a1a1",
+          "h6": "#93a1a1",
+          "strong": "#073642",
+          "em": "#586e75",
+          "link": "#268bd2",
+          "url": "#2aa198",
+          "code": "#d33682",
+          "codeBg": "#eee8d5",
+          "quote": "#93a1a1",
+          "list": "#cb4b16",
+          "hr": "#d3cbb7"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "#859900",
+          "string": "#2aa198",
+          "number": "#d33682",
+          "comment": "#93a1a1",
+          "function": "#268bd2",
+          "variable": "#657b83",
+          "type": "#b58900",
+          "property": "#268bd2",
+          "operator": "#657b83"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "#fdf6e3",
+          "gutterBg": "#fdf6e3",
+          "gutterFg": "#93a1a1",
+          "selection": "rgba(38,139,210,0.15)",
+          "cursor": "#268bd2"
+        }
+      }
+    },
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "#002b36",
+          "text": "#839496",
+          "textMuted": "#657b83",
+          "textFaint": "#586e75",
+          "accent": "#268bd2",
+          "accentFg": "#fdf6e3",
+          "danger": "#d64545"
+        }
+      },
+      "surfaces": {
+        "colors": {
+          "panel": "#073642",
+          "hover": "#0a4050",
+          "active": "#0d4f5e",
+          "border": "#0a4050"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "#93a1a1",
+          "h2": "#839496",
+          "h3": "#657b83",
+          "h4": "#586e75",
+          "h5": "#586e75",
+          "h6": "#586e75",
+          "strong": "#93a1a1",
+          "em": "#839496",
+          "link": "#268bd2",
+          "url": "#2aa198",
+          "code": "#d33682",
+          "codeBg": "#073642",
+          "quote": "#586e75",
+          "list": "#cb4b16",
+          "hr": "#0a4050"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "#859900",
+          "string": "#2aa198",
+          "number": "#d33682",
+          "comment": "#586e75",
+          "function": "#268bd2",
+          "variable": "#839496",
+          "type": "#b58900",
+          "property": "#268bd2",
+          "operator": "#839496"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "#002b36",
+          "gutterBg": "#002b36",
+          "gutterFg": "#586e75",
+          "selection": "rgba(38,139,210,0.2)",
+          "cursor": "#268bd2"
+        }
+      }
+    }
+  }
+}

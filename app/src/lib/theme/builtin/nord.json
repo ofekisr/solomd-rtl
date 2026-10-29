@@ -1,0 +1,71 @@
+{
+  "id": "nord",
+  "name": "Nord",
+  "version": 1,
+  "source": "builtin",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "#2e3440",
+          "text": "#eceff4",
+          "textMuted": "#d8dee9",
+          "textFaint": "#616e88",
+          "accent": "#88c0d0",
+          "accentFg": "#2e3440",
+          "danger": "#d64545"
+        }
+      },
+      "surfaces": {
+        "colors": {
+          "panel": "#3b4252",
+          "hover": "#434c5e",
+          "active": "#4c566a",
+          "border": "#4c566a"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "#eceff4",
+          "h2": "#e5e9f0",
+          "h3": "#d8dee9",
+          "h4": "#c8ced8",
+          "h5": "#a8b0c0",
+          "h6": "#8890a0",
+          "strong": "#eceff4",
+          "em": "#d8dee9",
+          "link": "#88c0d0",
+          "url": "#5e81ac",
+          "code": "#bf616a",
+          "codeBg": "#3b4252",
+          "quote": "#616e88",
+          "list": "#88c0d0",
+          "hr": "#4c566a"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "#81a1c1",
+          "string": "#a3be8c",
+          "number": "#b48ead",
+          "comment": "#616e88",
+          "function": "#88c0d0",
+          "variable": "#d8dee9",
+          "type": "#8fbcbb",
+          "property": "#88c0d0",
+          "operator": "#81a1c1"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "#2e3440",
+          "gutterBg": "#2e3440",
+          "gutterFg": "#4c566a",
+          "selection": "rgba(136,192,208,0.2)",
+          "cursor": "#88c0d0"
+        }
+      }
+    }
+  }
+}

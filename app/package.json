@@ -10,6 +10,7 @@
     "test": "node --test \"src/**/*.test.ts\"",
     "tauri": "tauri",
     "tauri:dev": "tauri dev --config src-tauri/tauri.dev.conf.json",
+    "theme:builtins": "node scripts/theme/build-builtins.ts",
     "dev:seed": "bash ../scripts/dev-seed.sh"
   },
   "dependencies": {
