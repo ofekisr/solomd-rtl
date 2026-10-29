@@ -63,3 +63,38 @@ test('rgb() chrome from the extractor yields a light-mode theme', () => {
   assert.equal(theme.variants.light.mode, 'light');
   assert.equal(parseTheme(theme).ok, true);
 });
+
+function collapsed(): ExtractedCmTheme {
+  const x = structuredClone(dracula);
+  const fg = x.chrome.foreground;
+  for (const k of ['heading', 'link', 'strong', 'emphasis', 'quote'] as const) x.tags[k] = tag(fg);
+  return x;
+}
+
+test('unstyled markdown tags fall back to code colours', () => {
+  const md = cmToTheme(collapsed()).variants.dark.markdown?.colors;
+  assert.equal(md?.h1, '#ff79c6');
+  assert.equal(md?.link, '#f1fa8c');
+  assert.equal(md?.strong, '#50fa7b');
+  assert.equal(md?.em, '#8be9fd');
+  assert.notEqual(md?.quote, '#f8f8f2');
+});
+
+test('an explicitly bold heading tag emits markdown heading style', () => {
+  const x = structuredClone(dracula);
+  x.tags.heading = { color: '#bd93f9', italic: false, bold: true };
+  assert.equal(cmToTheme(x).variants.dark.markdown?.style?.heading?.bold, true);
+  assert.equal(cmToTheme(dracula).variants.dark.markdown?.style, undefined);
+});
+
+test('transparent chrome highlights get a visible fallback', () => {
+  const x = structuredClone(dracula);
+  x.chrome.bracket = 'rgba(0, 0, 0, 0)';
+  x.chrome.search = 'transparent';
+  x.chrome.searchActive = 'rgba(0, 0, 0, 0)';
+  x.chrome.selection = 'rgba(0, 0, 0, 0)';
+  const c = cmToTheme(x).variants.dark.editor?.colors;
+  for (const k of ['bracket', 'search', 'searchActive', 'selection'] as const) {
+    assert.ok(c?.[k] && c[k] !== 'transparent' && !c[k].includes(', 0)'), k);
+  }
+});

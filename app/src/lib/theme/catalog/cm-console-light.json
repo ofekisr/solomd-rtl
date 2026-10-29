@@ -24,7 +24,7 @@
           "link": "rgb(0, 0, 0)",
           "url": "rgb(0, 0, 0)",
           "code": "rgb(0, 0, 0)",
-          "quote": "rgb(0, 0, 0)"
+          "quote": "color-mix(in srgb, rgb(0, 0, 0) 40%, rgb(0, 0, 0))"
         }
       },
       "code": {
@@ -54,9 +54,9 @@
           "activeLine": "rgba(199, 197, 197, 0.46)",
           "selection": "rgb(194, 210, 255)",
           "cursor": "rgb(0, 0, 0)",
-          "bracket": "rgba(0, 0, 0, 0)",
-          "search": "rgba(0, 0, 0, 0)",
-          "searchActive": "rgba(0, 0, 0, 0)"
+          "bracket": "color-mix(in srgb, rgb(255, 255, 255) 75%, rgb(0, 0, 0))",
+          "search": "color-mix(in srgb, rgb(255, 255, 255) 70%, rgb(0, 0, 0))",
+          "searchActive": "color-mix(in srgb, rgb(255, 255, 255) 50%, rgb(0, 0, 0))"
         }
       }
     }

@@ -15,16 +15,21 @@
       },
       "markdown": {
         "colors": {
-          "h1": "rgb(221, 221, 221)",
-          "h2": "rgb(221, 221, 221)",
-          "h3": "color-mix(in srgb, rgb(221, 221, 221) 70%, rgb(221, 221, 221))",
-          "h4": "color-mix(in srgb, rgb(221, 221, 221) 40%, rgb(221, 221, 221))",
+          "h1": "rgb(253, 163, 49)",
+          "h2": "rgb(253, 163, 49)",
+          "h3": "color-mix(in srgb, rgb(253, 163, 49) 70%, rgb(253, 163, 49))",
+          "h4": "color-mix(in srgb, rgb(253, 163, 49) 40%, rgb(111, 179, 210))",
           "strong": "rgb(253, 163, 49)",
           "em": "rgb(111, 179, 210)",
           "link": "rgb(105, 135, 175)",
           "url": "rgb(181, 189, 104)",
           "code": "rgb(181, 189, 104)",
-          "quote": "rgb(221, 221, 221)"
+          "quote": "color-mix(in srgb, rgb(221, 221, 221) 40%, rgb(128, 128, 128))"
+        },
+        "style": {
+          "heading": {
+            "bold": true
+          }
         }
       },
       "code": {
@@ -59,9 +64,9 @@
           "activeLine": "rgba(185, 210, 255, 0.19)",
           "selection": "rgb(32, 35, 37)",
           "cursor": "rgb(221, 221, 221)",
-          "bracket": "rgba(0, 0, 0, 0)",
-          "search": "rgba(0, 0, 0, 0)",
-          "searchActive": "rgba(0, 0, 0, 0)"
+          "bracket": "color-mix(in srgb, rgb(46, 50, 53) 75%, rgb(253, 163, 49))",
+          "search": "color-mix(in srgb, rgb(46, 50, 53) 70%, rgb(253, 163, 49))",
+          "searchActive": "color-mix(in srgb, rgb(46, 50, 53) 50%, rgb(253, 163, 49))"
         }
       }
     }

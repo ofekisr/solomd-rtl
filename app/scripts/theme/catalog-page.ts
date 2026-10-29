@@ -12,6 +12,7 @@ const TAGS: Record<string, Tag> = {
   tag: t.tagName, attribute: t.attributeName, regexp: t.regexp, constant: t.constant(t.name), invalid: t.invalid,
   heading: t.heading, link: t.link, emphasis: t.emphasis, strong: t.strong, quote: t.quote,
 };
+const BOLD_WEIGHT_MIN = 600;
 const NOT_A_THEME_RE = /(Init|Style|Settings|settings|Theme)$|^default/;
 
 function themeExports(): [string, Extension][] {
@@ -19,7 +20,7 @@ function themeExports(): [string, Extension][] {
   return [['oneDark', oneDark], ...(entries as [string, Extension][])];
 }
 
-function probe(view: EditorView, cls: string, parent: Element): CSSStyleDeclaration {
+function probe(cls: string, parent: Element): CSSStyleDeclaration {
   const el = document.createElement('span');
   el.className = cls;
   el.textContent = 'x';
@@ -30,8 +31,8 @@ function probe(view: EditorView, cls: string, parent: Element): CSSStyleDeclarat
 function readTags(view: EditorView) {
   const line = view.contentDOM.querySelector('.cm-line') as Element;
   return Object.fromEntries(Object.entries(TAGS).map(([key, tag]) => {
-    const s = probe(view, highlightingFor(view.state, [tag]) ?? '', line);
-    return [key, { color: s.color, italic: s.fontStyle === 'italic', bold: Number(s.fontWeight) >= 600 || s.fontWeight === 'bold' }];
+    const s = probe(highlightingFor(view.state, [tag]) ?? '', line);
+    return [key, { color: s.color, italic: s.fontStyle === 'italic', bold: Number(s.fontWeight) >= BOLD_WEIGHT_MIN || s.fontWeight === 'bold' }];
   }));
 }
 
@@ -58,9 +59,9 @@ function readChrome(view: EditorView) {
     activeLine: bg(root.querySelector('.cm-activeLine')),
     selection: bg(root.querySelector('.cm-selectionBackground')),
     cursor: cursorColor(root),
-    bracket: probe(view, 'cm-matchingBracket', line).backgroundColor,
-    search: probe(view, 'cm-searchMatch', line).backgroundColor,
-    searchActive: probe(view, 'cm-searchMatch cm-searchMatch-selected', line).backgroundColor,
+    bracket: probe('cm-matchingBracket', line).backgroundColor,
+    search: probe('cm-searchMatch', line).backgroundColor,
+    searchActive: probe('cm-searchMatch cm-searchMatch-selected', line).backgroundColor,
   };
 }
 

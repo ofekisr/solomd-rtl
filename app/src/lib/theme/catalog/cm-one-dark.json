@@ -17,14 +17,19 @@
         "colors": {
           "h1": "rgb(224, 108, 117)",
           "h2": "rgb(224, 108, 117)",
-          "h3": "color-mix(in srgb, rgb(224, 108, 117) 70%, rgb(171, 178, 191))",
-          "h4": "color-mix(in srgb, rgb(224, 108, 117) 40%, rgb(171, 178, 191))",
-          "strong": "rgb(171, 178, 191)",
-          "em": "rgb(171, 178, 191)",
+          "h3": "color-mix(in srgb, rgb(224, 108, 117) 70%, rgb(97, 175, 239))",
+          "h4": "color-mix(in srgb, rgb(224, 108, 117) 40%, rgb(229, 192, 123))",
+          "strong": "rgb(97, 175, 239)",
+          "em": "rgb(229, 192, 123)",
           "link": "rgb(125, 135, 153)",
           "url": "rgb(152, 195, 121)",
           "code": "rgb(152, 195, 121)",
-          "quote": "rgb(171, 178, 191)"
+          "quote": "color-mix(in srgb, rgb(171, 178, 191) 40%, rgb(125, 135, 153))"
+        },
+        "style": {
+          "heading": {
+            "bold": true
+          }
         }
       },
       "code": {

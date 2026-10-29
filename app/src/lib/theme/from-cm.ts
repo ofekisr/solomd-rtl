@@ -36,14 +36,45 @@ function codeSection(tags: ExtractedCmTheme['tags']): NonNullable<Variant['code'
   return { colors, ...(Object.keys(style).length ? { style } : {}) };
 }
 
+const TRANSPARENT_RE = /^(transparent|rgba\(\s*\d+[\s,]+\d+[\s,]+\d+[\s,/]+0(\.0+)?\s*\))$/i;
+const QUOTE_COMMENT_MIX = 0.6;
+const CHROME_ACCENT_MIX = { bracket: 0.25, search: 0.3, searchActive: 0.5, selection: 0.3 } as const;
+
+function isTransparent(color: string): boolean {
+  return color.trim() === '' || TRANSPARENT_RE.test(color.trim());
+}
+
+function distinctOr(candidate: string, text: string, fallback: string): string {
+  return toHex6(candidate) === toHex6(text) ? fallback : candidate;
+}
+
+type MarkdownStyle = NonNullable<NonNullable<Variant['markdown']>['style']>;
+
+function markdownStyle(tags: ExtractedCmTheme['tags']): MarkdownStyle {
+  const entries = (['heading', 'link', 'quote'] as const).map((k) => [k, textStyleOf(tags[k])] as const);
+  return Object.fromEntries(entries.filter(([, s]) => s));
+}
+
 function markdownSection(tags: ExtractedCmTheme['tags'], text: string): NonNullable<Variant['markdown']> {
-  const heading = tags.heading.color;
+  const pick = (k: CodeTagKey, fallback: string): string => distinctOr(tags[k].color, text, fallback);
+  const h1 = pick('heading', tags.keyword.color);
+  const style = markdownStyle(tags);
   return {
     colors: {
-      h1: heading, h2: heading, h3: mixColor(heading, text, MIX.h3), h4: mixColor(heading, text, MIX.h4),
-      strong: tags.strong.color, em: tags.emphasis.color, link: tags.link.color, url: tags.string.color,
-      code: tags.string.color, quote: tags.quote.color,
+      h1, h2: h1, h3: mixColor(h1, tags.function.color, MIX.h3), h4: mixColor(h1, tags.type.color, MIX.h4),
+      strong: pick('strong', tags.function.color), em: pick('emphasis', tags.type.color),
+      link: pick('link', tags.string.color), url: tags.string.color, code: tags.string.color,
+      quote: pick('quote', mixColor(text, tags.comment.color, QUOTE_COMMENT_MIX)),
     },
+    ...(Object.keys(style).length ? { style } : {}),
+  };
+}
+
+function fillChrome(chrome: Chrome, accent: string): Chrome {
+  const fill = (key: keyof typeof CHROME_ACCENT_MIX): string =>
+    isTransparent(chrome[key]) ? mixColor(chrome.background, accent, CHROME_ACCENT_MIX[key]) : chrome[key];
+  return {
+    ...chrome, bracket: fill('bracket'), search: fill('search'), searchActive: fill('searchActive'), selection: fill('selection'),
   };
 }
 
@@ -51,7 +82,7 @@ export function cmToTheme(x: ExtractedCmTheme): Theme {
   const { chrome, tags } = x;
   const mode = isLight(chrome.background) ? 'light' : 'dark';
   const accent = isGrey(chrome.cursor) ? tags.function.color : chrome.cursor;
-  const { foreground: text, background: bg, ...editorRest } = chrome;
+  const { foreground: text, background: bg, ...editorRest } = fillChrome(chrome, accent);
   const variant: Variant = {
     mode,
     app: { colors: { bg, text, accent } },
