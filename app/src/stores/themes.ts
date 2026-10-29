@@ -14,10 +14,8 @@ import { invoke } from '@tauri-apps/api/core';
  *      via `theme_list_installed` after the manifest loads, kept in sync
  *      after every `install` / `uninstall` action.
  *
- * The actual CSS injection still goes through the existing
- * `lib/custom-theme.ts::loadCustomTheme` watcher on
- * `settings.customCssPath` — installing a theme just sets that path. No
- * second watcher, no double-application.
+ * Applying a theme is the theme layer's job (stores/theme.ts); this store
+ * only downloads and lists files.
  */
 
 export interface ThemeManifestEntry {
@@ -137,8 +135,7 @@ export const useThemesStore = defineStore('themes', {
 
     /**
      * Download `theme.url`, write to `<config_dir>/themes/<id>.css`, and
-     * return the absolute path. Caller is responsible for setting it as
-     * `settings.customCssPath`.
+     * return the absolute path.
      */
     async install(theme: ThemeManifestEntry): Promise<string> {
       this.installingId = theme.id;

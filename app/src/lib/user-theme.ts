@@ -1,11 +1,7 @@
 /**
- * User-built themes (Theme Studio).
- *
- * A user theme is two palettes — light and dark — over the same CSS variables
- * the built-in themes set in main.css. Applying one injects a <style> that
- * keys each palette on `:root[data-theme="light"|"dark"]`, so the app's normal
- * light/dark switch picks the half, and every surface that already reads the
- * variables (shell, preview, live editor, syntax) repaints with no reload.
+ * User-built themes (Theme Studio): two palettes — light and dark — over the
+ * app's CSS variables, plus the colour helpers the studio shares with the
+ * theme layer. Painting is done by lib/theme, not here.
  */
 
 export type ThemeMode = 'light' | 'dark';
@@ -142,36 +138,15 @@ export const THEME_TOKEN_PAIRS: ThemeTokenPair[] = [
 export const DEFAULT_RADIUS = 1;
 export const MIN_RADIUS = 0;
 export const MAX_RADIUS = 2;
-const RADIUS_PX: Record<string, number> = { '--r-sm': 4, '--r-md': 8, '--r-lg': 12 };
 
 export const THEME_TOKEN_KEYS: string[] = THEME_TOKEN_GROUPS.flatMap((g) => g.tokens.map((tk) => tk.key));
-
-export const LIGHT_BASES = ['light', 'github-light', 'solarized-light'] as const;
-export const DARK_BASES = ['dark', 'nord', 'solarized-dark', 'monokai', 'dracula'] as const;
 
 export const DEFAULT_GRADIENT_ANGLE = 165;
 const GRADIENT_ACCENT_MIX = 0.25;
 
-/**
- * Regions that paint their own background over <body>. A gradient only shows
- * if they turn see-through — the same list the Aurora marketplace theme uses.
- */
-const SHOW_THROUGH = [
-  '.app', '.pane-host', '.preview-host', '.cm-host', '.plain-editor', '.pane--editor', '.pane--preview',
-  '.toolbar', '.statusbar', '.ftree', '.outline', '.side-sidebar', '.pane-tabbar',
-];
-
-const STYLE_ID = 'solomd-user-theme';
-/** `html:root` outranks the `:root` a custom CSS theme uses, whichever <style> loads last. */
-const OUTRANK_CSS_THEMES = 'html:root';
 const HEX6_RE = /^#[0-9a-f]{6}$/i;
 const HEX3_RE = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i;
 const FALLBACK_COLOR = '#808080';
-
-function radiusDecls(radius: number): string[] {
-  if (radius === DEFAULT_RADIUS) return [];
-  return Object.entries(RADIUS_PX).map(([k, px]) => `  ${k}: ${Math.round(px * radius * 10) / 10}px;`);
-}
 
 export function gradientCss(g: BgGradient): string {
   return `linear-gradient(${g.angle}deg, ${g.from}, ${g.to})`;
@@ -181,46 +156,6 @@ export function gradientCss(g: BgGradient): string {
 export function defaultGradient(palette: Palette): BgGradient {
   const bg = palette['--bg'] ?? FALLBACK_COLOR;
   return { from: bg, to: mix(bg, palette['--accent'] ?? bg, GRADIENT_ACCENT_MIX), angle: DEFAULT_GRADIENT_ANGLE };
-}
-
-function paletteCss(selector: string, theme: UserTheme, mode: ThemeMode): string {
-  const palette = theme[mode];
-  const backdrop = theme.gradient[mode];
-  const decls = THEME_TOKEN_KEYS.filter((k) => palette[k]).map((k) => `  ${k}: ${palette[k]};`);
-  if (backdrop !== KEEP_CSS_BACKDROP) decls.push(`  --bg-grad: ${isGradient(backdrop) ? gradientCss(backdrop) : 'none'};`);
-  return `${selector} {\n  color-scheme: ${mode};\n${[...decls, ...radiusDecls(theme.radius)].join('\n')}\n}`;
-}
-
-function showThroughCss(selector: string): string {
-  return [
-    `${selector} body {\n  background-image: var(--bg-grad);\n}`,
-    `${selector} :is(${SHOW_THROUGH.join(', ')}) {\n  background: transparent !important;\n}`,
-  ].join('\n\n');
-}
-
-/** Marketplace-compatible CSS for a theme: one block per mode. */
-export function userThemeCss(theme: UserTheme): string {
-  const modes: ThemeMode[] = ['light', 'dark'];
-  const selector = (mode: ThemeMode): string => `${OUTRANK_CSS_THEMES}[data-theme="${mode}"]`;
-  return [
-    `/* ${theme.name.replace(/\*\//g, '')} — made with SoloMD Theme Studio */`,
-    ...modes.map((mode) => paletteCss(selector(mode), theme, mode)),
-    ...modes.filter((mode) => isGradient(theme.gradient[mode])).map((mode) => showThroughCss(selector(mode))),
-  ].join('\n\n');
-}
-
-export function applyUserTheme(theme: UserTheme | null): void {
-  if (!theme) {
-    document.getElementById(STYLE_ID)?.remove();
-    return;
-  }
-  let el = document.getElementById(STYLE_ID) as HTMLStyleElement | null;
-  if (!el) {
-    el = document.createElement('style');
-    el.id = STYLE_ID;
-    document.head.appendChild(el);
-  }
-  el.textContent = userThemeCss(theme);
 }
 
 /** `#abc`, `rgb()`, names … → `#rrggbb` (what `<input type=color>` needs). Alpha is dropped. */
@@ -252,29 +187,6 @@ export function mix(a: string, b: string, amount: number): string {
   const ca = hexToRgb(a);
   const cb = hexToRgb(b);
   return rgbToHex(ca.map((c, i) => c + (cb[i] - c) * amount));
-}
-
-const LIGHT_BG_SPLIT = 0.5;
-
-export function isLightColor(hex: string): boolean {
-  return luminance(hex) > LIGHT_BG_SPLIT;
-}
-
-/**
- * A kept CSS-theme background only suits a mode whose own background is as
- * light (or dark) as that CSS theme's: Aurora's dark gradient behind a light
- * palette leaves dark text on a dark window. Mismatches fall back to plain.
- * `cssIsLight` answers null when no CSS theme is loaded.
- */
-export function fitBackdrops(theme: UserTheme, cssIsLight: (mode: ThemeMode) => boolean | null): UserTheme {
-  const fit = (mode: ThemeMode): Backdrop => {
-    const backdrop = theme.gradient[mode];
-    if (backdrop !== KEEP_CSS_BACKDROP) return backdrop;
-    const css = cssIsLight(mode);
-    if (css === null) return backdrop;
-    return css === isLightColor(theme[mode]['--bg'] ?? FALLBACK_COLOR) ? backdrop : null;
-  };
-  return { ...theme, gradient: { light: fit('light'), dark: fit('dark') } };
 }
 
 export function luminance(hex: string): number {
@@ -349,46 +261,6 @@ export function mergeKeeping(current: Palette, incoming: Palette, keep: readonly
   const out: Palette = { ...current, ...incoming };
   for (const key of keep) if (current[key]) out[key] = current[key];
   return out;
-}
-
-/** Built-ins leave some tokens unset; the app then falls back like this. */
-const TOKEN_FALLBACKS: Record<string, string> = { '--bg-soft': '--bg-elev' };
-
-/** Pseudo base name: the custom CSS theme currently loaded (marketplace or file). */
-export const CUSTOM_CSS_BASE = '__custom-css';
-
-/**
- * Read a theme's palette from the live stylesheet, so the studio never keeps
- * a second copy of main.css or of a marketplace file. data-theme flips and
- * flips back in the same task, so nothing paints in between. The user-theme
- * style is always muted meanwhile; the custom CSS style answers only when it
- * is the base asked for.
- */
-export function readThemePalette(base: string, mode: ThemeMode): Palette {
-  const root = document.documentElement;
-  const previous = root.getAttribute('data-theme');
-  const userStyle = document.getElementById(STYLE_ID) as HTMLStyleElement | null;
-  const customStyle = document.getElementById('solomd-custom-theme') as HTMLStyleElement | null;
-  const wasDisabled = [userStyle?.disabled, customStyle?.disabled];
-  if (userStyle) userStyle.disabled = true;
-  if (customStyle) customStyle.disabled = base !== CUSTOM_CSS_BASE;
-  root.setAttribute('data-theme', base === CUSTOM_CSS_BASE ? mode : base);
-  const style = getComputedStyle(root);
-  const raw = (key: string): string => style.getPropertyValue(key).trim();
-  const palette: Palette = {};
-  for (const key of THEME_TOKEN_KEYS) {
-    const value = raw(key) || (TOKEN_FALLBACKS[key] ? raw(TOKEN_FALLBACKS[key]) : '');
-    palette[key] = toHex6(value || FALLBACK_COLOR);
-  }
-  if (previous === null) root.removeAttribute('data-theme');
-  else root.setAttribute('data-theme', previous);
-  if (userStyle) userStyle.disabled = !!wasDisabled[0];
-  if (customStyle) customStyle.disabled = !!wasDisabled[1];
-  return palette;
-}
-
-export function hasCustomCssLoaded(): boolean {
-  return !!document.getElementById('solomd-custom-theme');
 }
 
 function normalizePalette(raw: unknown): Palette {

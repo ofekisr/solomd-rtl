@@ -882,9 +882,8 @@ defineExpose({ scrollToLine, openSearch });
   Intentionally NOT scoped: the markdown HTML is injected via v-html, so
   Vue's scoped-style attribute wouldn't make it onto those child nodes
   anyway. Manually prefixing every rule with `.preview-content` keeps
-  styles contained to the preview pane while still letting user-provided
-  custom CSS (injected via custom-theme.ts at the end of <head>) override
-  on equal-or-higher specificity.
+  styles contained to the preview pane while still letting later
+  overrides win on equal-or-higher specificity.
 -->
 <style>
 .preview-content .preview-fold-hidden {

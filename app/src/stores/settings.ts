@@ -1443,16 +1443,6 @@ export const useSettingsStore = defineStore('settings', {
       this.language = lang;
       this.persist();
     },
-    setCustomCssPath(p: string) {
-      this.customCssPath = p;
-      if (p) this.activeUserThemeId = '';
-      this.persist();
-    },
-    /** A user theme paints its colours over any custom CSS theme, keeping that theme's other styling. */
-    setActiveUserTheme(id: string) {
-      this.activeUserThemeId = id;
-      this.persist();
-    },
     saveUserTheme(theme: UserTheme) {
       const i = this.userThemes.findIndex((ut) => ut.id === theme.id);
       if (i === -1) this.userThemes.push(theme);

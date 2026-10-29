@@ -319,31 +319,6 @@ export function useCommands(): Command[] {
     },
 
     {
-      id: 'theme.customCss',
-      title: 'Theme: Set Custom CSS File…',
-      hint: 'Pick a .css file to override SoloMD styles',
-      run: async () => {
-        const path = await openFileDialog({
-          multiple: false,
-          defaultPath: await files.filePickerStartDir(),
-          filters: [{ name: 'CSS', extensions: ['css'] }],
-        });
-        if (path && typeof path === 'string') {
-          settings.setCustomCssPath(path);
-          toasts.success('Custom CSS theme loaded');
-        }
-      },
-    },
-    {
-      id: 'theme.clearCustomCss',
-      title: 'Theme: Clear Custom CSS',
-      run: () => {
-        settings.setCustomCssPath('');
-        toasts.info('Custom CSS theme cleared');
-      },
-    },
-
-    {
       id: 'cn.s2t',
       title: 'Chinese: Simplified → Traditional',
       hint: 'Convert document content',
