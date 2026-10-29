@@ -1,11 +1,12 @@
 import { parseTheme, type BackdropLayer, type ThemeMode, type Variant } from './schema.ts';
-import { SECTION_COLOR_VARS, SECTION_IDS, type SectionId } from './tokens.ts';
+import { MAX_BACKDROP_LAYERS, SECTION_COLOR_VARS, SECTION_IDS, type SectionId } from './tokens.ts';
+
+const MIN_LINEAR_STOPS = 2;
 import { isLight } from './color.ts';
 
 export type CssRule = { selectors: string[]; decls: Record<string, string> };
 
 const COMMENT_RE = /\/\*[\s\S]*?\*\//g;
-const RULE_RE = /([^{}]+)\{([^{}]*)\}/g;
 const DECL_SPLIT_RE = /;(?![^(]*\))/;
 const ROOT_THEME_RE = /^:root\[data-theme=["']?([a-z0-9-]+)["']?\]$/i;
 const RADIAL_RE = /^radial-gradient\(\s*circle at ([\d.]+)% ([\d.]+)%,\s*(.+?),\s*transparent ([\d.]+)%\s*\)$/i;
@@ -23,10 +24,38 @@ function parseDecls(body: string): Record<string, string> {
   return out;
 }
 
+function blockEnd(css: string, open: number): number {
+  let depth = 0;
+  for (let i = open; i < css.length; i++) {
+    if (css[i] === '{') depth++;
+    if (css[i] === '}' && --depth === 0) return i;
+  }
+  return css.length;
+}
+
+function nextRule(css: string, from: number): { rule: CssRule | null; end: number } {
+  const open = css.indexOf('{', from);
+  const semi = css.indexOf(';', from);
+  const head = css.slice(from).trimStart();
+  if (head.startsWith('@') && semi !== -1 && (open === -1 || semi < open)) {
+    return { rule: { selectors: [css.slice(from, semi).trim()], decls: {} }, end: semi + 1 };
+  }
+  if (open === -1) return { rule: null, end: css.length };
+  const end = blockEnd(css, open);
+  const prelude = css.slice(from, open).trim();
+  const body = css.slice(open + 1, end);
+  if (prelude.startsWith('@')) return { rule: { selectors: [prelude], decls: {} }, end: end + 1 };
+  const selectors = prelude.split(',').map((x) => x.trim()).filter(Boolean);
+  return { rule: { selectors, decls: parseDecls(body) }, end: end + 1 };
+}
+
 export function parseRules(css: string): CssRule[] {
+  const clean = css.replace(COMMENT_RE, '');
   const rules: CssRule[] = [];
-  for (const m of css.replace(COMMENT_RE, '').matchAll(RULE_RE)) {
-    rules.push({ selectors: m[1].split(',').map((s) => s.trim()).filter(Boolean), decls: parseDecls(m[2]) });
+  for (let pos = 0; pos < clean.length;) {
+    const { rule, end } = nextRule(clean, pos);
+    if (rule?.selectors.length) rules.push(rule);
+    pos = end;
   }
   return rules;
 }
@@ -52,13 +81,15 @@ function parseLayer(part: string): BackdropLayer | null {
   if (r) return { kind: 'radial', x: Number(r[1]), y: Number(r[2]), color: r[3].trim(), fade: Number(r[4]) };
   const l = LINEAR_RE.exec(part);
   if (!l) return null;
-  const stops = splitTopLevel(l[2]).map((s) => STOP_RE.exec(s)).filter((m): m is RegExpExecArray => !!m);
-  return { kind: 'linear', angle: Number(l[1]), stops: stops.map((m) => ({ color: m[1].trim(), at: Number(m[2]) })) };
+  const stops = splitTopLevel(l[2]).map((s) => STOP_RE.exec(s));
+  if (stops.length < MIN_LINEAR_STOPS || stops.some((m) => !m)) return null;
+  return { kind: 'linear', angle: Number(l[1]), stops: stops.map((m) => ({ color: m![1].trim(), at: Number(m![2]) })) };
 }
 
 export function parseBackdrop(value: string): BackdropLayer[] | null {
   const layers = splitTopLevel(value).map(parseLayer);
-  return layers.every((x): x is BackdropLayer => !!x) ? layers : null;
+  const isValid = layers.length > 0 && layers.length <= MAX_BACKDROP_LAYERS;
+  return isValid && layers.every((x): x is BackdropLayer => !!x) ? layers : null;
 }
 
 const VAR_TO_KEY: Record<string, [SectionId, string]> = Object.fromEntries(

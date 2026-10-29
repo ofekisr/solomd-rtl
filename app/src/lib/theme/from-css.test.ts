@@ -76,3 +76,37 @@ test('every marketplace theme converts to a valid theme', () => {
     assert.doesNotThrow(() => convertMarketplaceCss(css, { id: `mk-${file.replace('.css', '')}`, name: file }), file);
   }
 });
+
+const LIGHT_BLOCK = ':root[data-theme="light"] { --bg: #ffffff; --text: #111111; --accent: #0066ff; --bg-grad: linear-gradient(90deg, #ffffff 0%, #eeeeee 100%); }\n';
+const DARK_BLOCK = ':root[data-theme="dark"] { --bg: #111111; --text: #eeeeee; --accent: #66aaff; --bg-grad: linear-gradient(90deg, #000000 0%, #222222 100%); }';
+
+test('each variant gets its own backdrop', () => {
+  const { theme } = convertMarketplaceCss(LIGHT_BLOCK + DARK_BLOCK, { id: 'mk-v', name: 'V' });
+  const first = (m: 'light' | 'dark') => theme.variants[m].surfaces?.style?.backdrop?.[0];
+  assert.deepEqual(first('light'), { kind: 'linear', angle: 90, stops: [{ color: '#ffffff', at: 0 }, { color: '#eeeeee', at: 100 }] });
+  assert.deepEqual(first('dark'), { kind: 'linear', angle: 90, stops: [{ color: '#000000', at: 0 }, { color: '#222222', at: 100 }] });
+});
+
+test('unparseable --bg-grad and --r-md are reported as dropped', () => {
+  const css = ':root { --bg: #000000; --text: #ffffff; --accent: #0066ff; --bg-grad: linear-gradient(to right, #000, #111); --r-md: big; }';
+  const { theme, dropped } = convertMarketplaceCss(css, { id: 'mk-g', name: 'G' });
+  assert.ok(dropped.includes('--bg-grad'));
+  assert.ok(dropped.includes('--r-md'));
+  assert.equal(theme.variants.dark.surfaces?.style?.backdrop, undefined);
+});
+
+test('a gradient with a stop lacking a percentage is dropped whole', () => {
+  assert.equal(parseBackdrop('linear-gradient(90deg, #000 0%, #111)'), null);
+});
+
+test('at-rule blocks are skipped and reported', () => {
+  const css = ':root { --bg: #000000; --text: #ffffff; --accent: #0066ff; }\n' +
+    '@media (prefers-color-scheme: light) { :root { --bg: #ffffff; } }\n' +
+    '@keyframes spin { from { opacity: 0; } to { opacity: 1; } }';
+  const { theme, dropped } = convertMarketplaceCss(css, { id: 'mk-a', name: 'A' });
+  assert.deepEqual(Object.keys(theme.variants), ['dark']);
+  assert.equal(theme.variants.dark.app.colors.bg, '#000000');
+  assert.ok(dropped.includes('@media (prefers-color-scheme: light)'));
+  assert.ok(dropped.includes('@keyframes spin'));
+  assert.ok(!dropped.includes('from') && !dropped.includes('to'));
+});
