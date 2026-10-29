@@ -1,0 +1,64 @@
+{
+  "id": "cm-one-dark",
+  "name": "One Dark",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(40, 44, 52)",
+          "text": "rgb(171, 178, 191)",
+          "accent": "rgb(82, 139, 255)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(224, 108, 117)",
+          "h2": "rgb(224, 108, 117)",
+          "h3": "color-mix(in srgb, rgb(224, 108, 117) 70%, rgb(171, 178, 191))",
+          "h4": "color-mix(in srgb, rgb(224, 108, 117) 40%, rgb(171, 178, 191))",
+          "strong": "rgb(171, 178, 191)",
+          "em": "rgb(171, 178, 191)",
+          "link": "rgb(125, 135, 153)",
+          "url": "rgb(152, 195, 121)",
+          "code": "rgb(152, 195, 121)",
+          "quote": "rgb(171, 178, 191)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(198, 120, 221)",
+          "string": "rgb(152, 195, 121)",
+          "number": "rgb(229, 192, 123)",
+          "comment": "rgb(125, 135, 153)",
+          "function": "rgb(97, 175, 239)",
+          "variable": "rgb(224, 108, 117)",
+          "type": "rgb(229, 192, 123)",
+          "property": "rgb(224, 108, 117)",
+          "operator": "rgb(86, 182, 194)",
+          "punctuation": "rgb(171, 178, 191)",
+          "tag": "rgb(229, 192, 123)",
+          "attribute": "rgb(224, 108, 117)",
+          "regexp": "rgb(86, 182, 194)",
+          "constant": "rgb(209, 154, 102)",
+          "invalid": "rgb(255, 255, 255)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(40, 44, 52)",
+          "gutterBg": "rgb(40, 44, 52)",
+          "gutterFg": "rgb(125, 135, 153)",
+          "activeLine": "rgba(102, 153, 255, 0.043)",
+          "selection": "rgb(62, 68, 81)",
+          "cursor": "rgb(82, 139, 255)",
+          "bracket": "rgba(186, 208, 248, 0.28)",
+          "search": "rgba(114, 161, 255, 0.35)",
+          "searchActive": "rgba(97, 153, 255, 0.184)"
+        }
+      }
+    }
+  }
+}

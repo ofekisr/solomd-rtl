@@ -1,0 +1,64 @@
+{
+  "id": "cm-bespin",
+  "name": "Bespin",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(40, 33, 28)",
+          "text": "rgb(157, 155, 151)",
+          "accent": "rgb(207, 125, 52)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(157, 155, 151)",
+          "h2": "rgb(157, 155, 151)",
+          "h3": "color-mix(in srgb, rgb(157, 155, 151) 70%, rgb(157, 155, 151))",
+          "h4": "color-mix(in srgb, rgb(157, 155, 151) 40%, rgb(157, 155, 151))",
+          "strong": "rgb(157, 155, 151)",
+          "em": "rgb(157, 155, 151)",
+          "link": "rgb(155, 133, 157)",
+          "url": "rgb(249, 238, 152)",
+          "code": "rgb(249, 238, 152)",
+          "quote": "rgb(157, 155, 151)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(207, 106, 76)",
+          "string": "rgb(249, 238, 152)",
+          "number": "rgb(155, 133, 157)",
+          "comment": "rgb(147, 113, 33)",
+          "function": "rgb(207, 125, 52)",
+          "variable": "rgb(94, 166, 234)",
+          "type": "rgb(157, 155, 151)",
+          "property": "rgb(84, 190, 13)",
+          "operator": "rgb(157, 155, 151)",
+          "punctuation": "rgb(157, 155, 151)",
+          "tag": "rgb(207, 106, 76)",
+          "attribute": "rgb(84, 190, 13)",
+          "regexp": "rgb(157, 155, 151)",
+          "constant": "rgb(157, 155, 151)",
+          "invalid": "rgb(157, 155, 151)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(40, 33, 28)",
+          "gutterBg": "rgb(40, 33, 28)",
+          "gutterFg": "rgb(102, 102, 102)",
+          "activeLine": "rgba(255, 255, 255, 0.1)",
+          "selection": "rgb(79, 56, 43)",
+          "cursor": "rgb(121, 121, 119)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

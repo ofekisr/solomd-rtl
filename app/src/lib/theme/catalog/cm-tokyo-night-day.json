@@ -1,0 +1,64 @@
+{
+  "id": "cm-tokyo-night-day",
+  "name": "Tokyo Night Day",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "light": {
+      "mode": "light",
+      "app": {
+        "colors": {
+          "bg": "rgb(225, 226, 231)",
+          "text": "rgb(55, 96, 191)",
+          "accent": "rgb(55, 96, 191)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(177, 92, 0)",
+          "h2": "rgb(177, 92, 0)",
+          "h3": "color-mix(in srgb, rgb(177, 92, 0) 70%, rgb(55, 96, 191))",
+          "h4": "color-mix(in srgb, rgb(177, 92, 0) 40%, rgb(55, 96, 191))",
+          "strong": "rgb(55, 96, 191)",
+          "em": "rgb(55, 96, 191)",
+          "link": "rgb(55, 96, 191)",
+          "url": "rgb(88, 117, 57)",
+          "code": "rgb(88, 117, 57)",
+          "quote": "rgb(55, 96, 191)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(0, 113, 151)",
+          "string": "rgb(88, 117, 57)",
+          "number": "rgb(177, 92, 0)",
+          "comment": "rgb(132, 140, 181)",
+          "function": "rgb(55, 96, 191)",
+          "variable": "rgb(55, 96, 191)",
+          "type": "rgb(0, 113, 151)",
+          "property": "rgb(55, 96, 191)",
+          "operator": "rgb(0, 113, 151)",
+          "punctuation": "rgb(55, 96, 191)",
+          "tag": "rgb(0, 113, 151)",
+          "attribute": "rgb(55, 96, 191)",
+          "regexp": "rgb(88, 117, 57)",
+          "constant": "rgb(55, 96, 191)",
+          "invalid": "rgb(245, 42, 101)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(225, 226, 231)",
+          "gutterBg": "rgb(225, 226, 231)",
+          "gutterFg": "rgb(55, 96, 191)",
+          "activeLine": "rgba(95, 95, 175, 0.067)",
+          "selection": "rgb(153, 167, 223)",
+          "cursor": "rgb(55, 96, 191)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

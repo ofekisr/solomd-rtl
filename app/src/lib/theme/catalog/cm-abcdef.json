@@ -1,0 +1,72 @@
+{
+  "id": "cm-abcdef",
+  "name": "Abcdef",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(15, 15, 15)",
+          "text": "rgb(222, 253, 239)",
+          "accent": "rgb(0, 255, 0)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(127, 255, 212)",
+          "h2": "rgb(127, 255, 212)",
+          "h3": "color-mix(in srgb, rgb(127, 255, 212) 70%, rgb(222, 253, 239))",
+          "h4": "color-mix(in srgb, rgb(127, 255, 212) 40%, rgb(222, 253, 239))",
+          "strong": "rgb(222, 253, 239)",
+          "em": "rgb(222, 253, 239)",
+          "link": "rgb(138, 43, 226)",
+          "url": "rgb(34, 187, 68)",
+          "code": "rgb(34, 187, 68)",
+          "quote": "rgb(222, 253, 239)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(184, 134, 11)",
+          "string": "rgb(34, 187, 68)",
+          "number": "rgb(238, 130, 238)",
+          "comment": "rgb(122, 123, 124)",
+          "function": "rgb(255, 250, 188)",
+          "variable": "rgb(171, 205, 239)",
+          "type": "rgb(255, 221, 68)",
+          "property": "rgb(222, 253, 239)",
+          "operator": "rgb(222, 253, 239)",
+          "punctuation": "rgb(222, 253, 239)",
+          "tag": "rgb(221, 238, 255)",
+          "attribute": "rgb(221, 255, 0)",
+          "regexp": "rgb(222, 253, 239)",
+          "constant": "rgb(222, 253, 239)",
+          "invalid": "rgb(222, 253, 239)"
+        },
+        "style": {
+          "comment": {
+            "italic": true
+          },
+          "keyword": {
+            "bold": true
+          }
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(15, 15, 15)",
+          "gutterBg": "rgb(85, 85, 85)",
+          "gutterFg": "rgb(255, 255, 255)",
+          "activeLine": "rgba(10, 107, 203, 0.24)",
+          "selection": "rgb(81, 81, 81)",
+          "cursor": "rgb(0, 255, 0)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

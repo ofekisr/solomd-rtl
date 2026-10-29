@@ -1,0 +1,69 @@
+{
+  "id": "cm-noctis-lilac",
+  "name": "Noctis Lilac",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "light": {
+      "mode": "light",
+      "app": {
+        "colors": {
+          "bg": "rgb(242, 241, 248)",
+          "text": "rgb(12, 0, 107)",
+          "accent": "rgb(92, 73, 233)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(12, 0, 107)",
+          "h2": "rgb(12, 0, 107)",
+          "h3": "color-mix(in srgb, rgb(12, 0, 107) 70%, rgb(12, 0, 107))",
+          "h4": "color-mix(in srgb, rgb(12, 0, 107) 40%, rgb(12, 0, 107))",
+          "strong": "rgb(12, 0, 107)",
+          "em": "rgb(12, 0, 107)",
+          "link": "rgb(12, 0, 107)",
+          "url": "rgb(0, 179, 104)",
+          "code": "rgb(0, 179, 104)",
+          "quote": "rgb(12, 0, 107)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(255, 87, 146)",
+          "string": "rgb(0, 179, 104)",
+          "number": "rgb(88, 66, 255)",
+          "comment": "rgb(153, 149, 183)",
+          "function": "rgb(0, 149, 168)",
+          "variable": "rgb(250, 137, 0)",
+          "type": "rgb(179, 105, 77)",
+          "property": "rgb(250, 137, 0)",
+          "operator": "rgb(255, 87, 146)",
+          "punctuation": "rgb(12, 0, 107)",
+          "tag": "rgb(0, 148, 240)",
+          "attribute": "rgb(230, 65, 0)",
+          "regexp": "rgb(0, 179, 104)",
+          "constant": "rgb(12, 0, 107)",
+          "invalid": "rgb(12, 0, 107)"
+        },
+        "style": {
+          "keyword": {
+            "bold": true
+          }
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(242, 241, 248)",
+          "gutterBg": "rgb(242, 241, 248)",
+          "gutterFg": "rgba(12, 0, 107, 0.44)",
+          "activeLine": "rgba(22, 6, 121, 0.067)",
+          "selection": "rgb(213, 209, 242)",
+          "cursor": "rgb(92, 73, 233)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

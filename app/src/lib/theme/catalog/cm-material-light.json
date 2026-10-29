@@ -1,0 +1,64 @@
+{
+  "id": "cm-material-light",
+  "name": "Material Light",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "light": {
+      "mode": "light",
+      "app": {
+        "colors": {
+          "bg": "rgb(250, 250, 250)",
+          "text": "rgb(144, 164, 174)",
+          "accent": "rgb(97, 130, 184)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(57, 173, 181)",
+          "h2": "rgb(57, 173, 181)",
+          "h3": "color-mix(in srgb, rgb(57, 173, 181) 70%, rgb(144, 164, 174))",
+          "h4": "color-mix(in srgb, rgb(57, 173, 181) 40%, rgb(144, 164, 174))",
+          "strong": "rgb(144, 164, 174)",
+          "em": "rgb(144, 164, 174)",
+          "link": "rgb(144, 164, 174)",
+          "url": "rgb(145, 184, 89)",
+          "code": "rgb(145, 184, 89)",
+          "quote": "rgb(144, 164, 174)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(57, 173, 181)",
+          "string": "rgb(145, 184, 89)",
+          "number": "rgb(247, 109, 71)",
+          "comment": "rgb(144, 164, 174)",
+          "function": "rgb(97, 130, 184)",
+          "variable": "rgb(144, 164, 174)",
+          "type": "rgb(226, 147, 29)",
+          "property": "rgb(97, 130, 184)",
+          "operator": "rgb(57, 173, 181)",
+          "punctuation": "rgb(144, 164, 174)",
+          "tag": "rgb(226, 147, 29)",
+          "attribute": "rgb(97, 130, 184)",
+          "regexp": "rgb(145, 184, 89)",
+          "constant": "rgb(57, 173, 181)",
+          "invalid": "rgba(229, 57, 53, 0.44)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(250, 250, 250)",
+          "gutterBg": "rgb(250, 250, 250)",
+          "gutterFg": "rgb(144, 164, 174)",
+          "activeLine": "rgba(204, 215, 218, 0.314)",
+          "selection": "rgba(128, 203, 196, 0.25)",
+          "cursor": "rgb(39, 39, 39)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

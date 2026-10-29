@@ -1,0 +1,69 @@
+{
+  "id": "cm-white-light",
+  "name": "White Light",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "light": {
+      "mode": "light",
+      "app": {
+        "colors": {
+          "bg": "rgb(255, 255, 255)",
+          "text": "rgb(0, 0, 0)",
+          "accent": "rgb(0, 75, 255)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(0, 0, 0)",
+          "h2": "rgb(0, 0, 0)",
+          "h3": "color-mix(in srgb, rgb(0, 0, 0) 70%, rgb(0, 0, 0))",
+          "h4": "color-mix(in srgb, rgb(0, 0, 0) 40%, rgb(0, 0, 0))",
+          "strong": "rgb(0, 0, 0)",
+          "em": "rgb(0, 0, 0)",
+          "link": "rgb(0, 0, 0)",
+          "url": "rgb(107, 122, 136)",
+          "code": "rgb(107, 122, 136)",
+          "quote": "rgb(0, 0, 0)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(0, 0, 0)",
+          "string": "rgb(107, 122, 136)",
+          "number": "rgb(168, 168, 177)",
+          "comment": "rgb(190, 201, 211)",
+          "function": "rgb(0, 0, 0)",
+          "variable": "rgb(0, 0, 0)",
+          "type": "rgb(0, 0, 0)",
+          "property": "rgb(0, 0, 0)",
+          "operator": "rgb(4, 49, 250)",
+          "punctuation": "rgb(0, 0, 0)",
+          "tag": "rgb(0, 0, 0)",
+          "attribute": "rgb(0, 0, 0)",
+          "regexp": "rgb(107, 122, 136)",
+          "constant": "rgb(0, 0, 0)",
+          "invalid": "rgb(0, 0, 0)"
+        },
+        "style": {
+          "keyword": {
+            "bold": true
+          }
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(255, 255, 255)",
+          "gutterBg": "rgb(255, 255, 255)",
+          "gutterFg": "rgb(0, 0, 0)",
+          "activeLine": "rgba(0, 100, 255, 0.047)",
+          "selection": "rgba(0, 100, 255, 0.15)",
+          "cursor": "rgb(0, 75, 255)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

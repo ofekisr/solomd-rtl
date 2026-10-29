@@ -1,0 +1,69 @@
+{
+  "id": "cm-basic-light",
+  "name": "Basic Light",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "light": {
+      "mode": "light",
+      "app": {
+        "colors": {
+          "bg": "rgb(255, 255, 255)",
+          "text": "rgb(46, 52, 64)",
+          "accent": "rgb(94, 129, 172)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(94, 129, 172)",
+          "h2": "rgb(94, 129, 172)",
+          "h3": "color-mix(in srgb, rgb(94, 129, 172) 70%, rgb(46, 52, 64))",
+          "h4": "color-mix(in srgb, rgb(94, 129, 172) 40%, rgb(46, 52, 64))",
+          "strong": "rgb(94, 129, 172)",
+          "em": "rgb(94, 129, 172)",
+          "link": "rgb(143, 188, 187)",
+          "url": "rgb(208, 135, 112)",
+          "code": "rgb(208, 135, 112)",
+          "quote": "rgb(59, 66, 82)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(94, 129, 172)",
+          "string": "rgb(208, 135, 112)",
+          "number": "rgb(136, 192, 208)",
+          "comment": "rgb(67, 76, 94)",
+          "function": "rgb(94, 129, 172)",
+          "variable": "rgb(208, 135, 112)",
+          "type": "rgb(235, 203, 139)",
+          "property": "rgb(208, 135, 112)",
+          "operator": "rgb(163, 190, 140)",
+          "punctuation": "rgb(46, 52, 64)",
+          "tag": "rgb(180, 142, 173)",
+          "attribute": "rgb(235, 203, 139)",
+          "regexp": "rgb(94, 129, 172)",
+          "constant": "rgb(94, 129, 172)",
+          "invalid": "rgb(67, 76, 94)"
+        },
+        "style": {
+          "comment": {
+            "italic": true
+          }
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(255, 255, 255)",
+          "gutterBg": "rgb(236, 239, 244)",
+          "gutterFg": "rgb(46, 52, 64)",
+          "activeLine": "rgba(2, 37, 95, 0.067)",
+          "selection": "rgb(236, 239, 244)",
+          "cursor": "rgb(59, 66, 82)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

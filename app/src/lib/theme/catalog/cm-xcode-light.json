@@ -1,0 +1,69 @@
+{
+  "id": "cm-xcode-light",
+  "name": "Xcode Light",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "light": {
+      "mode": "light",
+      "app": {
+        "colors": {
+          "bg": "rgb(255, 255, 255)",
+          "text": "rgb(61, 61, 61)",
+          "accent": "rgb(35, 87, 92)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(61, 61, 61)",
+          "h2": "rgb(61, 61, 61)",
+          "h3": "color-mix(in srgb, rgb(61, 61, 61) 70%, rgb(61, 61, 61))",
+          "h4": "color-mix(in srgb, rgb(61, 61, 61) 40%, rgb(61, 61, 61))",
+          "strong": "rgb(61, 61, 61)",
+          "em": "rgb(61, 61, 61)",
+          "link": "rgb(14, 14, 255)",
+          "url": "rgb(210, 52, 35)",
+          "code": "rgb(210, 52, 35)",
+          "quote": "rgb(112, 127, 141)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(170, 13, 145)",
+          "string": "rgb(210, 52, 35)",
+          "number": "rgb(61, 61, 61)",
+          "comment": "rgb(112, 127, 141)",
+          "function": "rgb(35, 87, 92)",
+          "variable": "rgb(35, 87, 92)",
+          "type": "rgb(82, 43, 178)",
+          "property": "rgb(3, 47, 98)",
+          "operator": "rgb(61, 61, 61)",
+          "punctuation": "rgb(61, 61, 61)",
+          "tag": "rgb(82, 43, 178)",
+          "attribute": "rgb(3, 47, 98)",
+          "regexp": "rgb(14, 14, 255)",
+          "constant": "rgb(3, 47, 98)",
+          "invalid": "rgb(61, 61, 61)"
+        },
+        "style": {
+          "keyword": {
+            "bold": true
+          }
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(255, 255, 255)",
+          "gutterBg": "rgb(255, 255, 255)",
+          "gutterFg": "rgb(175, 175, 175)",
+          "activeLine": "rgba(213, 230, 255, 0.41)",
+          "selection": "rgb(187, 223, 255)",
+          "cursor": "rgb(0, 0, 0)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "id": "cm-eclipse",
+  "name": "Eclipse",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "light": {
+      "mode": "light",
+      "app": {
+        "colors": {
+          "bg": "rgb(255, 255, 255)",
+          "text": "rgb(0, 0, 0)",
+          "accent": "rgb(0, 0, 192)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(0, 0, 0)",
+          "h2": "rgb(0, 0, 0)",
+          "h3": "color-mix(in srgb, rgb(0, 0, 0) 70%, rgb(0, 0, 0))",
+          "h4": "color-mix(in srgb, rgb(0, 0, 0) 40%, rgb(0, 0, 0))",
+          "strong": "rgb(0, 0, 0)",
+          "em": "rgb(0, 0, 0)",
+          "link": "rgb(34, 17, 153)",
+          "url": "rgb(42, 0, 255)",
+          "code": "rgb(42, 0, 255)",
+          "quote": "rgb(0, 0, 0)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(127, 0, 85)",
+          "string": "rgb(42, 0, 255)",
+          "number": "rgb(17, 102, 68)",
+          "comment": "rgb(63, 127, 95)",
+          "function": "rgb(0, 0, 192)",
+          "variable": "rgb(0, 0, 192)",
+          "type": "rgb(0, 0, 0)",
+          "property": "rgb(17, 102, 68)",
+          "operator": "rgb(0, 0, 0)",
+          "punctuation": "rgb(0, 0, 0)",
+          "tag": "rgb(17, 119, 0)",
+          "attribute": "rgb(0, 0, 204)",
+          "regexp": "rgb(0, 0, 0)",
+          "constant": "rgb(0, 0, 0)",
+          "invalid": "rgb(0, 0, 0)"
+        },
+        "style": {
+          "keyword": {
+            "bold": true
+          }
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(255, 255, 255)",
+          "gutterBg": "rgb(247, 247, 247)",
+          "gutterFg": "rgb(153, 153, 153)",
+          "activeLine": "rgba(0, 111, 255, 0.11)",
+          "selection": "rgb(215, 212, 240)",
+          "cursor": "rgb(255, 255, 255)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

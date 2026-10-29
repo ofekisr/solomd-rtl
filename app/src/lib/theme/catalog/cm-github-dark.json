@@ -1,0 +1,64 @@
+{
+  "id": "cm-github-dark",
+  "name": "Github Dark",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(13, 17, 23)",
+          "text": "rgb(201, 209, 217)",
+          "accent": "rgb(121, 192, 255)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(210, 168, 255)",
+          "h2": "rgb(210, 168, 255)",
+          "h3": "color-mix(in srgb, rgb(210, 168, 255) 70%, rgb(201, 209, 217))",
+          "h4": "color-mix(in srgb, rgb(210, 168, 255) 40%, rgb(201, 209, 217))",
+          "strong": "rgb(210, 168, 255)",
+          "em": "rgb(210, 168, 255)",
+          "link": "rgb(201, 209, 217)",
+          "url": "rgb(165, 214, 255)",
+          "code": "rgb(165, 214, 255)",
+          "quote": "rgb(126, 231, 135)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(255, 123, 114)",
+          "string": "rgb(165, 214, 255)",
+          "number": "rgb(121, 192, 255)",
+          "comment": "rgb(139, 148, 158)",
+          "function": "rgb(121, 192, 255)",
+          "variable": "rgb(121, 192, 255)",
+          "type": "rgb(255, 123, 114)",
+          "property": "rgb(210, 168, 255)",
+          "operator": "rgb(121, 192, 255)",
+          "punctuation": "rgb(201, 209, 217)",
+          "tag": "rgb(126, 231, 135)",
+          "attribute": "rgb(121, 192, 255)",
+          "regexp": "rgb(165, 214, 255)",
+          "constant": "rgb(126, 231, 135)",
+          "invalid": "rgb(249, 117, 131)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(13, 17, 23)",
+          "gutterBg": "rgb(51, 51, 56)",
+          "gutterFg": "rgb(204, 204, 204)",
+          "activeLine": "rgba(54, 51, 66, 0.5)",
+          "selection": "rgb(0, 61, 115)",
+          "cursor": "rgb(201, 209, 217)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

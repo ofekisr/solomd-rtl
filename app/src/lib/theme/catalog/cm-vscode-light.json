@@ -1,0 +1,64 @@
+{
+  "id": "cm-vscode-light",
+  "name": "Vscode Light",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "light": {
+      "mode": "light",
+      "app": {
+        "colors": {
+          "bg": "rgb(255, 255, 255)",
+          "text": "rgb(56, 58, 66)",
+          "accent": "rgb(121, 94, 38)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(0, 112, 193)",
+          "h2": "rgb(0, 112, 193)",
+          "h3": "color-mix(in srgb, rgb(0, 112, 193) 70%, rgb(56, 58, 66))",
+          "h4": "color-mix(in srgb, rgb(0, 112, 193) 40%, rgb(56, 58, 66))",
+          "strong": "rgb(56, 58, 66)",
+          "em": "rgb(56, 58, 66)",
+          "link": "rgb(64, 120, 242)",
+          "url": "rgb(163, 21, 21)",
+          "code": "rgb(163, 21, 21)",
+          "quote": "rgb(56, 58, 66)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(0, 0, 255)",
+          "string": "rgb(163, 21, 21)",
+          "number": "rgb(9, 134, 88)",
+          "comment": "rgb(0, 128, 0)",
+          "function": "rgb(121, 94, 38)",
+          "variable": "rgb(0, 112, 193)",
+          "type": "rgb(38, 127, 153)",
+          "property": "rgb(0, 112, 193)",
+          "operator": "rgb(56, 58, 66)",
+          "punctuation": "rgb(56, 58, 66)",
+          "tag": "rgb(38, 127, 153)",
+          "attribute": "rgb(0, 112, 193)",
+          "regexp": "rgb(175, 0, 219)",
+          "constant": "rgb(0, 0, 255)",
+          "invalid": "rgb(228, 86, 73)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(255, 255, 255)",
+          "gutterBg": "rgb(255, 255, 255)",
+          "gutterFg": "rgb(35, 120, 147)",
+          "activeLine": "rgba(153, 153, 153, 0.15)",
+          "selection": "rgb(173, 214, 255)",
+          "cursor": "rgb(0, 0, 0)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

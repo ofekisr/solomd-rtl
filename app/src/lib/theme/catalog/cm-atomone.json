@@ -1,0 +1,64 @@
+{
+  "id": "cm-atomone",
+  "name": "Atomone",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(39, 44, 53)",
+          "text": "rgb(157, 155, 151)",
+          "accent": "rgb(97, 175, 239)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(224, 108, 117)",
+          "h2": "rgb(224, 108, 117)",
+          "h3": "color-mix(in srgb, rgb(224, 108, 117) 70%, rgb(157, 155, 151))",
+          "h4": "color-mix(in srgb, rgb(224, 108, 117) 40%, rgb(157, 155, 151))",
+          "strong": "rgb(157, 155, 151)",
+          "em": "rgb(157, 155, 151)",
+          "link": "rgb(157, 155, 151)",
+          "url": "rgb(152, 195, 121)",
+          "code": "rgb(152, 195, 121)",
+          "quote": "rgb(157, 155, 151)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(198, 120, 221)",
+          "string": "rgb(152, 195, 121)",
+          "number": "rgb(209, 154, 102)",
+          "comment": "rgb(84, 99, 109)",
+          "function": "rgb(97, 175, 239)",
+          "variable": "rgb(157, 155, 151)",
+          "type": "rgb(157, 155, 151)",
+          "property": "rgb(171, 178, 191)",
+          "operator": "rgb(157, 155, 151)",
+          "punctuation": "rgb(157, 155, 151)",
+          "tag": "rgb(224, 108, 117)",
+          "attribute": "rgb(209, 154, 102)",
+          "regexp": "rgb(152, 195, 121)",
+          "constant": "rgb(157, 155, 151)",
+          "invalid": "rgb(157, 155, 151)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(39, 44, 53)",
+          "gutterBg": "rgb(39, 44, 53)",
+          "gutterFg": "rgb(70, 80, 99)",
+          "activeLine": "rgba(46, 63, 89, 0.25)",
+          "selection": "rgb(61, 76, 100)",
+          "cursor": "rgb(121, 121, 119)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

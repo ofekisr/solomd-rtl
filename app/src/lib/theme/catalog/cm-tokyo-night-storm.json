@@ -1,0 +1,64 @@
+{
+  "id": "cm-tokyo-night-storm",
+  "name": "Tokyo Night Storm",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(36, 40, 59)",
+          "text": "rgb(121, 130, 169)",
+          "accent": "rgb(192, 202, 245)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(137, 221, 255)",
+          "h2": "rgb(137, 221, 255)",
+          "h3": "color-mix(in srgb, rgb(137, 221, 255) 70%, rgb(121, 130, 169))",
+          "h4": "color-mix(in srgb, rgb(137, 221, 255) 40%, rgb(121, 130, 169))",
+          "strong": "rgb(121, 130, 169)",
+          "em": "rgb(121, 130, 169)",
+          "link": "rgb(121, 130, 169)",
+          "url": "rgb(158, 206, 106)",
+          "code": "rgb(158, 206, 106)",
+          "quote": "rgb(121, 130, 169)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(187, 154, 247)",
+          "string": "rgb(158, 206, 106)",
+          "number": "rgb(255, 158, 100)",
+          "comment": "rgb(86, 95, 137)",
+          "function": "rgb(122, 162, 247)",
+          "variable": "rgb(192, 202, 245)",
+          "type": "rgb(42, 195, 222)",
+          "property": "rgb(122, 162, 247)",
+          "operator": "rgb(187, 154, 247)",
+          "punctuation": "rgb(121, 130, 169)",
+          "tag": "rgb(42, 195, 222)",
+          "attribute": "rgb(122, 162, 247)",
+          "regexp": "rgb(180, 249, 248)",
+          "constant": "rgb(187, 154, 247)",
+          "invalid": "rgb(255, 83, 112)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(36, 40, 59)",
+          "gutterBg": "rgb(36, 40, 59)",
+          "gutterFg": "rgb(121, 130, 169)",
+          "activeLine": "rgba(41, 46, 66, 0.48)",
+          "selection": "rgba(111, 123, 182, 0.19)",
+          "cursor": "rgb(192, 202, 245)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

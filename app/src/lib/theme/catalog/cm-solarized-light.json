@@ -1,0 +1,64 @@
+{
+  "id": "cm-solarized-light",
+  "name": "Solarized Light",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "light": {
+      "mode": "light",
+      "app": {
+        "colors": {
+          "bg": "rgb(253, 246, 227)",
+          "text": "rgb(101, 123, 131)",
+          "accent": "rgb(101, 123, 131)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(38, 139, 210)",
+          "h2": "rgb(38, 139, 210)",
+          "h3": "color-mix(in srgb, rgb(38, 139, 210) 70%, rgb(101, 123, 131))",
+          "h4": "color-mix(in srgb, rgb(38, 139, 210) 40%, rgb(101, 123, 131))",
+          "strong": "rgb(101, 123, 131)",
+          "em": "rgb(101, 123, 131)",
+          "link": "rgb(101, 123, 131)",
+          "url": "rgb(42, 161, 152)",
+          "code": "rgb(42, 161, 152)",
+          "quote": "rgb(101, 123, 131)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(133, 153, 0)",
+          "string": "rgb(42, 161, 152)",
+          "number": "rgb(211, 54, 130)",
+          "comment": "rgb(147, 161, 161)",
+          "function": "rgb(38, 139, 210)",
+          "variable": "rgb(38, 139, 210)",
+          "type": "rgb(133, 153, 0)",
+          "property": "rgb(38, 139, 210)",
+          "operator": "rgb(133, 153, 0)",
+          "punctuation": "rgb(101, 123, 131)",
+          "tag": "rgb(38, 139, 210)",
+          "attribute": "rgb(38, 139, 210)",
+          "regexp": "rgb(220, 50, 47)",
+          "constant": "rgb(203, 75, 22)",
+          "invalid": "rgb(220, 50, 47)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(253, 246, 227)",
+          "gutterBg": "rgb(253, 246, 227)",
+          "gutterFg": "rgb(101, 123, 131)",
+          "activeLine": "rgba(61, 57, 45, 0.067)",
+          "selection": "rgb(238, 232, 213)",
+          "cursor": "rgb(101, 123, 131)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

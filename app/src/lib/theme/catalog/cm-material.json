@@ -1,0 +1,69 @@
+{
+  "id": "cm-material",
+  "name": "Material",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(46, 50, 53)",
+          "text": "rgb(189, 189, 189)",
+          "accent": "rgb(86, 200, 216)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(250, 207, 78)",
+          "h2": "rgb(250, 207, 78)",
+          "h3": "color-mix(in srgb, rgb(250, 207, 78) 70%, rgb(189, 189, 189))",
+          "h4": "color-mix(in srgb, rgb(250, 207, 78) 40%, rgb(189, 189, 189))",
+          "strong": "rgb(255, 95, 82)",
+          "em": "rgb(153, 208, 102)",
+          "link": "rgb(86, 200, 216)",
+          "url": "rgb(153, 208, 102)",
+          "code": "rgb(153, 208, 102)",
+          "quote": "rgb(106, 191, 105)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(207, 110, 223)",
+          "string": "rgb(153, 208, 102)",
+          "number": "rgb(255, 173, 66)",
+          "comment": "rgb(112, 125, 139)",
+          "function": "rgb(86, 200, 216)",
+          "variable": "rgb(189, 189, 189)",
+          "type": "rgb(255, 173, 66)",
+          "property": "rgb(250, 207, 78)",
+          "operator": "rgb(113, 134, 240)",
+          "punctuation": "rgb(189, 189, 189)",
+          "tag": "rgb(153, 208, 102)",
+          "attribute": "rgb(189, 189, 189)",
+          "regexp": "rgb(255, 95, 82)",
+          "constant": "rgb(250, 207, 78)",
+          "invalid": "rgb(96, 111, 122)"
+        },
+        "style": {
+          "comment": {
+            "italic": true
+          }
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(46, 50, 53)",
+          "gutterBg": "rgb(46, 50, 53)",
+          "gutterFg": "rgb(153, 153, 153)",
+          "activeLine": "rgba(84, 91, 97, 0.19)",
+          "selection": "rgba(215, 212, 240, 0.39)",
+          "cursor": "rgb(160, 164, 174)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "id": "cm-white-dark",
+  "name": "White Dark",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(0, 0, 0)",
+          "text": "rgb(255, 255, 255)",
+          "accent": "rgb(125, 70, 252)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(255, 255, 255)",
+          "h2": "rgb(255, 255, 255)",
+          "h3": "color-mix(in srgb, rgb(255, 255, 255) 70%, rgb(255, 255, 255))",
+          "h4": "color-mix(in srgb, rgb(255, 255, 255) 40%, rgb(255, 255, 255))",
+          "strong": "rgb(255, 255, 255)",
+          "em": "rgb(255, 255, 255)",
+          "link": "rgb(255, 255, 255)",
+          "url": "rgb(168, 168, 177)",
+          "code": "rgb(168, 168, 177)",
+          "quote": "rgb(255, 255, 255)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(255, 255, 255)",
+          "string": "rgb(168, 168, 177)",
+          "number": "rgb(168, 168, 177)",
+          "comment": "rgb(46, 46, 55)",
+          "function": "rgb(255, 255, 255)",
+          "variable": "rgb(255, 255, 255)",
+          "type": "rgb(255, 255, 255)",
+          "property": "rgb(255, 255, 255)",
+          "operator": "rgb(187, 154, 247)",
+          "punctuation": "rgb(255, 255, 255)",
+          "tag": "rgb(255, 255, 255)",
+          "attribute": "rgb(255, 255, 255)",
+          "regexp": "rgb(168, 168, 177)",
+          "constant": "rgb(255, 255, 255)",
+          "invalid": "rgb(255, 255, 255)"
+        },
+        "style": {
+          "keyword": {
+            "bold": true
+          }
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(0, 0, 0)",
+          "gutterBg": "rgb(0, 0, 0)",
+          "gutterFg": "rgb(255, 255, 255)",
+          "activeLine": "rgba(0, 52, 110, 0.69)",
+          "selection": "rgba(125, 70, 252, 0.247)",
+          "cursor": "rgb(125, 70, 252)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

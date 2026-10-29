@@ -1,0 +1,64 @@
+{
+  "id": "cm-darcula",
+  "name": "Darcula",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(43, 43, 43)",
+          "text": "rgb(248, 248, 242)",
+          "accent": "rgb(169, 183, 198)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(248, 248, 242)",
+          "h2": "rgb(248, 248, 242)",
+          "h3": "color-mix(in srgb, rgb(248, 248, 242) 70%, rgb(248, 248, 242))",
+          "h4": "color-mix(in srgb, rgb(248, 248, 242) 40%, rgb(248, 248, 242))",
+          "strong": "rgb(248, 248, 242)",
+          "em": "rgb(248, 248, 242)",
+          "link": "rgb(248, 248, 242)",
+          "url": "rgb(106, 135, 89)",
+          "code": "rgb(106, 135, 89)",
+          "quote": "rgb(248, 248, 242)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(204, 120, 50)",
+          "string": "rgb(106, 135, 89)",
+          "number": "rgb(189, 147, 249)",
+          "comment": "rgb(97, 161, 81)",
+          "function": "rgb(169, 183, 198)",
+          "variable": "rgb(169, 183, 198)",
+          "type": "rgb(255, 184, 108)",
+          "property": "rgb(255, 198, 109)",
+          "operator": "rgb(169, 183, 198)",
+          "punctuation": "rgb(248, 248, 242)",
+          "tag": "rgb(255, 121, 198)",
+          "attribute": "rgb(255, 198, 109)",
+          "regexp": "rgb(248, 248, 242)",
+          "constant": "rgb(248, 248, 242)",
+          "invalid": "rgb(248, 248, 242)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(43, 43, 43)",
+          "gutterBg": "rgba(255, 255, 255, 0.1)",
+          "gutterFg": "rgb(153, 153, 153)",
+          "activeLine": "rgba(255, 255, 255, 0.1)",
+          "selection": "rgba(255, 255, 255, 0.1)",
+          "cursor": "rgb(255, 255, 255)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

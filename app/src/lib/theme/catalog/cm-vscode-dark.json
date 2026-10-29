@@ -1,0 +1,64 @@
+{
+  "id": "cm-vscode-dark",
+  "name": "Vscode Dark",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(30, 30, 30)",
+          "text": "rgb(156, 220, 254)",
+          "accent": "rgb(220, 220, 170)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(156, 220, 254)",
+          "h2": "rgb(156, 220, 254)",
+          "h3": "color-mix(in srgb, rgb(156, 220, 254) 70%, rgb(156, 220, 254))",
+          "h4": "color-mix(in srgb, rgb(156, 220, 254) 40%, rgb(156, 220, 254))",
+          "strong": "rgb(156, 220, 254)",
+          "em": "rgb(156, 220, 254)",
+          "link": "rgb(106, 153, 85)",
+          "url": "rgb(206, 145, 120)",
+          "code": "rgb(206, 145, 120)",
+          "quote": "rgb(156, 220, 254)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(86, 156, 214)",
+          "string": "rgb(206, 145, 120)",
+          "number": "rgb(181, 206, 168)",
+          "comment": "rgb(106, 153, 85)",
+          "function": "rgb(220, 220, 170)",
+          "variable": "rgb(156, 220, 254)",
+          "type": "rgb(78, 201, 176)",
+          "property": "rgb(156, 220, 254)",
+          "operator": "rgb(212, 212, 212)",
+          "punctuation": "rgb(212, 212, 212)",
+          "tag": "rgb(78, 201, 176)",
+          "attribute": "rgb(156, 220, 254)",
+          "regexp": "rgb(209, 105, 105)",
+          "constant": "rgb(86, 156, 214)",
+          "invalid": "rgb(255, 0, 0)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(30, 30, 30)",
+          "gutterBg": "rgb(30, 30, 30)",
+          "gutterFg": "rgb(131, 131, 131)",
+          "activeLine": "rgba(255, 255, 255, 0.06)",
+          "selection": "rgba(97, 153, 255, 0.184)",
+          "cursor": "rgb(198, 198, 198)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

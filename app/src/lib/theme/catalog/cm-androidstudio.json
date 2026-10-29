@@ -1,0 +1,64 @@
+{
+  "id": "cm-androidstudio",
+  "name": "Androidstudio",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(40, 43, 46)",
+          "text": "rgb(169, 183, 198)",
+          "accent": "rgb(0, 255, 0)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(255, 198, 109)",
+          "h2": "rgb(255, 198, 109)",
+          "h3": "color-mix(in srgb, rgb(255, 198, 109) 70%, rgb(169, 183, 198))",
+          "h4": "color-mix(in srgb, rgb(255, 198, 109) 40%, rgb(169, 183, 198))",
+          "strong": "rgb(169, 183, 198)",
+          "em": "rgb(169, 183, 198)",
+          "link": "rgb(98, 151, 85)",
+          "url": "rgb(106, 135, 89)",
+          "code": "rgb(106, 135, 89)",
+          "quote": "rgb(128, 128, 128)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(204, 120, 50)",
+          "string": "rgb(106, 135, 89)",
+          "number": "rgb(104, 151, 187)",
+          "comment": "rgb(128, 128, 128)",
+          "function": "rgb(98, 151, 85)",
+          "variable": "rgb(98, 151, 85)",
+          "type": "rgb(255, 198, 109)",
+          "property": "rgb(106, 135, 89)",
+          "operator": "rgb(169, 183, 198)",
+          "punctuation": "rgb(169, 183, 198)",
+          "tag": "rgb(255, 198, 109)",
+          "attribute": "rgb(169, 183, 198)",
+          "regexp": "rgb(104, 151, 187)",
+          "constant": "rgb(169, 183, 198)",
+          "invalid": "rgb(169, 183, 198)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(40, 43, 46)",
+          "gutterBg": "rgb(51, 51, 56)",
+          "gutterFg": "rgb(204, 204, 204)",
+          "activeLine": "rgba(127, 133, 137, 0.12)",
+          "selection": "rgb(78, 82, 84)",
+          "cursor": "rgb(0, 255, 0)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

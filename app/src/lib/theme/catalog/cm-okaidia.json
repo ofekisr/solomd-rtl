@@ -1,0 +1,64 @@
+{
+  "id": "cm-okaidia",
+  "name": "Okaidia",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(39, 40, 34)",
+          "text": "rgb(255, 255, 255)",
+          "accent": "rgb(253, 151, 31)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(255, 255, 255)",
+          "h2": "rgb(255, 255, 255)",
+          "h3": "color-mix(in srgb, rgb(255, 255, 255) 70%, rgb(255, 255, 255))",
+          "h4": "color-mix(in srgb, rgb(255, 255, 255) 40%, rgb(255, 255, 255))",
+          "strong": "rgb(255, 255, 255)",
+          "em": "rgb(255, 255, 255)",
+          "link": "rgb(255, 255, 255)",
+          "url": "rgb(230, 219, 116)",
+          "code": "rgb(230, 219, 116)",
+          "quote": "rgb(255, 255, 255)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(249, 38, 114)",
+          "string": "rgb(230, 219, 116)",
+          "number": "rgb(174, 129, 255)",
+          "comment": "rgb(130, 146, 162)",
+          "function": "rgb(253, 151, 31)",
+          "variable": "rgb(158, 255, 255)",
+          "type": "rgb(102, 217, 239)",
+          "property": "rgb(166, 226, 46)",
+          "operator": "rgb(255, 255, 255)",
+          "punctuation": "rgb(255, 255, 255)",
+          "tag": "rgb(249, 38, 114)",
+          "attribute": "rgb(166, 226, 46)",
+          "regexp": "rgb(102, 217, 239)",
+          "constant": "rgb(230, 219, 116)",
+          "invalid": "rgb(255, 255, 255)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(39, 40, 34)",
+          "gutterBg": "rgb(39, 40, 34)",
+          "gutterFg": "rgba(255, 255, 255, 0.44)",
+          "activeLine": "rgba(0, 0, 0, 0.23)",
+          "selection": "rgb(73, 72, 62)",
+          "cursor": "rgb(255, 255, 255)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

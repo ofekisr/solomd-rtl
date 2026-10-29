@@ -1,0 +1,64 @@
+{
+  "id": "cm-quietlight",
+  "name": "Quietlight",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "light": {
+      "mode": "light",
+      "app": {
+        "colors": {
+          "bg": "rgb(245, 245, 245)",
+          "text": "rgb(51, 51, 51)",
+          "accent": "rgb(170, 55, 49)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(170, 55, 49)",
+          "h2": "rgb(170, 55, 49)",
+          "h3": "color-mix(in srgb, rgb(170, 55, 49) 70%, rgb(51, 51, 51))",
+          "h4": "color-mix(in srgb, rgb(170, 55, 49) 40%, rgb(51, 51, 51))",
+          "strong": "rgb(51, 51, 51)",
+          "em": "rgb(51, 51, 51)",
+          "link": "rgb(51, 51, 51)",
+          "url": "rgb(68, 140, 39)",
+          "code": "rgb(68, 140, 39)",
+          "quote": "rgb(51, 51, 51)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(75, 105, 198)",
+          "string": "rgb(68, 140, 39)",
+          "number": "rgb(156, 93, 39)",
+          "comment": "rgb(170, 170, 170)",
+          "function": "rgb(170, 55, 49)",
+          "variable": "rgb(122, 62, 157)",
+          "type": "rgb(122, 62, 157)",
+          "property": "rgb(170, 55, 49)",
+          "operator": "rgb(75, 105, 198)",
+          "punctuation": "rgb(51, 51, 51)",
+          "tag": "rgb(75, 105, 198)",
+          "attribute": "rgb(170, 55, 49)",
+          "regexp": "rgb(75, 105, 198)",
+          "constant": "rgb(156, 93, 39)",
+          "invalid": "rgb(205, 49, 49)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(245, 245, 245)",
+          "gutterBg": "rgb(245, 245, 245)",
+          "gutterFg": "rgb(51, 51, 51)",
+          "activeLine": "rgba(121, 255, 0, 0.17)",
+          "selection": "rgb(201, 208, 217)",
+          "cursor": "rgb(84, 73, 75)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

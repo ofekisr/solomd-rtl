@@ -1,0 +1,64 @@
+{
+  "id": "cm-abyss",
+  "name": "Abyss",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(0, 12, 24)",
+          "text": "rgb(102, 136, 204)",
+          "accent": "rgb(221, 187, 136)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(102, 136, 204)",
+          "h2": "rgb(102, 136, 204)",
+          "h3": "color-mix(in srgb, rgb(102, 136, 204) 70%, rgb(102, 136, 204))",
+          "h4": "color-mix(in srgb, rgb(102, 136, 204) 40%, rgb(102, 136, 204))",
+          "strong": "rgb(102, 136, 204)",
+          "em": "rgb(102, 136, 204)",
+          "link": "rgb(102, 136, 204)",
+          "url": "rgb(34, 170, 68)",
+          "code": "rgb(34, 170, 68)",
+          "quote": "rgb(102, 136, 204)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(34, 85, 136)",
+          "string": "rgb(34, 170, 68)",
+          "number": "rgb(242, 128, 208)",
+          "comment": "rgb(56, 72, 135)",
+          "function": "rgb(153, 102, 184)",
+          "variable": "rgb(34, 119, 255)",
+          "type": "rgb(153, 102, 184)",
+          "property": "rgb(153, 102, 184)",
+          "operator": "rgb(34, 85, 136)",
+          "punctuation": "rgb(102, 136, 204)",
+          "tag": "rgb(34, 85, 136)",
+          "attribute": "rgb(153, 102, 184)",
+          "regexp": "rgb(34, 170, 68)",
+          "constant": "rgb(242, 128, 208)",
+          "invalid": "rgb(162, 45, 68)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(0, 12, 24)",
+          "gutterBg": "rgb(0, 12, 24)",
+          "gutterFg": "rgb(102, 136, 204)",
+          "activeLine": "rgba(0, 85, 255, 0.19)",
+          "selection": "rgb(119, 8, 17)",
+          "cursor": "rgb(221, 187, 136)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

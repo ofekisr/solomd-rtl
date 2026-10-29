@@ -1,0 +1,64 @@
+{
+  "id": "cm-github-light",
+  "name": "Github Light",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "light": {
+      "mode": "light",
+      "app": {
+        "colors": {
+          "bg": "rgb(255, 255, 255)",
+          "text": "rgb(36, 41, 46)",
+          "accent": "rgb(0, 92, 197)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(36, 41, 46)",
+          "h2": "rgb(36, 41, 46)",
+          "h3": "color-mix(in srgb, rgb(36, 41, 46) 70%, rgb(36, 41, 46))",
+          "h4": "color-mix(in srgb, rgb(36, 41, 46) 40%, rgb(36, 41, 46))",
+          "strong": "rgb(36, 41, 46)",
+          "em": "rgb(36, 41, 46)",
+          "link": "rgb(36, 41, 46)",
+          "url": "rgb(3, 47, 98)",
+          "code": "rgb(3, 47, 98)",
+          "quote": "rgb(34, 134, 58)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(215, 58, 73)",
+          "string": "rgb(3, 47, 98)",
+          "number": "rgb(0, 92, 197)",
+          "comment": "rgb(106, 115, 125)",
+          "function": "rgb(0, 92, 197)",
+          "variable": "rgb(0, 92, 197)",
+          "type": "rgb(215, 58, 73)",
+          "property": "rgb(111, 66, 193)",
+          "operator": "rgb(0, 92, 197)",
+          "punctuation": "rgb(36, 41, 46)",
+          "tag": "rgb(17, 99, 41)",
+          "attribute": "rgb(0, 92, 197)",
+          "regexp": "rgb(3, 47, 98)",
+          "constant": "rgb(34, 134, 58)",
+          "invalid": "rgb(203, 36, 49)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(255, 255, 255)",
+          "gutterBg": "rgb(255, 255, 255)",
+          "gutterFg": "rgb(110, 119, 129)",
+          "activeLine": "rgba(204, 238, 255, 0.267)",
+          "selection": "rgb(187, 223, 255)",
+          "cursor": "rgb(0, 0, 0)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

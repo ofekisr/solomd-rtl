@@ -1,0 +1,64 @@
+{
+  "id": "cm-monokai-dimmed",
+  "name": "Monokai Dimmed",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(30, 30, 30)",
+          "text": "rgb(197, 200, 198)",
+          "accent": "rgb(192, 112, 32)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(208, 179, 68)",
+          "h2": "rgb(208, 179, 68)",
+          "h3": "color-mix(in srgb, rgb(208, 179, 68) 70%, rgb(197, 200, 198))",
+          "h4": "color-mix(in srgb, rgb(208, 179, 68) 40%, rgb(197, 200, 198))",
+          "strong": "rgb(197, 200, 198)",
+          "em": "rgb(197, 200, 198)",
+          "link": "rgb(197, 200, 198)",
+          "url": "rgb(208, 132, 66)",
+          "code": "rgb(208, 132, 66)",
+          "quote": "rgb(197, 200, 198)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(103, 104, 103)",
+          "string": "rgb(208, 132, 66)",
+          "number": "rgb(96, 137, 180)",
+          "comment": "rgb(154, 155, 153)",
+          "function": "rgb(152, 114, 162)",
+          "variable": "rgb(199, 68, 74)",
+          "type": "rgb(155, 0, 0)",
+          "property": "rgb(152, 114, 162)",
+          "operator": "rgb(103, 104, 103)",
+          "punctuation": "rgb(197, 200, 198)",
+          "tag": "rgb(96, 137, 180)",
+          "attribute": "rgb(152, 114, 162)",
+          "regexp": "rgb(208, 132, 66)",
+          "constant": "rgb(128, 128, 255)",
+          "invalid": "rgb(255, 11, 0)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(30, 30, 30)",
+          "gutterBg": "rgb(30, 30, 30)",
+          "gutterFg": "rgb(197, 200, 198)",
+          "activeLine": "rgba(48, 48, 48, 0.47)",
+          "selection": "rgb(71, 71, 161)",
+          "cursor": "rgb(192, 112, 32)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

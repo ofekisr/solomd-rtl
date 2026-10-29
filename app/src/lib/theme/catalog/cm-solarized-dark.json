@@ -1,0 +1,64 @@
+{
+  "id": "cm-solarized-dark",
+  "name": "Solarized Dark",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(0, 43, 54)",
+          "text": "rgb(131, 148, 150)",
+          "accent": "rgb(211, 1, 2)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(38, 139, 210)",
+          "h2": "rgb(38, 139, 210)",
+          "h3": "color-mix(in srgb, rgb(38, 139, 210) 70%, rgb(131, 148, 150))",
+          "h4": "color-mix(in srgb, rgb(38, 139, 210) 40%, rgb(131, 148, 150))",
+          "strong": "rgb(131, 148, 150)",
+          "em": "rgb(131, 148, 150)",
+          "link": "rgb(131, 148, 150)",
+          "url": "rgb(42, 161, 152)",
+          "code": "rgb(42, 161, 152)",
+          "quote": "rgb(131, 148, 150)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(133, 153, 0)",
+          "string": "rgb(42, 161, 152)",
+          "number": "rgb(211, 54, 130)",
+          "comment": "rgb(88, 110, 117)",
+          "function": "rgb(38, 139, 210)",
+          "variable": "rgb(38, 139, 210)",
+          "type": "rgb(133, 153, 0)",
+          "property": "rgb(38, 139, 210)",
+          "operator": "rgb(133, 153, 0)",
+          "punctuation": "rgb(131, 148, 150)",
+          "tag": "rgb(38, 139, 210)",
+          "attribute": "rgb(38, 139, 210)",
+          "regexp": "rgb(220, 50, 47)",
+          "constant": "rgb(203, 75, 22)",
+          "invalid": "rgb(220, 50, 47)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(0, 43, 54)",
+          "gutterBg": "rgb(0, 43, 54)",
+          "gutterFg": "rgb(131, 148, 150)",
+          "activeLine": "rgba(0, 202, 254, 0.067)",
+          "selection": "rgba(0, 68, 84, 0.667)",
+          "cursor": "rgb(211, 1, 2)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

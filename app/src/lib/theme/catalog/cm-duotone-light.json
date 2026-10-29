@@ -1,0 +1,64 @@
+{
+  "id": "cm-duotone-light",
+  "name": "Duotone Light",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "light": {
+      "mode": "light",
+      "app": {
+        "colors": {
+          "bg": "rgb(250, 248, 245)",
+          "text": "rgb(178, 151, 98)",
+          "accent": "rgb(147, 171, 220)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(45, 32, 6)",
+          "h2": "rgb(45, 32, 6)",
+          "h3": "color-mix(in srgb, rgb(45, 32, 6) 70%, rgb(178, 151, 98))",
+          "h4": "color-mix(in srgb, rgb(45, 32, 6) 40%, rgb(178, 151, 98))",
+          "strong": "rgb(178, 151, 98)",
+          "em": "rgb(45, 32, 6)",
+          "link": "rgb(6, 50, 137)",
+          "url": "rgb(22, 89, 223)",
+          "code": "rgb(22, 89, 223)",
+          "quote": "rgb(6, 50, 137)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(6, 50, 137)",
+          "string": "rgb(22, 89, 223)",
+          "number": "rgb(6, 50, 137)",
+          "comment": "rgb(182, 173, 154)",
+          "function": "rgb(45, 32, 6)",
+          "variable": "rgb(45, 32, 6)",
+          "type": "rgb(137, 103, 36)",
+          "property": "rgb(178, 151, 98)",
+          "operator": "rgb(22, 89, 223)",
+          "punctuation": "rgb(6, 50, 137)",
+          "tag": "rgb(45, 32, 6)",
+          "attribute": "rgb(6, 50, 137)",
+          "regexp": "rgb(178, 151, 98)",
+          "constant": "rgb(178, 151, 98)",
+          "invalid": "rgb(178, 151, 98)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(250, 248, 245)",
+          "gutterBg": "rgb(250, 248, 245)",
+          "gutterFg": "rgb(205, 196, 177)",
+          "activeLine": "rgba(221, 206, 177, 0.33)",
+          "selection": "rgb(227, 220, 206)",
+          "cursor": "rgb(147, 171, 220)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

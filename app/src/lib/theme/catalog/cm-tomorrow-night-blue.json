@@ -1,0 +1,64 @@
+{
+  "id": "cm-tomorrow-night-blue",
+  "name": "Tomorrow Night Blue",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(0, 36, 81)",
+          "text": "rgb(255, 255, 255)",
+          "accent": "rgb(187, 218, 255)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(209, 241, 169)",
+          "h2": "rgb(209, 241, 169)",
+          "h3": "color-mix(in srgb, rgb(209, 241, 169) 70%, rgb(255, 255, 255))",
+          "h4": "color-mix(in srgb, rgb(209, 241, 169) 40%, rgb(255, 255, 255))",
+          "strong": "rgb(255, 255, 255)",
+          "em": "rgb(255, 255, 255)",
+          "link": "rgb(255, 255, 255)",
+          "url": "rgb(209, 241, 169)",
+          "code": "rgb(209, 241, 169)",
+          "quote": "rgb(255, 255, 255)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(235, 187, 255)",
+          "string": "rgb(209, 241, 169)",
+          "number": "rgb(255, 197, 143)",
+          "comment": "rgb(114, 133, 183)",
+          "function": "rgb(187, 218, 255)",
+          "variable": "rgb(255, 197, 143)",
+          "type": "rgb(255, 238, 173)",
+          "property": "rgb(187, 218, 255)",
+          "operator": "rgb(235, 187, 255)",
+          "punctuation": "rgb(255, 255, 255)",
+          "tag": "rgb(255, 157, 164)",
+          "attribute": "rgb(187, 218, 255)",
+          "regexp": "rgb(209, 241, 169)",
+          "constant": "rgb(255, 197, 143)",
+          "invalid": "rgb(169, 32, 73)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(0, 36, 81)",
+          "gutterBg": "rgb(0, 36, 81)",
+          "gutterFg": "rgb(255, 255, 255)",
+          "activeLine": "rgba(0, 52, 110, 0.48)",
+          "selection": "rgb(0, 63, 142)",
+          "cursor": "rgb(255, 255, 255)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

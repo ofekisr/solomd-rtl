@@ -1,0 +1,64 @@
+{
+  "id": "cm-tokyo-night",
+  "name": "Tokyo Night",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(26, 27, 38)",
+          "text": "rgb(120, 124, 153)",
+          "accent": "rgb(192, 202, 245)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(137, 221, 255)",
+          "h2": "rgb(137, 221, 255)",
+          "h3": "color-mix(in srgb, rgb(137, 221, 255) 70%, rgb(120, 124, 153))",
+          "h4": "color-mix(in srgb, rgb(137, 221, 255) 40%, rgb(120, 124, 153))",
+          "strong": "rgb(120, 124, 153)",
+          "em": "rgb(120, 124, 153)",
+          "link": "rgb(120, 124, 153)",
+          "url": "rgb(158, 206, 106)",
+          "code": "rgb(158, 206, 106)",
+          "quote": "rgb(120, 124, 153)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(187, 154, 247)",
+          "string": "rgb(158, 206, 106)",
+          "number": "rgb(255, 158, 100)",
+          "comment": "rgb(68, 75, 106)",
+          "function": "rgb(122, 162, 247)",
+          "variable": "rgb(192, 202, 245)",
+          "type": "rgb(13, 185, 215)",
+          "property": "rgb(122, 162, 247)",
+          "operator": "rgb(187, 154, 247)",
+          "punctuation": "rgb(120, 124, 153)",
+          "tag": "rgb(13, 185, 215)",
+          "attribute": "rgb(122, 162, 247)",
+          "regexp": "rgb(180, 249, 248)",
+          "constant": "rgb(187, 154, 247)",
+          "invalid": "rgb(255, 83, 112)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(26, 27, 38)",
+          "gutterBg": "rgb(26, 27, 38)",
+          "gutterFg": "rgb(120, 124, 153)",
+          "activeLine": "rgba(71, 75, 102, 0.067)",
+          "selection": "rgba(81, 92, 126, 0.25)",
+          "cursor": "rgb(192, 202, 245)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

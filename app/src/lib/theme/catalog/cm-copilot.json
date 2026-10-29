@@ -1,0 +1,64 @@
+{
+  "id": "cm-copilot",
+  "name": "Copilot",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(35, 42, 47)",
+          "text": "rgb(147, 157, 165)",
+          "accent": "rgb(255, 234, 107)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(91, 236, 149)",
+          "h2": "rgb(91, 236, 149)",
+          "h3": "color-mix(in srgb, rgb(91, 236, 149) 70%, rgb(147, 157, 165))",
+          "h4": "color-mix(in srgb, rgb(91, 236, 149) 40%, rgb(147, 157, 165))",
+          "strong": "rgb(147, 157, 165)",
+          "em": "rgb(147, 157, 165)",
+          "link": "rgb(147, 157, 165)",
+          "url": "rgb(91, 236, 149)",
+          "code": "rgb(91, 236, 149)",
+          "quote": "rgb(147, 157, 165)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(186, 142, 247)",
+          "string": "rgb(91, 236, 149)",
+          "number": "rgb(137, 221, 255)",
+          "comment": "rgb(112, 122, 132)",
+          "function": "rgb(255, 234, 107)",
+          "variable": "rgb(147, 157, 165)",
+          "type": "rgb(137, 221, 255)",
+          "property": "rgb(255, 234, 107)",
+          "operator": "rgb(186, 142, 247)",
+          "punctuation": "rgb(147, 157, 165)",
+          "tag": "rgb(255, 106, 128)",
+          "attribute": "rgb(255, 234, 107)",
+          "regexp": "rgb(86, 173, 183)",
+          "constant": "rgb(147, 157, 165)",
+          "invalid": "rgb(255, 106, 128)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(35, 42, 47)",
+          "gutterBg": "rgb(35, 42, 47)",
+          "gutterFg": "rgb(147, 157, 165)",
+          "activeLine": "rgba(68, 105, 131, 0.17)",
+          "selection": "rgb(32, 64, 98)",
+          "cursor": "rgb(147, 157, 165)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

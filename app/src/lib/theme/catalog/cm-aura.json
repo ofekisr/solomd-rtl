@@ -1,0 +1,64 @@
+{
+  "id": "cm-aura",
+  "name": "Aura",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "dark": {
+      "mode": "dark",
+      "app": {
+        "colors": {
+          "bg": "rgb(33, 32, 46)",
+          "text": "rgb(237, 236, 238)",
+          "accent": "rgb(162, 119, 255)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(162, 119, 255)",
+          "h2": "rgb(162, 119, 255)",
+          "h3": "color-mix(in srgb, rgb(162, 119, 255) 70%, rgb(237, 236, 238))",
+          "h4": "color-mix(in srgb, rgb(162, 119, 255) 40%, rgb(237, 236, 238))",
+          "strong": "rgb(237, 236, 238)",
+          "em": "rgb(237, 236, 238)",
+          "link": "rgb(237, 236, 238)",
+          "url": "rgb(97, 255, 202)",
+          "code": "rgb(97, 255, 202)",
+          "quote": "rgb(237, 236, 238)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(162, 119, 255)",
+          "string": "rgb(97, 255, 202)",
+          "number": "rgb(97, 255, 202)",
+          "comment": "rgb(109, 109, 109)",
+          "function": "rgb(255, 202, 133)",
+          "variable": "rgb(237, 236, 238)",
+          "type": "rgb(130, 226, 255)",
+          "property": "rgb(255, 202, 133)",
+          "operator": "rgb(162, 119, 255)",
+          "punctuation": "rgb(237, 236, 238)",
+          "tag": "rgb(130, 226, 255)",
+          "attribute": "rgb(255, 202, 133)",
+          "regexp": "rgb(97, 255, 202)",
+          "constant": "rgb(97, 255, 202)",
+          "invalid": "rgb(255, 103, 103)"
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(33, 32, 46)",
+          "gutterBg": "rgb(33, 32, 46)",
+          "gutterFg": "rgb(237, 236, 238)",
+          "activeLine": "rgba(163, 148, 240, 0.2)",
+          "selection": "rgba(90, 81, 137, 0.56)",
+          "cursor": "rgb(162, 119, 255)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}

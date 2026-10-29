@@ -1,0 +1,69 @@
+{
+  "id": "cm-gruvbox-light",
+  "name": "Gruvbox Light",
+  "version": 1,
+  "source": "catalog",
+  "variants": {
+    "light": {
+      "mode": "light",
+      "app": {
+        "colors": {
+          "bg": "rgb(251, 241, 199)",
+          "text": "rgb(60, 56, 54)",
+          "accent": "rgb(175, 58, 3)"
+        }
+      },
+      "markdown": {
+        "colors": {
+          "h1": "rgb(121, 116, 14)",
+          "h2": "rgb(121, 116, 14)",
+          "h3": "color-mix(in srgb, rgb(121, 116, 14) 70%, rgb(60, 56, 54))",
+          "h4": "color-mix(in srgb, rgb(121, 116, 14) 40%, rgb(60, 56, 54))",
+          "strong": "rgb(175, 58, 3)",
+          "em": "rgb(121, 116, 14)",
+          "link": "rgb(124, 111, 100)",
+          "url": "rgb(60, 56, 54)",
+          "code": "rgb(60, 56, 54)",
+          "quote": "rgb(146, 131, 116)"
+        }
+      },
+      "code": {
+        "colors": {
+          "keyword": "rgb(157, 0, 6)",
+          "string": "rgb(60, 56, 54)",
+          "number": "rgb(143, 63, 113)",
+          "comment": "rgb(146, 131, 116)",
+          "function": "rgb(121, 116, 14)",
+          "variable": "rgb(7, 102, 120)",
+          "type": "rgb(181, 118, 20)",
+          "property": "rgb(66, 123, 88)",
+          "operator": "rgb(157, 0, 6)",
+          "punctuation": "rgb(60, 56, 54)",
+          "tag": "rgb(66, 123, 88)",
+          "attribute": "rgb(66, 123, 88)",
+          "regexp": "rgb(66, 123, 88)",
+          "constant": "rgb(143, 63, 113)",
+          "invalid": "rgb(175, 58, 3)"
+        },
+        "style": {
+          "comment": {
+            "italic": true
+          }
+        }
+      },
+      "editor": {
+        "colors": {
+          "background": "rgb(251, 241, 199)",
+          "gutterBg": "rgb(235, 219, 178)",
+          "gutterFg": "rgb(102, 92, 84)",
+          "activeLine": "rgba(163, 127, 34, 0.22)",
+          "selection": "rgba(189, 174, 147, 0.57)",
+          "cursor": "rgb(175, 58, 3)",
+          "bracket": "rgba(0, 0, 0, 0)",
+          "search": "rgba(0, 0, 0, 0)",
+          "searchActive": "rgba(0, 0, 0, 0)"
+        }
+      }
+    }
+  }
+}
