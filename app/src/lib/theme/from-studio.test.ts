@@ -28,6 +28,18 @@ test('radius and gradient become style props', () => {
   assert.equal(theme.variants.light.surfaces?.style?.backdrop, undefined);
 });
 
+const SOLOMD_LIGHT_BG = '#ffffff';
+
+test('a palette missing the required basics falls back to the SoloMD base', () => {
+  const theme = fromUserTheme({ ...ut, light: {} });
+  assert.equal(parseTheme(theme).ok, true);
+  assert.equal(theme.variants.light.app.colors.bg, SOLOMD_LIGHT_BG);
+});
+
+test('an empty name becomes Untitled theme', () => {
+  assert.equal(fromUserTheme({ ...ut, name: '   ' }).name, 'Untitled theme');
+});
+
 test('paletteOf returns every Studio token as hex', () => {
   const p = paletteOf(fromUserTheme(ut).variants.dark);
   assert.equal(p['--bg'], '#101010');
