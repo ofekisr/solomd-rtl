@@ -1,10 +1,10 @@
 import { z } from 'zod';
+import { isAllowedColor } from './color-syntax.ts';
 import {
   MAX_BACKDROP_LAYERS, MAX_ID_LENGTH, MAX_NAME_LENGTH, MAX_PANEL_BLUR_PX, MAX_ROUNDNESS, MIN_ROUNDNESS,
   ID_RE, SECTION_COLOR_VARS, type ColorKey, type SectionId,
 } from './tokens.ts';
 
-const COLOR_RE = /^(#[0-9a-f]{3,8}|rgba?\([\d\s.,%/]+\)|hsla?\([\d\s.,%/deg]+\)|color-mix\([a-z0-9\s.,%#()-]+\)|transparent)$/i;
 const PERCENT_MIN = 0;
 const PERCENT_MAX = 100;
 const DEGREES_MAX = 360;
@@ -13,7 +13,7 @@ const OPACITY_MAX = 1;
 const MIN_GRADIENT_STOPS = 2;
 const THEME_VERSION = 1;
 
-const color = z.string().trim().regex(COLOR_RE, 'not an allowed colour');
+const color = z.string().trim().refine(isAllowedColor, 'not an allowed colour');
 const percent = z.number().min(PERCENT_MIN).max(PERCENT_MAX);
 const roundness = z.number().min(MIN_ROUNDNESS).max(MAX_ROUNDNESS);
 const textStyle = z.strictObject({ italic: z.boolean().optional(), bold: z.boolean().optional(), underline: z.boolean().optional() });

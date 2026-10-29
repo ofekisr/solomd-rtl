@@ -58,3 +58,10 @@ test('rejects a missing required colour', () => {
 test('rejects a theme with no variants', () => {
   assert.equal(parseTheme({ ...minimal, variants: {} }).ok, false);
 });
+
+test('rejects a url() smuggled after a colour-mix', () => {
+  const t = fresh();
+  appColorsOf(t).bg = 'color-mix(in srgb, red, blue) url(evil)';
+  const r = parseTheme(t);
+  assert.equal(r.ok, false);
+});
