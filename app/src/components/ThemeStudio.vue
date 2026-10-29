@@ -5,16 +5,16 @@
 import { computed, onMounted, ref } from 'vue';
 import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
+import { useThemeStore } from '../stores/theme';
 import { useI18n } from '../i18n';
-import { themeFamily, themeLabels } from '../lib/themes';
-import { customCssIsLight, flashedPalette, locateToken, useThemeStudio } from '../composables/useThemeStudio';
+import { findVariant } from '../lib/theme/slots';
+import { fromUserTheme, paletteOf } from '../lib/theme/from-studio';
+import { flashedPalette, locateToken, useThemeStudio } from '../composables/useThemeStudio';
 import ThemeMock from './ThemeMock.vue';
 import ThemeTokenRow from './ThemeTokenRow.vue';
 import ColorPicker from './ColorPicker.vue';
 import {
-  DARK_BASES,
   DEFAULT_RADIUS,
-  LIGHT_BASES,
   MAX_RADIUS,
   MIN_RADIUS,
   READABLE_CONTRAST,
@@ -25,16 +25,12 @@ import {
   mergeKeeping,
   isHexColor,
   newUserThemeId,
-  CUSTOM_CSS_BASE,
-  KEEP_CSS_BACKDROP,
   defaultGradient,
   isGradient,
   type Backdrop,
   type BgGradient,
-  hasCustomCssLoaded,
-  readThemePalette,
+  type Palette,
   toHex6,
-  userThemeCss,
   type ThemeMode,
   type ThemeToken,
   type ThemeTokenGroup,
@@ -42,7 +38,7 @@ import {
 } from '../lib/user-theme';
 
 type PreviewMode = ThemeMode | 'both';
-type BackdropKind = 'plain' | 'gradient' | 'keep';
+type BackdropKind = 'plain' | 'gradient';
 const FULL_TURN = 360;
 type TokenRow =
   | { kind: 'single'; token: ThemeToken }
@@ -55,28 +51,33 @@ const toasts = useToastsStore();
 const { t } = useI18n();
 const { draft, savedSnapshot, isDirty, previewFamily } = useThemeStudio();
 
-const previewMode = ref<PreviewMode>(previewFamily.value ?? themeFamily(settings.theme));
-const customCssName = settings.customCssPath && hasCustomCssLoaded()
-  ? (settings.customCssPath.split(/[\\/]/).pop() ?? '').replace(/\.css$/i, '')
-  : '';
-const lightBases = computed(() => (customCssName ? [CUSTOM_CSS_BASE, ...LIGHT_BASES] : [...LIGHT_BASES]));
-const darkBases = computed(() => (customCssName ? [CUSTOM_CSS_BASE, ...DARK_BASES] : [...DARK_BASES]));
-/** Many CSS themes are dark-only; one only seeds the mode its own background matches. */
-function customCssFits(mode: ThemeMode): boolean {
-  return !!customCssName && customCssIsLight(mode) === (mode === 'light');
+const themeStore = useThemeStore();
+const previewMode = ref<PreviewMode>(previewFamily.value ?? themeStore.mode);
+
+function basePalette(themeId: string, mode: ThemeMode): Palette {
+  return paletteOf(findVariant(themeStore.themes, { themeId, variant: mode }, mode).variant);
 }
 
-function initialBase(mode: ThemeMode, bases: readonly string[]): string {
-  if (customCssFits(mode)) return CUSTOM_CSS_BASE;
-  return bases.includes(settings.theme) ? settings.theme : mode;
+function basesFor(mode: ThemeMode) {
+  return themeStore.themes.filter((th) => Object.values(th.variants).some((v) => v.mode === mode));
 }
-const lightBase = ref<string>(initialBase('light', LIGHT_BASES));
-const darkBase = ref<string>(initialBase('dark', DARK_BASES));
+const lightBases = computed(() => basesFor('light'));
+const darkBases = computed(() => basesFor('dark'));
+
+function initialBase(mode: ThemeMode): string {
+  const slot = mode === 'light' ? settings.lightSlot : settings.darkSlot;
+  return basesFor(mode).some((th) => th.id === slot.themeId) ? slot.themeId : (basesFor(mode)[0]?.id ?? slot.themeId);
+}
+const lightBase = ref<string>(initialBase('light'));
+const darkBase = ref<string>(initialBase('dark'));
 const openGroups = ref<Record<string, boolean>>({ basics: true });
 
 const current = computed(() => draft.value as UserTheme);
 const isSaved = computed(() => settings.userThemes.some((ut) => ut.id === current.value.id));
-const isInUse = computed(() => settings.activeUserThemeId === current.value.id);
+const isInUse = computed(() => settings.lightSlot.themeId === current.value.id || settings.darkSlot.themeId === current.value.id);
+const myThemes = computed(() => themeStore.themes
+  .filter((th) => th.source === 'mine' && th.origin === 'studio')
+  .flatMap((th) => settings.userThemes.filter((ut) => ut.id === th.id)));
 const shownModes = computed<ThemeMode[]>(() => (previewMode.value === 'both' ? ['light', 'dark'] : [previewMode.value]));
 
 function rowsOf(group: ThemeTokenGroup): TokenRow[] {
@@ -99,38 +100,30 @@ function rowsOf(group: ThemeTokenGroup): TokenRow[] {
 }
 const groups = THEME_TOKEN_GROUPS.map((g) => ({ ...g, rows: rowsOf(g) }));
 
-function baseLabel(name: string): string {
-  if (name === CUSTOM_CSS_BASE) return `${customCssName} (${t('themeStudio.customCss')})`;
-  return themeLabels.find((l) => l.value === name)?.label ?? name;
+function baseLabel(id: string): string {
+  return themeStore.themes.find((th) => th.id === id)?.name ?? id;
 }
 
 function freshTheme(): UserTheme {
   return {
     id: newUserThemeId(),
     name: `${t('themeStudio.defaultName')} ${settings.userThemes.length + 1}`,
-    light: readThemePalette(lightBase.value, 'light'),
-    dark: readThemePalette(darkBase.value, 'dark'),
+    light: basePalette(lightBase.value, 'light'),
+    dark: basePalette(darkBase.value, 'dark'),
     edited: { light: [], dark: [] },
     radius: DEFAULT_RADIUS,
-    gradient: { light: startingBackdrop(lightBase.value), dark: startingBackdrop(darkBase.value) },
+    gradient: { light: null, dark: null },
   };
-}
-
-/** Starting from the custom CSS theme keeps its background; a built-in base starts plain. */
-function startingBackdrop(base: string): Backdrop {
-  return base === CUSTOM_CSS_BASE ? KEEP_CSS_BACKDROP : null;
 }
 
 function backdropKind(mode: ThemeMode): BackdropKind {
   const b = current.value.gradient[mode];
-  if (b === KEEP_CSS_BACKDROP) return 'keep';
   return isGradient(b) ? 'gradient' : 'plain';
 }
 
 function setBackdropKind(mode: ThemeMode, kind: BackdropKind) {
   const next: Record<BackdropKind, () => Backdrop> = {
     plain: () => null,
-    keep: () => KEEP_CSS_BACKDROP,
     gradient: () => defaultGradient(current.value[mode]),
   };
   current.value.gradient[mode] = next[kind]();
@@ -167,13 +160,13 @@ function cloneTheme(theme: UserTheme): UserTheme {
 }
 
 function copyBackdrop(b: Backdrop): Backdrop {
-  return isGradient(b) ? { ...b } : b;
+  return isGradient(b) ? { ...b } : null;
 }
 
 /** A fresh theme counts as unchanged until the first edit. */
 function startEditing(theme: UserTheme) {
   draft.value = cloneTheme(theme);
-  savedSnapshot.value = JSON.stringify(theme);
+  savedSnapshot.value = JSON.stringify(draft.value);
 }
 
 function onPickTheme(id: string) {
@@ -194,7 +187,7 @@ function setColor(mode: ThemeMode, key: string, value: string) {
 
 /** Back to the base theme's colour, and no longer counted as hand-picked. */
 function resetToken(mode: ThemeMode, key: string) {
-  current.value[mode][key] = readThemePalette(baseFor(mode), mode)[key];
+  current.value[mode][key] = basePalette(baseFor(mode), mode)[key];
   current.value.edited[mode] = current.value.edited[mode].filter((k) => k !== key);
 }
 
@@ -224,7 +217,7 @@ function ratio(mode: ThemeMode, fg: string, bg: string): number {
 /* Automatic fills only touch the mode(s) on screen, and never a hand-picked colour. */
 function resetFromBases() {
   for (const mode of shownModes.value) {
-    current.value[mode] = mergeKeeping(current.value[mode], readThemePalette(baseFor(mode), mode), current.value.edited[mode]);
+    current.value[mode] = mergeKeeping(current.value[mode], basePalette(baseFor(mode), mode), current.value.edited[mode]);
   }
 }
 
@@ -232,18 +225,19 @@ function harmonizeShown() {
   for (const mode of shownModes.value) current.value[mode] = harmonize(current.value[mode], current.value.edited[mode]);
 }
 
-function save() {
+async function save() {
   const theme = cloneTheme(current.value);
   theme.name = theme.name.trim() || t('themeStudio.defaultName');
   settings.saveUserTheme(theme);
+  await themeStore.save(fromUserTheme(theme));
   startEditing(theme);
   toasts.success(t('themeStudio.saved', { name: theme.name }), 2500);
 }
 
 /** The only action that changes which theme the app uses. */
-function useTheme() {
-  if (isDirty.value) save();
-  settings.setActiveUserTheme(current.value.id);
+async function useTheme() {
+  if (isDirty.value || !isSaved.value) await save();
+  themeStore.useTheme(current.value.id);
   toasts.success(t('themeStudio.applied', { name: current.value.name }), 2500);
 }
 
@@ -251,14 +245,16 @@ function discard() {
   onPickTheme(isSaved.value ? current.value.id : '');
 }
 
-function removeTheme() {
-  settings.deleteUserTheme(current.value.id);
+async function removeTheme() {
+  const { id } = current.value;
+  settings.deleteUserTheme(id);
+  await themeStore.remove(id);
   startEditing(freshTheme());
 }
 
-async function copyCss() {
+async function copyJson() {
   try {
-    await navigator.clipboard.writeText(userThemeCss(current.value));
+    await navigator.clipboard.writeText(JSON.stringify(fromUserTheme(current.value), null, 2));
     toasts.success(t('themeStudio.copied'), 2000);
   } catch {
     toasts.warning(t('themeStudio.copyFailed'), 3000);
@@ -268,7 +264,7 @@ async function copyCss() {
 onMounted(() => {
   if (previewMode.value !== 'both') previewFamily.value = previewMode.value;
   if (draft.value) return;
-  const active = settings.userThemes.find((ut) => ut.id === settings.activeUserThemeId);
+  const active = settings.userThemes.find((ut) => ut.id === themeStore.active.theme.id);
   startEditing(active ?? freshTheme());
 });
 </script>
@@ -278,7 +274,7 @@ onMounted(() => {
     <div class="row">
       <select :value="isSaved ? current.id : ''" @change="onPickTheme(($event.target as HTMLSelectElement).value)">
         <option value="">{{ t('themeStudio.newTheme') }}</option>
-        <option v-for="ut in settings.userThemes" :key="ut.id" :value="ut.id">{{ ut.name }}</option>
+        <option v-for="ut in myThemes" :key="ut.id" :value="ut.id">{{ ut.name }}</option>
       </select>
       <input v-model="current.name" class="name" :placeholder="t('themeStudio.name')" maxlength="80" />
       <span v-if="isDirty" class="dirty" :title="t('themeStudio.unsaved')">● {{ t('themeStudio.unsaved') }}</span>
@@ -336,9 +332,6 @@ onMounted(() => {
       >
         <option value="plain">{{ t('themeStudio.backdropPlain') }}</option>
         <option value="gradient">{{ t('themeStudio.backdropGradient') }}</option>
-        <option v-if="customCssFits(m) || backdropKind(m) === 'keep'" value="keep">
-          {{ t('themeStudio.backdropKeep', { name: customCssName || 'CSS' }) }}
-        </option>
       </select>
       <template v-if="backdropKind(m) === 'gradient'">
         <ColorPicker
@@ -372,11 +365,11 @@ onMounted(() => {
       <div class="row">
         <span class="lbl">{{ t('themeStudio.mode_light') }}</span>
         <select v-model="lightBase">
-          <option v-for="b in lightBases" :key="b" :value="b">{{ baseLabel(b) }}</option>
+          <option v-for="b in lightBases" :key="b.id" :value="b.id">{{ b.name }}</option>
         </select>
         <span class="lbl">{{ t('themeStudio.mode_dark') }}</span>
         <select v-model="darkBase">
-          <option v-for="b in darkBases" :key="b" :value="b">{{ baseLabel(b) }}</option>
+          <option v-for="b in darkBases" :key="b.id" :value="b.id">{{ b.name }}</option>
         </select>
         <button @click="resetFromBases">{{ t('themeStudio.loadBases') }}</button>
       </div>
@@ -452,7 +445,7 @@ onMounted(() => {
       <button v-if="!isInUse" class="primary" :title="t('themeStudio.useHint')" @click="useTheme">{{ t('themeStudio.use') }}</button>
       <span v-else class="hint">✓ {{ t('themeStudio.inUse') }}</span>
       <button v-if="isDirty" @click="discard">{{ t('themeStudio.discard') }}</button>
-      <button @click="copyCss">{{ t('themeStudio.copyCss') }}</button>
+      <button @click="copyJson">{{ t('themeStudio.copyJson') }}</button>
       <button v-if="isSaved" class="danger" @click="removeTheme">{{ t('themeStudio.delete') }}</button>
     </footer>
   </div>

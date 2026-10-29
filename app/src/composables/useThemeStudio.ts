@@ -1,20 +1,9 @@
 import { computed, ref, watchEffect } from 'vue';
 import { useSettingsStore } from '../stores/settings';
-import { themeOverride, type ThemeOverride } from '../lib/themes';
-import {
-  CUSTOM_CSS_BASE,
-  applyUserTheme,
-  fitBackdrops,
-  flashColorFor,
-  hasCustomCssLoaded,
-  isLightColor,
-  readThemePalette,
-  type Palette,
-  type ThemeMode,
-  type UserTheme,
-} from '../lib/user-theme';
-import { customCssRevision } from '../lib/custom-theme';
-import type { Theme } from '../types';
+import { useThemeStore } from '../stores/theme';
+import { fromUserTheme } from '../lib/theme/from-studio';
+import { pickSlot } from '../lib/theme/slots';
+import { flashColorFor, type Palette, type ThemeMode, type UserTheme } from '../lib/user-theme';
 
 /**
  * Shared Theme Studio state. While the Theme page in Settings is showing, its
@@ -36,16 +25,6 @@ const isDirty = computed(() => !!draft.value && JSON.stringify(draft.value) !== 
 const FLASH_BLINKS = 6;
 const FLASH_STEP_MS = 220;
 let flashTimer: ReturnType<typeof setInterval> | null = null;
-
-export function effectiveTheme(): Theme {
-  if (studioOpen.value && previewFamily.value) return previewFamily.value;
-  return useSettingsStore().theme;
-}
-
-export function effectiveThemeOverride(): ThemeOverride {
-  if (studioOpen.value && draft.value) return 'user';
-  return themeOverride(useSettingsStore());
-}
 
 /** The palette as it should be painted right now, with any blinking token swapped in. */
 export function flashedPalette(palette: Palette, mode: ThemeMode): Palette {
@@ -70,32 +49,22 @@ export function locateToken(mode: ThemeMode, key: string, current: string): void
   }, FLASH_STEP_MS);
 }
 
-const cssLightness = new Map<string, boolean>();
-
-/** Whether the loaded CSS theme paints `mode` light; read once per CSS revision. */
-export function customCssIsLight(mode: ThemeMode): boolean | null {
-  const key = `${customCssRevision.value}:${mode}`;
-  if (!hasCustomCssLoaded()) return null;
-  if (!cssLightness.has(key)) cssLightness.set(key, isLightColor(readThemePalette(CUSTOM_CSS_BASE, mode)['--bg']));
-  return cssLightness.get(key) as boolean;
-}
-
-function shownTheme(theme: UserTheme): UserTheme {
-  const flashed = { ...theme, light: flashedPalette(theme.light, 'light'), dark: flashedPalette(theme.dark, 'dark') };
-  return fitBackdrops(flashed, customCssIsLight);
-}
-
 /**
- * Call once from App: keeps the injected palette in step with studio + settings.
- * A custom CSS theme stays on underneath, so its gradients and component
- * styling survive; the user theme only replaces its colours.
+ * While the studio is open its draft is the live preview; closing hands the app back to the slots.
+ * The mode comes from the slots, not `themeStore.mode`: that getter reads `preview`, which this effect writes.
  */
-export function installUserThemeSync(): void {
+export function installStudioPreview(): void {
+  const themeStore = useThemeStore();
   const settings = useSettingsStore();
   watchEffect(() => {
-    const saved = settings.userThemes.find((ut) => ut.id === settings.activeUserThemeId) ?? null;
-    const shown = studioOpen.value && draft.value ? draft.value : saved;
-    applyUserTheme(shown ? shownTheme(shown) : null);
+    const d = draft.value;
+    if (!studioOpen.value || !d) {
+      themeStore.previewVariant(null);
+      return;
+    }
+    const mode = previewFamily.value ?? pickSlot(settings.appearance, themeStore.systemDark);
+    const flashed = { ...d, light: flashedPalette(d.light, 'light'), dark: flashedPalette(d.dark, 'dark') };
+    themeStore.previewVariant(fromUserTheme(flashed).variants[mode]);
   });
 }
 

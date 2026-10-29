@@ -521,6 +521,7 @@ function onOutlineGoto(line: number) {
 
 import { useThemeStore } from './stores/theme';
 import { useThemePaint } from './composables/useThemePaint';
+import { installStudioPreview } from './composables/useThemeStudio';
 
 // Auto-persist tabs and tiles on every change.
 watch(
@@ -715,6 +716,7 @@ watchEffect(() => {
 });
 
 useThemePaint();
+installStudioPreview();
 
 // v2.0: keep the Rust workspace index in sync with the active folder.
 watchEffect(() => {
