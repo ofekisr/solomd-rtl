@@ -50,7 +50,7 @@ const mermaidNodeColors = (page: Page): Promise<{ fill: string; stroke: string }
   });
 
 test('dark slot paints shell and editor variables', async ({ page }) => {
-  await boot(page, { themeLayerVersion: 1, appearance: 'dark', darkSlot: { themeId: 'nord', variant: 'dark' }, lightSlot: SOLOMD_LIGHT });
+  await boot(page, { themeLayerVersion: 2, appearance: 'dark', darkSlot: { themeId: 'nord', variant: 'dark' }, lightSlot: SOLOMD_LIGHT });
   await expectVar(page, '--bg', '#2e3440');
   await expectVar(page, '--cm-bg', '#2e3440');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
@@ -58,7 +58,7 @@ test('dark slot paints shell and editor variables', async ({ page }) => {
 
 test('follow system flips with the OS scheme', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'light' });
-  await boot(page, { themeLayerVersion: 1, appearance: 'system', darkSlot: { themeId: 'dracula', variant: 'dark' }, lightSlot: { themeId: 'github', variant: 'light' } });
+  await boot(page, { themeLayerVersion: 2, appearance: 'system', darkSlot: { themeId: 'dracula', variant: 'dark' }, lightSlot: { themeId: 'github', variant: 'light' } });
   await expectVar(page, '--bg', '#ffffff');
   await page.emulateMedia({ colorScheme: 'dark' });
   await expectVar(page, '--bg', '#282a36');
@@ -68,12 +68,12 @@ test('legacy settings migrate once', async ({ page }) => {
   await boot(page, { theme: 'monokai' });
   await expectVar(page, '--bg', '#272822');
   const read = () => page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? '{}'), LS_KEY);
-  await expect.poll(async () => (await read()).themeLayerVersion).toBe(1);
+  await expect.poll(async () => (await read()).themeLayerVersion).toBe(2);
   expect((await read()).darkSlot).toEqual({ themeId: 'monokai', variant: 'dark' });
 });
 
 test('a catalog theme fills the editor chrome', async ({ page }) => {
-  await boot(page, { themeLayerVersion: 1, appearance: 'dark', darkSlot: { themeId: 'cm-dracula', variant: 'dark' }, lightSlot: SOLOMD_LIGHT });
+  await boot(page, { themeLayerVersion: 2, appearance: 'dark', darkSlot: { themeId: 'cm-dracula', variant: 'dark' }, lightSlot: SOLOMD_LIGHT });
   const expected = [
     ['--cm-bg', CATALOG_COLORS.editor?.colors?.background],
     ['--syn-keyword', CATALOG_COLORS.code?.colors?.keyword],
@@ -90,7 +90,7 @@ const NORD_PANEL = '#3b4252';
 const NORD_ACCENT = '#88c0d0';
 
 async function renderedMermaidColors(page: Page, themeId: string): Promise<{ fill: string; stroke: string }> {
-  await boot(page, { themeLayerVersion: 1, appearance: 'dark', viewMode: 'split', agentWizardSeen: true, darkSlot: { themeId, variant: 'dark' }, lightSlot: SOLOMD_LIGHT });
+  await boot(page, { themeLayerVersion: 2, appearance: 'dark', viewMode: 'split', agentWizardSeen: true, darkSlot: { themeId, variant: 'dark' }, lightSlot: SOLOMD_LIGHT });
   await fillSampleInSplit(page);
   await expect.poll(() => mermaidNodeColors(page).then((c) => c.fill)).not.toBe('');
   return mermaidNodeColors(page);
@@ -117,6 +117,6 @@ test('fresh install follows a light system and stamps the layer version', async 
   await boot(page, null);
   await expect(page.locator('html')).toHaveAttribute('data-mode', 'light');
   const read = () => page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? '{}'), LS_KEY);
-  await expect.poll(async () => (await read()).themeLayerVersion).toBe(1);
+  await expect.poll(async () => (await read()).themeLayerVersion).toBe(2);
   expect((await read()).appearance).toBe('system');
 });

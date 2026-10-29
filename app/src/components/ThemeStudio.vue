@@ -9,7 +9,7 @@ import { useThemeStore } from '../stores/theme';
 import { useI18n } from '../i18n';
 import type { Theme } from '../lib/theme/schema';
 import { findVariant } from '../lib/theme/slots';
-import { fromUserTheme, paletteOf } from '../lib/theme/from-studio';
+import { paletteOf, studioToTheme } from '../lib/theme/from-studio';
 import { flashedPalette, locateToken, useThemeStudio } from '../composables/useThemeStudio';
 import ThemeMock from './ThemeMock.vue';
 import ThemeTokenRow from './ThemeTokenRow.vue';
@@ -28,6 +28,7 @@ import {
   newUserThemeId,
   defaultGradient,
   isGradient,
+  KEEP_CSS_BACKDROP,
   type Backdrop,
   type BgGradient,
   type Palette,
@@ -39,7 +40,7 @@ import {
 } from '../lib/user-theme';
 
 type PreviewMode = ThemeMode | 'both';
-type BackdropKind = 'plain' | 'gradient';
+type BackdropKind = 'plain' | 'gradient' | 'layered';
 const FULL_TURN = 360;
 type TokenRow =
   | { kind: 'single'; token: ThemeToken }
@@ -55,6 +56,10 @@ const { draft, savedSnapshot, isDirty, previewFamily } = useThemeStudio();
 
 const themeStore = useThemeStore();
 const previewMode = ref<PreviewMode>(previewFamily.value ?? themeStore.mode);
+
+function savedTheme(id: string): Theme | undefined {
+  return themeStore.themes.find((t) => t.id === id);
+}
 
 function basePalette(themeId: string, mode: ThemeMode): Palette {
   return paletteOf(findVariant(themeStore.themes, { themeId, variant: mode }, mode).variant);
@@ -121,13 +126,19 @@ function freshTheme(): UserTheme {
 
 function backdropKind(mode: ThemeMode): BackdropKind {
   const b = current.value.gradient[mode];
+  if (b === KEEP_CSS_BACKDROP) return 'layered';
   return isGradient(b) ? 'gradient' : 'plain';
+}
+
+function hasLayeredBackdrop(mode: ThemeMode): boolean {
+  return Boolean(savedTheme(current.value.id)?.variants[mode]?.surfaces?.style?.backdrop?.length);
 }
 
 function setBackdropKind(mode: ThemeMode, kind: BackdropKind) {
   const next: Record<BackdropKind, () => Backdrop> = {
     plain: () => null,
     gradient: () => defaultGradient(current.value[mode]),
+    layered: () => KEEP_CSS_BACKDROP,
   };
   current.value.gradient[mode] = next[kind]();
 }
@@ -163,6 +174,7 @@ function cloneTheme(theme: UserTheme): UserTheme {
 }
 
 function copyBackdrop(b: Backdrop): Backdrop {
+  if (b === KEEP_CSS_BACKDROP) return b;
   return isGradient(b) ? { ...b } : null;
 }
 
@@ -232,7 +244,7 @@ async function save(): Promise<boolean> {
   const theme = cloneTheme(current.value);
   theme.name = theme.name.trim() || t('themeStudio.defaultName');
   try {
-    await themeStore.save(fromUserTheme(theme));
+    await themeStore.save(studioToTheme(theme, savedTheme(theme.id)));
   } catch {
     toasts.error(t('themeStudio.saveFailed'), ERROR_TOAST_MS);
     return false;
@@ -268,7 +280,7 @@ async function removeTheme() {
 
 async function copyJson() {
   try {
-    await navigator.clipboard.writeText(JSON.stringify(fromUserTheme(current.value), null, 2));
+    await navigator.clipboard.writeText(JSON.stringify(studioToTheme(current.value, savedTheme(current.value.id)), null, 2));
     toasts.success(t('themeStudio.copied'), 2000);
   } catch {
     toasts.warning(t('themeStudio.copyFailed'), 3000);
@@ -346,6 +358,9 @@ onMounted(() => {
       >
         <option value="plain">{{ t('themeStudio.backdropPlain') }}</option>
         <option value="gradient">{{ t('themeStudio.backdropGradient') }}</option>
+        <option v-if="backdropKind(m) === 'layered' || hasLayeredBackdrop(m)" value="layered">
+          {{ t('themeStudio.backdropLayered') }}
+        </option>
       </select>
       <template v-if="backdropKind(m) === 'gradient'">
         <ColorPicker

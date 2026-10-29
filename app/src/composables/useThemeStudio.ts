@@ -1,7 +1,7 @@
 import { computed, ref, watchEffect } from 'vue';
 import { useSettingsStore } from '../stores/settings';
 import { useThemeStore } from '../stores/theme';
-import { fromUserTheme } from '../lib/theme/from-studio';
+import { studioToTheme } from '../lib/theme/from-studio';
 import { pickSlot } from '../lib/theme/slots';
 import { flashColorFor, type Palette, type ThemeMode, type UserTheme } from '../lib/user-theme';
 
@@ -64,7 +64,8 @@ export function installStudioPreview(): void {
     }
     const mode = previewFamily.value ?? pickSlot(settings.appearance, themeStore.systemDark);
     const flashed = { ...d, light: flashedPalette(d.light, 'light'), dark: flashedPalette(d.dark, 'dark') };
-    themeStore.previewVariant(fromUserTheme(flashed).variants[mode]);
+    const saved = themeStore.themes.find((t) => t.id === d.id);
+    themeStore.previewVariant(studioToTheme(flashed, saved).variants[mode]);
   });
 }
 

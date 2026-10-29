@@ -10,6 +10,7 @@ import { importIdFor } from '../lib/theme/picker';
 import { applyTheme } from '../lib/theme/apply';
 import { convertMarketplaceCss } from '../lib/theme/from-css';
 import { fileStem } from '../lib/theme/ids';
+import { withInheritedBackdrops } from '../lib/theme/from-studio';
 import { THEME_LAYER_VERSION, marketplaceIdFor, planMigration, type LegacyThemeSettings } from '../lib/theme/migrate';
 
 const DARK_QUERY = '(prefers-color-scheme: dark)';
@@ -58,8 +59,10 @@ export const useThemeStore = defineStore('theme', {
       if (s.themeLayerVersion >= THEME_LAYER_VERSION) return;
       const legacy = legacyForMigration(hadStoredSettings(), s as LegacyThemeSettings);
       const first = planMigration(legacy);
-      const failed = await this.writeMigrated(first.themesToWrite);
-      const cssOk = first.cssToConvert ? await this.migrateCss(first.cssToConvert) : true;
+      const css = first.cssToConvert ? await this.migrateCss(first.cssToConvert) : null;
+      const cssOk = !first.cssToConvert || css !== null;
+      const studio = withInheritedBackdrops(first.themesToWrite, legacy?.userThemes ?? [], css);
+      const failed = await this.writeMigrated(studio);
       failed.forEach((name) => useToastsStore().warning(`Could not save migrated theme ${name}`));
       if (!canApplyMigration(failed)) return;
       s.applyMigration(planMigration(legacyAfterCss(legacy, cssOk)), THEME_LAYER_VERSION);
@@ -70,15 +73,14 @@ export const useThemeStore = defineStore('theme', {
       for (const t of themes) await saveMyTheme(t).catch(() => failed.push(t.name));
       return failed;
     },
-    async migrateCss(path: string): Promise<boolean> {
+    async migrateCss(path: string): Promise<Theme | null> {
       try {
         const { content } = await invoke<{ content: string }>('read_file', { path });
         const name = fileStem(path);
-        await this.importCss(content, { id: marketplaceIdFor(path), name });
-        return true;
+        return await this.importCss(content, { id: marketplaceIdFor(path), name });
       } catch (e) {
         useToastsStore().warning(`Could not convert ${path}: ${String(e)}`);
-        return false;
+        return null;
       }
     },
     paint() {

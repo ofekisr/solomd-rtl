@@ -1956,6 +1956,7 @@ export const en = {
     backdrop: '{mode} background',
     backdropPlain: 'Plain colour',
     backdropGradient: 'Gradient',
+    backdropLayered: 'Layered gradient (from theme)',
     gradientFrom: 'Gradient start colour',
     gradientTo: 'Gradient end colour',
     gradientAngle: 'Gradient angle',

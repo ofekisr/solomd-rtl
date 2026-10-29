@@ -9,6 +9,7 @@ Changes added in **solomd-rtl** on top of upstream SoloMD. Newest first.
 - **Added:** Import a theme from JSON or CSS; marketplace CSS themes convert on install, with a report of dropped rules.
 - **Changed:** My themes are saved as files in `<config>/themes/<id>.json`. Existing theme, Theme Studio and custom CSS settings migrate once on first launch.
 - **Removed:** Custom CSS injection and the per-theme palettes in `main.css`.
+- **Fixed:** A Theme Studio theme layered on custom CSS keeps that CSS theme's gradient after migration, and Theme Studio offers "Layered gradient (from theme)" so saving keeps it.
 
 ## 4.38.9 — 2026-10-28
 - **Fixed:** Editor and preview syntax highlighting now use the same colours. Unified HighlightStyle in themes.ts references `--syn-*` CSS variables instead of hardcoded theme palettes, so both rendering paths pick up colours from main.css.

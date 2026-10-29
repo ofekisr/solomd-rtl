@@ -9,6 +9,12 @@ const ut: UserTheme = {
   radius: 1, gradient: { light: null, dark: null },
 };
 
+test('a Studio theme over custom CSS still converts the CSS it inherits from', () => {
+  const p = planMigration({ theme: 'dark', userThemes: [ut], activeUserThemeId: 'ut-1', customCssPath: '/t/aurora.css' });
+  assert.deepEqual(p.darkSlot, { themeId: 'ut-1', variant: 'dark' });
+  assert.equal(p.cssToConvert, '/t/aurora.css');
+});
+
 test('fresh install follows the system with SoloMD in both slots', () => {
   const p = planMigration(null);
   assert.equal(p.appearance, 'system');
@@ -50,9 +56,8 @@ test('a custom CSS path is queued for conversion and fills both slots by its id'
   assert.equal(p.darkSlot.themeId, 'mk-aurora');
 });
 
-test('Theme Studio wins over custom CSS, as it does today', () => {
+test('Theme Studio keeps the slots when custom CSS is also set', () => {
   const p = planMigration({ theme: 'dark', userThemes: [ut], activeUserThemeId: 'ut-1', customCssPath: '/a.css' });
-  assert.equal(p.cssToConvert, null);
   assert.equal(p.darkSlot.themeId, 'ut-1');
 });
 

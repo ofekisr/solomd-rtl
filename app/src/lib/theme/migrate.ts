@@ -5,7 +5,7 @@ import { marketplaceIdFor } from './ids.ts';
 import type { Theme } from './schema.ts';
 
 export { marketplaceIdFor };
-export const THEME_LAYER_VERSION = 1;
+export const THEME_LAYER_VERSION = 2;
 
 export type Appearance = 'light' | 'dark' | 'system';
 export type LegacyThemeSettings = {
@@ -57,7 +57,7 @@ export function planMigration(legacy: LegacyThemeSettings | null): MigrationPlan
   const themesToWrite = (legacy.userThemes ?? []).map(fromUserTheme);
   const base = builtinPlan(legacy.theme);
   const studio = studioSlots(legacy, themesToWrite);
-  if (studio) return { ...base, ...studio, themesToWrite, cssToConvert: null };
+  if (studio) return { ...base, ...studio, themesToWrite, cssToConvert: legacy.customCssPath || null };
   const css = customCssSlots(legacy.customCssPath);
   if (css) return { ...base, ...css, themesToWrite };
   return { ...base, themesToWrite, cssToConvert: null };

@@ -1,4 +1,4 @@
-import { THEME_TOKEN_KEYS, isGradient, toHex6, type Backdrop, type Palette, type UserTheme } from '../user-theme.ts';
+import { KEEP_CSS_BACKDROP, THEME_TOKEN_KEYS, isGradient, toHex6, type Backdrop, type Palette, type UserTheme } from '../user-theme.ts';
 import type { BackdropLayer, Theme, ThemeMode, Variant } from './schema.ts';
 import { parseTheme } from './schema.ts';
 import { varsToVariant } from './css-vars.ts';
@@ -48,6 +48,37 @@ export function fromUserTheme(ut: UserTheme): Theme {
     id: ut.id, name: ut.name.trim() || UNTITLED_NAME, version: 1, source: 'mine', origin: 'studio',
     variants: { light: variantOf(ut, 'light'), dark: variantOf(ut, 'dark') },
   };
+}
+
+function inheritedVariant(own: Variant, css: Theme, mode: ThemeMode): Variant {
+  const source = css.variants[mode] ?? Object.values(css.variants)[0];
+  const style = source?.surfaces?.style;
+  if (!style) return own;
+  return { ...own, surfaces: { ...own.surfaces, style } };
+}
+
+/** Studio's "inherit" backdrop meant "keep the custom CSS gradient"; carry that CSS theme's surfaces style over. */
+export function inheritCssBackdrop(theme: Theme, ut: UserTheme, css: Theme): Theme {
+  const variants = { ...theme.variants };
+  for (const mode of ['light', 'dark'] as const) {
+    if (ut.gradient[mode] !== KEEP_CSS_BACKDROP || !variants[mode]) continue;
+    variants[mode] = inheritedVariant(variants[mode], css, mode);
+  }
+  return { ...theme, variants };
+}
+
+export function studioToTheme(ut: UserTheme, saved: Theme | undefined): Theme {
+  const theme = fromUserTheme(ut);
+  return saved ? inheritCssBackdrop(theme, ut, saved) : theme;
+}
+
+export function withInheritedBackdrops(themes: Theme[], userThemes: UserTheme[], css: Theme | null): Theme[] {
+  if (!css) return themes;
+  const byId = new Map(userThemes.map((ut) => [ut.id, ut]));
+  return themes.map((t) => {
+    const ut = byId.get(t.id);
+    return ut ? inheritCssBackdrop(t, ut, css) : t;
+  });
 }
 
 export function paletteOf(variant: Variant): Palette {

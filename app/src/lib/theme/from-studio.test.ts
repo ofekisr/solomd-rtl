@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { fromUserTheme, paletteOf } from './from-studio.ts';
+import { fromUserTheme, inheritCssBackdrop, paletteOf, studioToTheme, withInheritedBackdrops } from './from-studio.ts';
 import { parseTheme } from './schema.ts';
 import type { UserTheme } from '../user-theme.ts';
 
@@ -38,6 +38,38 @@ test('a palette missing the required basics falls back to the SoloMD base', () =
 
 test('an empty name becomes Untitled theme', () => {
   assert.equal(fromUserTheme({ ...ut, name: '   ' }).name, 'Untitled theme');
+});
+
+test('an inherit backdrop takes the custom CSS theme surfaces style', () => {
+  const css = fromUserTheme({ ...ut, id: 'mk-aurora', gradient: { light: null, dark: { from: '#000000', to: '#123456', angle: 90 } } });
+  const inheriting: UserTheme = { ...ut, gradient: { light: 'inherit', dark: 'inherit' } };
+  const theme = inheritCssBackdrop(fromUserTheme(inheriting), inheriting, css);
+  assert.deepEqual(theme.variants.dark.surfaces?.style, css.variants.dark.surfaces?.style);
+  assert.equal(theme.variants.dark.app.colors.bg, '#101010');
+  assert.equal(parseTheme(theme).ok, true);
+});
+
+test('an own gradient is kept when a CSS theme is present', () => {
+  const css = fromUserTheme({ ...ut, id: 'mk-aurora', gradient: { light: null, dark: { from: '#000000', to: '#123456', angle: 90 } } });
+  const theme = inheritCssBackdrop(fromUserTheme(ut), ut, css);
+  assert.deepEqual(theme.variants.dark.surfaces?.style, fromUserTheme(ut).variants.dark.surfaces?.style);
+});
+
+test('withInheritedBackdrops only touches Studio themes and needs a CSS theme', () => {
+  const inheriting: UserTheme = { ...ut, gradient: { light: 'inherit', dark: 'inherit' } };
+  const css = fromUserTheme({ ...ut, id: 'mk-aurora', gradient: { light: null, dark: { from: '#000000', to: '#123456', angle: 90 } } });
+  const studio = fromUserTheme(inheriting);
+  assert.deepEqual(withInheritedBackdrops([studio], [inheriting], null), [studio]);
+  const [out] = withInheritedBackdrops([studio], [inheriting], css);
+  assert.deepEqual(out.variants.dark.surfaces?.style, css.variants.dark.surfaces?.style);
+});
+
+test('studioToTheme keeps the saved layered backdrop for inherit modes', () => {
+  const inheriting: UserTheme = { ...ut, gradient: { light: null, dark: 'inherit' } };
+  const saved = fromUserTheme({ ...ut, gradient: { light: null, dark: { from: '#000000', to: '#123456', angle: 90 } } });
+  assert.deepEqual(studioToTheme(inheriting, saved).variants.dark.surfaces?.style, saved.variants.dark.surfaces?.style);
+  assert.equal(studioToTheme(inheriting, undefined).variants.dark.surfaces?.style, undefined);
+  assert.deepEqual(studioToTheme(ut, saved), fromUserTheme(ut));
 });
 
 test('paletteOf returns every Studio token as hex', () => {
