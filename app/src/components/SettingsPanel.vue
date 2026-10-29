@@ -14,7 +14,6 @@ import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useRagStore } from '../stores/rag';
 import { open as openFileDialog } from '@tauri-apps/plugin-dialog';
-import { themeLabels, themeOverride } from '../lib/themes';
 import { useI18n } from '../i18n';
 import { quickCaptureError } from '../lib/quick-capture-status';
 import {
@@ -55,14 +54,16 @@ import ProxySettings from './ProxySettings.vue';
 import ThemeMarketplace from './ThemeMarketplace.vue';
 import MindmapMapFields from './MindmapMapFields.vue';
 import { isIOS, isMobile, hasGitBackend, isWindowsEditorRuntime } from '../lib/platform';
-import { loadCustomTheme } from '../lib/custom-theme';
+import { useThemeStore } from '../stores/theme';
+import { marketplaceIdFor, type Appearance } from '../lib/theme/migrate';
+import type { Theme as AppTheme, ThemeMode } from '../lib/theme/schema';
+import { groupSlotOptions, isPairedTheme, parseSlotValue, slotValue } from '../lib/theme/picker';
 import { useThemeStudio } from '../composables/useThemeStudio';
 import ThemeStudio from './ThemeStudio.vue';
 import { openPath } from '@tauri-apps/plugin-opener';
 import { DsModal } from '../ui';
 import { getDict } from '../i18n';
 import { flatten, englishFallbackNeedles, blockMatches, normalize, queryMatcher } from '../lib/settings-search';
-import type { Theme } from '../types';
 
 const isMobilePlatform = isIOS();
 // Quick capture needs an OS-level hotkey and a second window — neither exists
@@ -511,18 +512,6 @@ const workspace = useWorkspaceStore();
 const files = useFiles();
 const rag = useRagStore();
 
-// #282 — a custom CSS theme takes the palette over completely (see the note
-// beside the theme dropdown). Name it from the file rather than the
-// marketplace manifest: the manifest is a network fetch that only happens
-// once the marketplace modal is opened, and a hand-picked .css file has no
-// manifest entry at all.
-const customThemeName = computed(() => {
-  const path = themeOverride(settings) === 'css' ? settings.customCssPath : '';
-  if (!path) return '';
-  const base = path.split(/[\\/]/).pop() || path;
-  return base.replace(/\.css$/i, '');
-});
-
 async function onToggleRagEnabled() {
   settings.toggleRagEnabled();
   if (settings.ragEnabled && workspace.currentFolder) {
@@ -554,59 +543,57 @@ function onToggleOutlineGlobal() {
   tabs.setShowOutlineAll(settings.showOutline);
 }
 
-async function pickCustomCss() {
+const themeStore = useThemeStore();
+const SLOT_MODES: { mode: ThemeMode; labelKey: string }[] = [
+  { mode: 'light', labelKey: 'settings.lightSlot' },
+  { mode: 'dark', labelKey: 'settings.darkSlot' },
+];
+const SOURCE_LABEL_KEYS: Record<AppTheme['source'], string> = {
+  builtin: 'themeStudio.builtIn',
+  catalog: 'settings.themeCatalog',
+  mine: 'themeStudio.myThemes',
+};
+
+function slotGroups(mode: ThemeMode) {
+  return groupSlotOptions(themeStore.themes, mode).map((g) => ({
+    label: t(SOURCE_LABEL_KEYS[g.source]),
+    options: g.options,
+  }));
+}
+
+function currentSlotValue(mode: ThemeMode): string {
+  return slotValue(mode === 'light' ? settings.lightSlot : settings.darkSlot);
+}
+
+function onSlot(mode: ThemeMode, value: string) {
+  const ref = parseSlotValue(value);
+  const theme = themeStore.themes.find((th) => th.id === ref.themeId);
+  if (isPairedTheme(theme)) themeStore.useTheme(ref.themeId);
+  else settings.setSlot(mode, ref);
+}
+
+async function importThemeFile() {
   const path = await openFileDialog({
     multiple: false,
     defaultPath: await files.filePickerStartDir(),
-    filters: [{ name: 'CSS', extensions: ['css'] }],
+    filters: [{ name: 'Theme', extensions: ['json', 'css'] }],
   });
-  if (path && typeof path === 'string') {
-    settings.setCustomCssPath(path);
-    toasts.success(t('settings.customCssLoaded'));
-  }
-}
-
-// Re-read the current custom CSS file from disk and re-apply it. Useful when
-// the user edits the .css file outside the app.
-const isCssRefreshing = ref(false);
-// One full revolution of the 0.7s spin animation. Reading a local .css file is
-// near-instant, so without a floor the spinner would show for a single frame
-// and the click would read as "nothing happened".
-const CSS_REFRESH_MIN_MS = 700;
-async function refreshCustomCss() {
-  if (!settings.customCssPath || isCssRefreshing.value) return;
-  const startedAt = Date.now();
-  isCssRefreshing.value = true;
+  if (typeof path !== 'string') return;
   try {
-    // loadCustomTheme *removes* the theme when the file can't be read, so a
-    // blanket success toast would claim a reload while wiping the user's CSS.
-    const applied = await loadCustomTheme(settings.customCssPath);
-    if (applied) toasts.success(t('settings.customCssReloaded'));
-    else toasts.error(t('settings.customCssReloadFailed'));
-  } finally {
-    // Stop on a whole revolution so the icon never freezes mid-rev. At least
-    // one full turn — Math.ceil alone yields 0 for a sub-millisecond read,
-    // which would skip the spin entirely.
-    const elapsed = Date.now() - startedAt;
-    const revs = Math.max(1, Math.ceil(elapsed / CSS_REFRESH_MIN_MS));
-    const remaining = revs * CSS_REFRESH_MIN_MS - elapsed;
-    if (remaining > 0) await new Promise((r) => setTimeout(r, remaining));
-    isCssRefreshing.value = false;
+    const { content } = await invoke<{ content: string }>('read_file', { path });
+    const theme = await importThemeContent(path, content);
+    themeStore.useTheme(theme.id);
+  } catch (e) {
+    toasts.error(`${t('settings.importFailed')}: ${String((e as Error)?.message ?? e)}`);
   }
 }
 
-const USER_THEME_PREFIX = 'user:';
-const themeSelectValue = computed(() =>
-  settings.activeUserThemeId ? USER_THEME_PREFIX + settings.activeUserThemeId : settings.theme,
-);
-function onThemeSelect(value: string) {
-  if (value.startsWith(USER_THEME_PREFIX)) {
-    settings.setActiveUserTheme(value.slice(USER_THEME_PREFIX.length));
-    return;
-  }
-  settings.setActiveUserTheme('');
-  settings.setTheme(value as Theme);
+function importThemeContent(path: string, content: string): Promise<AppTheme> {
+  if (!path.toLowerCase().endsWith('.css')) return themeStore.importJson(content);
+  const name = (path.split(/[\\/]/).pop() ?? '').replace(/\.css$/i, '');
+  return themeStore.importCss(content, { id: marketplaceIdFor(path), name });
 }
+
 function openThemeStudio() {
   pickCategory('theme');
 }
@@ -788,32 +775,21 @@ function onSelectPdfFont(v: string) {
         </section>
 
         <section data-cat="basics">
-          <label>{{ t('settings.theme') }}</label>
-          <select :value="themeSelectValue" @change="onThemeSelect(($event.target as HTMLSelectElement).value)">
-            <optgroup :label="t('themeStudio.builtIn')">
-              <option v-for="th in themeLabels" :key="th.value" :value="th.value">{{ th.label }}</option>
-            </optgroup>
-            <optgroup v-if="settings.userThemes.length" :label="t('themeStudio.myThemes')">
-              <option v-for="ut in settings.userThemes" :key="ut.id" :value="USER_THEME_PREFIX + ut.id">{{ ut.name }}</option>
-            </optgroup>
+          <label>{{ t('settings.appearance') }}</label>
+          <select :value="settings.appearance" @change="settings.setAppearance(($event.target as HTMLSelectElement).value as Appearance)">
+            <option value="light">{{ t('settings.appearanceLight') }}</option>
+            <option value="dark">{{ t('settings.appearanceDark') }}</option>
+            <option value="system">{{ t('settings.appearanceSystem') }}</option>
           </select>
+          <template v-for="slot in SLOT_MODES" :key="slot.mode">
+            <label>{{ t(slot.labelKey) }}</label>
+            <select :value="currentSlotValue(slot.mode)" @change="onSlot(slot.mode, ($event.target as HTMLSelectElement).value)">
+              <optgroup v-for="g in slotGroups(slot.mode)" :key="g.label" :label="g.label">
+                <option v-for="o in g.options" :key="o.value" :value="o.value">{{ o.label }}</option>
+              </optgroup>
+            </select>
+          </template>
           <button type="button" class="hint-btn" @click="openThemeStudio">🎨 {{ t('themeStudio.open') }}</button>
-          <!-- #282 — the reporter picked "Dark (One Dark)" and the app stayed
-               light (his screenshots read #e6e5e0, which is Soft UI's --bg to
-               the byte). It was doing exactly what it was told: 14 of the 15
-               marketplace themes declare their palette for `:root,
-               :root[data-theme="light"], :root[data-theme="dark"]` in one
-               rule, and custom-theme.ts injects them after the app bundle —
-               so they win in BOTH slots and this dropdown stops changing a
-               single colour. Nothing said so: the custom-CSS control lives
-               under Advanced, three categories from here. Say it where the
-               choice is made, and make undoing it one click. -->
-          <p v-if="customThemeName" class="setting-hint setting-hint--warn">
-            {{ t('settings.customThemeOverrides', { name: customThemeName }) }}
-            <button type="button" class="hint-btn" @click="settings.setCustomCssPath('')">
-              {{ t('settings.customThemeDisable') }}
-            </button>
-          </p>
         </section>
 
         <section data-cat="basics">
@@ -2248,20 +2224,17 @@ function onSelectPdfFont(v: string) {
         </section>
 
         <section data-cat="advanced">
-          <label>{{ t('settings.customCss') }}</label>
+          <label>{{ t('settings.importTheme') }}</label>
           <div class="row" style="gap: 8px; align-items: center; flex-wrap: wrap;">
-            <button @click="pickCustomCss">{{ t('settings.pickCss') }}</button>
+            <button @click="importThemeFile">{{ t('settings.importThemeBtn') }}</button>
             <button @click="openThemeMarketplace">{{ t('themes.browseBtn') }}</button>
-            <button v-if="settings.customCssPath" @click="settings.setCustomCssPath('')">{{ t('settings.clear') }}</button>
           </div>
-          <div v-if="settings.customCssPath" class="css-path-row" style="font-size: 11px; color: var(--text-faint); word-break: break-all; margin-top: 4px;">
-            <span>{{ settings.customCssPath }}</span>
-            <button type="button" class="refresh-css-btn" :title="t('settings.refreshCss')" :aria-label="t('settings.refreshCss')" :disabled="isCssRefreshing" @click="refreshCustomCss">
-              <svg :class="{ 'is-spinning': isCssRefreshing }" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12a9 9 0 1 1-2.64-6.36L21 8" />
-                <path d="M21 3v5h-5" />
-              </svg>
-            </button>
+          <div v-if="themeStore.lastReport" class="setting-hint">
+            {{ t('settings.importReport', { name: themeStore.lastReport.name, count: themeStore.lastReport.dropped.length }) }}
+            <details v-if="themeStore.lastReport.dropped.length">
+              <summary>{{ t('settings.importDropped') }}</summary>
+              <code v-for="d in themeStore.lastReport.dropped" :key="d" style="display: block">{{ d }}</code>
+            </details>
           </div>
           <p class="setting-hint">{{ t('themes.browseHint') }}</p>
         </section>
@@ -2603,40 +2576,6 @@ section > label:not(:has(input)) {
   border: none;
   text-decoration: underline;
   cursor: pointer;
-}
-.css-path-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.css-path-row > span {
-  min-width: 0;
-}
-.refresh-css-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  flex-shrink: 0;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-.refresh-css-btn:hover {
-  background: var(--bg-soft, rgba(0, 0, 0, 0.05));
-  color: var(--accent);
-}
-.refresh-css-btn svg.is-spinning {
-  animation: refresh-css-spin 0.7s linear infinite;
-}
-@keyframes refresh-css-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 /* Image-upload text/password fields — match the inline-styled inputs
    used elsewhere in this panel. */

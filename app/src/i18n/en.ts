@@ -469,6 +469,18 @@ export const en = {
     slashCommandsEnabled: 'Slash commands ( / ) — popup with Markdown blocks (Heading, list, code, table…) when you type / on a new line',
     customCssFixedWarning: 'This theme sets background-attachment: fixed on body — it’s not recommended to change body’s background-attachment, as it causes full-screen flicker when dragging the right sidebar.',
     customCss: 'Custom CSS Theme',
+    appearance: 'Appearance',
+    appearanceLight: 'Light',
+    appearanceDark: 'Dark',
+    appearanceSystem: 'Follow system',
+    lightSlot: 'Light theme',
+    darkSlot: 'Dark theme',
+    themeCatalog: 'CodeMirror catalog',
+    importTheme: 'Import a theme',
+    importThemeBtn: 'Import JSON or CSS…',
+    importReport: 'Imported {name}. {count} rules had no matching setting and were dropped.',
+    importDropped: 'Show dropped rules',
+    importFailed: 'Import failed',
     customThemeOverrides: 'The custom theme “{name}” is supplying the colours, so the built-in theme may have no visible effect.',
     customThemeDisable: 'Turn it off',
     pickCss: 'Pick .css file…',
@@ -2539,6 +2551,18 @@ export const en = {
 // translation (v4.6.1). The runtime `t()` lookup still falls back to English
 // for any individual key that a locale happens to miss.
 type DirectiveCompletionFallbackKey =
+  | 'appearance'
+  | 'appearanceLight'
+  | 'appearanceDark'
+  | 'appearanceSystem'
+  | 'lightSlot'
+  | 'darkSlot'
+  | 'themeCatalog'
+  | 'importTheme'
+  | 'importThemeBtn'
+  | 'importReport'
+  | 'importDropped'
+  | 'importFailed'
   | 'directiveCompletions'
   | 'openCompletionsFolder'
   | 'directiveCompletionLoaded'

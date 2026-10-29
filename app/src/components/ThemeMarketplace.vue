@@ -7,14 +7,16 @@
  * top narrow the list by tag (Dark / Light / OLED / Sepia / Warm / Cool).
  *
  * Manifest fetch is delegated to `useThemesStore.loadManifest()` which
- * handles the 5-minute TTL cache. Install downloads the .css and pipes the
- * resulting absolute path into `settings.customCssPath` so the existing
- * `lib/custom-theme.ts` watcher applies it without us having to touch
- * `<style>` tags directly.
+ * handles the 5-minute TTL cache. Install downloads the .css, then converts
+ * it to a `mk-<id>` theme JSON through the theme store, so the theme is
+ * applied by the theme layer rather than injected as raw CSS.
  */
 import { onMounted, computed } from 'vue';
 import { useThemesStore, type ThemeManifestEntry } from '../stores/themes';
 import { useSettingsStore } from '../stores/settings';
+import { useThemeStore } from '../stores/theme';
+import { DEFAULT_SLOTS } from '../lib/theme/legacy';
+import { invoke } from '@tauri-apps/api/core';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
 
@@ -23,6 +25,9 @@ const emit = defineEmits<{ (e: 'close'): void }>();
 
 const themes = useThemesStore();
 const settings = useSettingsStore();
+const themeStore = useThemeStore();
+const MARKETPLACE_PREFIX = 'mk-';
+const themeIdFor = (theme: ThemeManifestEntry): string => `${MARKETPLACE_PREFIX}${theme.id}`;
 const toasts = useToastsStore();
 const { t } = useI18n();
 
@@ -31,49 +36,46 @@ onMounted(() => {
 });
 
 function isActive(theme: ThemeManifestEntry): boolean {
-  const installed = themes.installedById[theme.id];
-  if (!installed) return false;
-  return settings.customCssPath === installed.path;
+  const id = themeIdFor(theme);
+  return settings.lightSlot.themeId === id || settings.darkSlot.themeId === id;
 }
 
 function isInstalled(theme: ThemeManifestEntry): boolean {
   return themes.installedById[theme.id] !== undefined;
 }
 
+async function convertInstalled(theme: ThemeManifestEntry, path: string): Promise<string> {
+  const { content } = await invoke<{ content: string }>('read_file', { path });
+  const converted = await themeStore.importCss(content, {
+    id: themeIdFor(theme),
+    name: theme.name,
+    author: theme.author,
+  });
+  return converted.id;
+}
+
+function errorText(e: unknown): string {
+  return String((e as Error)?.message ?? e);
+}
+
 async function onInstall(theme: ThemeManifestEntry) {
   try {
     const path = await themes.install(theme);
-    settings.setCustomCssPath(path);
+    themeStore.useTheme(await convertInstalled(theme, path));
     toasts.success(t('themes.installed', { name: theme.name }));
   } catch (e) {
-    toasts.error(
-      t('themes.installFailed', { error: String((e as Error)?.message ?? e) }),
-    );
+    toasts.error(t('themes.installFailed', { error: errorText(e) }));
   }
 }
 
 async function onUpdate(theme: ThemeManifestEntry) {
-  // Same code path as install — overwrite the file. If the theme is
-  // currently active, the watcher on customCssPath won't re-fire because
-  // the path didn't change; nudge it by clearing + restoring.
   try {
-    const wasActive = isActive(theme);
     const path = await themes.install(theme);
-    if (wasActive) {
-      // Force the App.vue watcher to re-read the (now-updated) file.
-      const previous = settings.customCssPath;
-      settings.setCustomCssPath('');
-      // Vue watchers are flushed in microtasks; nextTick before re-set.
-      await Promise.resolve();
-      settings.setCustomCssPath(previous);
-    } else {
-      settings.setCustomCssPath(path);
-    }
+    const id = await convertInstalled(theme, path);
+    if (!isActive(theme)) themeStore.useTheme(id);
     toasts.success(t('themes.updated', { name: theme.name }));
   } catch (e) {
-    toasts.error(
-      t('themes.updateFailed', { error: String((e as Error)?.message ?? e) }),
-    );
+    toasts.error(t('themes.updateFailed', { error: errorText(e) }));
   }
 }
 
@@ -81,15 +83,17 @@ async function onUninstall(theme: ThemeManifestEntry) {
   try {
     const wasActive = isActive(theme);
     await themes.uninstall(theme.id);
-    if (wasActive) settings.setCustomCssPath('');
+    await themeStore.remove(themeIdFor(theme));
+    if (wasActive) resetSlots();
     toasts.success(t('themes.uninstalled', { name: theme.name }));
   } catch (e) {
-    toasts.error(
-      t('themes.uninstallFailed', {
-        error: String((e as Error)?.message ?? e),
-      }),
-    );
+    toasts.error(t('themes.uninstallFailed', { error: errorText(e) }));
   }
+}
+
+function resetSlots() {
+  settings.setSlot('light', DEFAULT_SLOTS.light);
+  settings.setSlot('dark', DEFAULT_SLOTS.dark);
 }
 
 async function onRefresh() {
@@ -212,9 +216,7 @@ const visible = computed(() => themes.visibleThemes);
                   <button
                     v-if="!isActive(theme)"
                     class="tm__btn tm__btn--primary"
-                    @click="
-                      settings.setCustomCssPath(themes.installedById[theme.id].path)
-                    "
+                    @click="themeStore.useTheme(themeIdFor(theme))"
                   >
                     {{ t('themes.activate') }}
                   </button>
