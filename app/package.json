@@ -82,7 +82,8 @@
     "react-dom": "^19.2.7",
     "reveal.js": "^6.0.1",
     "tldraw": "^4.5.12",
-    "vue": "^3.5.13"
+    "vue": "^3.5.13",
+    "zod": "^4.2.0"
   },
   "devDependencies": {
     "@lezer/markdown": "^1.7.2",
