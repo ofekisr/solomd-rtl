@@ -1929,6 +1929,8 @@ export const en = {
     copyJson: 'Copy theme JSON',
     copied: 'Theme JSON copied to the clipboard',
     copyFailed: 'Could not copy to the clipboard',
+    saveFailed: 'Could not save the theme',
+    deleteFailed: 'Could not delete the theme',
     saved: 'Saved “{name}”',
     applied: 'Now using “{name}”',
     use: 'Use this theme',

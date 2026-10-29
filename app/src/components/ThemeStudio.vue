@@ -7,6 +7,7 @@ import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
 import { useThemeStore } from '../stores/theme';
 import { useI18n } from '../i18n';
+import type { Theme } from '../lib/theme/schema';
 import { findVariant } from '../lib/theme/slots';
 import { fromUserTheme, paletteOf } from '../lib/theme/from-studio';
 import { flashedPalette, locateToken, useThemeStudio } from '../composables/useThemeStudio';
@@ -45,6 +46,7 @@ type TokenRow =
   | { kind: 'pair'; fg: ThemeToken; bg: ThemeToken; label: string };
 
 const RADIUS_STEP = 0.25;
+const ERROR_TOAST_MS = 4000;
 
 const settings = useSettingsStore();
 const toasts = useToastsStore();
@@ -58,7 +60,7 @@ function basePalette(themeId: string, mode: ThemeMode): Palette {
   return paletteOf(findVariant(themeStore.themes, { themeId, variant: mode }, mode).variant);
 }
 
-function basesFor(mode: ThemeMode) {
+function basesFor(mode: ThemeMode): Theme[] {
   return themeStore.themes.filter((th) => Object.values(th.variants).some((v) => v.mode === mode));
 }
 const lightBases = computed(() => basesFor('light'));
@@ -66,7 +68,8 @@ const darkBases = computed(() => basesFor('dark'));
 
 function initialBase(mode: ThemeMode): string {
   const slot = mode === 'light' ? settings.lightSlot : settings.darkSlot;
-  return basesFor(mode).some((th) => th.id === slot.themeId) ? slot.themeId : (basesFor(mode)[0]?.id ?? slot.themeId);
+  const bases = basesFor(mode);
+  return bases.some((th) => th.id === slot.themeId) ? slot.themeId : (bases[0]?.id ?? slot.themeId);
 }
 const lightBase = ref<string>(initialBase('light'));
 const darkBase = ref<string>(initialBase('dark'));
@@ -225,18 +228,24 @@ function harmonizeShown() {
   for (const mode of shownModes.value) current.value[mode] = harmonize(current.value[mode], current.value.edited[mode]);
 }
 
-async function save() {
+async function save(): Promise<boolean> {
   const theme = cloneTheme(current.value);
   theme.name = theme.name.trim() || t('themeStudio.defaultName');
+  try {
+    await themeStore.save(fromUserTheme(theme));
+  } catch {
+    toasts.error(t('themeStudio.saveFailed'), ERROR_TOAST_MS);
+    return false;
+  }
   settings.saveUserTheme(theme);
-  await themeStore.save(fromUserTheme(theme));
   startEditing(theme);
   toasts.success(t('themeStudio.saved', { name: theme.name }), 2500);
+  return true;
 }
 
 /** The only action that changes which theme the app uses. */
 async function useTheme() {
-  if (isDirty.value || !isSaved.value) await save();
+  if ((isDirty.value || !isSaved.value) && !(await save())) return;
   themeStore.useTheme(current.value.id);
   toasts.success(t('themeStudio.applied', { name: current.value.name }), 2500);
 }
@@ -247,8 +256,13 @@ function discard() {
 
 async function removeTheme() {
   const { id } = current.value;
+  try {
+    await themeStore.remove(id);
+  } catch {
+    toasts.error(t('themeStudio.deleteFailed'), ERROR_TOAST_MS);
+    return;
+  }
   settings.deleteUserTheme(id);
-  await themeStore.remove(id);
   startEditing(freshTheme());
 }
 
