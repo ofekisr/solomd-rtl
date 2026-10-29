@@ -6,6 +6,7 @@ import BrandMark from './BrandMark.vue';
 import PomodoroPopover from './PomodoroPopover.vue';
 import { useTabsStore } from '../stores/tabs';
 import { useSettingsStore } from '../stores/settings';
+import { useThemeStore } from '../stores/theme';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useTilesStore } from '../stores/tiles';
 import { track } from '../lib/telemetry';
@@ -37,6 +38,7 @@ defineEmits<{
 
 const tabs = useTabsStore();
 const settings = useSettingsStore();
+const themeStore = useThemeStore();
 
 // #168 — phone toolbar. The strip carries ~29 controls; on a phone only a
 // handful are worth permanent space, but nothing may become unreachable, so
@@ -1166,10 +1168,10 @@ onBeforeUnmount(() => {
       </button>
       <button
         class="icon-btn"
-        @click="() => { settings.toggleTheme(); track('theme_changed', { theme: settings.theme }); }"
-        :title="settings.theme === 'dark' ? t('toolbar.lightMode') : t('toolbar.darkMode')"
+        @click="() => { settings.toggleTheme(themeStore.mode); track('theme_changed', { theme: themeStore.active.theme.id }); }"
+        :title="themeStore.mode === 'dark' ? t('toolbar.lightMode') : t('toolbar.darkMode')"
       >
-        <Icon :name="settings.theme === 'dark' ? 'theme-light' : 'theme-dark'" />
+        <Icon :name="themeStore.mode === 'dark' ? 'theme-light' : 'theme-dark'" />
       </button>
     </div>
 

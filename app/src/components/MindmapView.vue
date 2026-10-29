@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { themeFamily } from '../lib/themes';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
 import FindBar from './FindBar.vue';
 import { MindmapFindTarget, revealNode } from '../lib/mindmap-find';
@@ -12,6 +11,7 @@ import { useI18n } from '../i18n';
 import { useTabsStore } from '../stores/tabs';
 import { useToastsStore } from '../stores/toasts';
 import { useSettingsStore } from '../stores/settings';
+import { useThemeStore } from '../stores/theme';
 import { mmapCodec } from '../lib/mindmap-format';
 import { outlineMarkdownOf } from '../lib/mindmap-outline';
 import { cellHas, checkJsonExit, isLensAction, lensCell, MINDMAP_SET_LENS_EVENT, resolveTabLens, targetLensFor, type CellPart, type MindmapLens, type SetLensDetail } from '../lib/mindmap-lens';
@@ -55,6 +55,7 @@ const props = defineProps<{ tab: Tab }>();
 const tabs = useTabsStore();
 const toasts = useToastsStore();
 const settings = useSettingsStore();
+const themeStore = useThemeStore();
 const { t } = useI18n();
 const { jumpTo } = useMindmapJump();
 const codec = computed(() => mmapCodec(props.tab.fileName));
@@ -274,7 +275,7 @@ const displayApplier = createMapDisplayApplier();
 
 function applyDisplay(): void {
   const mind = canvas.value?.getMind();
-  if (mind) displayApplier.apply(mind, displayOverride.value, settings.mindmapDefaults, themeFamily(settings.theme));
+  if (mind) displayApplier.apply(mind, displayOverride.value, settings.mindmapDefaults, themeStore.mode);
   canvas.value?.refreshFrameStyle();
 }
 

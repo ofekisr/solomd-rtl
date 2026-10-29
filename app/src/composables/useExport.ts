@@ -35,6 +35,7 @@ import {
 import { rewriteLinkUrls, rewriteImageUrls } from '../lib/image-resolve';
 import { useTabsStore } from '../stores/tabs';
 import { useSettingsStore } from '../stores/settings';
+import { useThemeStore } from '../stores/theme';
 import { useToastsStore } from '../stores/toasts';
 import { track } from '../lib/telemetry';
 import {
@@ -471,7 +472,7 @@ export function useExport() {
       try {
         await renderPrintMermaid(
           printContent,
-          printTheme === 'dark' || (printTheme === 'follow' && settings.theme === 'dark'),
+          printTheme === 'dark' || (printTheme === 'follow' && useThemeStore().mode === 'dark'),
         );
       } catch (e) {
         // Only reachable if the mermaid chunk itself fails to load (per-diagram

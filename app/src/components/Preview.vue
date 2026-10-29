@@ -2,7 +2,8 @@
 import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { initMermaid } from '../lib/mermaid-lazy';
 import { renderGraphvizBlocks } from '../lib/graphviz';
-import { mermaidThemeFor, themeFamily } from '../lib/themes';
+import { mermaidConfigFor, graphvizThemeFor, cssColorToHex } from '../lib/theme/mermaid';
+import { useThemeStore } from '../stores/theme';
 import { findMindmapFences, MINDMAP_OPEN_EVENT, type MindmapOpenDetail } from '../lib/mindmap-fence';
 import type { ReadOnlyMindmap } from '../lib/mindmap-readonly';
 import { openUrl } from '@tauri-apps/plugin-opener';
@@ -51,6 +52,7 @@ const props = withDefaults(
 // can follow the reading position in preview mode.
 const emit = defineEmits<{ (e: 'topline', line: number): void }>();
 const settings = useSettingsStore();
+const themeStore = useThemeStore();
 const tabs = useTabsStore();
 const files = useFiles();
 const { t } = useI18n();
@@ -204,7 +206,7 @@ async function processMermaid() {
   const mermaid = await initMermaid({
     startOnLoad: false,
     securityLevel: 'strict',
-    theme: mermaidThemeFor(settings.theme),
+    ...mermaidConfigFor(themeStore.resolved, cssColorToHex),
   });
   for (const block of Array.from(blocks)) {
     const pre = block.parentElement as HTMLElement | null;
@@ -230,7 +232,7 @@ async function processMermaid() {
 
 function processGraphviz(): Promise<void> {
   if (!host.value) return Promise.resolve();
-  return renderGraphvizBlocks(host.value, { theme: mermaidThemeFor(settings.theme) });
+  return renderGraphvizBlocks(host.value, { theme: graphvizThemeFor(themeStore.mode) });
 }
 
 // v4.6 F7 — render ```tldraw fences as static board thumbnails in the preview.
@@ -249,7 +251,7 @@ async function processWhiteboards() {
   const { findTldrawFences } = await import('../lib/tldraw-board');
   const fences = findTldrawFences(props.source || '');
   const theme = {
-    colorScheme: (settings.theme === 'dark' ? 'dark' : 'light') as 'dark' | 'light',
+    colorScheme: themeStore.mode,
     locale: settings.language || 'en',
   };
   const list = Array.from(blocks);
@@ -311,7 +313,7 @@ function destroyMindmaps(): void {
 }
 
 function isDarkTheme(): boolean {
-  return themeFamily(settings.theme) === 'dark';
+  return themeStore.mode === 'dark';
 }
 
 function openMindmapButton(detail: MindmapOpenDetail): HTMLButtonElement {
@@ -379,7 +381,7 @@ async function processMindmaps(): Promise<void> {
   }
 }
 
-watch(() => settings.theme, () => {
+watch(() => themeStore.revision, () => {
   for (const map of mindmapMounts) map.setDark(isDarkTheme());
 });
 
@@ -387,7 +389,7 @@ watch(() => settings.theme, () => {
 // on screen were drawn for the old theme and processMermaid skips them, so put
 // their source back as a fence first and let it render them again (#354).
 // A note with no diagrams still never loads the renderer.
-watch(() => settings.theme, () => {
+watch(() => themeStore.revision, () => {
   if (host.value) {
     for (const wrap of Array.from(host.value.querySelectorAll<HTMLElement>('.mermaid-block[data-mermaid-source]'))) {
       const pre = document.createElement('pre');

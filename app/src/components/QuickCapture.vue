@@ -17,12 +17,12 @@ import { computed, nextTick, onMounted, onBeforeUnmount, ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useI18n } from '../i18n';
-import { useSettingsStore } from '../stores/settings';
 import { useWorkspaceStore } from '../stores/workspace';
+import { useThemePaint } from '../composables/useThemePaint';
 
 const { t } = useI18n();
-const settings = useSettingsStore();
 const workspace = useWorkspaceStore();
+useThemePaint();
 
 const text = ref('');
 const box = ref<HTMLTextAreaElement | null>(null);
@@ -97,10 +97,6 @@ function onKeydown(e: KeyboardEvent) {
 }
 
 onMounted(async () => {
-  document.documentElement.setAttribute(
-    'data-theme',
-    settings.theme === 'light' ? 'light' : settings.theme,
-  );
   focusBox();
   try {
     // Reopening the box must not present the last capture's leftovers.

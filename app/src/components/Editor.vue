@@ -80,10 +80,11 @@ import {type CaseMode, caseTargetRange, nextCaseInCycle, transformCase} from '..
 import {
   caretPointPx, caretRowInfo, caretTopPx, firstVisualRowEnd, lastVisualRowStart, measureLineHeights
 } from '../lib/textarea-metrics';
-import {cmThemeFor, mermaidThemeFor} from '../lib/themes';
-import {effectiveTheme, effectiveThemeOverride} from '../composables/useThemeStudio';
+import {cmThemeFor} from '../lib/themes';
+import { mermaidConfigFor, graphvizThemeFor, cssColorToHex } from '../lib/theme/mermaid';
 import {findTldrawFences, replaceBoardSnapshot} from '../lib/tldraw-board';
 import {buildEditorFontStack, useSettingsStore} from '../stores/settings';
+import {useThemeStore} from '../stores/theme';
 import {useTabsStore} from '../stores/tabs';
 import {useToastsStore} from '../stores/toasts';
 import {useWorkspaceIndexStore} from '../stores/workspaceIndex';
@@ -152,6 +153,7 @@ const emit = defineEmits<{
 
 const tabs = useTabsStore();
 const settings = useSettingsStore();
+const themeStore = useThemeStore();
 const workspaceIndex = useWorkspaceIndexStore();
 const toasts = useToastsStore();
 const { t } = useI18n();
@@ -622,7 +624,7 @@ async function processPlainLiveRenderedBlocks() {
     ? await initMermaid({
         startOnLoad: false,
         securityLevel: 'strict',
-        theme: mermaidThemeFor(settings.theme),
+        ...mermaidConfigFor(themeStore.resolved, cssColorToHex),
       })
     : null;
   for (const block of Array.from(mermaidBlocks)) {
@@ -647,7 +649,7 @@ async function processPlainLiveRenderedBlocks() {
   const renderRoots = hostEl.querySelectorAll('.plain-block__render');
   for (const root of Array.from(renderRoots)) {
     await renderGraphvizBlocks(root, {
-      theme: mermaidThemeFor(settings.theme),
+      theme: graphvizThemeFor(themeStore.mode),
       blockClass: 'plain-graphviz-block',
       errorClass: 'plain-block__broken',
     });
@@ -663,7 +665,7 @@ async function processPlainLiveRenderedBlocks() {
   const { boardToSvg } = await import('../lib/tldraw-runtime');
   const fences = findTldrawFences(plainText.value || '');
   const theme = {
-    colorScheme: (settings.theme === 'dark' ? 'dark' : 'light') as 'dark' | 'light',
+    colorScheme: themeStore.mode,
     locale: settings.language || 'en',
   };
   for (const block of Array.from(tldrawBlocks)) {
@@ -2943,12 +2945,12 @@ function richExtensionsFor(tab: Tab) {
         getFilePath: () => tab.filePath,
         // F7 — live tldraw whiteboard theme + writeback.
         getBoardTheme: () => ({
-          colorScheme: settings.theme === 'dark' ? 'dark' : 'light',
+          colorScheme: themeStore.mode,
           locale: settings.language || 'en',
         }),
         getTabId: () => tab.id,
         // #354 — diagrams follow the app's light/dark family, like preview.
-        getMermaidTheme: () => mermaidThemeFor(settings.theme),
+        getMermaidTheme: () => graphvizThemeFor(themeStore.mode),
         getPlantuml: () => ({
           enabled: settings.plantumlEnabled,
           server: settings.plantumlServer,
@@ -3069,7 +3071,7 @@ function buildExtensions() {
     richCompartment.of(
       windowsImeSafeMode ? [] : richExtensionsFor(props.tab),
     ),
-    themeCompartment.of(cmThemeFor(effectiveTheme(), effectiveThemeOverride())),
+    themeCompartment.of(cmThemeFor(themeStore.mode)),
     vimCompartment.of(settings.vimMode ? vim() : []),
     fontSizeCompartment.of(fontSizeTheme(settings.fontSize, settings.fontFamily)),
     spellCheckCompartment.of(spellCheckExt(props.spellCheck)),
@@ -3806,9 +3808,9 @@ watch(
 );
 
 watch(
-  () => [effectiveTheme(), effectiveThemeOverride()] as const,
-  ([t, custom]) => {
-    view?.dispatch({ effects: themeCompartment.reconfigure(cmThemeFor(t, custom)) });
+  () => themeStore.mode,
+  (mode) => {
+    view?.dispatch({ effects: themeCompartment.reconfigure(cmThemeFor(mode)) });
     // Live-edit Mermaid widgets carry their theme; rebuild the block field so
     // diagrams on screen re-render for the new light/dark family (#354).
     window.dispatchEvent(new CustomEvent('solomd:cm-relayout'));
@@ -3932,7 +3934,7 @@ watch(plainLiveEnabled, () => {
 });
 
 watch(
-  () => [plainLiveEnabled.value, plainText.value, plainActiveBlock.value, settings.theme, settings.language],
+  () => [plainLiveEnabled.value, plainText.value, plainActiveBlock.value, themeStore.revision, settings.language],
   () => {
     // No mermaid.initialize here any more: the render pass configures it with
     // the current theme itself, and doing it here would load the renderer for
@@ -4221,7 +4223,7 @@ defineExpose({ getLineSelection, gotoLine, insertImageFromPath, insertImageUrl, 
 
 const cls = computed(() => ({
   'cm-host': true,
-  'cm-host--dark': settings.theme === 'dark',
+  'cm-host--dark': themeStore.mode === 'dark',
   // #109 — constrain the editing column to a centered readable width.
   'cm-host--limit-width': settings.limitEditorWidth,
   // #211 — soft-wrap fenced code in the LIVE-rendered blocks too. Only

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { themeFamily } from '../lib/themes';
 import { computed, ref, watch } from 'vue';
 import type { Tab, ViewMode } from '../types';
 import { useSettingsStore } from '../stores/settings';
+import { useThemeStore } from '../stores/theme';
 import { useTabsStore } from '../stores/tabs';
 import { mmapCodec } from '../lib/mindmap-format';
 import { cellHas, lensCell, resolveTabLens } from '../lib/mindmap-lens';
@@ -17,6 +17,7 @@ import MindmapOutlineInvalid from './MindmapOutlineInvalid.vue';
 const READING_VIEW: ViewMode = 'reading';
 const props = defineProps<{ tab: Tab }>();
 const settings = useSettingsStore();
+const themeStore = useThemeStore();
 const tabs = useTabsStore();
 const codec = computed(() => mmapCodec(props.tab.fileName));
 const isWideMap = computed(() => cellHas(lensCell(resolveTabLens(props.tab), READING_VIEW), 'wideMap'));
@@ -29,7 +30,7 @@ const displayApplier = createMapDisplayApplier();
 
 function applyDisplay(): void {
   const mind = canvas.value?.getMind();
-  if (mind) displayApplier.apply(mind, canvas.value?.getDisplayOverride() ?? {}, settings.mindmapDefaults, themeFamily(settings.theme));
+  if (mind) displayApplier.apply(mind, canvas.value?.getDisplayOverride() ?? {}, settings.mindmapDefaults, themeStore.mode);
 }
 
 watch(() => settings.mindmapDefaults, applyDisplay, { deep: true });

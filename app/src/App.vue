@@ -74,7 +74,6 @@ import { useExport } from './composables/useExport';
 import { useShortcuts } from './composables/useShortcuts';
 import { useFileWatcher } from './composables/useFileWatcher';
 import { useAutoSave } from './composables/useAutoSave';
-import { loadCustomTheme } from './lib/custom-theme';
 import { isIOS, isMacOS, isAndroid, isMobile } from './lib/platform';
 import GitCommitPanel from './components/git/GitCommitPanel.vue';
 const GitBottomDock = defineAsyncComponent(() => import('./components/git/GitBottomDock.vue'));
@@ -109,6 +108,7 @@ const showUiKit = new URLSearchParams(location.search).has('uikit');
 
 const tabs = useTabsStore();
 const settings = useSettingsStore();
+const themeStore = useThemeStore();
 const windowsStore = useWindowsStore();
 const tiles = useTilesStore();
 const files = useFiles();
@@ -519,8 +519,8 @@ function onOutlineGoto(line: number) {
   }));
 }
 
-import { dataThemeFor } from './lib/themes';
-import { effectiveTheme, effectiveThemeOverride, installUserThemeSync } from './composables/useThemeStudio';
+import { useThemeStore } from './stores/theme';
+import { useThemePaint } from './composables/useThemePaint';
 
 // Auto-persist tabs and tiles on every change.
 watch(
@@ -714,26 +714,7 @@ watchEffect(() => {
   invoke('save_language_preference', { lang: settings.language }).catch(() => {});
 });
 
-// #282 — nearly every marketplace theme declares its palette for `:root`,
-// `:root[data-theme="light"]` and `:root[data-theme="dark"]` in one rule, and
-// custom-theme.ts injects it after the app bundle, so it wins in every slot:
-// the attribute below still flips and not one colour moves. The reporter hit
-// this from the toolbar's light/dark button, where there is no room for an
-// explanation, and concluded the theme switch was broken. Say it once, when
-// he acts — never on startup, where it would be a scold about a choice he
-// already made.
-installUserThemeSync();
-watchEffect(() => {
-  document.documentElement.setAttribute('data-theme', dataThemeFor(effectiveTheme(), effectiveThemeOverride()));
-});
-watch(() => settings.theme, () => {
-  const overriddenBy = effectiveThemeOverride() === 'css' ? settings.customCssPath : '';
-  if (!overriddenBy) return;
-  const name = (overriddenBy.split(/[\\/]/).pop() || overriddenBy).replace(/\.css$/i, '');
-  void import('./stores/toasts').then(({ useToastsStore }) => {
-    useToastsStore().warning(t('settings.customThemeOverrides', { name }), 6000);
-  });
-});
+useThemePaint();
 
 // v2.0: keep the Rust workspace index in sync with the active folder.
 watchEffect(() => {
@@ -849,14 +830,6 @@ watchEffect(async () => {
   }
 });
 
-watch(
-  () => settings.customCssPath,
-  (path) => {
-    loadCustomTheme(path);
-  },
-  { immediate: true }
-);
-
 function onOpenHelpEvent() {
   helpOpen.value = true;
 }
@@ -960,7 +933,7 @@ function dispatchMenuAction(id: string) {
       void getCurrentWindow().close();
       break;
     case 'view.toggleTheme':
-      settings.toggleTheme();
+      settings.toggleTheme(themeStore.mode);
       break;
     case 'view.toggleFileTree':
       settings.toggleFileTree();
@@ -1170,7 +1143,7 @@ onMounted(async () => {
 
   track('app_launched', {
     locale: settings.language,
-    theme: settings.theme,
+    theme: themeStore.mode,
     live_preview: settings.livePreview ? 1 : 0,
   });
 

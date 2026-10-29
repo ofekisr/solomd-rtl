@@ -28,6 +28,7 @@ export const WHITEBOARD_OPEN_EVENT = 'solomd:whiteboard-open';
 import { onMounted, onBeforeUnmount, ref } from 'vue';
 import { useI18n } from '../i18n';
 import { useSettingsStore } from '../stores/settings';
+import { useThemeStore } from '../stores/theme';
 import { useTabsStore } from '../stores/tabs';
 import { replaceBoardSnapshot, type BoardThemeTokens } from '../lib/tldraw-board';
 import type { BoardHandle } from '../lib/tldraw-runtime';
@@ -35,6 +36,7 @@ import type { BoardHandle } from '../lib/tldraw-runtime';
 
 const { t } = useI18n();
 const settings = useSettingsStore();
+const themeStore = useThemeStore();
 const tabs = useTabsStore();
 
 const open = ref(false);
@@ -49,7 +51,7 @@ let mountToken = 0;
 
 function theme(): BoardThemeTokens {
   return {
-    colorScheme: settings.theme === 'dark' ? 'dark' : 'light',
+    colorScheme: themeStore.mode,
     locale: settings.language || 'en',
   };
 }

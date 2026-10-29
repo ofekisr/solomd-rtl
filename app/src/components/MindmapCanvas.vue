@@ -8,6 +8,7 @@ import type { MapDisplay } from '../lib/mindmap-display';
 import type { Snippet } from '../lib/mindmap-snippets';
 import { sanitizeNodeObj } from '../lib/mindmap-format';
 import { useSettingsStore } from '../stores/settings';
+import { useThemeStore } from '../stores/theme';
 import { useToastsStore } from '../stores/toasts';
 import { fenceNodeSource, readNodeSource, type MindmapSource } from '../lib/mindmap-source';
 import { useI18n } from '../i18n';
@@ -15,7 +16,6 @@ import { resolveBindings, shortcutLabel } from '../lib/keybindings';
 import { isMacOS } from '../lib/platform';
 import { createMapKeyDispatch } from '../lib/mindmap-key-dispatch';
 import { layoutDirectionFor, MINDMAP_LAYOUT } from '../lib/mindmap-direction';
-import { themeFamily } from '../lib/themes';
 import { decorateFoldedCounts } from '../lib/mindmap-folded-count';
 import { clearActiveMindmap, setActiveMindmap, type MindmapHandle } from '../lib/mindmap-active';
 import { createGateController, type GateMenuAction, type GateNotice } from '../lib/mindmap-gate-controller';
@@ -81,6 +81,7 @@ const emit = defineEmits<{
   'show-details': [];
 }>();
 const settings = useSettingsStore();
+const themeStore = useThemeStore();
 const toasts = useToastsStore();
 const workbench = useMindmapWorkbenchStore();
 const { t } = useI18n();
@@ -106,7 +107,7 @@ let loaded: { content: string; serialized: string } | null = null;
 let centerObserver: ResizeObserver | null = null;
 
 function themeFor(): typeof MindElixir.THEME {
-  return themeFamily(settings.theme) === 'dark' ? MindElixir.DARK_THEME : MindElixir.THEME;
+  return themeStore.mode === 'dark' ? MindElixir.DARK_THEME : MindElixir.THEME;
 }
 
 function loadData(): MindElixirData | null {
@@ -1029,7 +1030,7 @@ watch(() => props.locked, (isLocked) => {
   if (canEdit()) mind.enableEdit();
 });
 
-watch(() => settings.theme, () => {
+watch(() => themeStore.mode, () => {
   if (!mind) return;
   mind.changeTheme(themeFor());
   refreshFrameStyle();

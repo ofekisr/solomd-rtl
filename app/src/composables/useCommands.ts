@@ -2,6 +2,7 @@ import { FORMAT_KINDS } from '../lib/md-format';
 import { invoke } from '@tauri-apps/api/core';
 import { useFiles } from './useFiles';
 import { useSettingsStore } from '../stores/settings';
+import { useThemeStore } from '../stores/theme';
 import { KEY_ACTIONS, shortcutLabel } from '../lib/keybindings';
 import { runActiveMindmapAction } from '../lib/mindmap-active';
 import { useI18n } from '../i18n';
@@ -294,7 +295,7 @@ export function useCommands(): Command[] {
     { id: 'view.resetSidebarPanes', title: 'View: Reset Sidebar Pane Heights', hint: 'Clear stored per-pane heights so the right sidebar returns to even-share flex layout', run: () => settings.clearRightSidebarPaneHeights() },
     { id: 'view.toggleWrap', title: 'View: Toggle Word Wrap', run: () => settings.toggleWordWrap() },
     { id: 'view.toggleLineNumbers', title: 'View: Toggle Line Numbers', run: () => settings.toggleLineNumbers() },
-    { id: 'view.toggleTheme', title: 'View: Toggle Theme', run: () => settings.toggleTheme() },
+    { id: 'view.toggleTheme', title: 'View: Toggle Theme', run: () => settings.toggleTheme(useThemeStore().mode) },
     { id: 'view.themeStudio', title: 'View: Theme Studio', hint: 'Build a light + dark theme with colour pickers and live preview', run: () => window.dispatchEvent(new CustomEvent('solomd:open-settings', { detail: { section: 'theme' } })) },
     { id: 'view.toggleLivePreview', title: 'View: Toggle Live Preview / Raw Source (Markdown)', run: () => settings.toggleLivePreview() },
     { id: 'view.toggleSpellCheck', title: 'View: Toggle Spell Check', run: () => settings.toggleSpellCheck() },
