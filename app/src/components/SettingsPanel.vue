@@ -751,7 +751,7 @@ function onSelectPdfFont(v: string) {
             {{ t('settings.searchEmpty', { q: searchQuery.trim() }) }}
           </p>
         </template>
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/language">
           <label>{{ t('settings.language') }}</label>
           <select
             :value="settings.language"
@@ -774,7 +774,7 @@ function onSelectPdfFont(v: string) {
           </select>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="theme" data-page="theme/main">
           <label>{{ t('settings.appearance') }}</label>
           <select :value="settings.appearance" @change="settings.setAppearance(($event.target as HTMLSelectElement).value as Appearance)">
             <option value="light">{{ t('settings.appearanceLight') }}</option>
@@ -792,7 +792,7 @@ function onSelectPdfFont(v: string) {
           <button type="button" class="hint-btn" @click="openThemeStudio">🎨 {{ t('themeStudio.open') }}</button>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="mindmap" data-page="mindmap/main">
           <label>{{ t('settings.mindmapControlStyle') }}</label>
           <select
             :value="settings.mindmapControlStyle"
@@ -802,7 +802,7 @@ function onSelectPdfFont(v: string) {
           </select>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="mindmap" data-page="mindmap/main">
           <label>{{ t('settings.mindmapPasteMapTarget') }}</label>
           <select
             :value="settings.mindmapPasteMapTarget"
@@ -813,7 +813,7 @@ function onSelectPdfFont(v: string) {
           <button type="button" :disabled="settings.mindmapPasteMapTarget === 'ask'" @click="settings.setMindmapPasteMapTarget('ask')">{{ t('settings.mindmapPasteMapReset') }}</button>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/fonts">
           <label>{{ t('settings.fontFamily') }}</label>
           <select :value="fontFamilySelectValue" @change="onSelectFontFamily(($event.target as HTMLSelectElement).value)">
             <option v-for="f in fontFamilies" :key="f.label" :value="f.value">{{ f.label }}</option>
@@ -830,7 +830,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.fontFamilyHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/fonts">
           <label>{{ t('settings.codeFontFamily') }}</label>
           <input
             type="text"
@@ -842,7 +842,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.codeFontFamilyHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/fonts">
           <label>{{ t('settings.fontSize') }}: {{ settings.fontSize }}px</label>
           <input
             type="range"
@@ -853,7 +853,7 @@ function onSelectPdfFont(v: string) {
           />
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/language">
           <label>{{ t('settings.uiFontSize') }}: {{ settings.uiFontSize }}px</label>
           <input
             type="range"
@@ -864,7 +864,7 @@ function onSelectPdfFont(v: string) {
           />
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/language">
           <label>
             {{ t('settings.globalZoom') }}:
             {{ Math.round((settings.globalZoom || 1) * 100) }}%
@@ -899,35 +899,35 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.wheelZoomHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/editor">
           <label>
             <input type="checkbox" :checked="settings.wordWrap" @change="settings.toggleWordWrap()" />
             {{ t('settings.wordWrap') }}
           </label>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/editor">
           <label>
             <input type="checkbox" :checked="settings.showLineNumbers" @change="settings.toggleLineNumbers()" />
             {{ t('settings.lineNumbers') }}
           </label>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/editor">
           <label>
             <input type="checkbox" :checked="settings.solidCursor" @change="settings.toggleSolidCursor()" />
             {{ t('settings.solidCursor') }}
           </label>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/editor">
           <label>
             <input type="checkbox" :checked="settings.livePreview" @change="settings.toggleLivePreview()" />
             {{ t('settings.livePreview') }}
           </label>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/editor">
           <label>
             <input type="checkbox" :checked="settings.alwaysShowMarkers" @change="settings.toggleAlwaysShowMarkers()" />
             {{ t('settings.alwaysShowMarkers') }}
@@ -935,7 +935,7 @@ function onSelectPdfFont(v: string) {
           <div class="hint">{{ t('settings.alwaysShowMarkersHint') }}</div>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/editor">
           <label>
             <input type="checkbox" :checked="settings.highlightCurrentLine" @change="settings.toggleHighlightCurrentLine()" />
             {{ t('settings.highlightCurrentLine') }}
@@ -943,14 +943,14 @@ function onSelectPdfFont(v: string) {
           <div class="hint">{{ t('settings.highlightCurrentLineHint') }}</div>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/sidebar">
           <label>
             <input type="checkbox" :checked="settings.showOutline" @change="onToggleOutlineGlobal()" />
             {{ t('settings.showOutline') }}
           </label>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/sidebar">
           <label>{{ t('settings.outlineSide') }}</label>
           <select
             :value="settings.outlineSide"
@@ -961,7 +961,7 @@ function onSelectPdfFont(v: string) {
           </select>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/sidebar">
           <label>{{ t('settings.outlineMarker') }}</label>
           <select
             :value="settings.outlineMarker"
@@ -973,14 +973,14 @@ function onSelectPdfFont(v: string) {
           </select>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/preview">
           <label>
             <input type="checkbox" :checked="settings.previewFitWidth" @change="settings.togglePreviewFitWidth()" />
             {{ t('settings.previewFitWidth') }}
           </label>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/preview">
           <label>{{ t('settings.previewMaxWidth') }}: {{ settings.previewMaxWidth }}px</label>
           <input
             type="range"
@@ -994,14 +994,14 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.previewMaxWidthHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/editor">
           <label>
             <input type="checkbox" :checked="settings.limitEditorWidth" @change="settings.toggleLimitEditorWidth()" />
             {{ t('settings.limitEditorWidth') || 'Limit editor width (readable column)' }}
           </label>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/editor">
           <label>
             <input
               type="checkbox"
@@ -1013,7 +1013,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.codeBlockLineNumbersHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/editor">
           <label>
             <input
               type="checkbox"
@@ -1025,7 +1025,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.foldingHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/editor">
           <label>
             <input
               type="checkbox"
@@ -1037,7 +1037,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.codeBlockWrapHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/sidebar">
           <label>
             <input
               type="checkbox"
@@ -1049,7 +1049,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.explorerFullNamesHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/sidebar">
           <label>
             <input
               type="checkbox"
@@ -1061,7 +1061,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.explorerDoubleClickFoldersHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/sidebar">
           <label>
             <input
               type="checkbox"
@@ -1073,7 +1073,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.explorerFollowActiveHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/sidebar">
           <label>
             <input
               type="checkbox"
@@ -1085,7 +1085,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.explorerShowHiddenHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/sidebar">
           <label>
             <input
               type="checkbox"
@@ -1097,7 +1097,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.distinctSplitPanesHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/preview">
           <label>
             <input
               type="checkbox"
@@ -1109,7 +1109,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.markdownHardBreaksHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/preview">
           <label>
             <input
               type="checkbox"
@@ -1121,7 +1121,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.smartQuotesHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/preview">
           <label>
             <input
               type="checkbox"
@@ -1133,7 +1133,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.markdownAutoNumberHeadingsHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/preview">
           <label>
             <input
               type="checkbox"
@@ -1154,7 +1154,7 @@ function onSelectPdfFont(v: string) {
           />
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/preview">
           <label>
             <input
               type="checkbox"
@@ -1166,33 +1166,33 @@ function onSelectPdfFont(v: string) {
           <p style="font-size: 11px; color: var(--text-faint); margin: 4px 0 0; line-height: 1.5;">{{ t('reading.readingByDefaultOnMobileHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/sidebar">
           <label>
             <input type="checkbox" :checked="settings.showFileTree" @change="settings.toggleFileTree()" />
             {{ t('settings.showFileTree') }}
           </label>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/sidebar">
           <label>
             <input type="checkbox" :checked="settings.showBacklinks" @change="settings.toggleBacklinks()" />
             {{ t('settings.showBacklinks') }}
           </label>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/sidebar">
           <label>
             <input type="checkbox" :checked="settings.showTagsPanel" @change="settings.toggleTagsPanel()" />
             {{ t('settings.showTagsPanel') }}
           </label>
         </section>
 
-        <section data-cat="theme">
+        <section data-cat="theme" data-page="theme/main">
           <p class="setting-hint">{{ t('themeStudio.pageIntro') }}</p>
           <ThemeStudio v-if="themePageShown" />
         </section>
 
-        <section data-cat="writing">
+        <section data-cat="writing" data-page="writing/focus">
           <h3 style="font-size: 13px; font-weight: 600; color: var(--text); margin: 18px 0 6px;">
             {{ t('writingStats.settingsHeading') }}
           </h3>
@@ -1221,7 +1221,7 @@ function onSelectPdfFont(v: string) {
         <!-- #230 — Android has no libgit2, so the whole Sync tab would be a
              row of buttons that answer "Command … not found". Say so plainly
              instead of shipping dead controls. -->
-        <section v-if="!gitBackend" data-cat="sync">
+        <section v-if="!gitBackend" data-cat="sync" data-page="sync/main">
           <h3 style="font-size: 13px; font-weight: 600; color: var(--text); margin: 18px 0 6px;">
             {{ t('settings.catSync') }}
           </h3>
@@ -1230,7 +1230,7 @@ function onSelectPdfFont(v: string) {
           </p>
         </section>
 
-        <section v-if="gitBackend" data-cat="sync">
+        <section v-if="gitBackend" data-cat="sync" data-page="sync/main">
           <h3 style="font-size: 13px; font-weight: 600; color: var(--text); margin: 18px 0 6px;">
             {{ t('settings.versionHistoryHeading') }}
           </h3>
@@ -1245,18 +1245,18 @@ function onSelectPdfFont(v: string) {
 
         <!-- v2.6.1 cloud-folder banner. Self-hides if the workspace isn't
              inside a known cloud-sync folder. -->
-        <div v-if="gitBackend" data-cat="sync"><CloudFolderBanner /></div>
+        <div v-if="gitBackend" data-cat="sync" data-page="sync/main"><CloudFolderBanner /></div>
 
         <!-- v2.6 GitHub sync — sits right under AutoGit since it pushes the
              same commits AutoGit produces; reads top-down as one story. -->
-        <div v-if="gitBackend" data-cat="sync"><GithubSyncSettings /></div>
+        <div v-if="gitBackend" data-cat="sync" data-page="sync/main"><GithubSyncSettings /></div>
 
         <!-- v3.0 — proxy URL (network-level, applies to libgit2 push/pull
              across GitHub / GitLab / Gitea). Pulled out of GithubSyncSettings
              so users hitting timeouts find it at the top of the Sync tab. -->
-        <div v-if="gitBackend" data-cat="sync"><ProxySettings /></div>
+        <div v-if="gitBackend" data-cat="sync" data-page="sync/main"><ProxySettings /></div>
 
-        <section data-cat="writing">
+        <section data-cat="writing" data-page="writing/aids">
           <h3 style="font-size: 13px; font-weight: 600; color: var(--text); margin: 18px 0 6px;">
             {{ t('settings.directiveCompletions') }}
           </h3>
@@ -1280,13 +1280,13 @@ function onSelectPdfFont(v: string) {
           </details>
         </section>
 
-        <section data-cat="mindmap">
+        <section data-cat="mindmap" data-page="mindmap/main">
           <h4>{{ t('mindmap.settingsDefaults') }}</h4>
           <p class="setting-hint">{{ t('mindmap.settingsDefaultsHint') }}</p>
           <MindmapMapFields :value="settings.mindmapDefaults" @set="settings.setMindmapDefaults($event)" @clear="settings.clearMindmapDefault($event)" />
         </section>
 
-        <section data-cat="writing">
+        <section data-cat="writing" data-page="writing/aids">
           <label>
             <input type="checkbox" :checked="settings.spellcheckEnabled" @change="settings.toggleSpellcheckEnabled()" />
             {{ t('settings.spellcheckEnabled') }}
@@ -1313,7 +1313,7 @@ function onSelectPdfFont(v: string) {
           <p v-if="settings.spellcheckEnabled" class="setting-hint">{{ t('settings.spellcheckLangHint') }}</p>
         </section>
 
-        <section data-cat="integrations">
+        <section data-cat="integrations" data-page="integrations/main">
           <h3 style="font-size: 13px; font-weight: 600; color: var(--text); margin: 18px 0 6px;">
             {{ t('rag.settingsHeading') }}
           </h3>
@@ -1356,14 +1356,14 @@ function onSelectPdfFont(v: string) {
         </section>
 
         <!-- v2.5 F3: PDF / print export defaults. -->
-        <section data-cat="export">
+        <section data-cat="export" data-page="export/main">
           <h3 style="font-size: 13px; font-weight: 600; color: var(--text); margin: 18px 0 6px;">
             {{ t('settings.pdfDefaults.heading') }}
           </h3>
           <p class="setting-hint">{{ t('settings.pdfDefaults.headingHint') }}</p>
         </section>
 
-        <section v-if="!isPhoneOrTablet" data-cat="integrations">
+        <section v-if="!isPhoneOrTablet" data-cat="integrations" data-page="integrations/main">
           <label>
             <input
               type="checkbox"
@@ -1387,7 +1387,7 @@ function onSelectPdfFont(v: string) {
           </p>
         </section>
 
-        <section data-cat="export">
+        <section data-cat="export" data-page="export/main">
           <label>{{ t('settings.docxPreset') }}</label>
           <select
             :value="settings.docxPreset"
@@ -1400,7 +1400,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.docxPresetHint') }}</p>
         </section>
 
-        <section data-cat="export">
+        <section data-cat="export" data-page="export/main">
           <label>{{ t('settings.printTheme') }}</label>
           <select
             :value="settings.printTheme"
@@ -1413,7 +1413,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.printThemeHint') }}</p>
         </section>
 
-        <section data-cat="export">
+        <section data-cat="export" data-page="export/main">
           <label>{{ t('settings.pdfDefaults.pageSize') }}</label>
           <select
             :value="settings.pdfDefaults.pageSize"
@@ -1455,7 +1455,7 @@ function onSelectPdfFont(v: string) {
           </div>
         </section>
 
-        <section data-cat="export">
+        <section data-cat="export" data-page="export/main">
           <label>{{ t('settings.pdfDefaults.margin') }}</label>
           <select
             :value="settings.pdfDefaults.margin"
@@ -1516,7 +1516,7 @@ function onSelectPdfFont(v: string) {
           </p>
         </section>
 
-        <section data-cat="export">
+        <section data-cat="export" data-page="export/main">
           <label>{{ t('settings.pdfDefaults.fontFamily') }}</label>
           <select
             :value="pdfFontSelectValue"
@@ -1527,7 +1527,7 @@ function onSelectPdfFont(v: string) {
           </select>
         </section>
 
-        <section data-cat="export">
+        <section data-cat="export" data-page="export/main">
           <label>{{ t('settings.pdfDefaults.fontSize') }}: {{ settings.pdfDefaults.fontSize }}pt</label>
           <input
             type="range"
@@ -1539,7 +1539,7 @@ function onSelectPdfFont(v: string) {
           />
         </section>
 
-        <section data-cat="export">
+        <section data-cat="export" data-page="export/main">
           <label>
             <input
               type="checkbox"
@@ -1550,7 +1550,7 @@ function onSelectPdfFont(v: string) {
           </label>
         </section>
 
-        <section data-cat="export">
+        <section data-cat="export" data-page="export/main">
           <label>
             <input
               type="checkbox"
@@ -1561,7 +1561,7 @@ function onSelectPdfFont(v: string) {
           </label>
         </section>
 
-        <section data-cat="export">
+        <section data-cat="export" data-page="export/main">
           <label>{{ t('settings.pdfDefaults.codeTheme') }}</label>
           <select
             :value="settings.pdfDefaults.codeTheme"
@@ -1574,7 +1574,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.pdfDefaults.frontmatterHint') }}</p>
         </section>
 
-        <section data-cat="export">
+        <section data-cat="export" data-page="export/main">
           <label>
             <input
               type="checkbox"
@@ -1586,7 +1586,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.imageExportBrandingHint') }}</p>
         </section>
 
-        <section data-cat="writing">
+        <section data-cat="writing" data-page="writing/attachments">
           <label>{{ t('settings.attachmentMode') }}</label>
           <select
             :value="settings.attachmentMode"
@@ -1599,7 +1599,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.attachmentModeHint') }}</p>
         </section>
 
-        <section data-cat="writing" v-if="settings.attachmentMode === 'shared'">
+        <section data-cat="writing" data-page="writing/attachments" v-if="settings.attachmentMode === 'shared'">
           <label>{{ t('settings.assetsDirName') }}</label>
           <input
             type="text"
@@ -1611,7 +1611,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.assetsDirNameHint') }}</p>
         </section>
 
-        <section data-cat="writing" v-if="settings.attachmentMode === 'custom'">
+        <section data-cat="writing" data-page="writing/attachments" v-if="settings.attachmentMode === 'custom'">
           <label>{{ t('settings.attachmentCustomPath') }}</label>
           <input
             type="text"
@@ -1626,7 +1626,7 @@ function onSelectPdfFont(v: string) {
         <!-- image upload (external image hosting) — like Typora / MarkText.
              Instead of (or alongside) copying a pasted image locally, upload it
              to an image host and insert the returned URL. -->
-        <section data-cat="writing">
+        <section data-cat="writing" data-page="writing/image-upload">
           <label>{{ t('settings.imageUploaderSection') }}</label>
           <select
             :value="settings.imageUploader"
@@ -1642,7 +1642,7 @@ function onSelectPdfFont(v: string) {
         </section>
 
         <template v-if="settings.imageUploader !== 'none'">
-          <section data-cat="writing">
+          <section data-cat="writing" data-page="writing/image-upload">
             <label>
               <input
                 type="checkbox"
@@ -1653,7 +1653,7 @@ function onSelectPdfFont(v: string) {
             </label>
             <p class="setting-hint">{{ t('settings.imageUploadOnPasteHint') }}</p>
           </section>
-          <section data-cat="writing">
+          <section data-cat="writing" data-page="writing/image-upload">
             <label>
               <input
                 type="checkbox"
@@ -1666,7 +1666,7 @@ function onSelectPdfFont(v: string) {
           </section>
 
           <!-- PicGo -->
-          <section data-cat="writing" v-if="settings.imageUploader === 'picgo'">
+          <section data-cat="writing" data-page="writing/image-upload" v-if="settings.imageUploader === 'picgo'">
             <label>{{ t('settings.picgoEndpoint') }}</label>
             <input
               class="img-field"
@@ -1679,7 +1679,7 @@ function onSelectPdfFont(v: string) {
           </section>
 
           <!-- Custom command -->
-          <section data-cat="writing" v-if="settings.imageUploader === 'command'">
+          <section data-cat="writing" data-page="writing/image-upload" v-if="settings.imageUploader === 'command'">
             <label>{{ t('settings.imageUploadCommand') }}</label>
             <input
               class="img-field"
@@ -1692,7 +1692,7 @@ function onSelectPdfFont(v: string) {
           </section>
 
           <!-- SM.MS -->
-          <section data-cat="writing" v-if="settings.imageUploader === 'smms'">
+          <section data-cat="writing" data-page="writing/image-upload" v-if="settings.imageUploader === 'smms'">
             <label>{{ t('settings.smmsToken') }}</label>
             <input
               class="img-field"
@@ -1705,35 +1705,35 @@ function onSelectPdfFont(v: string) {
 
           <!-- S3-compatible -->
           <template v-if="settings.imageUploader === 's3'">
-            <section data-cat="writing">
+            <section data-cat="writing" data-page="writing/image-upload">
               <label>{{ t('settings.s3Endpoint') }}</label>
               <input class="img-field" type="text" :value="settings.s3Endpoint" @change="settings.setImageUpload({ s3Endpoint: ($event.target as HTMLInputElement).value })" placeholder="https://s3.amazonaws.com" />
             </section>
-            <section data-cat="writing">
+            <section data-cat="writing" data-page="writing/image-upload">
               <label>{{ t('settings.s3Region') }}</label>
               <input class="img-field" type="text" :value="settings.s3Region" @change="settings.setImageUpload({ s3Region: ($event.target as HTMLInputElement).value })" placeholder="us-east-1" />
             </section>
-            <section data-cat="writing">
+            <section data-cat="writing" data-page="writing/image-upload">
               <label>{{ t('settings.s3Bucket') }}</label>
               <input class="img-field" type="text" :value="settings.s3Bucket" @change="settings.setImageUpload({ s3Bucket: ($event.target as HTMLInputElement).value })" />
             </section>
-            <section data-cat="writing">
+            <section data-cat="writing" data-page="writing/image-upload">
               <label>{{ t('settings.s3AccessKeyId') }}</label>
               <input class="img-field" type="text" :value="settings.s3AccessKeyId" @change="settings.setImageUpload({ s3AccessKeyId: ($event.target as HTMLInputElement).value })" />
             </section>
-            <section data-cat="writing">
+            <section data-cat="writing" data-page="writing/image-upload">
               <label>{{ t('settings.s3SecretAccessKey') }}</label>
               <input class="img-field" type="password" :value="settings.s3SecretAccessKey" @change="settings.setImageUpload({ s3SecretAccessKey: ($event.target as HTMLInputElement).value })" />
             </section>
-            <section data-cat="writing">
+            <section data-cat="writing" data-page="writing/image-upload">
               <label>{{ t('settings.s3PathPrefix') }}</label>
               <input class="img-field" type="text" :value="settings.s3PathPrefix" @change="settings.setImageUpload({ s3PathPrefix: ($event.target as HTMLInputElement).value })" placeholder="images/" />
             </section>
-            <section data-cat="writing">
+            <section data-cat="writing" data-page="writing/image-upload">
               <label>{{ t('settings.s3CustomDomain') }}</label>
               <input class="img-field" type="text" :value="settings.s3CustomDomain" @change="settings.setImageUpload({ s3CustomDomain: ($event.target as HTMLInputElement).value })" placeholder="https://cdn.example.com" />
             </section>
-            <section data-cat="writing">
+            <section data-cat="writing" data-page="writing/image-upload">
               <label>
                 <input type="checkbox" :checked="settings.s3UsePathStyle" @change="settings.setImageUpload({ s3UsePathStyle: ($event.target as HTMLInputElement).checked })" />
                 {{ t('settings.s3UsePathStyle') }}
@@ -1743,23 +1743,23 @@ function onSelectPdfFont(v: string) {
 
           <!-- GitHub repo + CDN -->
           <template v-if="settings.imageUploader === 'github'">
-            <section data-cat="writing">
+            <section data-cat="writing" data-page="writing/image-upload">
               <label>{{ t('settings.ghImageRepo') }}</label>
               <input class="img-field" type="text" :value="settings.ghImageRepo" @change="settings.setImageUpload({ ghImageRepo: ($event.target as HTMLInputElement).value })" placeholder="owner/repo" />
             </section>
-            <section data-cat="writing">
+            <section data-cat="writing" data-page="writing/image-upload">
               <label>{{ t('settings.ghImageBranch') }}</label>
               <input class="img-field" type="text" :value="settings.ghImageBranch" @change="settings.setImageUpload({ ghImageBranch: ($event.target as HTMLInputElement).value })" placeholder="main" />
             </section>
-            <section data-cat="writing">
+            <section data-cat="writing" data-page="writing/image-upload">
               <label>{{ t('settings.ghImageToken') }}</label>
               <input class="img-field" type="password" :value="settings.ghImageToken" @change="settings.setImageUpload({ ghImageToken: ($event.target as HTMLInputElement).value })" />
             </section>
-            <section data-cat="writing">
+            <section data-cat="writing" data-page="writing/image-upload">
               <label>{{ t('settings.ghImagePathPrefix') }}</label>
               <input class="img-field" type="text" :value="settings.ghImagePathPrefix" @change="settings.setImageUpload({ ghImagePathPrefix: ($event.target as HTMLInputElement).value })" placeholder="images/" />
             </section>
-            <section data-cat="writing">
+            <section data-cat="writing" data-page="writing/image-upload">
               <label>{{ t('settings.ghImageCdn') }}</label>
               <select
                 :value="settings.ghImageCdn"
@@ -1772,7 +1772,7 @@ function onSelectPdfFont(v: string) {
           </template>
         </template>
 
-        <section data-cat="keys">
+        <section data-cat="keys" data-page="keys/main">
           <p class="setting-hint" style="margin-top:0;">{{ t('settings.keysHint') }}</p>
           <div v-if="intercepted.length" class="kb-clash">
             <p class="kb-clash__title">⚠ {{ t('settings.keysInterceptedTitle') }}</p>
@@ -1853,7 +1853,7 @@ function onSelectPdfFont(v: string) {
           <button class="kb-btn kb-btn--wide" @click="settings.resetKeybindings()">{{ t('settings.keysResetAll') }}</button>
         </section>
 
-        <section data-cat="advanced">
+        <section data-cat="writing" data-page="writing/inbox">
           <label>{{ t('settings.dailyNotesFolder') }}</label>
           <input
             type="text"
@@ -1864,7 +1864,7 @@ function onSelectPdfFont(v: string) {
           />
         </section>
 
-        <section data-cat="advanced">
+        <section data-cat="writing" data-page="writing/inbox">
           <label>{{ t('settings.dailyNotesFormat') }}</label>
           <input
             type="text"
@@ -1875,12 +1875,12 @@ function onSelectPdfFont(v: string) {
           />
         </section>
 
-        <div data-cat="export"><CitationPickerSettings /></div>
+        <div data-cat="export" data-page="export/main"><CitationPickerSettings /></div>
 
         <!-- App Store builds strip the AI / Agent / Recipes / CostMeter
              surface under Guideline 3.1.1 (BYOK API keys unlocking paid
              functionality). The GitHub Developer ID build keeps them. -->
-        <div v-if="!IS_APP_STORE_BUILD" data-cat="integrations"><AISettings
+        <div v-if="!IS_APP_STORE_BUILD" data-cat="integrations" data-page="integrations/main"><AISettings
           :enabled="settings.aiEnabled"
           :provider="(settings.aiProvider as any)"
           :model="settings.aiModel"
@@ -1893,23 +1893,23 @@ function onSelectPdfFont(v: string) {
 
         <!-- v4.0: BYOK cost meter — sits under AI so users see "your spend"
              right below "your provider key". -->
-        <div v-if="!IS_APP_STORE_BUILD" data-cat="integrations"><CostMeterSettings /></div>
+        <div v-if="!IS_APP_STORE_BUILD" data-cat="integrations" data-page="integrations/main"><CostMeterSettings /></div>
 
         <!-- v2.4: Integrations (CLI + MCP). -->
-        <div data-cat="integrations"><IntegrationsSettings /></div>
+        <div data-cat="integrations" data-page="integrations/main"><IntegrationsSettings /></div>
 
         <!-- v4.0 Pillar 2: Agent Recipes. -->
         <!-- #230 — recipe_runner is desktop/iOS only (git-backed receipts). -->
-        <div v-if="!IS_APP_STORE_BUILD && gitBackend" data-cat="integrations"><RecipesSettings /></div>
+        <div v-if="!IS_APP_STORE_BUILD && gitBackend" data-cat="integrations" data-page="integrations/main"><RecipesSettings /></div>
 
-        <section data-cat="writing">
+        <section data-cat="writing" data-page="writing/aids">
           <label>
             <input type="checkbox" :checked="settings.spellCheck" @change="settings.toggleSpellCheck()" />
             {{ t('settings.spellCheck') }}
           </label>
         </section>
 
-        <section data-cat="writing">
+        <section data-cat="writing" data-page="writing/focus">
           <label>
             <input type="checkbox" :checked="settings.focusMode" @change="settings.toggleFocusMode()" />
             {{ t('settings.focusMode') }}
@@ -1921,7 +1921,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ withChord('settings.toolbarHiddenHint', 'view.toggleToolbar') }}</p>
         </section>
 
-        <section data-cat="writing">
+        <section data-cat="writing" data-page="writing/focus">
           <h3 style="font-size: 13px; font-weight: 600; color: var(--text); margin: 18px 0 6px;">
             {{ t('pomodoro.settingsHeading') }}
           </h3>
@@ -1972,21 +1972,21 @@ function onSelectPdfFont(v: string) {
           />
         </section>
 
-        <section data-cat="writing">
+        <section data-cat="writing" data-page="writing/focus">
           <label>
             <input type="checkbox" :checked="settings.typewriterMode" @change="settings.toggleTypewriterMode()" />
             {{ t('settings.typewriterMode') }}
           </label>
         </section>
 
-        <section data-cat="writing">
+        <section data-cat="writing" data-page="writing/aids">
           <label>
             <input type="checkbox" :checked="settings.vimMode" @change="settings.toggleVimMode()" />
             {{ t('settings.vimMode') }}
           </label>
         </section>
 
-        <section v-if="windowsEditorRuntime" data-cat="writing">
+        <section v-if="windowsEditorRuntime" data-cat="writing" data-page="writing/aids">
           <label>{{ t('settings.windowsEditorEngine') }}</label>
           <select
             :value="settings.vimMode ? 'codemirror' : settings.windowsEditorEngine"
@@ -2001,7 +2001,7 @@ function onSelectPdfFont(v: string) {
           </p>
         </section>
 
-        <section data-cat="writing">
+        <section data-cat="writing" data-page="writing/aids">
           <label>
             <input type="checkbox" :checked="settings.slashCommandsEnabled" @change="settings.toggleSlashCommandsEnabled()" />
             {{ t('settings.slashCommandsEnabled') }}
@@ -2009,7 +2009,7 @@ function onSelectPdfFont(v: string) {
         </section>
 
         <!-- v4.6 F6 — Inbox workflow -->
-        <section data-cat="writing">
+        <section data-cat="writing" data-page="writing/inbox">
           <label>
             <input type="checkbox" :checked="settings.inboxWorkflowEnabled" @change="settings.toggleInboxWorkflow()" />
             {{ t('inbox.workflowSetting') }}
@@ -2026,7 +2026,7 @@ function onSelectPdfFont(v: string) {
           </div>
         </section>
 
-        <section data-cat="advanced">
+        <section data-cat="advanced" data-page="advanced/startup">
           <label>
             <input type="checkbox" :checked="settings.restoreSession" @change="settings.toggleRestoreSession()" />
             {{ t('settings.restoreSession') }}
@@ -2036,7 +2036,7 @@ function onSelectPdfFont(v: string) {
           </div>
         </section>
 
-        <section data-cat="advanced">
+        <section data-cat="advanced" data-page="advanced/startup">
           <label>{{ t('settings.startupViewMode') }}</label>
           <select
             :value="settings.startupViewMode ?? ''"
@@ -2052,7 +2052,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.startupViewModeHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="basics" data-page="basics/language">
           <label>
             <input
               type="checkbox"
@@ -2064,7 +2064,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.showStatusBarViewModesHint') }}</p>
         </section>
 
-        <section data-cat="advanced">
+        <section data-cat="advanced" data-page="advanced/startup">
           <label>
             <input type="checkbox" :checked="settings.perWorkspaceTabs" @change="settings.togglePerWorkspaceTabs()" />
             {{ t('settings.perWorkspaceTabs') }}
@@ -2074,7 +2074,7 @@ function onSelectPdfFont(v: string) {
           </div>
         </section>
 
-        <section data-cat="advanced">
+        <section data-cat="advanced" data-page="advanced/files">
           <label>
             <input type="checkbox" :checked="settings.autoReloadExternalChanges" @change="settings.toggleAutoReloadExternalChanges()" />
             {{ t('settings.autoReloadExternalChanges') }}
@@ -2084,7 +2084,7 @@ function onSelectPdfFont(v: string) {
           </div>
         </section>
 
-        <section data-cat="advanced">
+        <section data-cat="advanced" data-page="advanced/files">
           <label>
             {{ t('settings.convertConflict') }}
             <select
@@ -2101,7 +2101,7 @@ function onSelectPdfFont(v: string) {
           </div>
         </section>
 
-        <section data-cat="advanced">
+        <section data-cat="advanced" data-page="advanced/files">
           <label>
             <input type="checkbox" :checked="settings.autoSaveAfterDelay" @change="settings.toggleAutoSaveAfterDelay()" />
             {{ t('settings.autoSaveAfterDelay') }}
@@ -2125,7 +2125,7 @@ function onSelectPdfFont(v: string) {
           </div>
         </section>
 
-        <section data-cat="advanced">
+        <section data-cat="advanced" data-page="advanced/updates">
           <label>
             <input type="checkbox" :checked="settings.aiWarningAlwaysMinimized" @change="settings.setAiWarningAlwaysMinimized(($event.target as HTMLInputElement).checked)" />
             {{ t('settings.aiWarningAlwaysMinimized') }}
@@ -2161,7 +2161,7 @@ function onSelectPdfFont(v: string) {
           </div>
         </section>
 
-        <section data-cat="advanced">
+        <section data-cat="advanced" data-page="advanced/files">
           <label>
             <input type="checkbox" :checked="settings.autoSaveOnBlur" @change="settings.toggleAutoSaveOnBlur()" />
             {{ t('settings.autoSaveOnBlur') }}
@@ -2171,7 +2171,7 @@ function onSelectPdfFont(v: string) {
           </div>
         </section>
 
-        <section v-if="!isMobilePlatform" data-cat="advanced">
+        <section v-if="!isMobilePlatform" data-cat="advanced" data-page="advanced/files">
           <label>
             <input type="checkbox" :checked="settings.openFileInNewWindow" @change="settings.toggleOpenFileInNewWindow()" />
             {{ t('settings.openFileInNewWindow') }}
@@ -2181,7 +2181,7 @@ function onSelectPdfFont(v: string) {
           </div>
         </section>
 
-        <section data-cat="advanced">
+        <section data-cat="advanced" data-page="advanced/files">
           <label>
             <input type="checkbox" :checked="settings.revealInFileTreeOnOpen" @change="settings.toggleRevealInFileTreeOnOpen()" />
             {{ t('settings.revealInFileTreeOnOpen') }}
@@ -2191,7 +2191,7 @@ function onSelectPdfFont(v: string) {
           </div>
         </section>
 
-        <section data-cat="advanced">
+        <section data-cat="advanced" data-page="advanced/files">
           <label>
             <input type="checkbox" :checked="settings.openLinkedFilesExternally" @change="settings.toggleOpenLinkedFilesExternally()" />
             {{ t('settings.openLinkedFilesExternally') }}
@@ -2201,7 +2201,7 @@ function onSelectPdfFont(v: string) {
           </div>
         </section>
 
-        <section v-if="!isMobilePlatform && !masBuild" data-cat="advanced">
+        <section v-if="!isMobilePlatform && !masBuild" data-cat="advanced" data-page="advanced/updates">
           <label>
             <input type="checkbox" :checked="settings.autoCheckUpdate" @change="settings.toggleAutoCheckUpdate()" />
             {{ t('settings.autoCheckUpdate') }}
@@ -2213,7 +2213,7 @@ function onSelectPdfFont(v: string) {
           </div>
         </section>
 
-        <section data-cat="advanced">
+        <section data-cat="advanced" data-page="advanced/updates">
           <label>
             <input type="checkbox" :checked="settings.telemetryEnabled" @change="settings.toggleTelemetry()" />
             {{ t('settings.telemetry') }}
@@ -2223,7 +2223,7 @@ function onSelectPdfFont(v: string) {
           </div>
         </section>
 
-        <section data-cat="advanced">
+        <section data-cat="theme" data-page="theme/main">
           <label>{{ t('settings.importTheme') }}</label>
           <div class="row" style="gap: 8px; align-items: center; flex-wrap: wrap;">
             <button @click="importThemeFile">{{ t('settings.importThemeBtn') }}</button>
@@ -2239,7 +2239,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('themes.browseHint') }}</p>
         </section>
 
-        <section data-cat="advanced">
+        <section data-cat="advanced" data-page="advanced/files">
           <label>{{ t('settings.fileAssoc') }}</label>
           <div class="row" style="gap: 8px; align-items: center;">
             <button
@@ -2256,10 +2256,10 @@ function onSelectPdfFont(v: string) {
         </section>
 
         <!-- v2.4 Integrations: HTTP capture endpoint. -->
-        <div data-cat="integrations"><CaptureEndpointSettings /></div>
+        <div data-cat="integrations" data-page="integrations/main"><CaptureEndpointSettings /></div>
 
         <!-- v4.0: Public REST API for non-MCP clients. -->
-        <div data-cat="integrations"><RestApiSettings /></div>
+        <div data-cat="integrations" data-page="integrations/main"><RestApiSettings /></div>
       </div>
       </div>
       </div>
