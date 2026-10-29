@@ -265,7 +265,20 @@ export const en = {
     searchCount: "{n} matches",
     searchEmpty: "No settings match “{q}”.",
     title: 'Settings',
-    catBasics: 'Basics',
+    catBasics: 'General',
+    pageLanguage: 'Language & zoom',
+    pageFonts: 'Fonts',
+    pageEditor: 'Editor display',
+    pageSidebar: 'Sidebar & outline',
+    pagePreview: 'Preview & Markdown',
+    pageAids: 'Editing aids',
+    pageFocus: 'Focus',
+    pageAttachments: 'Attachments',
+    pageImageUpload: 'Image upload',
+    pageInbox: 'Inbox & daily notes',
+    pageStartup: 'Startup & session',
+    pageFiles: 'Files & saving',
+    pageUpdates: 'Updates & privacy',
     catWriting: 'Writing',
     catMindmap: 'Mindmap',
     catSync: 'Sync',
@@ -1954,7 +1967,7 @@ export const en = {
     safetyNote: 'Changes are a preview until you save. Only “Use this theme” switches your theme. Automatic fills only touch the mode on screen and skip colours you picked by hand (↺ undoes a pick).',
     unsaved: 'Unsaved changes',
     navLabel: 'Appearance',
-    pageIntro: 'Build your own theme: colours for light and dark mode, plus corner roundness. Fonts and sizes are under Basics and Writing.',
+    pageIntro: 'Pick light and dark themes here. To build your own, open Theme Studio in a tab, where the whole app previews your colours live.',
     backdrop: '{mode} background',
     backdropPlain: 'Plain colour',
     backdropGradient: 'Gradient',
@@ -2586,7 +2599,20 @@ type DirectiveCompletionFallbackKey =
   | 'aiReleaseDelay'
   | 'aiStaleTimeout'
   | 'aiWarningAlwaysMinimized'
-  | 'aiWorkingHint';
+  | 'aiWorkingHint'
+  | 'pageLanguage'
+  | 'pageFonts'
+  | 'pageEditor'
+  | 'pageSidebar'
+  | 'pagePreview'
+  | 'pageAids'
+  | 'pageFocus'
+  | 'pageAttachments'
+  | 'pageImageUpload'
+  | 'pageInbox'
+  | 'pageStartup'
+  | 'pageFiles'
+  | 'pageUpdates';
 
 type EnglishDictionary = typeof en;
 type EnglishSettings = EnglishDictionary['settings'];

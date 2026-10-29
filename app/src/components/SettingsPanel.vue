@@ -4,7 +4,7 @@ import { AI_DELAY_LIMITS } from '../lib/ai-activity';
 import type { ConvertConflictSetting } from '../lib/convert-conflict';
 import { PASTE_MAP_SETTINGS, type PasteMapSetting } from '../lib/mindmap-insert';
 import { MINDMAP_CONTROL_STYLES, type MindmapControlStyle } from '../lib/mindmap-icon-names';
-import { ref, computed, watch, onUnmounted, nextTick } from 'vue';
+import { ref, computed, watch, watchEffect, onUnmounted, nextTick } from 'vue';
 import { shortcutLabel } from '../lib/keybindings';
 import { builtinLabelFor } from '../lib/mindmap-keymap';
 import { invoke } from '@tauri-apps/api/core';
@@ -60,11 +60,11 @@ import type { Appearance } from '../lib/theme/migrate';
 import type { Theme as AppTheme, ThemeMode } from '../lib/theme/schema';
 import { groupSlotOptions, isPairedTheme, parseSlotValue, slotValue } from '../lib/theme/picker';
 import { useThemeStudio } from '../composables/useThemeStudio';
-import ThemeStudio from './ThemeStudio.vue';
 import { openPath } from '@tauri-apps/plugin-opener';
 import { DsModal } from '../ui';
 import { getDict } from '../i18n';
 import { flatten, englishFallbackNeedles, blockMatches, normalize, queryMatcher } from '../lib/settings-search';
+import { SETTINGS_NAV, ALL_PAGE_KEYS, categoryOf, crumbsOf, defaultPage, isMultiPage, pageVisibilityCss, parsePageKey, type PageKey, type SettingsCategory } from '../lib/settings-nav';
 
 const isMobilePlatform = isIOS();
 // Quick capture needs an OS-level hotkey and a second window — neither exists
@@ -88,15 +88,12 @@ function withChord(key: string, actionId: string): string {
   return t(key, { key: shortcutLabel(actionId, kbSettings.keybindings, macChord) || '—' });
 }
 
-// v3.0 — left-side category nav. Settings was a 30+ item single scroll;
-// split into 6 groups so the user navigates by category, not by scroll.
-type SettingsCategory = 'basics' | 'theme' | 'writing' | 'mindmap' | 'sync' | 'integrations' | 'export' | 'keys' | 'advanced';
-const activeCategory = ref<SettingsCategory>('basics');
-// #144 — all six category pages share the single scrolling `.settings__body`
-// (pages are toggled via CSS display), so one page's scrollTop leaked into
-// every other page. Reset to top on each category switch.
+const activePage = ref<PageKey>(defaultPage('basics'));
+const activeCategory = computed<SettingsCategory>(() => categoryOf(activePage.value));
+// #144 — every page shares the single scrolling `.settings__body`, so reset
+// its scrollTop on each page switch.
 const bodyEl = ref<HTMLElement | null>(null);
-watch(activeCategory, () => {
+watch(activePage, () => {
   bodyEl.value?.scrollTo({ top: 0 });
 });
 // ---------------------------------------------------------------------------
@@ -214,18 +211,6 @@ function onRecordKey(e: KeyboardEvent): void {
 }
 onUnmounted(stopRecording);
 
-const categories: { id: SettingsCategory; icon: string; labelKey: string }[] = [
-  { id: 'basics', icon: '⚙️', labelKey: 'settings.catBasics' },
-  { id: 'theme', icon: '🎨', labelKey: 'themeStudio.navLabel' },
-  { id: 'writing', icon: '✍️', labelKey: 'settings.catWriting' },
-  { id: 'mindmap', icon: '🧠', labelKey: 'settings.catMindmap' },
-  { id: 'sync', icon: '☁️', labelKey: 'settings.catSync' },
-  { id: 'integrations', icon: '🔌', labelKey: 'settings.catIntegrations' },
-  { id: 'export', icon: '📤', labelKey: 'settings.catExport' },
-  { id: 'keys', icon: '⌨️', labelKey: 'settings.catKeys' },
-  { id: 'advanced', icon: '🛠️', labelKey: 'settings.catAdvanced' },
-];
-
 const checkingUpdate = ref(false);
 async function manualCheckUpdate() {
   checkingUpdate.value = true;
@@ -270,17 +255,12 @@ const emit = defineEmits<{ (e: 'close'): void }>();
 // default `basics`. We watch open transitions to true rather than the
 // section value alone, because the parent leaves the section ref in place
 // after close — re-opening would otherwise jump back to the same anchor.
-const VALID_CATEGORIES = new Set<SettingsCategory>([
-  'basics', 'theme', 'writing', 'mindmap', 'sync', 'integrations', 'export', 'advanced',
-]);
 watch(
   () => props.open,
   (isOpen) => {
     if (!isOpen) return;
-    const target = props.initialSection;
-    if (target && VALID_CATEGORIES.has(target as SettingsCategory)) {
-      activeCategory.value = target as SettingsCategory;
-    }
+    const target = parsePageKey(props.initialSection);
+    if (target) activePage.value = target;
   },
 );
 
@@ -296,24 +276,35 @@ const windowsEditorRuntime = isWindowsEditorRuntime();
 // Filtering works on what is rendered: each top-level `[data-cat]` block of
 // the body is matched against its own text, so nothing has to be listed a
 // second time. English keywords also work in a translated UI (see
-// lib/settings-search.ts). While a query is active the category pages are
-// switched off (no data-active-cat) and the matches are shown grouped under
-// their category headings, in category order (CSS `order`).
+// lib/settings-search.ts). While a query is active the pages are switched
+// off (no data-active-page) and the matches are shown grouped under their
+// page breadcrumbs, in page order (CSS `order`).
 // ---------------------------------------------------------------------------
 const searchQuery = ref('');
 const searchInput = ref<HTMLInputElement | null>(null);
 const searching = computed(() => normalize(searchQuery.value).length > 0);
-/* The Theme page owns the app palette only while it is on screen. */
-const { studioOpen: themeStudioOpen, isDirty: themeDraftDirty } = useThemeStudio();
-const themePageShown = computed(() => props.open && !searching.value && activeCategory.value === 'theme');
-watch(themePageShown, (shown) => { themeStudioOpen.value = shown; }, { immediate: true });
-const THEME_PAGE_WIDTH = '1280px';
-const DEFAULT_WIDTH = '820px';
-const modalWidth = computed(() => (themePageShown.value ? THEME_PAGE_WIDTH : DEFAULT_WIDTH));
+const { isDirty: themeDraftDirty } = useThemeStudio();
+const MODAL_WIDTH = 'min(960px, 92vw)';
+
+/* Scoped CSS would tag the hide rule with the scope attribute and outrank the
+   generated show rule, so both live in this one unscoped sheet. */
+const PAGE_STYLE_ID = 'settings-page-visibility';
+const HIDE_INACTIVE_PAGES_CSS = '.settings__body[data-active-page] > [data-cat] { display: none; }';
+watchEffect(() => {
+  const css = pageVisibilityCss(searching.value ? null : activePage.value);
+  let el = document.getElementById(PAGE_STYLE_ID);
+  if (!el) {
+    el = document.createElement('style');
+    el.id = PAGE_STYLE_ID;
+    document.head.appendChild(el);
+  }
+  el.textContent = `${HIDE_INACTIVE_PAGES_CSS}\n${css}`;
+});
+onUnmounted(() => document.getElementById(PAGE_STYLE_ID)?.remove());
 
 const searchHitCount = ref(0);
-const catsWithHits = ref<Set<string>>(new Set());
-const catOrder = new Map(categories.map((c, i) => [c.id as string, i]));
+const pagesWithHits = ref<Set<string>>(new Set());
+const pageOrder = new Map(ALL_PAGE_KEYS.map((k, i) => [k, i]));
 let flatCache: { lang: string; en: Map<string, string>; cur: Map<string, string> } | null = null;
 
 function dictsFor(lang: string) {
@@ -379,27 +370,27 @@ function applySearch() {
       b.style.order = '';
     }
     searchHitCount.value = 0;
-    catsWithHits.value = new Set();
+    pagesWithHits.value = new Set();
     clearHighlight();
     return;
   }
   const q = searchQuery.value;
   const { en, cur } = dictsFor(settings.language);
   const needles = englishFallbackNeedles(q, en, cur);
-  const cats = new Set<string>();
+  const pages = new Set<string>();
   const hits: HTMLElement[] = [];
   for (const b of blocks) {
-    const cat = b.dataset.cat!;
+    const page = b.dataset.page!;
     const match = blockMatches(b.textContent || '', q, needles);
     b.dataset.match = match ? '1' : '0';
-    b.style.order = String((catOrder.get(cat) ?? 99) * 2 + 1);
+    b.style.order = String((pageOrder.get(page) ?? 999) * 2 + 1);
     if (match) {
-      cats.add(cat);
+      pages.add(page);
       hits.push(b);
     }
   }
   searchHitCount.value = hits.length;
-  catsWithHits.value = cats;
+  pagesWithHits.value = pages;
   highlight(hits, normalize(q), needles);
 }
 
@@ -420,9 +411,9 @@ watch(
   },
 );
 
-function pickCategory(id: SettingsCategory) {
+function openPage(key: PageKey) {
   searchQuery.value = '';
-  activeCategory.value = id;
+  activePage.value = key;
 }
 
 /** Esc clears a query before it closes the dialog, and ⌘F / Ctrl+F jumps to
@@ -595,7 +586,8 @@ function importThemeContent(path: string, content: string): Promise<AppTheme> {
 }
 
 function openThemeStudio() {
-  pickCategory('theme');
+  tabs.openThemeStudio();
+  emit('close');
 }
 
 // v2.5: theme marketplace modal — opened from the Custom CSS section.
@@ -698,12 +690,11 @@ function onSelectPdfFont(v: string) {
   <DsModal
     :model-value="open"
     :title="t('settings.title')"
-    :width="modalWidth"
+    :width="MODAL_WIDTH"
     class="settings-modal"
     @update:model-value="emit('close')"
   >
-      <div class="settings__frame" :class="{ 'settings__frame--theme': themePageShown }">
-      <div v-if="themePageShown" id="settings-theme-preview" class="settings__preview" />
+      <div class="settings__frame">
       <div class="settings__search">
         <input
           ref="searchInput"
@@ -718,35 +709,50 @@ function onSelectPdfFont(v: string) {
         <span v-if="searching" class="settings__search-count">{{ t('settings.searchCount', { n: searchHitCount }) }}</span>
       </div>
       <div class="settings__layout">
-        <!-- v3.0 — left-side category nav. Click switches the right-side
-             content panel; only one category visible at a time. -->
         <nav class="settings__nav">
-          <button
-            v-for="c in categories"
-            :key="c.id"
-            class="settings__nav-item"
-            :class="{ 'settings__nav-item--active': !searching && activeCategory === c.id }"
-            @click="pickCategory(c.id)"
-          >
-            <span class="settings__nav-icon">{{ c.icon }}</span>
-            <span class="settings__nav-label">{{ t(c.labelKey) }}</span>
-            <span v-if="c.id === 'theme' && themeDraftDirty" class="settings__nav-dot" :title="t('themeStudio.unsaved')">●</span>
-          </button>
+          <template v-for="c in SETTINGS_NAV" :key="c.id">
+            <button
+              class="settings__nav-item"
+              :class="{ 'settings__nav-item--active': !searching && activeCategory === c.id }"
+              :aria-expanded="isMultiPage(c.id) ? activeCategory === c.id : undefined"
+              @click="openPage(defaultPage(c.id))"
+            >
+              <span class="settings__nav-icon">{{ c.icon }}</span>
+              <span class="settings__nav-label">{{ t(c.labelKey) }}</span>
+              <span v-if="c.id === 'theme' && themeDraftDirty" class="settings__nav-dot" :title="t('themeStudio.unsaved')">●</span>
+            </button>
+            <template v-if="isMultiPage(c.id) && activeCategory === c.id && !searching">
+              <button
+                v-for="p in c.pages"
+                :key="p.id"
+                class="settings__nav-item settings__nav-sub"
+                :class="{ 'settings__nav-item--active': activePage === `${c.id}/${p.id}` }"
+                @click="openPage(`${c.id}/${p.id}`)"
+              >{{ t(p.labelKey) }}</button>
+            </template>
+          </template>
         </nav>
       <div
         ref="bodyEl"
         class="settings__body"
-        :data-active-cat="searching ? undefined : activeCategory"
+        :data-active-page="searching ? undefined : activePage"
         :data-searching="searching ? '' : undefined"
       >
+        <template v-if="!searching">
+          <h2 class="settings__crumb">
+            {{ t(crumbsOf(activePage).categoryLabelKey) }}<template v-if="crumbsOf(activePage).pageLabelKey"> › {{ t(crumbsOf(activePage).pageLabelKey!) }}</template>
+          </h2>
+        </template>
         <template v-if="searching">
-          <h2
-            v-for="(c, i) in categories"
-            v-show="catsWithHits.has(c.id)"
-            :key="'sg-' + c.id"
+          <button
+            v-for="(key, i) in ALL_PAGE_KEYS"
+            v-show="pagesWithHits.has(key)"
+            :key="'sg-' + key"
+            type="button"
             class="settings__search-group"
             :style="{ order: i * 2 }"
-          >{{ c.icon }} {{ t(c.labelKey) }}</h2>
+            @click="openPage(key)"
+          >{{ t(crumbsOf(key).categoryLabelKey) }}<template v-if="crumbsOf(key).pageLabelKey"> › {{ t(crumbsOf(key).pageLabelKey!) }}</template> ›</button>
           <p v-if="searchHitCount === 0" class="settings__search-empty">
             {{ t('settings.searchEmpty', { q: searchQuery.trim() }) }}
           </p>
@@ -789,7 +795,6 @@ function onSelectPdfFont(v: string) {
               </optgroup>
             </select>
           </template>
-          <button type="button" class="hint-btn" @click="openThemeStudio">🎨 {{ t('themeStudio.open') }}</button>
         </section>
 
         <section data-cat="mindmap" data-page="mindmap/main">
@@ -1189,7 +1194,7 @@ function onSelectPdfFont(v: string) {
 
         <section data-cat="theme" data-page="theme/main">
           <p class="setting-hint">{{ t('themeStudio.pageIntro') }}</p>
-          <ThemeStudio v-if="themePageShown" />
+          <button type="button" class="hint-btn" @click="openThemeStudio">🎨 {{ t('themeStudio.openInTab') }}</button>
         </section>
 
         <section data-cat="writing" data-page="writing/focus">
@@ -2392,19 +2397,7 @@ function onSelectPdfFont(v: string) {
   flex: 1;
   display: flex;
   min-height: 0;
-  height: min(560px, 78vh);
-}
-.settings__frame--theme {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 190px);
-}
-.settings__frame--theme .settings__layout { height: auto; }
-.settings__preview {
-  flex-shrink: 0;
-  margin-bottom: var(--sp-3);
-  padding-bottom: var(--sp-3);
-  border-bottom: 1px solid var(--border);
+  height: min(640px, 72vh);
 }
 .settings__nav {
   width: 160px;
@@ -2432,6 +2425,11 @@ function onSelectPdfFont(v: string) {
   font: inherit;
   transition: all 0.12s;
 }
+.settings__nav-sub {
+  padding-inline-start: 34px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
 .settings__nav-item:hover {
   background: color-mix(in srgb, var(--accent) 8%, transparent);
   color: var(--text);
@@ -2452,29 +2450,13 @@ function onSelectPdfFont(v: string) {
   color: var(--accent);
   font-size: 10px;
 }
-/* v3.0 — single-source-of-truth visibility: each section/component
-   gets data-cat="basics|writing|mindmap|sync|integrations|export|keys|advanced",
-   the body's data-active-cat determines which subset renders. Saves
-   wrapping every section in v-if.
-
-   Every id in the `categories` array above needs a line in the show-list
-   below, or its page renders blank — the hide rule catches it and nothing
-   brings it back. That is how #180's `keys` page shipped empty. */
-.settings__body[data-active-cat] > [data-cat] {
-  display: none;
-}
-.settings__body[data-active-cat="basics"] > [data-cat="basics"],
-.settings__body[data-active-cat="theme"] > [data-cat="theme"],
-.settings__body[data-active-cat="writing"] > [data-cat="writing"],
-.settings__body[data-active-cat="mindmap"] > [data-cat="mindmap"],
-.settings__body[data-active-cat="sync"] > [data-cat="sync"],
-.settings__body[data-active-cat="integrations"] > [data-cat="integrations"],
-.settings__body[data-active-cat="export"] > [data-cat="export"],
-.settings__body[data-active-cat="keys"] > [data-cat="keys"],
-.settings__body[data-active-cat="advanced"] > [data-cat="advanced"] {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+/* Page visibility (hide inactive blocks, show the active page) is generated
+   at runtime into <style id="settings-page-visibility">; see the script. */
+.settings__crumb {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: var(--text);
 }
 .settings__search {
   display: flex;
@@ -2512,8 +2494,13 @@ function onSelectPdfFont(v: string) {
   font-weight: 600;
   color: var(--text-muted);
   margin: 6px 0 -8px;
-  padding-bottom: 4px;
+  padding: 0 0 4px;
+  background: none;
+  border: 0;
   border-bottom: 1px solid var(--border);
+  text-align: start;
+  cursor: pointer;
+  font-family: inherit;
 }
 .settings__search-empty {
   order: -1;
