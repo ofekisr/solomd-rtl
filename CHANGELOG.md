@@ -2,6 +2,14 @@
 
 Changes added in **solomd-rtl** on top of upstream SoloMD. Newest first.
 
+## 4.39.0 — 2026-10-29
+- **Added:** One theme layer for the whole app. A theme now paints the shell, tabs, preview, editor and diagrams from one typed JSON format, with named light/dark variants.
+- **Added:** Appearance (Light / Dark / Follow system) with separate Light and Dark theme slots in Settings, grouped Built-in, Catalog and My themes.
+- **Added:** A catalog of 47 CodeMirror themes, converted to full app themes.
+- **Added:** Import a theme from JSON or CSS; marketplace CSS themes convert on install, with a report of dropped rules.
+- **Changed:** My themes are saved as files in `<config>/themes/<id>.json`. Existing theme, Theme Studio and custom CSS settings migrate once on first launch.
+- **Removed:** Custom CSS injection and the per-theme palettes in `main.css`.
+
 ## 4.38.9 — 2026-10-28
 - **Fixed:** Editor and preview syntax highlighting now use the same colours. Unified HighlightStyle in themes.ts references `--syn-*` CSS variables instead of hardcoded theme palettes, so both rendering paths pick up colours from main.css.
 
