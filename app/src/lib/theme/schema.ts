@@ -50,19 +50,19 @@ const styles = {
   diagrams: z.strictObject({ nodeRadius: roundness.optional() }),
 };
 
-function section<S extends SectionId>(id: S) {
-  return z.strictObject({ colors: colorsOf(id).optional(), style: styles[id].optional() }).optional();
+function section<S extends SectionId, T extends z.ZodTypeAny>(id: S, style: T) {
+  return z.strictObject({ colors: colorsOf(id).optional(), style: style.optional() }).optional();
 }
 
 export const variantSchema = z.strictObject({
   label: z.string().max(MAX_NAME_LENGTH).optional(),
   mode: z.enum(['light', 'dark']),
   app: z.strictObject({ colors: appColors, style: styles.app.optional() }),
-  surfaces: section('surfaces'),
-  markdown: section('markdown'),
-  code: section('code'),
-  editor: section('editor'),
-  diagrams: section('diagrams'),
+  surfaces: section('surfaces', styles.surfaces),
+  markdown: section('markdown', styles.markdown),
+  code: section('code', styles.code),
+  editor: section('editor', styles.editor),
+  diagrams: section('diagrams', styles.diagrams),
 });
 
 export const themeSchema = z.strictObject({
@@ -78,6 +78,7 @@ export const themeSchema = z.strictObject({
 
 export type Theme = z.infer<typeof themeSchema>;
 export type Variant = z.infer<typeof variantSchema>;
+export type ThemeMode = Variant['mode'];
 export type BackdropLayer = z.infer<typeof backdropLayer>;
 export type TextStyle = z.infer<typeof textStyle>;
 export type ParseResult = { ok: true; theme: Theme } | { ok: false; error: string };
