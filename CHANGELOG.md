@@ -2,6 +2,11 @@
 
 Changes added in **solomd-rtl** on top of upstream SoloMD. Newest first.
 
+## 4.40.0 — 2026-10-29
+- **Changed:** Theme Studio opens in its own editor tab; the whole app is the live preview. Closing it with unsaved changes asks to save.
+- **Changed:** Settings keeps one fixed size and gets two-level navigation: General, Writing and Advanced split into pages, with a breadcrumb header and search results grouped by page. Basics is now "General"; the Theme page is now "Appearance".
+- **Fixed:** Links that open Settings on the Shortcuts page.
+
 ## 4.39.0 — 2026-10-29
 - **Added:** One theme layer for the whole app. A theme now paints the shell, tabs, preview, editor and diagrams from one typed JSON format, with named light/dark variants.
 - **Added:** Appearance (Light / Dark / Follow system) with separate Light and Dark theme slots in Settings, grouped Built-in, Catalog and My themes.
