@@ -86,6 +86,7 @@
   },
   "devDependencies": {
     "@lezer/markdown": "^1.7.2",
+    "@playwright/test": "1.60.0",
     "@tauri-apps/cli": "^2",
     "@types/js-yaml": "^4.0.9",
     "@types/markdown-it": "^14.2.0",
