@@ -36,3 +36,18 @@ export function canApplyMigration(failedWrites: string[]): boolean {
 export function legacyForMigration(hadStoredSettings: boolean, state: LegacyThemeSettings): LegacyThemeSettings | null {
   return hadStoredSettings ? state : null;
 }
+
+export function slotsForPick(theme: Theme, variantKey: string): Partial<Record<ThemeMode, SlotRef>> {
+  const keys = Object.keys(theme.variants);
+  const pickedKey = keys.includes(variantKey) ? variantKey : keys[0];
+  const picks: Partial<Record<ThemeMode, SlotRef>> = {};
+  for (const key of [...keys].reverse()) picks[theme.variants[key].mode] = { themeId: theme.id, variant: key };
+  picks[theme.variants[pickedKey].mode] = { themeId: theme.id, variant: pickedKey };
+  return picks;
+}
+
+export function normalizeSlotRef(raw: unknown, mode: ThemeMode): SlotRef {
+  const ref = raw as Partial<SlotRef> | null;
+  const isValid = typeof ref?.themeId === 'string' && typeof ref.variant === 'string' && ref.themeId !== '' && ref.variant !== '';
+  return isValid ? { themeId: ref.themeId as string, variant: ref.variant as string } : { ...DEFAULT_SLOTS[mode] };
+}

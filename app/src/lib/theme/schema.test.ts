@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { parseTheme } from './schema.ts';
+import { parseTheme, serializeTheme } from './schema.ts';
 
 type Loose = Record<string, unknown>;
 
@@ -64,4 +64,14 @@ test('rejects a url() smuggled after a colour-mix', () => {
   appColorsOf(t).bg = 'color-mix(in srgb, red, blue) url(evil)';
   const r = parseTheme(t);
   assert.equal(r.ok, false);
+});
+
+test('serializeTheme throws naming the invalid field', () => {
+  const t = fresh();
+  appColorsOf(t).bg = 'url(evil)';
+  assert.throws(() => serializeTheme(t as never), /variants\.dark\.app\.colors\.bg/);
+});
+
+test('serializeTheme returns JSON for a valid theme', () => {
+  assert.equal(JSON.parse(serializeTheme(minimal as never)).id, 'mini');
 });

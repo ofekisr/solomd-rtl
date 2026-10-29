@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { canApplyMigration, findVariant, legacyAfterCss, legacyForMigration, pickSlot } from './slots.ts';
+import { canApplyMigration, findVariant, legacyAfterCss, legacyForMigration, normalizeSlotRef, pickSlot, slotsForPick } from './slots.ts';
 import type { Theme } from './schema.ts';
 
 const load = (id: string): Theme => JSON.parse(readFileSync(new URL(`./builtin/${id}.json`, import.meta.url), 'utf8'));
@@ -47,4 +47,35 @@ test('a failed css conversion drops the css path so slots fall back to the legac
 test('migration is applied only when every write succeeded', () => {
   assert.equal(canApplyMigration([]), true);
   assert.equal(canApplyMigration(['My Theme']), false);
+});
+
+const twoDark = (): Theme => {
+  const base = load('nord');
+  const dark = Object.values(base.variants)[0];
+  return { ...base, variants: { first: dark, second: { ...dark, label: 'Second' } } };
+};
+
+test('picking a variant fills its mode with that variant, not the last of the same mode', () => {
+  const picks = slotsForPick(twoDark(), 'first');
+  assert.deepEqual(picks.dark, { themeId: 'nord', variant: 'first' });
+  assert.equal(picks.light, undefined);
+});
+
+test('the other mode gets the first variant of that mode', () => {
+  const picks = slotsForPick(load('solomd'), 'dark');
+  assert.deepEqual(picks.dark, { themeId: 'solomd', variant: 'dark' });
+  assert.deepEqual(picks.light, { themeId: 'solomd', variant: 'light' });
+});
+
+test('an unknown variant key falls back to the first variant', () => {
+  assert.deepEqual(slotsForPick(twoDark(), 'nope').dark, { themeId: 'nord', variant: 'first' });
+});
+
+test('slot refs from storage are normalised per mode', () => {
+  const good = { themeId: 'nord', variant: 'dark' };
+  assert.deepEqual(normalizeSlotRef(good, 'dark'), good);
+  for (const bad of [null, undefined, 'nord', 5, [], {}, { themeId: 1, variant: 'x' }, { themeId: 'a' }, { themeId: '', variant: 'x' }]) {
+    assert.deepEqual(normalizeSlotRef(bad, 'light'), { themeId: 'solomd', variant: 'light' });
+  }
+  assert.deepEqual(normalizeSlotRef(null, 'dark'), { themeId: 'solomd', variant: 'dark' });
 });

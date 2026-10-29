@@ -56,9 +56,8 @@ fn validate_id(id: &str) -> Result<(), String> {
 
 #[derive(Debug, Serialize)]
 pub struct ThemeInstallResult {
-    /// Absolute path the CSS landed at — the frontend pipes this directly
-    /// into `settings.customCssPath` so the existing
-    /// `lib/custom-theme.ts::loadCustomTheme` watcher picks it up.
+    /// Absolute path the CSS landed at. The frontend reads it back and
+    /// converts it into a theme via `lib/theme/from-css.ts`.
     pub path: String,
 }
 

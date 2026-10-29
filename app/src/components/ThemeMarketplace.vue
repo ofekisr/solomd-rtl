@@ -16,6 +16,7 @@ import { useThemesStore, type ThemeManifestEntry } from '../stores/themes';
 import { useSettingsStore } from '../stores/settings';
 import { useThemeStore } from '../stores/theme';
 import { DEFAULT_SLOTS } from '../lib/theme/legacy';
+import { marketplaceThemeId } from '../lib/theme/ids';
 import { invoke } from '@tauri-apps/api/core';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
@@ -26,8 +27,7 @@ const emit = defineEmits<{ (e: 'close'): void }>();
 const themes = useThemesStore();
 const settings = useSettingsStore();
 const themeStore = useThemeStore();
-const MARKETPLACE_PREFIX = 'mk-';
-const themeIdFor = (theme: ThemeManifestEntry): string => `${MARKETPLACE_PREFIX}${theme.id}`;
+const themeIdFor = (theme: ThemeManifestEntry): string => marketplaceThemeId(theme.id);
 const toasts = useToastsStore();
 const { t } = useI18n();
 

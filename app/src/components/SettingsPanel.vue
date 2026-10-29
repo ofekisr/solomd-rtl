@@ -55,7 +55,8 @@ import ThemeMarketplace from './ThemeMarketplace.vue';
 import MindmapMapFields from './MindmapMapFields.vue';
 import { isIOS, isMobile, hasGitBackend, isWindowsEditorRuntime } from '../lib/platform';
 import { useThemeStore } from '../stores/theme';
-import { marketplaceIdFor, type Appearance } from '../lib/theme/migrate';
+import { cssImportIdFor, fileStem } from '../lib/theme/ids';
+import type { Appearance } from '../lib/theme/migrate';
 import type { Theme as AppTheme, ThemeMode } from '../lib/theme/schema';
 import { groupSlotOptions, isPairedTheme, parseSlotValue, slotValue } from '../lib/theme/picker';
 import { useThemeStudio } from '../composables/useThemeStudio';
@@ -590,8 +591,7 @@ async function importThemeFile() {
 
 function importThemeContent(path: string, content: string): Promise<AppTheme> {
   if (!path.toLowerCase().endsWith('.css')) return themeStore.importJson(content);
-  const name = (path.split(/[\\/]/).pop() ?? '').replace(/\.css$/i, '');
-  return themeStore.importCss(content, { id: marketplaceIdFor(path), name });
+  return themeStore.importCss(content, { id: cssImportIdFor(path), name: fileStem(path) });
 }
 
 function openThemeStudio() {

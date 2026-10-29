@@ -4,11 +4,12 @@ import { hadStoredSettings, useSettingsStore } from './settings';
 import { useToastsStore } from './toasts';
 import { parseTheme, type Theme, type ThemeMode, type Variant } from '../lib/theme/schema';
 import { resolveVariant, type ResolvedVariant } from '../lib/theme/resolve';
-import { canApplyMigration, findVariant, legacyAfterCss, legacyForMigration, pickSlot, type ActiveVariant } from '../lib/theme/slots';
+import { canApplyMigration, findVariant, legacyAfterCss, legacyForMigration, pickSlot, slotsForPick, type ActiveVariant } from '../lib/theme/slots';
 import { bundledThemes, loadMyThemes, removeMyTheme, saveMyTheme } from '../lib/theme/sources';
 import { importIdFor } from '../lib/theme/picker';
 import { applyTheme } from '../lib/theme/apply';
 import { convertMarketplaceCss } from '../lib/theme/from-css';
+import { fileStem } from '../lib/theme/ids';
 import { THEME_LAYER_VERSION, marketplaceIdFor, planMigration, type LegacyThemeSettings } from '../lib/theme/migrate';
 
 const DARK_QUERY = '(prefers-color-scheme: dark)';
@@ -72,7 +73,7 @@ export const useThemeStore = defineStore('theme', {
     async migrateCss(path: string): Promise<boolean> {
       try {
         const { content } = await invoke<{ content: string }>('read_file', { path });
-        const name = (path.split(/[\\/]/).pop() ?? path).replace(/\.css$/i, '');
+        const name = fileStem(path);
         await this.importCss(content, { id: marketplaceIdFor(path), name });
         return true;
       } catch (e) {
@@ -92,14 +93,18 @@ export const useThemeStore = defineStore('theme', {
       await removeMyTheme(id);
       await this.reloadMine();
     },
-    useTheme(id: string) {
+    useTheme(id: string, variantKey = '') {
       const theme = this.themes.find((t) => t.id === id);
       if (!theme) return;
       const s = useSettingsStore();
-      for (const [key, v] of Object.entries(theme.variants)) s.setSlot(v.mode, { themeId: id, variant: key });
+      const picks = slotsForPick(theme, variantKey);
+      if (picks.light) s.setSlot('light', picks.light);
+      if (picks.dark) s.setSlot('dark', picks.dark);
     },
     async importCss(css: string, meta: CssMeta): Promise<Theme> {
-      const { theme, dropped } = convertMarketplaceCss(css, meta);
+      const converted = convertMarketplaceCss(css, meta);
+      const theme: Theme = { ...converted.theme, id: importIdFor(converted.theme.id, this.themes).id };
+      const { dropped } = converted;
       await this.save(theme);
       this.lastReport = { name: theme.name, dropped };
       return theme;

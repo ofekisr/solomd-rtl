@@ -9,6 +9,7 @@ import { normalizePasteMapSetting, type PasteMapSetting } from '../lib/mindmap-i
 import { normalizeUserThemes, type UserTheme } from '../lib/user-theme';
 import type { Appearance, MigrationPlan } from '../lib/theme/migrate';
 import { DEFAULT_SLOTS, type SlotRef } from '../lib/theme/legacy';
+import { normalizeSlotRef } from '../lib/theme/slots';
 import { normalizeStyleTemplates, removeTemplate, upsertTemplate, type StyleTemplate } from '../lib/mindmap-style-templates';
 import { DEFAULT_MINDMAP_CONTROL_STYLE, normalizeControlStyle, type MindmapControlStyle } from '../lib/mindmap-icon-names';
 import { parseTagRules, type TagRule } from '../lib/mindmap-folder-tree';
@@ -848,6 +849,8 @@ function load(): Settings {
       merged.userThemes = normalizeUserThemes(parsed.userThemes);
       if (!merged.userThemes.some((ut) => ut.id === merged.activeUserThemeId)) merged.activeUserThemeId = '';
       if (!['light', 'dark', 'system'].includes(merged.appearance)) merged.appearance = 'system';
+      merged.lightSlot = normalizeSlotRef(parsed.lightSlot, 'light');
+      merged.darkSlot = normalizeSlotRef(parsed.darkSlot, 'dark');
       if (parsed.mindmapFolderTagRules !== undefined) merged.mindmapFolderTagRules = parseTagRules(parsed.mindmapFolderTagRules);
       // #180 — keybindings is a free-form map, so a tampered or older blob
       // could put anything here; keep only string/null values.
