@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isAllowedColor } from './color-syntax.ts';
+import { MAX_COLOR_LENGTH, isAllowedColor } from './color-syntax.ts';
 import {
   MAX_BACKDROP_LAYERS, MAX_ID_LENGTH, MAX_NAME_LENGTH, MAX_PANEL_BLUR_PX, MAX_ROUNDNESS, MIN_ROUNDNESS,
   ID_RE, SECTION_COLOR_VARS, type ColorKey, type SectionId,
@@ -13,7 +13,7 @@ const OPACITY_MAX = 1;
 const MIN_GRADIENT_STOPS = 2;
 const THEME_VERSION = 1;
 
-const color = z.string().trim().refine(isAllowedColor, 'not an allowed colour');
+const color = z.string().trim().max(MAX_COLOR_LENGTH).refine(isAllowedColor, 'not an allowed colour');
 const percent = z.number().min(PERCENT_MIN).max(PERCENT_MAX);
 const roundness = z.number().min(MIN_ROUNDNESS).max(MAX_ROUNDNESS);
 const textStyle = z.strictObject({ italic: z.boolean().optional(), bold: z.boolean().optional(), underline: z.boolean().optional() });
@@ -89,4 +89,12 @@ export function parseTheme(raw: unknown): ParseResult {
   const issue = r.error.issues[0];
   const keys = issue.code === 'unrecognized_keys' ? `.${issue.keys.join(',')}` : '';
   return { ok: false, error: `${issue.path.join('.')}${keys}: ${issue.message}` };
+}
+
+const JSON_INDENT = 2;
+
+export function serializeTheme(theme: Theme): string {
+  const r = parseTheme(theme);
+  if (!r.ok) throw new Error(`Invalid theme: ${r.error}`);
+  return JSON.stringify(r.theme, null, JSON_INDENT);
 }

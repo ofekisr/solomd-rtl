@@ -21,3 +21,26 @@ const REJECTED = [
 
 for (const c of ACCEPTED) test(`accepts ${c}`, () => assert.equal(isAllowedColor(c), true));
 for (const c of REJECTED) test(`rejects ${c}`, () => assert.equal(isAllowedColor(c), false));
+
+const nest = (levels: number): string =>
+  levels === 1 ? '#fff' : `color-mix(in srgb, ${nest(levels - 1)}, #000)`;
+const MAX_MS = 50;
+const PATHOLOGICAL_LENGTH = 10_000;
+
+test('a long pathological numeric function fails fast', () => {
+  for (const input of [`rgb(${'1 '.repeat(PATHOLOGICAL_LENGTH / 2)}x`, `rgb(1${' '.repeat(PATHOLOGICAL_LENGTH)}x`, `rgb(${'1,'.repeat(PATHOLOGICAL_LENGTH / 2)}x`]) {
+    const start = performance.now();
+    assert.equal(isAllowedColor(input), false);
+    assert.ok(performance.now() - start < MAX_MS);
+  }
+});
+
+test('colour-mix nesting is capped at 4 levels', () => {
+  assert.equal(isAllowedColor(nest(5)), true);
+  assert.equal(isAllowedColor(nest(6)), false);
+});
+
+test('colours over 256 characters are rejected', () => {
+  assert.equal(isAllowedColor(`#${'f'.repeat(256)}`), false);
+  assert.equal(isAllowedColor(`rgb(${'1 '.repeat(130)})`), false);
+});
