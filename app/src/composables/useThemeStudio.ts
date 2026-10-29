@@ -1,4 +1,5 @@
-import { computed, ref, shallowRef, watch, watchEffect } from 'vue';
+import { computed, ref, watch, watchEffect } from 'vue';
+import { createOwnerStack } from '../lib/owner-stack';
 import { useSettingsStore } from '../stores/settings';
 import { useThemeStore } from '../stores/theme';
 import { studioToTheme } from '../lib/theme/from-studio';
@@ -6,12 +7,17 @@ import { pickSlot } from '../lib/theme/slots';
 import { flashColorFor, type Palette, type ThemeMode, type UserTheme } from '../lib/user-theme';
 
 /**
- * Shared Theme Studio state. While the Theme page in Settings is showing, its
- * draft owns the palette, so every colour pick repaints the real app; leaving
- * the page hands the palette back to the saved active theme. The draft itself
- * survives leaving the page, so unsaved work is still there on return.
+ * Shared Theme Studio state. While a Theme Studio tab is mounted, its draft
+ * owns the palette, so every colour pick repaints the real app; closing the
+ * tab hands the palette back to the saved active theme. The draft itself
+ * survives the tab unmounting, so unsaved work is still there on return.
  */
-const studioOpen = ref(false);
+const previewVersion = ref(0);
+const previewOwners = createOwnerStack<symbol>(() => { previewVersion.value += 1; });
+const studioOpen = computed(() => {
+  void previewVersion.value;
+  return previewOwners.size > 0;
+});
 const draft = ref<UserTheme | null>(null);
 /** JSON of the draft as last saved ('' for a theme never saved). */
 const savedSnapshot = ref('');
@@ -20,23 +26,38 @@ const previewFamily = ref<ThemeMode | null>(null);
 /** A token blinking in a loud colour, to show where it is used. */
 const flash = ref<{ mode: ThemeMode; key: string; color: string } | null>(null);
 
-export const THEME_STUDIO_PREVIEW_ID = 'theme-studio-preview';
+type SaveHandler = () => Promise<boolean>;
 
-const saveHandler = shallowRef<(() => Promise<boolean>) | null>(null);
+const saveVersion = ref(0);
+const saveHandlers = createOwnerStack<SaveHandler>(() => { saveVersion.value += 1; });
+const activeSaveHandler = computed<SaveHandler | null>(() => {
+  void saveVersion.value;
+  return saveHandlers.top() ?? null;
+});
 
-function registerSave(fn: () => Promise<boolean>): () => void {
-  saveHandler.value = fn;
-  return () => {
-    if (saveHandler.value === fn) saveHandler.value = null;
-  };
+/** Mark one mounted studio instance as previewing; call the returned function on unmount. */
+function acquirePreview(): () => void {
+  return previewOwners.acquire(Symbol('theme-studio-preview'));
+}
+
+/** The newest registered handler saves; unregistering removes only this one. */
+function registerSave(fn: SaveHandler): () => void {
+  return saveHandlers.acquire(fn);
+}
+
+let previewTargetCount = 0;
+
+export function nextPreviewTargetId(): string {
+  previewTargetCount += 1;
+  return `theme-studio-preview-${previewTargetCount}`;
 }
 
 const SAVE_HANDLER_WAIT_MS = 2000;
 
-function waitForSaveHandler(): Promise<(() => Promise<boolean>) | null> {
-  if (saveHandler.value) return Promise.resolve(saveHandler.value);
+function waitForSaveHandler(): Promise<SaveHandler | null> {
+  if (activeSaveHandler.value) return Promise.resolve(activeSaveHandler.value);
   return new Promise((resolve) => {
-    const stop = watch(saveHandler, (fn) => {
+    const stop = watch(activeSaveHandler, (fn) => {
       if (!fn) return;
       clearTimeout(timer);
       stop();
@@ -58,6 +79,8 @@ function resetDraft(): void {
   draft.value = null;
   savedSnapshot.value = '';
 }
+
+const hasSaveHandler = computed(() => activeSaveHandler.value !== null);
 
 const isDirty = computed(() => !!draft.value && JSON.stringify(draft.value) !== savedSnapshot.value);
 
@@ -109,5 +132,5 @@ export function installStudioPreview(): void {
 }
 
 export function useThemeStudio() {
-  return { studioOpen, draft, savedSnapshot, isDirty, previewFamily, flash, registerSave, saveDraft, resetDraft };
+  return { studioOpen, draft, savedSnapshot, isDirty, previewFamily, flash, acquirePreview, registerSave, hasSaveHandler, saveDraft, resetDraft };
 }

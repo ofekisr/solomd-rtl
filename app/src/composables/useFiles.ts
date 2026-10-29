@@ -934,7 +934,13 @@ export function useFiles() {
   }
 
   async function saveActive() {
-    if (tabs.activeTab) await saveTab(tabs.activeTab);
+    const active = tabs.activeTab;
+    if (!active) return;
+    if (active.language === 'theme-studio') {
+      await saveThemeStudioDraft();
+      return;
+    }
+    await saveTab(active);
   }
 
   async function saveActiveAs() {
@@ -968,6 +974,13 @@ export function useFiles() {
     return w.__solomd_showUnsavedDialog as UnsavedDialog | undefined;
   }
 
+  async function saveThemeStudioDraft(): Promise<boolean> {
+    const studio = useThemeStudio();
+    const isSaved = await studio.saveDraft();
+    if (!isSaved && !studio.hasSaveHandler.value) toasts.error(t('themeStudio.saveUnavailable'));
+    return isSaved;
+  }
+
   async function closeThemeStudioTab(id: string): Promise<void> {
     const studio = useThemeStudio();
     const showUnsavedDialog = getUnsavedDialog();
@@ -975,7 +988,7 @@ export function useFiles() {
       tabs.activeId = id;
       const action = await showUnsavedDialog('tab', t('themeStudio.tabTitle'), 1);
       if (action === 'cancel') return;
-      if (action === 'save' && !(await studio.saveDraft())) return;
+      if (action === 'save' && !(await saveThemeStudioDraft())) return;
     }
     studio.resetDraft();
     tabs.closeTab(id);

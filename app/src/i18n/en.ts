@@ -1932,7 +1932,7 @@ export const en = {
     tabTitle: 'Theme Studio',
     openInTab: 'Customize in Theme Studio',
     title: 'Theme Studio',
-    open: 'Create / edit my theme…',
+    saveUnavailable: 'Could not save the theme — open the Theme Studio tab and save from there.',
     myThemes: 'My themes',
     builtIn: 'Built-in',
     defaultName: 'My theme',

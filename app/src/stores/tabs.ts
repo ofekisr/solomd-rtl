@@ -545,6 +545,7 @@ export const useTabsStore = defineStore('tabs', {
       restored.tabs.forEach(push);
       const removed = this.tabs.filter((t) => !merged.some((m) => m.id === t.id));
       this.tabs = merged;
+      if (removed.some((t) => t.language === 'theme-studio')) useThemeStudio().resetDraft();
       // Pick an active tab: prefer the restored bucket's active, else keep
       // the current one if it survived, else the first tab.
       const ids = new Set(merged.map((t) => t.id));

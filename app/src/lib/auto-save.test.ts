@@ -27,3 +27,7 @@ test('skips clean, untitled, conflicted, diff and xmind tabs', () => {
   assert.equal(canAutoSave({ ...dirty, language: 'git-diff' }, false), false);
   assert.equal(canAutoSave({ ...dirty, filePath: '/a/m.xmind' }, false), false);
 });
+
+test('skips a dirty Theme Studio tab even with a file path', () => {
+  assert.equal(canAutoSave({ ...dirty, language: 'theme-studio' }, false), false);
+});

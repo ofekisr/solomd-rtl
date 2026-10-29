@@ -1,7 +1,8 @@
 <script setup lang="ts">
-/* Theme Studio — the Theme page in Settings. Builds a light+dark theme with
- * colour pickers. The draft drives a miniature app here and the real app
- * behind Settings (see useThemeStudio), so every pick is visible at once. */
+/* Theme Studio — the body of the Theme Studio editor tab. Builds a light+dark
+ * theme with colour pickers. The draft drives a miniature app (teleported to
+ * the tab's preview pane) and the real app around it (see useThemeStudio), so
+ * every pick is visible at once. */
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
@@ -10,7 +11,7 @@ import { useI18n } from '../i18n';
 import type { Theme } from '../lib/theme/schema';
 import { findVariant } from '../lib/theme/slots';
 import { paletteOf, studioToTheme } from '../lib/theme/from-studio';
-import { flashedPalette, locateToken, THEME_STUDIO_PREVIEW_ID, useThemeStudio } from '../composables/useThemeStudio';
+import { flashedPalette, locateToken, useThemeStudio } from '../composables/useThemeStudio';
 import ThemeMock from './ThemeMock.vue';
 import ThemeTokenRow from './ThemeTokenRow.vue';
 import ColorPicker from './ColorPicker.vue';
@@ -38,6 +39,8 @@ import {
   type ThemeTokenGroup,
   type UserTheme,
 } from '../lib/user-theme';
+
+const props = defineProps<{ previewTarget: string }>();
 
 type PreviewMode = ThemeMode | 'both';
 type BackdropKind = 'plain' | 'gradient' | 'layered';
@@ -309,7 +312,7 @@ onUnmounted(unregisterSave);
       <span v-if="isDirty" class="dirty" :title="t('themeStudio.unsaved')">● {{ t('themeStudio.unsaved') }}</span>
     </div>
 
-    <Teleport defer :to="'#' + THEME_STUDIO_PREVIEW_ID">
+    <Teleport defer :to="'#' + props.previewTarget">
     <div class="stage">
       <div class="row">
         <span class="lbl">{{ t('themeStudio.preview') }}</span>

@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
 import ThemeStudio from './ThemeStudio.vue';
-import { THEME_STUDIO_PREVIEW_ID, useThemeStudio } from '../composables/useThemeStudio';
+import { nextPreviewTargetId, useThemeStudio } from '../composables/useThemeStudio';
 
-const { studioOpen } = useThemeStudio();
-onMounted(() => { studioOpen.value = true; });
-onUnmounted(() => { studioOpen.value = false; });
+const { acquirePreview } = useThemeStudio();
+const previewTargetId = nextPreviewTargetId();
+let releasePreview: (() => void) | null = null;
+onMounted(() => { releasePreview = acquirePreview(); });
+onUnmounted(() => releasePreview?.());
 </script>
 
 <template>
   <div class="studio-tab">
-    <aside :id="THEME_STUDIO_PREVIEW_ID" class="studio-tab__preview" />
-    <main class="studio-tab__controls"><ThemeStudio /></main>
+    <aside :id="previewTargetId" class="studio-tab__preview" />
+    <main class="studio-tab__controls"><ThemeStudio :preview-target="previewTargetId" /></main>
   </div>
 </template>
 
