@@ -972,6 +972,7 @@ export function useFiles() {
     const studio = useThemeStudio();
     const showUnsavedDialog = getUnsavedDialog();
     if (studio.isDirty.value && showUnsavedDialog) {
+      tabs.activeId = id;
       const action = await showUnsavedDialog('tab', t('themeStudio.tabTitle'), 1);
       if (action === 'cancel') return;
       if (action === 'save' && !(await studio.saveDraft())) return;

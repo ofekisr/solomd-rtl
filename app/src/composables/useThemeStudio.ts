@@ -1,4 +1,4 @@
-import { computed, ref, shallowRef, watchEffect } from 'vue';
+import { computed, ref, shallowRef, watch, watchEffect } from 'vue';
 import { useSettingsStore } from '../stores/settings';
 import { useThemeStore } from '../stores/theme';
 import { studioToTheme } from '../lib/theme/from-studio';
@@ -31,8 +31,27 @@ function registerSave(fn: () => Promise<boolean>): () => void {
   };
 }
 
-function saveDraft(): Promise<boolean> {
-  return saveHandler.value ? saveHandler.value() : Promise.resolve(false);
+const SAVE_HANDLER_WAIT_MS = 2000;
+
+function waitForSaveHandler(): Promise<(() => Promise<boolean>) | null> {
+  if (saveHandler.value) return Promise.resolve(saveHandler.value);
+  return new Promise((resolve) => {
+    const stop = watch(saveHandler, (fn) => {
+      if (!fn) return;
+      clearTimeout(timer);
+      stop();
+      resolve(fn);
+    });
+    const timer = setTimeout(() => {
+      stop();
+      resolve(null);
+    }, SAVE_HANDLER_WAIT_MS);
+  });
+}
+
+async function saveDraft(): Promise<boolean> {
+  const handler = await waitForSaveHandler();
+  return handler ? handler() : false;
 }
 
 function resetDraft(): void {
