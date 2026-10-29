@@ -126,6 +126,56 @@ pub fn theme_list_installed(app: AppHandle) -> Result<Vec<InstalledTheme>, Strin
     Ok(out)
 }
 
+const JSON_EXT: &str = "json";
+
+#[derive(Debug, Serialize)]
+pub struct ThemeJsonFile {
+    pub id: String,
+    pub json: String,
+}
+
+fn save_json_in(dir: &std::path::Path, id: &str, json: &str) -> Result<(), String> {
+    validate_id(id)?;
+    let path = dir.join(format!("{id}.{JSON_EXT}"));
+    std::fs::write(&path, json.as_bytes()).map_err(|e| format!("write {}: {e}", path.display()))
+}
+
+fn list_json_in(dir: &std::path::Path) -> Result<Vec<ThemeJsonFile>, String> {
+    let Ok(entries) = std::fs::read_dir(dir) else { return Ok(Vec::new()) };
+    let mut out = Vec::new();
+    for path in entries.flatten().map(|e| e.path()) {
+        if path.extension().and_then(|s| s.to_str()) != Some(JSON_EXT) { continue; }
+        let Some(id) = path.file_stem().and_then(|s| s.to_str()) else { continue };
+        if validate_id(id).is_err() { continue; }
+        let Ok(json) = std::fs::read_to_string(&path) else { continue };
+        out.push(ThemeJsonFile { id: id.to_string(), json });
+    }
+    out.sort_by(|a, b| a.id.cmp(&b.id));
+    Ok(out)
+}
+
+fn remove_json_in(dir: &std::path::Path, id: &str) -> Result<(), String> {
+    validate_id(id)?;
+    let path = dir.join(format!("{id}.{JSON_EXT}"));
+    if !path.exists() { return Ok(()); }
+    std::fs::remove_file(&path).map_err(|e| format!("remove {}: {e}", path.display()))
+}
+
+#[tauri::command]
+pub fn theme_json_save(app: AppHandle, id: String, json: String) -> Result<(), String> {
+    save_json_in(&themes_dir(&app)?, &id, &json)
+}
+
+#[tauri::command]
+pub fn theme_json_list(app: AppHandle) -> Result<Vec<ThemeJsonFile>, String> {
+    list_json_in(&themes_dir(&app)?)
+}
+
+#[tauri::command]
+pub fn theme_json_remove(app: AppHandle, id: String) -> Result<(), String> {
+    remove_json_in(&themes_dir(&app)?, &id)
+}
+
 #[cfg(test)]
 mod tests {
     use super::validate_id;
@@ -145,5 +195,29 @@ mod tests {
         assert!(validate_id("").is_err());
         // 65 chars
         assert!(validate_id(&"a".repeat(65)).is_err());
+    }
+}
+
+#[cfg(test)]
+mod json_tests {
+    use super::*;
+
+    #[test]
+    fn json_round_trip_in_a_dir() {
+        let dir = std::env::temp_dir().join(format!("solomd-theme-test-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        save_json_in(&dir, "my-theme", "{\"id\":\"my-theme\"}").unwrap();
+        let list = list_json_in(&dir).unwrap();
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].id, "my-theme");
+        remove_json_in(&dir, "my-theme").unwrap();
+        assert!(list_json_in(&dir).unwrap().is_empty());
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn json_rejects_path_escape() {
+        let dir = std::env::temp_dir();
+        assert!(save_json_in(&dir, "../evil", "{}").is_err());
     }
 }
