@@ -1,6 +1,6 @@
 # Theme layer — design
 
-Date: 2026-10-29 · Status: approved in brainstorm, pending spec review
+Date: 2026-10-29 · Status: implemented (plan 1, v4.39.0); plan 2 UI pending
 
 ## Problem
 

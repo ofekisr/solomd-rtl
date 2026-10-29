@@ -1,6 +1,8 @@
 # Theme Layer — Engine Implementation Plan (plan 1 of 2)
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+Executed 2026-10-29 on branch feat/theme-layer; deviations recorded in the commit history.
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Replace SoloMD's five theming mechanisms with one theme layer: a typed theme format, one manager that paints shell + editor + preview + diagrams from it, converters for every existing source, a CodeMirror catalog, and a one-time migration.
 
@@ -72,7 +74,7 @@ backdrop: BackdropLayer[]   // [] = none
 
 **Interfaces:** Produces the reference PNGs that Task 17 compares against.
 
-- [ ] **Step 1: Write the config**
+- [x] **Step 1: Write the config**
 
 ```ts
 // app/e2e/playwright.config.ts
@@ -88,7 +90,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 2: Write the sample document**
+- [x] **Step 2: Write the sample document**
 
 `app/e2e/fixtures/sample.md`:
 
@@ -112,7 +114,7 @@ graph TD; A-->B;
 ```
 ````
 
-- [ ] **Step 3: Write the baseline spec**
+- [x] **Step 3: Write the baseline spec**
 
 ```ts
 // app/e2e/theme-baseline.spec.ts
@@ -144,12 +146,12 @@ for (const theme of LEGACY_THEMES) {
 }
 ```
 
-- [ ] **Step 4: Record the baseline**
+- [x] **Step 4: Record the baseline**
 
 Run: `pnpm --dir demos exec playwright test --config ../app/e2e/playwright.config.ts theme-baseline --update-snapshots`
 Expected: 8 passed, 8 PNGs written under `app/e2e/theme-baseline.spec.ts-snapshots/`. Open two of them and check that the editor shows the sample in split view. If `.cm-content` is not on the start screen, add `await page.keyboard.press('ControlOrMeta+n')` before the click and re-run.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/e2e
@@ -168,11 +170,11 @@ git commit -m "test(theme): baseline screenshots of the 8 built-in themes"
 **Interfaces:**
 - Produces: `SECTION_COLOR_VARS`, `SectionId`, `ColorKey<S>`, `themeSchema`, `variantSchema`, `type Theme`, `type Variant`, `type BackdropLayer`, `type TextStyle`, `parseTheme(raw: unknown): ParseResult`, `type ParseResult = { ok: true; theme: Theme } | { ok: false; error: string }`.
 
-- [ ] **Step 1: Install zod**
+- [x] **Step 1: Install zod**
 
 Run: `pnpm --dir app add zod@^4.2.0`
 
-- [ ] **Step 2: Write `tokens.ts`**
+- [x] **Step 2: Write `tokens.ts`**
 
 ```ts
 // app/src/lib/theme/tokens.ts
@@ -215,7 +217,7 @@ export const MAX_ID_LENGTH = 64;
 export const ID_RE = /^[a-z0-9_-]+$/i;
 ```
 
-- [ ] **Step 3: Write the failing test**
+- [x] **Step 3: Write the failing test**
 
 ```ts
 // app/src/lib/theme/schema.test.ts
@@ -273,12 +275,12 @@ test('rejects a theme with no variants', () => {
 });
 ```
 
-- [ ] **Step 4: Run test to verify it fails**
+- [x] **Step 4: Run test to verify it fails**
 
 Run: `cd app && node --test src/lib/theme/schema.test.ts`
 Expected: FAIL, `Cannot find module './schema.ts'`.
 
-- [ ] **Step 5: Write `schema.ts`**
+- [x] **Step 5: Write `schema.ts`**
 
 ```ts
 // app/src/lib/theme/schema.ts
@@ -371,12 +373,12 @@ export function parseTheme(raw: unknown): ParseResult {
 }
 ```
 
-- [ ] **Step 6: Run test to verify it passes**
+- [x] **Step 6: Run test to verify it passes**
 
 Run: `cd app && node --test src/lib/theme/schema.test.ts`
 Expected: 7 passed.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app/package.json app/pnpm-lock.yaml app/src/lib/theme/tokens.ts app/src/lib/theme/schema.ts app/src/lib/theme/schema.test.ts
@@ -400,7 +402,7 @@ git commit -m "feat(theme): theme file schema with per-section colours and style
   - `resolveVariant(v: Variant): ResolvedVariant`
   - `SOLOMD_CODE: Record<ThemeMode, Record<'keyword'|'string'|'number'|'comment'|'function'|'variable'|'type'|'property'|'operator', string>>`
 
-- [ ] **Step 1: Write `color.ts`**
+- [x] **Step 1: Write `color.ts`**
 
 ```ts
 // app/src/lib/theme/color.ts
@@ -421,7 +423,7 @@ export function isLight(color: string): boolean {
 }
 ```
 
-- [ ] **Step 2: Write `defaults.ts`** (values copied from `styles/main.css` `:root` and `:root[data-theme="dark"]`)
+- [x] **Step 2: Write `defaults.ts`** (values copied from `styles/main.css` `:root` and `:root[data-theme="dark"]`)
 
 ```ts
 // app/src/lib/theme/defaults.ts
@@ -453,7 +455,7 @@ export const DEFAULT_STYLE = {
 } as const;
 ```
 
-- [ ] **Step 3: Write the failing test**
+- [x] **Step 3: Write the failing test**
 
 ```ts
 // app/src/lib/theme/resolve.test.ts
@@ -507,12 +509,12 @@ test('style defaults apply and explicit values win', () => {
 });
 ```
 
-- [ ] **Step 4: Run test to verify it fails**
+- [x] **Step 4: Run test to verify it fails**
 
 Run: `cd app && node --test src/lib/theme/resolve.test.ts`
 Expected: FAIL, `Cannot find module './resolve.ts'`.
 
-- [ ] **Step 5: Write `resolve.ts`**
+- [x] **Step 5: Write `resolve.ts`**
 
 ```ts
 // app/src/lib/theme/resolve.ts
@@ -634,12 +636,12 @@ export function resolveVariant(v: Variant): ResolvedVariant {
 }
 ```
 
-- [ ] **Step 6: Run test to verify it passes**
+- [x] **Step 6: Run test to verify it passes**
 
 Run: `cd app && node --test src/lib/theme/resolve.test.ts`
 Expected: 8 passed. If `surfaces mix bg toward text` fails on rounding, print `resolveVariant(dark).colors.surfaces.hover` and use that value (`mix` rounds per channel: 255 × 0.06 = 15.3 → `0f`).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app/src/lib/theme/color.ts app/src/lib/theme/defaults.ts app/src/lib/theme/resolve.ts app/src/lib/theme/resolve.test.ts
@@ -658,7 +660,7 @@ git commit -m "feat(theme): resolve variants with per-section fallbacks"
 - Consumes: `ResolvedVariant` (Task 2), `SECTION_COLOR_VARS` (Task 1), `TextStyle`, `BackdropLayer`.
 - Produces: `themeVars(r: ResolvedVariant): Record<string, string>`, `themeCss(r: ResolvedVariant): string`, `backdropCss(layers: BackdropLayer[]): string`, `SHOW_THROUGH: readonly string[]`, `THEME_SELECTOR = 'html:root'`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // app/src/lib/theme/css.test.ts
@@ -719,12 +721,12 @@ test('declares color-scheme for the mode', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd app && node --test src/lib/theme/css.test.ts`
 Expected: FAIL, `Cannot find module './css.ts'`.
 
-- [ ] **Step 3: Write `css.ts`**
+- [x] **Step 3: Write `css.ts`**
 
 ```ts
 // app/src/lib/theme/css.ts
@@ -808,12 +810,12 @@ export function themeCss(r: ResolvedVariant): string {
 }
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `cd app && node --test src/lib/theme/css.test.ts`
 Expected: 7 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/lib/theme/css.ts app/src/lib/theme/css.test.ts
@@ -838,11 +840,11 @@ git commit -m "feat(theme): render resolved variants as CSS variables"
   - `parseBackdrop(value: string): BackdropLayer[] | null`
   - `convertMarketplaceCss(css: string, meta: { id: string; name: string; author?: string }): { theme: Theme; dropped: string[] }`
 
-- [ ] **Step 1: Copy the fixture**
+- [x] **Step 1: Copy the fixture**
 
 Run: `mkdir -p app/src/lib/theme/__fixtures__ && cp web/public/themes/aurora.css app/src/lib/theme/__fixtures__/aurora.css`
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 ```ts
 // app/src/lib/theme/from-css.test.ts
@@ -900,12 +902,12 @@ test('separate light and dark blocks become two variants', () => {
 });
 ```
 
-- [ ] **Step 3: Run test to verify it fails**
+- [x] **Step 3: Run test to verify it fails**
 
 Run: `cd app && node --test src/lib/theme/from-css.test.ts`
 Expected: FAIL, `Cannot find module './from-css.ts'`.
 
-- [ ] **Step 4: Write `css-vars.ts`**
+- [x] **Step 4: Write `css-vars.ts`**
 
 ```ts
 // app/src/lib/theme/css-vars.ts
@@ -990,7 +992,7 @@ export function varsToVariant(vars: Record<string, string>, mode?: ThemeMode): {
 }
 ```
 
-- [ ] **Step 5: Write `from-css.ts`**
+- [x] **Step 5: Write `from-css.ts`**
 
 ```ts
 // app/src/lib/theme/from-css.ts
@@ -1062,12 +1064,12 @@ export function convertMarketplaceCss(css: string, meta: Meta): { theme: Theme; 
 }
 ```
 
-- [ ] **Step 6: Run the tests**
+- [x] **Step 6: Run the tests**
 
 Run: `cd app && node --test src/lib/theme/from-css.test.ts`
 Expected: 6 passed. If `parseTheme` rejects an Aurora colour (e.g. an `rgba()` with spaces), widen `COLOR_RE` in `schema.ts` only for the failing shape and add that colour to `schema.test.ts` "accepts" case.
 
-- [ ] **Step 7: Run every marketplace theme through the converter**
+- [x] **Step 7: Run every marketplace theme through the converter**
 
 Add to `from-css.test.ts`:
 
@@ -1087,7 +1089,7 @@ test('every marketplace theme converts to a valid theme', () => {
 Run: `cd app && node --test src/lib/theme/from-css.test.ts`
 Expected: 7 passed. Fix any failing file by widening the parser, never by special-casing a file name.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app/src/lib/theme/css-vars.ts app/src/lib/theme/from-css.ts app/src/lib/theme/from-css.test.ts app/src/lib/theme/__fixtures__
@@ -1107,7 +1109,7 @@ git commit -m "feat(theme): convert marketplace CSS themes to the theme format"
 - Consumes: `parseRules`, `modeSelectorsOf`, `varsToVariant` (Task 4), `parseTheme` (Task 1).
 - Produces: `BUILTIN_IDS = ['solomd','nord','solarized','monokai','github','dracula']`, and the legacy map used by Task 9: `LEGACY_TO_SLOT: Record<LegacyTheme, { themeId: string; variant: 'light' | 'dark' }>` exported from `app/src/lib/theme/legacy.ts`.
 
-- [ ] **Step 1: Write `legacy.ts`**
+- [x] **Step 1: Write `legacy.ts`**
 
 ```ts
 // app/src/lib/theme/legacy.ts
@@ -1132,7 +1134,7 @@ export const BUILTIN_NAMES: Record<string, string> = {
 export const DEFAULT_SLOTS = { light: LEGACY_TO_SLOT.light, dark: LEGACY_TO_SLOT.dark } as const;
 ```
 
-- [ ] **Step 2: Write the generator**
+- [x] **Step 2: Write the generator**
 
 Editor chrome comes from today's `lib/themes.ts` (`mkTheme` arguments and `oneDark`); `light` had no chrome theme, so it gets none.
 
@@ -1196,12 +1198,12 @@ build();
 
 `{ ...vars.light, ...vars[name] }` reproduces today's cascade: a named theme inherits every `:root` value it does not override. Note that it also inherits `:root`'s light `color-scheme`-independent values such as `--danger`, which is what the app paints today.
 
-- [ ] **Step 3: Generate**
+- [x] **Step 3: Generate**
 
 Run: `cd app && node scripts/theme/build-builtins.ts && ls src/lib/theme/builtin`
 Expected: `dracula.json github.json monokai.json nord.json solarized.json solomd.json`.
 
-- [ ] **Step 4: Write the golden test**
+- [x] **Step 4: Write the golden test**
 
 ```ts
 // app/src/lib/theme/builtin.test.ts
@@ -1239,12 +1241,12 @@ test('SoloMD dark keeps One Dark editor chrome', () => {
 });
 ```
 
-- [ ] **Step 5: Run it**
+- [x] **Step 5: Run it**
 
 Run: `cd app && node --test src/lib/theme/builtin.test.ts`
 Expected: 8 passed.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/scripts/theme/build-builtins.ts app/src/lib/theme/legacy.ts app/src/lib/theme/builtin app/src/lib/theme/builtin.test.ts app/package.json
@@ -1265,7 +1267,7 @@ git commit -m "feat(theme): built-in themes as theme JSON, generated from main.c
   - `fromUserTheme(ut: UserTheme): Theme` (id `ut.id`, `source:'mine'`, `origin:'studio'`, variants `light` + `dark`)
   - `paletteOf(variant: Variant): Palette` (resolved → the 36 Studio token keys, hex), used by Studio instead of `readThemePalette`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // app/src/lib/theme/from-studio.test.ts
@@ -1306,12 +1308,12 @@ test('paletteOf returns every Studio token as hex', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd app && node --test src/lib/theme/from-studio.test.ts`
 Expected: FAIL, `Cannot find module './from-studio.ts'`.
 
-- [ ] **Step 3: Write `from-studio.ts`**
+- [x] **Step 3: Write `from-studio.ts`**
 
 ```ts
 // app/src/lib/theme/from-studio.ts
@@ -1353,12 +1355,12 @@ export function paletteOf(variant: Variant): Palette {
 
 `panelOpacity: 0` with a gradient reproduces today's Studio behaviour (panels go fully transparent over the gradient).
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `cd app && node --test src/lib/theme/from-studio.test.ts`
 Expected: 3 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/lib/theme/from-studio.ts app/src/lib/theme/from-studio.test.ts
@@ -1381,7 +1383,7 @@ git commit -m "feat(theme): convert Theme Studio themes to the theme format"
   - `type CodeTagKey = 'keyword'|'string'|'number'|'comment'|'function'|'variable'|'type'|'property'|'operator'|'punctuation'|'tag'|'attribute'|'regexp'|'constant'|'invalid'|'heading'|'link'|'emphasis'|'strong'|'quote'`
   - `cmToTheme(x: ExtractedCmTheme): Theme` (`source:'catalog'`, one variant keyed by its mode)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // app/src/lib/theme/from-cm.test.ts
@@ -1440,12 +1442,12 @@ test('markdown headings and links come from heading and link tags', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd app && node --test src/lib/theme/from-cm.test.ts`
 Expected: FAIL, `Cannot find module './from-cm.ts'`.
 
-- [ ] **Step 3: Write `from-cm.ts`**
+- [x] **Step 3: Write `from-cm.ts`**
 
 ```ts
 // app/src/lib/theme/from-cm.ts
@@ -1513,17 +1515,17 @@ export function cmToTheme(x: ExtractedCmTheme): Theme {
 }
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `cd app && node --test src/lib/theme/from-cm.test.ts`
 Expected: 6 passed.
 
-- [ ] **Step 5: Install the catalog source (build-time only)**
+- [x] **Step 5: Install the catalog source (build-time only)**
 
 Run: `pnpm --dir app add -D @uiw/codemirror-themes-all`
 Then check: `grep -rn "codemirror-themes-all" app/src` must print nothing. Only `scripts/` may import it.
 
-- [ ] **Step 6: Write the browser extraction page**
+- [x] **Step 6: Write the browser extraction page**
 
 ```ts
 // app/scripts/theme/catalog-page.ts
@@ -1600,7 +1602,7 @@ function extract(name: string, theme: Extension) {
 
 Computed colours come back as `rgb(...)` / `rgba(...)`; the schema accepts both. Selection/active line measured through the DOM so `&.cm-focused` rules apply (the view is focused).
 
-- [ ] **Step 7: Write the build script**
+- [x] **Step 7: Write the build script**
 
 ```ts
 // app/scripts/theme/build-catalog.ts
@@ -1651,12 +1653,12 @@ await main();
 
 `@playwright/test` resolves from `demos/node_modules`; run the script with `NODE_PATH`, as in Step 8.
 
-- [ ] **Step 8: Generate the catalog**
+- [x] **Step 8: Generate the catalog**
 
 Run: `cd app && NODE_PATH=../demos/node_modules node scripts/theme/build-catalog.ts && ls src/lib/theme/catalog | wc -l`
 Expected: `wrote N catalog themes` with N ≥ 30, and the same count of JSON files (minus any `skip` lines). Open `cm-dracula.json` and `cm-github-light.json`: background, text and keyword colours must match the theme's site. If a theme is skipped for a colour format (e.g. `color(srgb …)`), convert in `readTags`/`readChrome` via `toHex6`-compatible `rgb()` before returning.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add app/src/lib/theme/from-cm.ts app/src/lib/theme/from-cm.test.ts app/scripts/theme/catalog-page.ts app/scripts/theme/build-catalog.ts app/src/lib/theme/catalog app/package.json app/pnpm-lock.yaml
@@ -1676,7 +1678,7 @@ git commit -m "feat(theme): CodeMirror theme catalog with derived app colours"
   - `theme_json_list() -> Result<Vec<ThemeJsonFile>, String>`, `ThemeJsonFile { id: String, json: String }`
   - `theme_json_remove(id: String) -> Result<(), String>`
 
-- [ ] **Step 1: Add the Rust test**
+- [x] **Step 1: Add the Rust test**
 
 Append to `themes.rs`:
 
@@ -1706,12 +1708,12 @@ mod json_tests {
 }
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `cd app/src-tauri && cargo test themes::json_tests`
 Expected: FAIL, `cannot find function save_json_in`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Append to `themes.rs` (before the test module):
 
@@ -1774,12 +1776,12 @@ In `lib.rs`, after `themes::theme_list_installed,` add:
             themes::theme_json_remove,
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `cd app/src-tauri && cargo test themes::json_tests`
 Expected: 2 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src-tauri/src/themes.rs app/src-tauri/src/lib.rs
@@ -1804,7 +1806,7 @@ git commit -m "feat(theme): Tauri commands to save, list and remove theme JSON"
   - `marketplaceIdFor(cssPath: string): string` → `mk-<file stem>`
   - `THEME_LAYER_VERSION = 1`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // app/src/lib/theme/migrate.test.ts
@@ -1870,12 +1872,12 @@ test('marketplace ids are slugged from the file name', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd app && node --test src/lib/theme/migrate.test.ts`
 Expected: FAIL, `Cannot find module './migrate.ts'`.
 
-- [ ] **Step 3: Write `migrate.ts`**
+- [x] **Step 3: Write `migrate.ts`**
 
 ```ts
 // app/src/lib/theme/migrate.ts
@@ -1924,12 +1926,12 @@ export function planMigration(legacy: LegacyThemeSettings | null): MigrationPlan
 
 A marketplace theme may convert to a single variant (Aurora is dark-only). The store resolves a slot whose variant is missing through the fallback rule in Task 10, so `bothSlots` is safe.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `cd app && node --test src/lib/theme/migrate.test.ts`
 Expected: 9 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/lib/theme/migrate.ts app/src/lib/theme/migrate.test.ts
@@ -1954,7 +1956,7 @@ git commit -m "feat(theme): plan the one-time migration from legacy theme settin
   - `stores/theme.ts` (`useThemeStore`), with `paint(): void` (writes the style, bumps `revision`; call it from a `watch` on `resolved`, never from `watchEffect`): state `themes: Theme[]`, `loaded: boolean`, `systemDark: boolean`, `preview: Variant | null`, `revision: number`, `lastReport: { name: string; dropped: string[] } | null`; getters `mode: ThemeMode`, `active: { theme; variantKey; variant }`, `resolved: ResolvedVariant`; actions `init(): Promise<void>`, `save(t: Theme): Promise<void>`, `remove(id: string): Promise<void>`, `useTheme(id: string): void`, `importCss(css: string, meta): Promise<Theme>`, `importJson(text: string): Promise<Theme>`, `previewVariant(v: Variant | null): void`.
   - `settings.ts`: fields `appearance: Appearance`, `lightSlot: SlotRef`, `darkSlot: SlotRef`, `themeLayerVersion: number`; actions `setAppearance(a)`, `setSlot(mode, ref)`, `applyMigration(plan)`; `toggleTheme()` rewritten.
 
-- [ ] **Step 1: Write the failing test for slot logic**
+- [x] **Step 1: Write the failing test for slot logic**
 
 ```ts
 // app/src/lib/theme/slots.test.ts
@@ -1989,12 +1991,12 @@ test('a missing variant falls back to SoloMD when the theme has none of that mod
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd app && node --test src/lib/theme/slots.test.ts`
 Expected: FAIL, `Cannot find module './slots.ts'`.
 
-- [ ] **Step 3: Write `slots.ts`**
+- [x] **Step 3: Write `slots.ts`**
 
 ```ts
 // app/src/lib/theme/slots.ts
@@ -2025,12 +2027,12 @@ export function findVariant(themes: Theme[], ref: SlotRef, mode: ThemeMode): Act
 }
 ```
 
-- [ ] **Step 4: Run the slot tests**
+- [x] **Step 4: Run the slot tests**
 
 Run: `cd app && node --test src/lib/theme/slots.test.ts`
 Expected: 4 passed.
 
-- [ ] **Step 5: Write `sources.ts`**
+- [x] **Step 5: Write `sources.ts`**
 
 ```ts
 // app/src/lib/theme/sources.ts
@@ -2073,7 +2075,7 @@ export async function removeMyTheme(id: string): Promise<void> {
 
 In the web build (`pnpm dev` in a browser) `invoke` rejects; `loadMyThemes` returns `[]`, so bundled themes still work. `saveMyTheme` is only called from Tauri flows.
 
-- [ ] **Step 6: Write `apply.ts`**
+- [x] **Step 6: Write `apply.ts`**
 
 ```ts
 // app/src/lib/theme/apply.ts
@@ -2099,7 +2101,7 @@ export function applyTheme(r: ResolvedVariant): void {
 }
 ```
 
-- [ ] **Step 7: Add the settings fields and actions**
+- [x] **Step 7: Add the settings fields and actions**
 
 In `app/src/stores/settings.ts`:
 
@@ -2153,7 +2155,7 @@ import { DEFAULT_SLOTS, type SlotRef } from '../lib/theme/legacy';
 ```
 Keep `theme`, `customCssPath`, `activeUserThemeId`, `userThemes` fields and their defaults (read by migration; rollback). Delete `setTheme`; Task 12 fixes its callers.
 
-- [ ] **Step 8: Write the store**
+- [x] **Step 8: Write the store**
 
 ```ts
 // app/src/stores/theme.ts
@@ -2266,12 +2268,12 @@ export const useThemeStore = defineStore('theme', {
 
 Implementation note: `planMigration` reads only `theme`, `customCssPath`, `activeUserThemeId`, `userThemes`; the cast passes the settings state, which has those fields.
 
-- [ ] **Step 9: Type-check**
+- [x] **Step 9: Type-check**
 
 Run: `pnpm --dir app exec vue-tsc --noEmit`
 Expected: errors only at callers of the deleted `setTheme` / old `toggleTheme()` (fixed in Task 12). No errors inside `lib/theme/` or `stores/theme.ts`.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add app/src/lib/theme/slots.ts app/src/lib/theme/slots.test.ts app/src/lib/theme/sources.ts app/src/lib/theme/apply.ts app/src/stores/theme.ts app/src/stores/settings.ts
@@ -2293,7 +2295,7 @@ git commit -m "feat(theme): theme store with slots, appearance, sources and migr
   - `lib/themes.ts`: `cmThemeFor(mode: ThemeMode): Extension` (only export besides `unifiedHighlightStyle`)
   - `lib/theme/mermaid.ts`: `mermaidConfigFor(r: ResolvedVariant, toHex: (c: string) => string): { theme: 'base'; themeVariables: Record<string, string | boolean> }`, `graphvizThemeFor(mode: ThemeMode): 'dark' | 'default'`, `cssColorToHex(c: string): string` (browser only, via a probe element).
 
-- [ ] **Step 1: Write the failing Mermaid test**
+- [x] **Step 1: Write the failing Mermaid test**
 
 ```ts
 // app/src/lib/theme/mermaid.test.ts
@@ -2317,12 +2319,12 @@ test('graphviz keeps its light/dark switch', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd app && node --test src/lib/theme/mermaid.test.ts`
 Expected: FAIL, `Cannot find module './mermaid.ts'`.
 
-- [ ] **Step 3: Write `mermaid.ts`**
+- [x] **Step 3: Write `mermaid.ts`**
 
 ```ts
 // app/src/lib/theme/mermaid.ts
@@ -2362,12 +2364,12 @@ export function cssColorToHex(color: string): string {
 }
 ```
 
-- [ ] **Step 4: Run the test**
+- [x] **Step 4: Run the test**
 
 Run: `cd app && node --test src/lib/theme/mermaid.test.ts`
 Expected: 2 passed.
 
-- [ ] **Step 5: Rewrite `lib/themes.ts`**
+- [x] **Step 5: Rewrite `lib/themes.ts`**
 
 Replace the whole file:
 
@@ -2435,15 +2437,15 @@ export function cmThemeFor(mode: ThemeMode): Extension {
 
 Removed exports: `themeFamily`, `mermaidThemeFor`, `dataThemeFor`, `themeLabels`, `themeOverride`, `ThemeOverride`, `nordTheme` etc. Task 12 fixes every caller.
 
-- [ ] **Step 6: Markdown text styles in the live editor**
+- [x] **Step 6: Markdown text styles in the live editor**
 
 In `app/src/lib/cm-live-preview.ts`, inside `markdownRichStyle`, give heading tags `fontWeight: 'var(--md-heading-weight)', fontStyle: 'var(--md-heading-style)'`, the link tag `textDecoration: 'var(--md-link-decoration)'`, and the quote tag `fontStyle: 'var(--md-quote-style)'`. Run `grep -n "t.heading\|t.link\|t.quote" src/lib/cm-live-preview.ts` to find the entries; replace only those properties.
 
-- [ ] **Step 7: Preview code styles**
+- [x] **Step 7: Preview code styles**
 
 In `app/src/styles/hljs-theme.css`, for `.hljs-comment` add `font-style: var(--syn-comment-style); font-weight: var(--syn-comment-weight);`, for `.hljs-keyword` add `font-style: var(--syn-keyword-style); font-weight: var(--syn-keyword-weight);`. Leave colours as they are.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app/src/lib/themes.ts app/src/lib/theme/mermaid.ts app/src/lib/theme/mermaid.test.ts app/src/lib/cm-live-preview.ts app/src/styles/hljs-theme.css
@@ -2485,7 +2487,7 @@ git commit -m "feat(theme): editor chrome, highlighter and Mermaid read the them
 
 In every Vue file: add `const themeStore = useThemeStore();` next to the existing `const settings = useSettingsStore();`. Remove `themeFamily` / `mermaidThemeFor` imports.
 
-- [ ] **Step 1: App.vue paints and initialises**
+- [x] **Step 1: App.vue paints and initialises**
 
 Replace the old data-theme block (around line 727) with:
 
@@ -2497,7 +2499,7 @@ void themeStore.init();
 
 `resolved` re-computes on slot, appearance, system, theme list and preview changes. Use `watch`, not `watchEffect`: `paint()` increments `revision`, and an effect that reads and writes `revision` re-triggers itself forever. Remove the `installUserThemeSync()` call (Task 13 replaces Studio's sync).
 
-- [ ] **Step 2: QuickCapture paints the same theme**
+- [x] **Step 2: QuickCapture paints the same theme**
 
 In `QuickCapture.vue` `onMounted`, replace the `setAttribute('data-theme', …)` call with:
 
@@ -2509,20 +2511,20 @@ void themeStore.init();
 
 `init()` migration is guarded by `themeLayerVersion`, so the second webview never migrates twice; it may run `reloadMine` once more, which is read-only.
 
-- [ ] **Step 3: Apply the table**
+- [x] **Step 3: Apply the table**
 
 Make each edit in the table. After each file, run `pnpm --dir app exec vue-tsc --noEmit 2>&1 | grep <file>` and fix until clean.
 
-- [ ] **Step 4: Prove nothing reads the old API**
+- [x] **Step 4: Prove nothing reads the old API**
 
 Run: `cd app && grep -rnE "themeFamily|mermaidThemeFor|dataThemeFor|themeOverride|effectiveTheme|settings\.theme\b|loadCustomTheme" src --include='*.vue' --include='*.ts' | grep -v '\.test\.ts'`
 Expected: only `SettingsPanel.vue`, `ThemeStudio.vue`, `ThemeMarketplace.vue`, `useThemeStudio.ts`, `custom-theme.ts` (Tasks 13–16).
 
-- [ ] **Step 5: Run the app**
+- [x] **Step 5: Run the app**
 
 Run: `pnpm --dir app dev`, open `http://localhost:1420`. Check: the start screen paints, the toolbar sun/moon toggles light/dark, a Mermaid block in the preview follows the toggle, the editor background flips.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A app/src
@@ -2540,7 +2542,7 @@ git commit -m "refactor(theme): consumers read mode and colours from the theme s
 - Consumes: `useThemeStore` (`previewVariant`, `save`, `useTheme`, `remove`, `themes`, `active`, `mode`), `fromUserTheme`, `paletteOf`.
 - Produces: Studio edits stay in the `UserTheme` shape (unchanged UI); save writes a My-themes file. Plan 2 replaces this UI.
 
-- [ ] **Step 1: Rewrite the sync in `useThemeStudio.ts`**
+- [x] **Step 1: Rewrite the sync in `useThemeStudio.ts`**
 
 Delete `effectiveTheme`, `effectiveThemeOverride`, `customCssIsLight`, `shownTheme`, `installUserThemeSync` and the imports of `themeOverride`, `applyUserTheme`, `fitBackdrops`, `hasCustomCssLoaded`, `readThemePalette`, `CUSTOM_CSS_BASE`, `customCssRevision`. Add:
 
@@ -2569,7 +2571,7 @@ export function installStudioPreview(): void {
 
 Call `installStudioPreview()` in `App.vue` where `installUserThemeSync()` was.
 
-- [ ] **Step 2: Bases come from the store in `ThemeStudio.vue`**
+- [x] **Step 2: Bases come from the store in `ThemeStudio.vue`**
 
 - Replace every `readThemePalette(base, mode)` with `basePalette(base, mode)`:
 ```ts
@@ -2590,13 +2592,13 @@ function basePalette(themeId: string, mode: ThemeMode): Palette {
 - `copyCss()`: copy `JSON.stringify(fromUserTheme(current.value), null, 2)` instead of CSS; rename the button label key to `themeStudio.copyJson` (add the string to `src/i18n` en file, `"Copy theme JSON"`).
 - Backdrop kind "keep CSS backdrop" (`KEEP_CSS_BACKDROP`): remove that option from the select; treat stored `'inherit'` as `null`.
 
-- [ ] **Step 3: Type-check and run**
+- [x] **Step 3: Type-check and run**
 
 Run: `pnpm --dir app exec vue-tsc --noEmit`
 Expected: no errors in `ThemeStudio.vue` / `useThemeStudio.ts`.
 Run the dev app, open Settings → Theme Studio: pick a colour → the app repaints live; Save → leave the page → the theme stays applied through the slots; Reload → still applied.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/src/composables/useThemeStudio.ts app/src/components/ThemeStudio.vue app/src/App.vue app/src/i18n
@@ -2613,7 +2615,7 @@ git commit -m "refactor(theme): Theme Studio previews and saves through the them
 **Interfaces:**
 - Consumes: `useThemeStore` (`themes`, `useTheme`, `importCss`, `importJson`, `remove`, `lastReport`, `mode`), `settings.setAppearance`, `settings.setSlot`, `marketplaceIdFor`.
 
-- [ ] **Step 1: Replace the theme `<section>` (lines ~790-818)**
+- [x] **Step 1: Replace the theme `<section>` (lines ~790-818)**
 
 ```vue
 <section data-cat="basics">
@@ -2678,7 +2680,7 @@ function onSlot(mode: ThemeMode, value: string) {
 
 Picking a theme with both modes fills both slots (spec section 1 rule 3).
 
-- [ ] **Step 2: Replace the custom CSS section (~2250-2260) with import**
+- [x] **Step 2: Replace the custom CSS section (~2250-2260) with import**
 
 ```vue
 <section data-cat="advanced">
@@ -2715,7 +2717,7 @@ async function importThemeFile() {
 
 Reuse the file's existing `open` (dialog plugin), `invoke` and toasts imports — check with `grep -n "plugin-dialog\|useToastsStore\|import { invoke" src/components/SettingsPanel.vue`; add any that are missing. Delete the CSS reload button and its `isCssRefreshing` / `loadCustomTheme` function (~575-590).
 
-- [ ] **Step 3: Marketplace installs convert**
+- [x] **Step 3: Marketplace installs convert**
 
 In `ThemeMarketplace.vue`:
 - `isActive(theme)`: `settings.lightSlot.themeId === \`mk-${theme.id}\` || settings.darkSlot.themeId === \`mk-${theme.id}\``.
@@ -2724,17 +2726,17 @@ In `ThemeMarketplace.vue`:
 - The "use" button at line ~216: `themeStore.useTheme(\`mk-${theme.id}\`)`.
 - Update the header comment (lines ~9-12) to say installs are converted to theme JSON.
 
-- [ ] **Step 4: Strings**
+- [x] **Step 4: Strings**
 
 Add to the English i18n file (`grep -rln "customThemeDisable" src/i18n` to find it): `appearance` "Appearance", `appearanceLight` "Light", `appearanceDark` "Dark", `appearanceSystem` "Follow system", `lightSlot` "Light theme", `darkSlot` "Dark theme", `themeCatalog` "CodeMirror catalog", `importTheme` "Import a theme", `importThemeBtn` "Import JSON or CSS…", `importReport` "Imported {name}. {count} rules had no matching setting and were dropped.", `importDropped` "Show dropped rules", `importFailed` "Import failed". Other locales fall back to English (check the i18n loader does; if not, copy the English strings into each locale file).
 
-- [ ] **Step 5: Type-check and run**
+- [x] **Step 5: Type-check and run**
 
 Run: `pnpm --dir app exec vue-tsc --noEmit`
 Expected: clean.
 Dev app checks: switching the Dark theme select repaints instantly; choosing Solarized fills both selects; Appearance → Follow system follows macOS; Browse marketplace → install Aurora → app turns Aurora with its gradient, and the report shows the dropped count.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/src/components/SettingsPanel.vue app/src/components/ThemeMarketplace.vue app/src/i18n
@@ -2749,22 +2751,22 @@ git commit -m "feat(theme): appearance and slot pickers; marketplace and file im
 - Delete: `app/src/lib/custom-theme.ts`
 - Modify: `app/src/lib/user-theme.ts` (remove `applyUserTheme`, `userThemeCss`, `paletteCss`, `showThroughCss`, `readThemePalette`, `hasCustomCssLoaded`, `fitBackdrops`, `CUSTOM_CSS_BASE`, `LIGHT_BASES`, `DARK_BASES`, `SHOW_THROUGH`, `STYLE_ID`, `OUTRANK_CSS_THEMES`), `app/src/lib/user-theme.test.ts` (drop tests of removed functions), `app/src/styles/main.css`, `app/src/stores/settings.ts` (delete `setCustomCssPath`, `setActiveUserTheme`)
 
-- [ ] **Step 1: Strip `main.css` per-theme palettes**
+- [x] **Step 1: Strip `main.css` per-theme palettes**
 
 Delete the blocks `:root[data-theme="nord"]`, `"solarized-light"`, `"solarized-dark"`, `"monokai"`, `"github-light"`, `"dracula"` (lines ~171-305). In `:root[data-theme="dark"]` keep only `color-scheme: dark;` and the `--type-*` overrides; delete its `--bg…`, `--md-*`, `--syn-*` lines. Keep `:root` defaults (they paint the first frame before JS runs).
 
-- [ ] **Step 2: Delete dead code**
+- [x] **Step 2: Delete dead code**
 
 Run: `git rm app/src/lib/custom-theme.ts`, then remove the listed exports from `user-theme.ts` and their tests. Delete `setCustomCssPath` and `setActiveUserTheme` from `settings.ts`.
 
-- [ ] **Step 3: Prove it is gone**
+- [x] **Step 3: Prove it is gone**
 
 Run: `cd app && grep -rnE "custom-theme|applyUserTheme|readThemePalette|setCustomCssPath|setActiveUserTheme|customCssRevision" src`
 Expected: no output.
 Run: `pnpm --dir app exec vue-tsc --noEmit && pnpm --dir app test`
 Expected: both clean; all `node --test` suites pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -A app/src
@@ -2778,7 +2780,7 @@ git commit -m "refactor(theme): remove custom CSS injection and per-theme main.c
 **Files:**
 - Create: `app/e2e/theme.spec.ts`
 
-- [ ] **Step 1: Write the behaviour spec**
+- [x] **Step 1: Write the behaviour spec**
 
 ```ts
 // app/e2e/theme.spec.ts
@@ -2827,22 +2829,22 @@ test('a catalog theme fills the editor chrome', async ({ page }) => {
 
 If `cm-dracula` has a different id after Task 7, use the id from `ls app/src/lib/theme/catalog`.
 
-- [ ] **Step 2: Run behaviour + baseline**
+- [x] **Step 2: Run behaviour + baseline**
 
 Run: `pnpm --dir demos exec playwright test --config ../app/e2e/playwright.config.ts`
 Expected: 4 behaviour tests pass. The 8 baseline tests pass within `maxDiffPixelRatio: 0.01`.
 If a baseline fails, open the diff in `test-results/`. A real difference (e.g. heading weight, panel colour) is a bug in Tasks 5/11; fix the generator or the variable, never re-record. The one expected exception: `dark` previously drew its gutter with One Dark's `#282c34` background while the shell used `#1f1e1b`; that is preserved, so no exception should appear. Re-record only with the user's approval.
 
-- [ ] **Step 3: Full verification**
+- [x] **Step 3: Full verification**
 
 Run: `pnpm --dir app test && pnpm --dir app build && (cd app/src-tauri && cargo test themes::)`
 Expected: all pass, build clean.
 
-- [ ] **Step 4: Dev-app check (Tauri)**
+- [x] **Step 4: Dev-app check (Tauri)**
 
 Run `pnpm --dir app tauri:dev`. In the DEV app: Settings → Dark theme → pick a catalog theme → the editor, tabs, preview and a Mermaid diagram all change; Theme Studio still edits and saves; the installed Aurora (if migrated) shows its gradient. Check `~/Library/Application Support/app.solomd.dev/themes/` contains the migrated `*.json` files.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/e2e/theme.spec.ts

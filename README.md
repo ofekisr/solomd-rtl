@@ -57,6 +57,7 @@ Plus a **unified macOS title bar** (traffic lights inline in the toolbar) and a 
 | **Replayable trace** *(v4.0)* | `trace.jsonl` per step (`prompt` / `model_call` / `tool_call` / `tool_result` / `git_commit`). Replay-from-step rewinds and re-executes. |
 | **Workspace federation** *(v4.0)* | `solomd-mcp --workspace path1 --workspace path2`. One Claude Desktop session, many vaults. MCP profiles UI in Settings → Integrations. |
 | **Ollama first-class** *(v4.0)* | Auto-detect at `localhost:11434`. Three model presets (`qwen2.5:1.5b/7b/14b`). `provider: local` recipe alias for zero-cloud-cost autonomous loops. |
+| **Unified themes** *(v4.39)* | One typed JSON theme format for app, markdown, code, editor and diagrams. 6 built-in + 47 CodeMirror catalog themes, light/dark slots, Follow system. Import JSON or CSS; no CSS injection. |
 | **AI rewrite, BYOK** | 14 providers — OpenAI · Claude · Gemini · DeepSeek · Qwen · GLM · Kimi · Doubao · SiliconFlow · OpenRouter · Mistral · Groq · xAI · Ollama. Direct vendor calls. Keys in OS keychain. |
 | **GitHub-backed sync** | Push your vault to a private GitHub repo on every save. Optional E2EE (Argon2id + XChaCha20-Poly1305). GitLab / Gitea / any HTTPS git URL works too. |
 | **AutoGit per note** | Every `⌘S` is a commit in a local `.git` inside the workspace. libgit2 vendored, no system git needed. Never auto-pushed. |
