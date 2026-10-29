@@ -4,7 +4,7 @@ import { tags as t } from '@lezer/highlight';
 import type { Extension } from '@codemirror/state';
 import type { ThemeMode } from './theme/schema.ts';
 
-const font = (token: string) => ({
+const font = (token: string): { fontStyle: string; fontWeight: string; textDecoration: string } => ({
   fontStyle: `var(--syn-${token}-style)`,
   fontWeight: `var(--syn-${token}-weight)`,
   textDecoration: `var(--syn-${token}-decoration)`,
