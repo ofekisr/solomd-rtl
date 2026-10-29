@@ -15,7 +15,8 @@
 .hljs-comment,
 .hljs-quote {
   color: var(--syn-comment);
-  font-style: italic;
+  font-style: var(--syn-comment-style);
+  font-weight: var(--syn-comment-weight);
 }
 
 .hljs-keyword,
@@ -24,6 +25,8 @@
 .hljs-doctag,
 .hljs-literal {
   color: var(--syn-keyword);
+  font-style: var(--syn-keyword-style);
+  font-weight: var(--syn-keyword-weight);
 }
 
 .hljs-string,
