@@ -781,6 +781,11 @@ function onSelectPdfFont(v: string) {
         </section>
 
         <section data-cat="theme" data-page="theme/main">
+          <p class="setting-hint">{{ t('themeStudio.pageIntro') }}</p>
+          <button type="button" class="hint-btn" @click="openThemeStudio">🎨 {{ t('themeStudio.openInTab') }}</button>
+        </section>
+
+        <section data-cat="theme" data-page="theme/main">
           <label>{{ t('settings.appearance') }}</label>
           <select :value="settings.appearance" @change="settings.setAppearance(($event.target as HTMLSelectElement).value as Appearance)">
             <option value="light">{{ t('settings.appearanceLight') }}</option>
@@ -1190,11 +1195,6 @@ function onSelectPdfFont(v: string) {
             <input type="checkbox" :checked="settings.showTagsPanel" @change="settings.toggleTagsPanel()" />
             {{ t('settings.showTagsPanel') }}
           </label>
-        </section>
-
-        <section data-cat="theme" data-page="theme/main">
-          <p class="setting-hint">{{ t('themeStudio.pageIntro') }}</p>
-          <button type="button" class="hint-btn" @click="openThemeStudio">🎨 {{ t('themeStudio.openInTab') }}</button>
         </section>
 
         <section data-cat="writing" data-page="writing/focus">
@@ -2421,7 +2421,7 @@ function onSelectPdfFont(v: string) {
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   font: inherit;
   transition: all 0.12s;
 }

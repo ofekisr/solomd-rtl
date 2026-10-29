@@ -2124,7 +2124,7 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
     <RagSearch
       :open="ragSearchOpen"
       @close="ragSearchOpen = false"
-      @open-settings="(section?: string) => { ragSearchOpen = false; openSettingsAt(section ?? 'writing'); }"
+      @open-settings="(section?: string) => { ragSearchOpen = false; openSettingsAt(section ?? 'integrations'); }"
     />
     <CjkProofread :open="cjkProofreadOpen" @close="cjkProofreadOpen = false" />
     <AboutDialog :open="aboutOpen" @close="aboutOpen = false" />
