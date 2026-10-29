@@ -24,6 +24,15 @@ export function findVariant(themes: Theme[], ref: SlotRef, mode: ThemeMode): Act
   return found;
 }
 
+export function legacyAfterCss(legacy: LegacyThemeSettings | null, cssConverted: boolean): LegacyThemeSettings | null {
+  if (!legacy || cssConverted) return legacy;
+  return { ...legacy, customCssPath: '' };
+}
+
+export function canApplyMigration(failedWrites: string[]): boolean {
+  return failedWrites.length === 0;
+}
+
 export function legacyForMigration(hadStoredSettings: boolean, state: LegacyThemeSettings): LegacyThemeSettings | null {
   return hadStoredSettings ? state : null;
 }

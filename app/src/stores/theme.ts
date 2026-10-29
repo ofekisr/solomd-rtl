@@ -4,7 +4,7 @@ import { hadStoredSettings, useSettingsStore } from './settings';
 import { useToastsStore } from './toasts';
 import { parseTheme, type Theme, type ThemeMode, type Variant } from '../lib/theme/schema';
 import { resolveVariant, type ResolvedVariant } from '../lib/theme/resolve';
-import { findVariant, legacyForMigration, pickSlot, type ActiveVariant } from '../lib/theme/slots';
+import { canApplyMigration, findVariant, legacyAfterCss, legacyForMigration, pickSlot, type ActiveVariant } from '../lib/theme/slots';
 import { bundledThemes, loadMyThemes, removeMyTheme, saveMyTheme } from '../lib/theme/sources';
 import { applyTheme } from '../lib/theme/apply';
 import { convertMarketplaceCss } from '../lib/theme/from-css';
@@ -54,19 +54,29 @@ export const useThemeStore = defineStore('theme', {
     async migrateOnce() {
       const s = useSettingsStore();
       if (s.themeLayerVersion >= THEME_LAYER_VERSION) return;
-      const plan = planMigration(legacyForMigration(hadStoredSettings(), s as LegacyThemeSettings));
-      for (const t of plan.themesToWrite) await saveMyTheme(t).catch(() => undefined);
-      if (plan.cssToConvert) await this.migrateCss(plan.cssToConvert);
-      s.applyMigration(plan, THEME_LAYER_VERSION);
+      const legacy = legacyForMigration(hadStoredSettings(), s as LegacyThemeSettings);
+      const first = planMigration(legacy);
+      const failed = await this.writeMigrated(first.themesToWrite);
+      const cssOk = first.cssToConvert ? await this.migrateCss(first.cssToConvert) : true;
+      failed.forEach((name) => useToastsStore().warning(`Could not save migrated theme ${name}`));
+      if (!canApplyMigration(failed)) return;
+      s.applyMigration(planMigration(legacyAfterCss(legacy, cssOk)), THEME_LAYER_VERSION);
       await this.reloadMine();
     },
-    async migrateCss(path: string) {
+    async writeMigrated(themes: Theme[]): Promise<string[]> {
+      const failed: string[] = [];
+      for (const t of themes) await saveMyTheme(t).catch(() => failed.push(t.name));
+      return failed;
+    },
+    async migrateCss(path: string): Promise<boolean> {
       try {
         const { content } = await invoke<{ content: string }>('read_file', { path });
         const name = (path.split(/[\\/]/).pop() ?? path).replace(/\.css$/i, '');
         await this.importCss(content, { id: marketplaceIdFor(path), name });
+        return true;
       } catch (e) {
         useToastsStore().warning(`Could not convert ${path}: ${String(e)}`);
+        return false;
       }
     },
     paint() {

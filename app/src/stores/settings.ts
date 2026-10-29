@@ -828,8 +828,8 @@ function load(): Settings {
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) {
-      hadStoredSettingsAtLoad = true;
       const parsed = JSON.parse(raw) as Partial<Settings>;
+      hadStoredSettingsAtLoad = true;
       const merged: Settings = { ...defaults(), ...parsed };
       // pdfDefaults is a nested object: do a clamping merge so a missing
       // sub-key (older settings blob) doesn't yield `undefined` and a

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { findVariant, legacyForMigration, pickSlot } from './slots.ts';
+import { canApplyMigration, findVariant, legacyAfterCss, legacyForMigration, pickSlot } from './slots.ts';
 import type { Theme } from './schema.ts';
 
 const load = (id: string): Theme => JSON.parse(readFileSync(new URL(`./builtin/${id}.json`, import.meta.url), 'utf8'));
@@ -35,4 +35,16 @@ test('a fresh install migrates from nothing, so appearance stays system', () => 
 test('an existing install migrates from its stored legacy settings', () => {
   const legacy = { theme: 'nord', customCssPath: '', activeUserThemeId: '', userThemes: [] };
   assert.deepEqual(legacyForMigration(true, legacy), legacy);
+});
+
+test('a failed css conversion drops the css path so slots fall back to the legacy theme', () => {
+  const legacy = { theme: 'nord', customCssPath: '/a/b.css' };
+  assert.equal(legacyAfterCss(legacy, true)?.customCssPath, '/a/b.css');
+  assert.deepEqual(legacyAfterCss(legacy, false), { theme: 'nord', customCssPath: '' });
+  assert.equal(legacyAfterCss(null, false), null);
+});
+
+test('migration is applied only when every write succeeded', () => {
+  assert.equal(canApplyMigration([]), true);
+  assert.equal(canApplyMigration(['My Theme']), false);
 });
