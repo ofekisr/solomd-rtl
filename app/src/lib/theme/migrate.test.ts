@@ -63,3 +63,30 @@ test('unknown legacy names fall back to defaults', () => {
 test('marketplace ids are slugged from the file name', () => {
   assert.equal(marketplaceIdFor('C:\\t\\Pure Black OLED.css'), 'mk-pure-black-oled');
 });
+
+const ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+const LONG_STEM_LENGTH = 100;
+const HEBREW_STEM = 'ערכת-נושא';
+
+test('a non-ASCII stem yields a valid id, not the bare prefix', () => {
+  const id = marketplaceIdFor(`/x/${HEBREW_STEM}.css`);
+  assert.match(id, ID_PATTERN);
+  assert.notEqual(id, 'mk-');
+});
+
+test('different non-ASCII stems get different ids', () => {
+  assert.notEqual(marketplaceIdFor('/x/ערכה.css'), marketplaceIdFor('/x/ערכת-נושא.css'));
+});
+
+test('a mixed name does not collide with its ASCII part', () => {
+  assert.notEqual(marketplaceIdFor('/x/ערכה dark.css'), marketplaceIdFor('dark.css'));
+});
+
+test('an over-long stem is capped at the id length limit', () => {
+  const id = marketplaceIdFor(`${'a'.repeat(LONG_STEM_LENGTH)}.css`);
+  assert.match(id, ID_PATTERN);
+});
+
+test('a simple ASCII name keeps its plain id', () => {
+  assert.equal(marketplaceIdFor('/x/aurora.css'), 'mk-aurora');
+});
