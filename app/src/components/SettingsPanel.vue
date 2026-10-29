@@ -2233,7 +2233,7 @@ function onSelectPdfFont(v: string) {
             {{ t('settings.importReport', { name: themeStore.lastReport.name, count: themeStore.lastReport.dropped.length }) }}
             <details v-if="themeStore.lastReport.dropped.length">
               <summary>{{ t('settings.importDropped') }}</summary>
-              <code v-for="d in themeStore.lastReport.dropped" :key="d" style="display: block">{{ d }}</code>
+              <code v-for="d in themeStore.lastReport.dropped" :key="d" class="dropped-rule">{{ d }}</code>
             </details>
           </div>
           <p class="setting-hint">{{ t('themes.browseHint') }}</p>
@@ -2550,6 +2550,9 @@ section > label:has(input[type='checkbox']) {
 section > label:not(:has(input)) {
   font-size: 12px;
   color: var(--text-muted);
+}
+.dropped-rule {
+  display: block;
 }
 .setting-hint {
   margin: 0;

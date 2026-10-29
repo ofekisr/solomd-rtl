@@ -6,6 +6,7 @@ import { parseTheme, type Theme, type ThemeMode, type Variant } from '../lib/the
 import { resolveVariant, type ResolvedVariant } from '../lib/theme/resolve';
 import { canApplyMigration, findVariant, legacyAfterCss, legacyForMigration, pickSlot, type ActiveVariant } from '../lib/theme/slots';
 import { bundledThemes, loadMyThemes, removeMyTheme, saveMyTheme } from '../lib/theme/sources';
+import { importIdFor } from '../lib/theme/picker';
 import { applyTheme } from '../lib/theme/apply';
 import { convertMarketplaceCss } from '../lib/theme/from-css';
 import { THEME_LAYER_VERSION, marketplaceIdFor, planMigration, type LegacyThemeSettings } from '../lib/theme/migrate';
@@ -106,8 +107,10 @@ export const useThemeStore = defineStore('theme', {
     async importJson(text: string): Promise<Theme> {
       const r = parseTheme(JSON.parse(text));
       if (!r.ok) throw new Error(r.error);
-      const theme: Theme = { ...r.theme, source: 'mine', origin: 'json' };
+      const { id, replaces } = importIdFor(r.theme.id, this.themes);
+      const theme: Theme = { ...r.theme, id, source: 'mine', origin: 'json' };
       await this.save(theme);
+      if (replaces) useToastsStore().info(`Replaced ${theme.name}`);
       this.lastReport = { name: theme.name, dropped: [] };
       return theme;
     },

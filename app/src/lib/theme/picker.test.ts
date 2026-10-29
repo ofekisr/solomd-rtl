@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { groupSlotOptions, isPairedTheme, parseSlotValue, slotValue } from './picker.ts';
+import { groupSlotOptions, importIdFor, isPairedTheme, parseSlotValue, slotValue } from './picker.ts';
 import type { Theme } from './schema.ts';
 
 const load = (id: string): Theme => JSON.parse(readFileSync(new URL(`./builtin/${id}.json`, import.meta.url), 'utf8'));
@@ -30,4 +30,33 @@ test('a theme with both modes is paired, so picking it fills both slots', () => 
   const single: Theme = { ...nord, variants: { dark: nord.variants.dark } };
   assert.equal(isPairedTheme(single), false);
   assert.equal(isPairedTheme(undefined), false);
+});
+
+test('import id: built-in collision gets a my- prefix', () => {
+  assert.deepEqual(importIdFor('nord', [solomd, nord]), { id: 'my-nord', replaces: false });
+});
+
+test('import id: existing mine theme is replaced in place', () => {
+  assert.deepEqual(importIdFor('my-nord', [nord, mine]), { id: 'my-nord', replaces: true });
+});
+
+test('import id: fresh id is unchanged', () => {
+  assert.deepEqual(importIdFor('fresh', [solomd, nord]), { id: 'fresh', replaces: false });
+});
+
+test('import id: prefixed collision gets a numeric suffix', () => {
+  const taken: Theme = { ...mine, id: 'my-nord-2' };
+  const other: Theme = { ...mine, id: 'my-nord' };
+  assert.equal(importIdFor('nord', [nord, other, taken]).id, 'my-nord-3');
+});
+
+test('import id: a 64-char colliding id stays within the limit', () => {
+  const long = 'a'.repeat(64);
+  const builtin: Theme = { ...nord, id: long };
+  const first = importIdFor(long, [builtin]);
+  assert.ok(first.id.length <= 64);
+  const clash: Theme = { ...mine, id: first.id };
+  const second = importIdFor(long, [builtin, clash]);
+  assert.ok(second.id.length <= 64);
+  assert.notEqual(second.id, first.id);
 });
