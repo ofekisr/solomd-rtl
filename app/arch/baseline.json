@@ -86,10 +86,8 @@
     "app/src/lib/directive-completion-registry.ts",
     "app/src/lib/image-upload.ts",
     "app/src/lib/theme/sources.ts",
-    "app/src/stores/rag.ts",
     "app/src/stores/savedViews.ts",
-    "app/src/stores/themes.ts",
-    "app/src/stores/workspaceIndex.ts"
+    "app/src/stores/themes.ts"
   ],
   "libPurity": [
     "app/src/lib/ai-activity.ts",
