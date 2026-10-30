@@ -157,6 +157,11 @@ tests:
 
 Root `CLAUDE.md` §Greenness ladder gets the table above in 5 lines.
 
+**Carried from the PR-2 final review**
+- CI step after `guard`: `node app/arch/rebaseline.ts && git diff --exit-code app/arch/baseline.json`. This fails a shrink that was never rebaselined, which would otherwise leave slack for the file to grow back. `app/arch/CLAUDE.md` already promises this check.
+- CI pins Node with `actions/setup-node` `node-version: 22.19`. The arch specs rely on built-in type stripping (Node ≥ 22.18), and the repo has no `.nvmrc`.
+- The arch suite takes ~1s, because importing `typescript` for `ts.preProcessFile` costs ~0.4s. This is still well inside the `guard` ≤ 15s budget.
+
 **Test surface**: `guard`, `verify` exit 0 on the branch; deliberately grow a baselined file by one line locally → `guard` exits non-zero with the arch message.
 
 ---
