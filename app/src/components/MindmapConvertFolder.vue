@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
-import { open as openFolderDialog } from '@tauri-apps/plugin-dialog';
+import { dialogPort } from '../platform/index.ts';
 import { useI18n } from '../i18n';
 import { useTabsStore } from '../stores/tabs';
 import { useToastsStore } from '../stores/toasts';
@@ -94,7 +94,7 @@ async function load(path: string): Promise<void> {
 
 async function chooseFolder(): Promise<void> {
   try {
-    const selected = await openFolderDialog({ directory: true, multiple: false });
+    const selected = await dialogPort.open({ directory: true, multiple: false });
     if (typeof selected !== 'string') return;
     folder.value = selected;
     await load(selected);

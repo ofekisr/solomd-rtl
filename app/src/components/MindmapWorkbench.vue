@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { open as openFileDialog } from '@tauri-apps/plugin-dialog';
+import { dialogPort } from '../platform/index.ts';
 import { useI18n } from '../i18n';
 import { useToastsStore } from '../stores/toasts';
 import { useMindmapWorkbenchStore } from '../stores/mindmapWorkbench';
@@ -55,7 +55,7 @@ async function onOpen(e: Event): Promise<void> {
 
 async function addMaps(): Promise<void> {
   try {
-    const picked = await openFileDialog({ multiple: true, filters: MMAP_FILTER });
+    const picked = await dialogPort.open({ multiple: true, filters: MMAP_FILTER });
     const paths = Array.isArray(picked) ? picked : picked ? [picked] : [];
     for (const path of paths) store.add(fileDraft(path));
     await refreshStatus();

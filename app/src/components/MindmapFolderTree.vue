@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
-import { open as openFolderDialog } from '@tauri-apps/plugin-dialog';
+import { dialogPort } from '../platform/index.ts';
 import { useI18n } from '../i18n';
 import { useSettingsStore } from '../stores/settings';
 import { useTabsStore } from '../stores/tabs';
@@ -131,7 +131,7 @@ async function openRoot(path: string): Promise<void> {
 
 async function chooseFolder(): Promise<void> {
   try {
-    const picked = await openFolderDialog({ directory: true, multiple: false });
+    const picked = await dialogPort.open({ directory: true, multiple: false });
     if (typeof picked === 'string') await openRoot(picked);
   } catch (error) {
     console.error('mindmap folder tree: dialog failed', error);

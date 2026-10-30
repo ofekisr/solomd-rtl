@@ -9,7 +9,7 @@
  * (file tree, read/write, watcher, AutoGit) works against unchanged.
  */
 import { ref, watch } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
+import { fsPort } from '../platform/index.ts';
 import { useI18n } from '../i18n';
 
 const { t } = useI18n();
@@ -37,7 +37,7 @@ async function load(path: string) {
   error.value = '';
   permDenied.value = false;
   try {
-    const entries = await invoke<{ name: string; path: string; is_dir: boolean }[]>('list_dir', { path });
+    const entries = await fsPort.listDir({ path });
     dirs.value = entries.filter((e) => e.is_dir).map((e) => ({ name: e.name, path: e.path }));
     cwd.value = path;
   } catch (e) {
