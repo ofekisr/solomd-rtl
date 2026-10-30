@@ -8,7 +8,6 @@
     "app/src-tauri/src/convert.rs": 602,
     "app/src-tauri/src/crypto.rs": 707,
     "app/src-tauri/src/git_history.rs": 737,
-    "app/src-tauri/src/git_pane/cli/actions.rs": 2705,
     "app/src-tauri/src/git_pane/cli/diff.rs": 1332,
     "app/src-tauri/src/git_pane/cli/git.rs": 1061,
     "app/src-tauri/src/git_pane/cli/refs.rs": 1144,
