@@ -1,6 +1,6 @@
 ## LLD: Wave 1 — Platform seam
 
-**Status**: Stable | **Version**: v1.0 | **Date**: 30-10-26 | **HLD**: `2026-10-30-wave-refactor-hld.md` v3.1 | **ADR**: [0003](../../adr/0003-platform-ports.md)
+**Status**: Done | **Version**: v1.1 | **Date**: 30-10-26 | **HLD**: `2026-10-30-wave-refactor-hld.md` v3.1 | **ADR**: [0003](../../adr/0003-platform-ports.md)
 
 Wave 1 puts every Tauri call behind typed ports in `app/src/platform/` and splits five services out of `App.vue`. Behavior does not change: adapters pass IPC results and errors through untouched.
 
@@ -317,21 +317,40 @@ No persisted data changes. Rollback = revert the PR's commits; every PR is indep
 - (implicit) `lib/cm-image-paste.ts`, `lib/image-resolve.ts`, `lib/saf-fs.ts` etc. import `platform/` — HLD §3 says `lib/` has "no IPC". Rationale: R8, moved to `features/` in Wave 2.
 </conventions-check>
 
+### As shipped
+
+| Item | Planned | Shipped |
+|---|---|---|
+| Raw IPC | `rawIpc` 59 → 0 | 59 → 0; `raw-ipc` rule bans every `@tauri-apps/*` import outside `platform/` (`0c3db444`) |
+| `App.vue` | ≤ 2100 lines | 2511 → 2005; five `shell/` services with per-step methods so `onMounted` order is unchanged |
+| `libPurity` | shrinks | 21 → 5 |
+| Unit tests | never drop | 1153 → 1354 (+ 40 arch) |
+| Ports | 18 | 18 + `git-pane` adapter; `pathPort.convertFileSrc` added in PR-2 (`api/core` sync helper missed by the inventory) |
+| File tree | §PR-1 tree | `ipc/catalog-fixtures.ts` instead of `catalog-contract.ts`; `ai-tools/`, `capture/`, `android/`, `cloud/`, `convert/` as own dirs; `plugin-fs` folded into `path/` |
+| R11 | git-pane via the IPC gateway | Adapter takes raw `invoke` + `listen` (no drift validation); its own `ensure` validators check results |
+| Inventory | 59 files | +1: `stores/savedViews.ts` (a literal NUL sentinel made `grep` skip it) — migrated in PR-7 |
+| Gate | `full` green | Also fixed a stale Rust test (`read_file_test`, stale since `620418be`) unrelated to Wave 1 |
+
 ### Parked for Wave 2+
 
 - `lib/` files that do IPC through ports → `features/<f>/internal/` (Wave 2).
 - Flip proven domains from `report` to `strict` validation (Wave 3, new ADR).
 - Rust commands regrouped by domain mirroring `platform/` (Wave 3, `commands.rs` split).
+- `PlatformUnsupportedError` + `snakeToCamel` out of `ipc/command.port.ts` (port-file role).
+- Direct `lib/` purity: `lib/` → `platform/index.ts` still pulls `@tauri-apps/*` transitively.
+- Local `DirEntry` types duplicating port types (`useFolderTreeScan`, `useMindmapFolderFiles`); `githubSync` `guarded(cmd, …)` repeats the command string.
+- Tests: Android paths in `file-open.service`; dev-only per-element parse of byte arrays (`fs` port).
+- Behavior fixes deliberately not taken in a no-behavior-change wave: `directive-completions.ts` lets a Rust `null` default through (`key=null` snippets); cloud provider `icloud` vs Rust `i_cloud`; listeners `App.vue` never removed (still never removed).
 
 ---
 
 ### LLD AI Context YAML
 
 ```yaml
-lld_version: v1.0
+lld_version: v1.1
 feature: "Wave 1 — Platform seam"
 hld_version: v3.1
-status: stable
+status: done
 pr_count: 10
 execution_order: [pr-1, [pr-2, pr-3, pr-4, pr-5, pr-6, pr-7, pr-8, pr-9], pr-10]
 open_items: []
