@@ -56,7 +56,6 @@
     "app/src/lib/bases.ts": 815,
     "app/src/lib/citations.ts": 421,
     "app/src/lib/cm-image-paste.ts": 671,
-    "app/src/lib/cm-live-blocks.ts": 1620,
     "app/src/lib/cm-live-render.ts": 1020,
     "app/src/lib/cm-slash-commands.ts": 557,
     "app/src/lib/docx-export.ts": 764,
