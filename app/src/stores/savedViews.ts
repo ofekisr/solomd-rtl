@@ -18,7 +18,7 @@
  *      so we never touch bases.ts and never do async work per row.
  */
 import { defineStore } from 'pinia';
-import { invoke } from '@tauri-apps/api/core';
+import { fsPort } from '../platform/index.ts';
 import { inferColumns, applySort, type ColumnDef, type SortSpec } from '../lib/bases';
 import {
   parseViewFile,
@@ -96,7 +96,7 @@ export const useSavedViewsStore = defineStore('savedViews', {
         const dir = joinPath(folder, VIEWS_DIR);
         let entries: DirEntry[] = [];
         try {
-          entries = await invoke<DirEntry[]>('list_dir', { path: dir });
+          entries = await fsPort.listDir({ path: dir });
         } catch {
           // Directory doesn't exist yet → no views. Not an error.
           this.views = [];
@@ -109,7 +109,7 @@ export const useSavedViewsStore = defineStore('savedViews', {
         const loaded: ViewFile[] = [];
         for (const e of ymls) {
           try {
-            const res = await invoke<{ content: string }>('read_file', {
+            const res = await fsPort.readFile({
               path: e.path,
             });
             const slug = e.name.replace(/\.ya?ml$/i, '');
@@ -134,7 +134,7 @@ export const useSavedViewsStore = defineStore('savedViews', {
     async ensureDir(folder: string): Promise<string> {
       const dir = joinPath(folder, VIEWS_DIR);
       try {
-        await invoke('fs_create_dir', { path: dir });
+        await fsPort.fsCreateDir({ path: dir });
       } catch (e) {
         // `already exists` is expected and fine; rethrow anything else.
         if (!String(e).includes('already exists')) throw e;
@@ -154,7 +154,7 @@ export const useSavedViewsStore = defineStore('savedViews', {
       await this.ensureDir(folder);
       const dir = joinPath(folder, VIEWS_DIR);
       const path = joinPath(dir, `${clean.slug}.yml`);
-      await invoke('write_file', {
+      await fsPort.writeFile({
         path,
         content: serializeViewFile(clean),
         encoding: 'UTF-8',
@@ -171,7 +171,7 @@ export const useSavedViewsStore = defineStore('savedViews', {
       if (!folder) return;
       const path = joinPath(joinPath(folder, VIEWS_DIR), `${slug}.yml`);
       try {
-        await invoke('fs_delete', { path });
+        await fsPort.fsDelete({ path });
       } catch (e) {
         console.warn('[savedViews] delete failed', e);
       }
