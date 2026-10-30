@@ -1,6 +1,7 @@
 import type { Tab } from '../types';
 import { compactTabs, expandTabs, setItemWithEviction } from '../lib/tab-persistence';
 import { sessionKey } from '../lib/cm-session-restore';
+import { readStoredSetting } from '../features/settings/contracts/index.ts';
 
 interface TauriWindow {
   __TAURI_INTERNALS__?: { metadata?: { currentWindow?: { label?: unknown } } };
@@ -51,28 +52,16 @@ export interface PersistedState {
 /** Read-only check for the "restore previous session" setting, inlined
  *  from localStorage so we can run before the settings store hydrates. */
 export function restoreSessionEnabled(): boolean {
-  try {
-    const raw = localStorage.getItem('solomd.settings.v1');
-    if (raw) {
-      const s = JSON.parse(raw);
-      if (s && typeof s.restoreSession === 'boolean') return s.restoreSession;
-    }
-  } catch {}
-  return true;
+  const stored = readStoredSetting('restoreSession');
+  return typeof stored === 'boolean' ? stored : true;
 }
 
 /** Per-workspace tab scoping. Default ON. Inlined from localStorage so it
  *  works before the settings store hydrates (loadPersisted runs at store
  *  creation). */
 export function perWorkspaceTabsEnabled(): boolean {
-  try {
-    const raw = localStorage.getItem('solomd.settings.v1');
-    if (raw) {
-      const s = JSON.parse(raw);
-      if (s && typeof s.perWorkspaceTabs === 'boolean') return s.perWorkspaceTabs;
-    }
-  } catch {}
-  return true;
+  const stored = readStoredSetting('perWorkspaceTabs');
+  return typeof stored === 'boolean' ? stored : true;
 }
 
 /** Current workspace folder, read straight from localStorage to avoid a

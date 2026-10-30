@@ -1,7 +1,7 @@
 /**
  * Bridge between "the caret is in a formula" and the formula editor dialog.
  *
- * Same shape as `table-editor-bus.ts` and for the same reason: the editor is
+ * Same shape as `useTableEditorBus.ts` and for the same reason: the editor is
  * per-pane, the dialog is one modal, and the pane hands over its own write-back
  * closure so the dialog never has to know which editor it is talking to.
  */

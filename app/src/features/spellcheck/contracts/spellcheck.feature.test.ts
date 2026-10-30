@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { defaults } from '../../../stores/settings.ts';
 import { EditorView } from '@codemirror/view';
-import { fakeContext, stateWith } from '../../editor/internal/cm-probe.ts';
+import { fakeContext, stateWith } from '../../editor/contracts/testkit.ts';
 import { createSpellcheckFeature } from './spellcheck.feature.ts';
 
 const spellcheckAttr = (spellCheck: boolean) => {
@@ -12,10 +11,9 @@ const spellcheckAttr = (spellCheck: boolean) => {
   return state.facet(EditorView.contentAttributes);
 };
 
-test('manifest: settingsKeys exist in defaults()', () => {
+test('manifest: id and no i18n keys', () => {
   const feature = createSpellcheckFeature();
   assert.equal(feature.id, 'spellcheck');
-  for (const key of feature.settingsKeys) assert.ok(key in defaults(), key);
   assert.deepEqual(feature.i18nKeys, []);
 });
 

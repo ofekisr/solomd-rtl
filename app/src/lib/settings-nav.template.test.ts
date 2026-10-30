@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { SETTINGS_PAGES } from '../features/settings/ui/settings-pages.ts';
 import { ALL_PAGE_KEYS, categoryOf } from './settings-nav.ts';
 
 const PAGES_DIR = new URL('../features/settings/ui/pages/', import.meta.url);
@@ -61,11 +60,4 @@ test('each page file carries only its own data-page', () => {
 test('no page is left empty', () => {
   const used = new Set(PAGES.filter((p) => p.blocks.length > 0).map((p) => p.key));
   for (const key of ALL_PAGE_KEYS) assert.ok(used.has(key), `empty page ${key}`);
-});
-
-test('SETTINGS_PAGES keys equal ALL_PAGE_KEYS in order', () => {
-  assert.deepEqual(
-    SETTINGS_PAGES.map((p) => p.key),
-    [...ALL_PAGE_KEYS],
-  );
 });

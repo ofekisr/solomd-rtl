@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { Compartment, type EditorState } from '@codemirror/state';
 import { EXTENSION_SLOTS } from '../features/editor/contracts/index.ts';
-import { fakeContext } from '../features/editor/internal/cm-probe.ts';
-import { stateWith } from '../features/editor/internal/cm-probe.ts';
+import { fakeContext } from '../features/editor/contracts/testkit.ts';
+import { stateWith } from '../features/editor/contracts/testkit.ts';
 import { defaults } from '../stores/settings.ts';
 import { createEditorRegistry } from './editor-registry.service.ts';
 

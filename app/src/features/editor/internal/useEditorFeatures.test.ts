@@ -5,7 +5,7 @@ import { EditorState, type Extension } from '@codemirror/state';
 import type { EditorView } from '@codemirror/view';
 import { createEditorFeatureRegistry } from './editor-feature-registry.service.ts';
 import { useEditorFeatures } from './useEditorFeatures.ts';
-import { fakeContext, fakeView } from './cm-probe.ts';
+import { fakeContext, fakeView } from '../contracts/testkit.ts';
 import type { EditorFeature } from '../contracts/editor-feature.port.ts';
 import type { Tab } from '../../../types.ts';
 

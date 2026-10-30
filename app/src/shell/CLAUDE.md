@@ -11,7 +11,9 @@ App-wide services extracted from `App.vue` (Wave 1 PR-9). Spec: [LLD §PR-9](../
 | `shortcuts.service.ts` | Esc priority, zoom keys, native-menu sync, quick-capture hotkey, menu-action dispatch table |
 | `session.service.ts` | Tabs + tiles persistence, tiles init / sync |
 | `updates.service.ts` | Startup update check + toast |
-| `editor-registry.service.ts` | Editor feature factory list (`EDITOR_FEATURE_FACTORIES`) + `createEditorRegistry()` (Wave 2) |
+| `editor-registry.service.ts` | Editor feature factory list (`EDITOR_FEATURE_FACTORIES`) + `createEditorRegistry()` (Wave 2). `App.vue` provides it as `EDITOR_REGISTRY_FACTORY`; `features/editor/ui/Editor.vue` injects it (a feature never imports `shell/`) |
+| `settings-registry.service.ts` | Settings registry: re-exports the ordered `SETTINGS_SLICES` (list lives in `features/settings/internal/settings-slices.ts`, read by the store through the feature contract) and `settingsSliceKeys()`. Its test is the single key-ownership check (slice partition, page order, every editor feature's `settingsKeys` and `i18nKeys`) |
+| `settings-pages.ts` | `SETTINGS_PAGES`: ordered page components (no role suffix: it imports `.vue` pages). `App.vue` provides it as `SETTINGS_PAGES_KEY`; `SettingsPanel.vue` injects it |
 
 ## Host composables and components (Wave 1b)
 
@@ -33,6 +35,7 @@ Spec: [Wave 1b LLD](../../../docs/superpowers/specs/2026-10-30-wave1b-app-host-l
 | `components/shell/SidebarContextMenu.vue` | Right-click pane toggles |
 | `components/shell/AppDialogs.vue` | Every modal; mounted in reading mode too |
 
+- Registries: `App.vue` provides `EDITOR_REGISTRY_FACTORY` and `SETTINGS_PAGES_KEY` before it creates the host composables. Providing is keyed, so it does not change watcher order. Consumers throw a clear error when the key is missing.
 - Shared state: `App.vue` calls `createX()` once (it `provide`s); components call `useX()` (`inject`, throws when missing).
 - Window listeners register at setup from composables `App.vue` calls, never from a component that mounts only outside reading mode.
 

@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { defaults } from '../../../stores/settings.ts';
-import { fakeContext, stateWith } from '../../editor/internal/cm-probe.ts';
+import { fakeContext, stateWith } from '../../editor/contracts/testkit.ts';
 import { createVimFeature } from './vim.feature.ts';
 
 const slot = () => {
@@ -10,10 +9,9 @@ const slot = () => {
   return found;
 };
 
-test('manifest: settingsKeys exist in defaults()', () => {
+test('manifest: id and no i18n keys', () => {
   const feature = createVimFeature();
   assert.equal(feature.id, 'vim');
-  for (const key of feature.settingsKeys) assert.ok(key in defaults(), key);
   assert.deepEqual(feature.i18nKeys, []);
 });
 

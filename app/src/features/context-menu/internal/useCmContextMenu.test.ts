@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { effectScope } from 'vue';
 import type { EditorView } from '@codemirror/view';
-import { fakeView, stateWith } from '../../editor/internal/cm-probe.ts';
+import { fakeView, stateWith } from '../../editor/contracts/testkit.ts';
 import { useCmContextMenu } from './useCmContextMenu.ts';
 import { stubGlobal, stubNavigator } from './stubs.testkit.ts';
 

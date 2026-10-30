@@ -9,10 +9,13 @@ Editor features (Wave 2). ADR: [0004](../../../../docs/adr/0004-editor-feature-r
 | `contracts/` | Public surface: `EditorFeature`, `EXTENSION_SLOTS`, `EditorFeatureContext`, `EditorApi`, registry factory, core feature factories. Other code imports only `contracts/index.ts` |
 | `contracts/editor-component.ts` | Exports `Editor.vue` (Vue; separate entry) |
 | `internal/editor-feature-registry.service.ts` | Validates features, orders extensions by slot rank, resolves commands |
-| `internal/cm-probe.ts` | Test helpers: `stateWith`, `fakeView`, `fakeContext` |
+| `contracts/testkit.ts` | Test helpers: `stateWith`, `fakeView`, `fakeContext`. Tests import it directly; `contracts/index.ts` does not export it (keeps it out of the prod bundle) |
+| `contracts/editor-registry.port.ts` | `EDITOR_REGISTRY_FACTORY` (`InjectionKey<() => EditorFeatureRegistry>`) |
 | `ui/Editor.vue` | Host (< 200 lines): builds the context, composes the registry and host composables, forwards `EditorApi`, renders CM or `PlainEditor` |
 
-Registered in `src/shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`); `Editor.vue` calls `createEditorRegistry()`.
+Registered in `src/shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`). `App.vue` provides `createEditorRegistry` under `EDITOR_REGISTRY_FACTORY`; `Editor.vue` injects it and throws if missing. Code that builds an editor outside `App` (tests) takes the factory from `shell/` directly.
+
+`EditorFeature.settingsKeys` is `readonly SettingsKey[]` and `i18nKeys` is `readonly I18nKey[]` (`i18n/keys.ts`; `foo.*` names a group). `tsc` catches typos; `shell/settings-registry.service.test.ts` checks every registered feature's keys exist. Do not add per-feature key assertions.
 
 ### Host composables and CM helpers
 
@@ -54,7 +57,7 @@ Registered in `src/shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`
 
 ## Rules
 
-- Features and `.service.ts` files import no `vue` / `pinia` (type-only imports are fine). Only the `use*.ts` composables, `ui/*.vue` and their tests import `vue`. Exceptions moved from `lib/` (untracked by `libPurity` since): `find/internal/cm-find-panel.ts` (mounts `FindBar.vue`), `format/internal/{table,formula}-editor-bus.ts` (`reactive` refs).
+- Features and `.service.ts` files import no `vue` / `pinia` (type-only imports are fine). Only the `use*.ts` composables, `ui/*.vue` and their tests import `vue`. Remaining exception (`featurePurity` baseline): `find/internal/cm-find-panel.ts` (mounts `FindBar.vue`). The format editor buses are `use{Table,Formula}EditorBus.ts` composables, so they are not exceptions.
 - Local imports carry the `.ts` extension (Node type-stripping tests).
 - Each `.ts` file is at most 400 lines. No `any`.
 - A feature talks to another feature only through `ctx.run(command, ...args)`.
@@ -64,7 +67,7 @@ Registered in `src/shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`
 1. Write the feature object (`id` kebab-case, `settingsKeys`, `i18nKeys`) in its own folder.
 2. Pick slots from `EXTENSION_SLOTS`. Static pieces go in `extensions`; setting-driven pieces go in `slots` (`deps` + `build`, optional `when` / `after`). One reconfigurable slot per slot name per feature.
 3. Add a factory to `EDITOR_FEATURE_FACTORIES`. Order there is lifecycle-hook order.
-4. Write characterization tests with `cm-probe` (`stateWith`, `fakeView`, `fakeContext`).
+4. Write characterization tests with `contracts/testkit.ts` (`stateWith`, `fakeView`, `fakeContext`).
 5. Command names are global; a duplicate throws at registry creation.
 - `when()` is read only when the state is built: a slot excluded then has no compartment and is skipped on reconfigure until the next `setState` (tab switch). Prefer an always-present slot with a conditional `build`.
 - Slot reconfigures skip tab switches: `setState` rebuilds every compartment, so put tab-switch side effects in `onTabSwitch`, not in a slot's `after`.

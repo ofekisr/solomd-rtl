@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { inject, ref } from 'vue';
 import { useI18n } from '../../../i18n';
 import { useThemeStudio } from '../../../composables/useThemeStudio';
 import { ALL_PAGE_KEYS, crumbsOf, defaultPage, isMultiPage, SETTINGS_NAV } from '../../../lib/settings-nav';
@@ -10,12 +10,14 @@ import { provideSettingsPanelContext } from '../internal/useSettingsPanelContext
 import { useSearchShortcuts } from '../internal/useSearchShortcuts.ts';
 import { useSettingsNavigation } from '../internal/useSettingsNavigation.ts';
 import { useSettingsSearch } from '../internal/useSettingsSearch.ts';
-import { SETTINGS_PAGES } from './settings-pages.ts';
+import { SETTINGS_PAGES_KEY } from '../contracts/settings-pages.key.ts';
 
 const props = defineProps<SettingsPanelProps>();
 const emit = defineEmits<{ (e: 'close'): void }>();
 
 const { t } = useI18n();
+const settingsPages = inject(SETTINGS_PAGES_KEY);
+if (!settingsPages) throw new Error('SettingsPanel: SETTINGS_PAGES_KEY is not provided; App.vue must provide it');
 const MODAL_WIDTH = 'min(960px, 92vw)';
 
 const bodyEl = ref<HTMLElement | null>(null);
@@ -109,7 +111,7 @@ provideSettingsPanelContext({
             {{ t('settings.searchEmpty', { q: searchQuery.trim() }) }}
           </p>
         </template>
-        <component :is="p.component" v-for="p in SETTINGS_PAGES" :key="p.key" />
+        <component :is="p.component" v-for="p in settingsPages" :key="p.key" />
       </div>
       </div>
       </div>

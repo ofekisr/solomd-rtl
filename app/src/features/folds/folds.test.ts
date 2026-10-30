@@ -1,16 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { EditorView } from '@codemirror/view';
-import { stateWith, fakeView, fakeContext, type FakeContext } from '../editor/internal/cm-probe.ts';
-import { defaults } from '../../stores/settings.ts';
-import { en } from '../../i18n/en.ts';
+import { stateWith, fakeView, fakeContext, type FakeContext } from '../editor/contracts/testkit.ts';
 import { currentFoldRanges } from '../../lib/cm-heading-fold.ts';
 import { createFoldsFeature } from './contracts/index.ts';
 import { applyFold, foldExtensionFor } from './internal/apply-fold.ts';
-
-function defaultSettingKeys(): string[] {
-  return Object.keys(defaults());
-}
 
 
 const DOC = '# A\ntext\n## B\nmore\n# C\nend';
@@ -100,7 +94,7 @@ test('restore does nothing when folding is disabled', () => {
   assert.equal(currentFoldRanges(fv.state).length, 0);
 });
 
-test('fold slot builds from the setting; manifest resolves', () => {
+test('fold slot builds from the setting', () => {
   const feature = createFoldsFeature();
   const on = fakeContext({ settings: { foldingEnabled: true } });
   const off = fakeContext({ settings: { foldingEnabled: false } });
@@ -108,12 +102,6 @@ test('fold slot builds from the setting; manifest resolves', () => {
   assert.equal(slot.slot, 'fold');
   assert.equal(slot.deps(on), true);
   assert.deepEqual(slot.build(off), []);
-  const known = defaultSettingKeys();
-  for (const key of feature.settingsKeys) assert.ok(known.includes(key), key);
-  for (const key of feature.i18nKeys) {
-    const value = key.split('.').reduce<unknown>((o, p) => (o as Record<string, unknown> | undefined)?.[p], en);
-    assert.equal(typeof value, 'string', key);
-  }
 });
 
 test('applyFold command defaults level to 2', () => {

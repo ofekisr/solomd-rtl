@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { fakeView, stateWith } from '../../editor/internal/cm-probe.ts';
+import { fakeView, stateWith } from '../../editor/contracts/testkit.ts';
 import { formatMarkdownInView, transformCaseInView } from './cm-format.ts';
 import { formatMath, openTableWith, tableRangeAt } from './doc-commands.ts';
 import { CURSOR_MARKER, insertMarkdownInView } from './insert-markdown.ts';
@@ -63,7 +63,7 @@ test('formatMath', () => {
 });
 
 test('openTableWith happy path hands the table to the editor and replaces the range', async () => {
-  const { tableEditor } = await import('./table-editor-bus.ts');
+  const { tableEditor } = await import('./useTableEditorBus.ts');
   const calls: Array<[number, number, string]> = [];
   const src = 'x\n| a |\n| - |\n| 1 |\ny';
   openTableWith(

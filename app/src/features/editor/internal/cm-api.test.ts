@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { cmGetLineSelection } from './cm-api.ts';
-import { fakeView, stateWith } from './cm-probe.ts';
+import { fakeView, stateWith } from '../contracts/testkit.ts';
 
 const DOC = 'one\ntwo\nthree';
 

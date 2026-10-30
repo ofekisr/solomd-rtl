@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { applyAiActivity } from '../../../lib/ai-activity.ts';
-import { stateWith } from '../../editor/internal/cm-probe.ts';
+import { stateWith } from '../../editor/contracts/testkit.ts';
 import { legacyAiRewriteAdapter } from './ai-rewrite.legacy.adapter.ts';
 
 test('isLocked delegates to the ai-activity state', () => {

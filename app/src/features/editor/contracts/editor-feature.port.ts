@@ -4,6 +4,8 @@ import { z } from 'zod';
 import type { useSettingsStore } from '../../../stores/settings.ts';
 import type { Tab } from '../../../types.ts';
 import type { CitationEntry } from '../../../lib/citations.ts';
+import type { I18nKey } from '../../../i18n/keys.ts';
+import type { SettingsKey } from '../../settings/contracts/index.ts';
 
 /** Today's buildExtensions() positions, in order (Editor.vue 3026-3145). ADR 0004. */
 export const EXTENSION_SLOTS = [
@@ -62,8 +64,8 @@ export interface TabSwitch { oldId?: string; newId: string }
 
 export interface EditorFeature {
   readonly id: string;
-  readonly settingsKeys: readonly string[];
-  readonly i18nKeys: readonly string[];
+  readonly settingsKeys: readonly SettingsKey[];
+  readonly i18nKeys: readonly I18nKey[];
   readonly extensions?: Partial<Record<ExtensionSlot, (ctx: EditorFeatureContext) => Extension>>;
   readonly slots?: readonly ReconfigurableSlot[];
   readonly watches?: readonly FeatureWatch[];

@@ -4,13 +4,19 @@ Settings contract: typed slices over one flat blob, a versioned loader, golden f
 
 ## Status
 
-| Part | State |
-|---|---|
-| Contract, loader, migrations, golden fixtures | Shipped (Wave 3 PR-1) |
-| `stores/settings.ts` calls `loadSettings` and spreads slice actions | PR-2 |
-| Settings pages rendered from the registry | PR-3 |
+Shipped (Wave 3): contract, loader, migrations, golden fixtures; `stores/settings.ts` calls `loadSettings` and spreads slice actions; panel pages rendered from the registry; typed `SettingsKey`; `readStoredSetting`.
 
-Until PR-2 nothing imports `internal/settings-load.service.ts`: the store still has its own `load()`. The golden test pins that `load()`.
+The golden test pins `load()` for every fixture blob.
+
+## Registry
+
+| What | Where |
+|---|---|
+| `SETTINGS_SLICES` (ordered) | `internal/settings-slices.ts`; exported by `contracts/settings-store.contract.ts`; the store reads it from there (state is created on first `useSettingsStore()`; no setter, so tests and the app load identically) |
+| Shell registry | `shell/settings-registry.service.ts` re-exports the list; its test is the one key-ownership check (every `SettingsKey` in exactly one slice, page order = `ALL_PAGE_KEYS`, every editor feature's keys exist) |
+| `SETTINGS_PAGES` (ordered) | `shell/settings-pages.ts`; `App.vue` provides it under `SETTINGS_PAGES_KEY` (`contracts/settings-pages.key.ts`); `SettingsPanel.vue` injects it and throws if missing |
+| `SettingsKey` = `keyof Settings` | `contracts`; `EditorFeature.settingsKeys` uses it |
+| `readStoredSetting(key)` | `contracts`; raw stored value or `undefined`, never throws. For stores that need a flag before hydration (`tabs-persist.ts`, `tiles.ts`); callers keep their own type guard and fallback |
 
 ## Layout
 
@@ -20,6 +26,10 @@ Until PR-2 nothing imports `internal/settings-load.service.ts`: the store still 
 | `internal/settings-load.service.ts` | `loadSettings(raw, slices, migrations, opts)`; pure, no `localStorage`, no Vue |
 | `internal/settings-migrations.ts` | `SETTINGS_MIGRATIONS`; step `to: 2` holds today's one-time steps |
 | `internal/local-storage-stub.ts` | `withLocalStorage(seed)`: Map-backed `localStorage` + pinned `navigator` |
+| `internal/stored-setting.ts` | `readStoredSetting`; reads `SETTINGS_STORAGE_KEY` without the store |
+| `contracts/settings-pages.key.ts` | `SETTINGS_PAGES_KEY`, `SettingsPageEntry` (in the barrel; no `.vue`) |
+| `contracts/settings-pages.contract.ts` | The 19 page components. Imported only by `shell/settings-pages.ts`, never through `contracts/index.ts` (the stores import the barrel; `stores/settings.import-graph.test.ts` fails if its graph reaches a `.vue`) |
+| `ui/SettingsPanel.vue`, `ui/pages/*Page.vue`, `ui/settings-page.css` | Panel shell and one multi-root page per IA page; block CSS in `settings-page.css`, loaded per page |
 | `internal/useGoldenCapture.ts` | Test/script helper: store state from a seeded blob (named `use*` because it imports pinia) |
 | `internal/__fixtures__/blobs/` | Pre-wave blobs: `empty`, `v36-minimal`, `v4-beta`, `full-current`, `tampered`, `zh`, `legacy-keybindings`, `unknown-keys` |
 | `internal/__fixtures__/expected/` | What the store produced for each blob (plus `none`) before the refactor |
@@ -33,9 +43,21 @@ Until PR-2 nothing imports `internal/settings-load.service.ts`: the store still 
 
 ## Add a key
 
-1. Add it to the owning slice: schema, `defaults()`, optional `normalize`. (Slices arrive in PR-2.)
+1. Add it to the owning slice: schema, `defaults()`, optional `normalize`.
 2. Add it to a fixture blob only if its default is not enough to pin behavior.
 3. Never put a key in two slices.
+
+## Add a page
+
+1. Write `ui/pages/<Cat><Page>Page.vue` as a multi-root fragment: each `data-cat` block is a direct child of `.settings__body`.
+2. Add the page key to `lib/settings-nav.ts` (`ALL_PAGE_KEYS`) and the nav tree.
+3. Export the component from `contracts/settings-pages.contract.ts` (not the barrel); add `{ key, component }` to `shell/settings-pages.ts` in `ALL_PAGE_KEYS` order. The registry test fails on a mismatch.
+
+## Panel rules
+
+- **Fragments.** Search, `style.order` and `pageVisibilityCss` need `[data-cat]` blocks as direct children of the body. Chrome rule: `.settings__body[data-searching] > :deep([data-cat]...)`.
+- **Watcher order.** `SettingsPanel.vue` calls `useSettingsNavigation` → `useSettingsSearch` → `useSearchShortcuts`. Reordering changes behavior.
+- **Page-local transient state re-initializes on every open.** The shortcut filter, the custom-font mode and the mind-map error live in page components; `DsModal` renders its slot with `v-if`, so closing the panel unmounts them. Accepted: no persisted input is lost.
 
 ## Add a migration step
 

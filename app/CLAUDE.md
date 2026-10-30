@@ -8,15 +8,15 @@ Vue 3 + CodeMirror 6 + Pinia front end. `src-tauri/` is the Rust desktop shell. 
 |---|---|---|
 | `src/App.vue` | Thin host (≤ 500 lines): services, startup order, root element | Stays |
 | `src/components/shell/` | App chrome split out of `App.vue`: layout, right sidebar, dialogs host | Stays |
-| `src/shell/` | App-wide services (window, file-open, shortcuts, session, updates). Read [shell/CLAUDE.md](src/shell/CLAUDE.md) | Stays |
-| `src/features/` | Editor features (Wave 2), one folder each: `editor` (host, plain engine, core/appearance/live-render), `find`, `vim`, `spellcheck`, `ai-rewrite`, `focus-mode`, `image-upload`, `completion`, `session`, `folds`, `format`, `context-menu`. Registered in `shell/editor-registry.service.ts`. Read [features/editor/CLAUDE.md](src/features/editor/CLAUDE.md) | Grows per wave |
-| `src/components/` | 114 flat Vue components; `git/`, `properties/` subfolders | Empties into `features/<f>/ui/` by Wave 4 |
+| `src/shell/` | App-wide services (window, file-open, shortcuts, session, updates), the editor-feature factory list and the settings page/slice registry, both provided to features by `App.vue`. Read [shell/CLAUDE.md](src/shell/CLAUDE.md) | Stays |
+| `src/features/` | Editor features (Wave 2), one folder each: `editor` (host, plain engine, core/appearance/live-render), `find`, `vim`, `spellcheck`, `ai-rewrite`, `focus-mode`, `image-upload`, `completion`, `session`, `folds`, `format`, `context-menu`; plus `file-tree` (sidebar tree) and `settings` (slices, loader, panel pages). Editor features are registered in `shell/editor-registry.service.ts` and reach `Editor.vue` by `provide`/`inject`. Read [features/editor/CLAUDE.md](src/features/editor/CLAUDE.md) and [features/settings/CLAUDE.md](src/features/settings/CLAUDE.md) | Grows per wave |
+| `src/components/` | 116 flat Vue components; `git/`, `properties/` subfolders | Empties into `features/<f>/ui/` by Wave 4 |
 | `src/composables/` | `use*` hooks; host state for `App.vue` (`createX`/`useX`, see shell/CLAUDE.md) | Move with their feature; host ones stay |
-| `src/stores/` | Pinia stores; `settings.ts` holds all settings | Per-feature settings slices (Wave 3) |
+| `src/stores/` | Pinia stores; `settings.ts` is the store shell over the slices in `features/settings/` (state, `persist`, slice actions). Stores read a stored flag before hydration through `readStoredSetting` | Stays |
 | `src/platform/` | Typed ports over Tauri; only importer of `@tauri-apps/*`. Read [platform/CLAUDE.md](src/platform/CLAUDE.md) | Stays |
-| `src/lib/` | Mostly pure TS: CM extensions (`cm-*.ts`), parsers, `theme/`, `git-pane/`, `fixtures/`. 2 files still import `vue`/`pinia`/`@tauri-apps/*` (`libPurity` baseline: `ai-activity.ts`, `quick-capture-status.ts`) | Stays. Fully pure when those two move (Waves 3-4) |
+| `src/lib/` | Mostly pure TS: CM extensions (`cm-*.ts`), parsers, `theme/`, `git-pane/`, `fixtures/`. 1 file still imports `vue`/`pinia`/`@tauri-apps/*` (`libPurity` baseline: `ai-activity.ts`) | Stays. Fully pure when it moves (Wave 4) |
 | `src/ui/` | `Ds*` design-system primitives | Stays |
-| `src/i18n/` | Locale tables. New strings go in `en.ts` | Keys move into features (Wave 2+) |
+| `src/i18n/` | Locale tables. New strings go in `en.ts`. `keys.ts` exports `I18nKey` (dot-paths of `en`) | Tables stay; keys are typed per feature |
 | `src/styles/` | Global CSS and tokens | Stays |
 | `src/dev/` | Dev-only render harnesses | Stays |
 | `src-tauri/src/` | Rust commands (`commands.rs`, `ai_proxy.rs`, `git_pane/`) | Grouped by domain, mirroring `platform/` |

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fakeContext } from '../../editor/internal/cm-probe.ts';
+import { fakeContext } from '../../editor/contracts/testkit.ts';
 import { slashExt, slashOptions } from './slash.ts';
 
 test('slashExt is empty when slash commands are disabled', () => {

@@ -1,7 +1,7 @@
 # features/image-upload/
 
 Image paste/drop, insert-from-path/URL and bulk upload of local images to the configured host.
-Consumed by: `shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`), which `editor/ui/Editor.vue` composes.
+Consumed by: `shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`), provided to `editor/ui/Editor.vue` by `App.vue` through `EDITOR_REGISTRY_FACTORY`.
 
 | Path | Holds |
 |---|---|

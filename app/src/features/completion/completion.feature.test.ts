@@ -1,27 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { completionStatus } from '@codemirror/autocomplete';
-import { fakeContext, stateWith } from '../editor/internal/cm-probe.ts';
-import { en } from '../../i18n/en.ts';
-import { defaults } from '../../stores/settings.ts';
+import { fakeContext, stateWith } from '../editor/contracts/testkit.ts';
 import type { EditorFeature } from '../editor/contracts/index.ts';
 
 import { createCompletionFeature } from './contracts/completion.feature.ts';
 
 const feature: EditorFeature = createCompletionFeature();
 
-test('manifest: id and settingsKeys exist in defaults()', () => {
+test('manifest: id', () => {
   assert.equal(feature.id, 'completion');
-  for (const key of feature.settingsKeys) assert.ok(key in defaults(), key);
-});
-
-test('manifest: i18nKeys resolve in en.ts', () => {
-  for (const key of feature.i18nKeys) {
-    const path = key.replace(/\.\*$/, '').split('.');
-    const value = path.reduce<unknown>((acc, k) => (acc as Record<string, unknown> | undefined)?.[k], en);
-    assert.ok(value !== undefined, key);
-    if (key.endsWith('.*')) assert.equal(typeof value, 'object', key);
-  }
 });
 
 test('md-completion is empty for non-markdown tabs', () => {

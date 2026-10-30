@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { EditorView } from '@codemirror/view';
-import { stateWith } from '../../editor/internal/cm-probe.ts';
+import { stateWith } from '../../editor/contracts/testkit.ts';
 import { aiLockExtension, currentAiRewriteKey, UNBOUND_CM_KEY } from './rewrite-key.ts';
 
 test('default chord maps to CodeMirror spelling', () => {

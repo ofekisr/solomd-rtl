@@ -1,5 +1,5 @@
 import { EditorState, type Extension, type TransactionSpec } from '@codemirror/state';
-import type { EditorFeatureContext, EditorProps, ViewLike } from '../contracts/editor-feature.port.ts';
+import type { EditorFeatureContext, EditorProps, ViewLike } from './editor-feature.port.ts';
 import type { Tab } from '../../../types.ts';
 
 export function stateWith(extensions: Extension, doc = '', selection?: { anchor: number; head?: number }): EditorState {

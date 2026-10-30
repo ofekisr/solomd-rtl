@@ -1,18 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { EditorView } from '@codemirror/view';
-import { stateWith, fakeView, fakeContext } from '../editor/internal/cm-probe.ts';
-import { defaults } from '../../stores/settings.ts';
-import { en } from '../../i18n/en.ts';
+import { stateWith, fakeView, fakeContext } from '../editor/contracts/testkit.ts';
 import { convertPort } from '../../platform/index.ts';
 import { createImageUploadFeature } from './contracts/index.ts';
 import { imageSrcChanges, localImageSources, parseFrontMatterImageRoot } from './internal/image-links.ts';
 import { uploadLocalImages } from './internal/upload-local-images.ts';
 import { imagePasteOptionsFor } from './internal/image-paste-options.ts';
-
-function defaultSettingKeys(): string[] {
-  return Object.keys(defaults());
-}
 
 
 test('parseFrontMatterImageRoot reads the three key spellings', () => {
@@ -103,14 +97,8 @@ test('imagePasteOptionsFor reads tab and settings and routes notify to toasts', 
   assert.deepEqual(ctx.toasts, ['success:k1', 'error:k2', 'info:k3']);
 });
 
-test('manifest keys resolve in settings defaults and en i18n', () => {
+test('manifest id and image-paste slot', () => {
   const feature = createImageUploadFeature();
-  const known = defaultSettingKeys();
-  for (const key of feature.settingsKeys) assert.ok(known.includes(key), key);
-  for (const key of feature.i18nKeys) {
-    const value = key.split('.').reduce<unknown>((o, p) => (o as Record<string, unknown> | undefined)?.[p], en);
-    assert.equal(typeof value, 'string', key);
-  }
   assert.equal(feature.id, 'image-upload');
   assert.ok(feature.extensions?.['image-paste']);
 });

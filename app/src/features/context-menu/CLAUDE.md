@@ -1,7 +1,7 @@
 # features/context-menu
 
 CodeMirror right-click menu (#210). Used by the CM branch of `editor/ui/Editor.vue` and by `PlainEditor.vue`.
-Consumed by: `shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`), which `editor/ui/Editor.vue` composes. This feature has no registry entry; the host calls it directly.
+Consumed by: `shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`), provided to `editor/ui/Editor.vue` by `App.vue` through `EDITOR_REGISTRY_FACTORY`. This feature has no registry entry; the host calls it directly.
 
 | File | Role |
 |---|---|

@@ -1,17 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { fakeContext, fakeView, stateWith, type FakeContextInit } from '../../editor/internal/cm-probe.ts';
-import { en } from '../../../i18n/en.ts';
-import { formulaEditor } from '../internal/formula-editor-bus.ts';
-import { tableEditor } from '../internal/table-editor-bus.ts';
+import { fakeContext, fakeView, stateWith, type FakeContextInit } from '../../editor/contracts/testkit.ts';
+import { formulaEditor } from '../internal/useFormulaEditorBus.ts';
+import { tableEditor } from '../internal/useTableEditorBus.ts';
 import { createFormatFeature } from './format.feature.ts';
 
 const CASE_EVENT = 'solomd:transform-case';
 const FORMAT_EVENT = 'solomd:format-markdown';
-
-function resolveKey(key: string): unknown {
-  return key.split('.').reduce<unknown>((node, part) => (node as Record<string, unknown> | undefined)?.[part], en);
-}
 
 function withWindow(run: (target: EventTarget) => void): void {
   const g = globalThis as Record<string, unknown>;
@@ -42,7 +37,6 @@ test('manifest', () => {
   const f = createFormatFeature();
   assert.equal(f.id, 'format');
   assert.deepEqual(f.settingsKeys, []);
-  for (const k of f.i18nKeys) assert.equal(typeof resolveKey(k), 'string', k);
 });
 
 test('transform-case defaults to cycle and honors explicit mode', () => {

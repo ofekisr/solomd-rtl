@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { getSearchQuery } from '@codemirror/search';
-import { fakeContext, stateWith } from '../../editor/internal/cm-probe.ts';
+import { fakeContext, stateWith } from '../../editor/contracts/testkit.ts';
 import { createFindFeature } from './find.feature.ts';
 
 test('manifest: id find, no settings, no i18n', () => {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue';
 import type { EditorView } from '@codemirror/view';
 import { useFormatHints } from '../../../composables/useFormatHints';
 import { useI18n } from '../../../i18n';
@@ -19,7 +19,7 @@ import { createEditorContext } from '../internal/editor-context.ts';
 import { useCmTabSwitch } from '../internal/useCmTabSwitch.ts';
 import { useCmView } from '../internal/useCmView.ts';
 import { useEditorFeatures } from '../internal/useEditorFeatures.ts';
-import { createEditorRegistry } from '../../../shell/editor-registry.service.ts';
+import { EDITOR_REGISTRY_FACTORY } from '../contracts/editor-registry.port.ts';
 import PlainEditor from './PlainEditor.vue';
 
 type Props = {
@@ -61,6 +61,8 @@ const usePlainWindowsEditor = shouldUsePlainWindowsEditor(
 );
 
 let cm: ReturnType<typeof useCmView> | null = null;
+const createEditorRegistry = inject(EDITOR_REGISTRY_FACTORY);
+if (!createEditorRegistry) throw new Error('Editor: EDITOR_REGISTRY_FACTORY is not provided; App.vue must provide it');
 const registry = createEditorRegistry();
 const ctx = createEditorContext({
   props,

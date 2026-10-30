@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import type { SplitDirection, TileBranch, TileLeaf, TileNode } from '../types';
 import { useTabsStore } from './tabs';
 import { placeTabOnSide, type PaneSide } from '../lib/pane-place';
+import { readStoredSetting } from '../features/settings/contracts/index.ts';
 
 const LS_KEY = 'solomd.tiles.v1';
 
@@ -26,14 +27,8 @@ interface DragState {
 }
 
 function restoreSessionEnabled(): boolean {
-  try {
-    const raw = localStorage.getItem('solomd.settings.v1');
-    if (raw) {
-      const s = JSON.parse(raw);
-      if (s && typeof s.restoreSession === 'boolean') return s.restoreSession;
-    }
-  } catch {}
-  return true;
+  const stored = readStoredSetting('restoreSession');
+  return typeof stored === 'boolean' ? stored : true;
 }
 
 function loadPersisted(): PersistedState | null {

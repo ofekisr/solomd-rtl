@@ -15,6 +15,10 @@ import { createFileOpenService } from './shell/file-open.service.ts';
 import { createShortcutsService, type OpenableOverlayHandle } from './shell/shortcuts.service.ts';
 import { createSessionService } from './shell/session.service.ts';
 import { createUpdatesService } from './shell/updates.service.ts';
+import { createEditorRegistry } from './shell/editor-registry.service.ts';
+import { SETTINGS_PAGES } from './shell/settings-pages.ts';
+import { EDITOR_REGISTRY_FACTORY } from './features/editor/contracts/editor-registry.port.ts';
+import { SETTINGS_PAGES_KEY } from './features/settings/contracts/settings-pages.key.ts';
 import type { ToastKind } from './stores/toasts';
 import { openNewWindow } from './lib/new-window';
 import ReadingView from './components/ReadingView.vue';
@@ -70,6 +74,8 @@ const { t } = useI18n();
 const { isNarrow } = useViewport();
 
 // Host state (Wave 1b): created once here, read by shell components via `use*()`.
+provide(EDITOR_REGISTRY_FACTORY, createEditorRegistry);
+provide(SETTINGS_PAGES_KEY, SETTINGS_PAGES);
 const sidebar = createRightSidebar();
 const dialogs = createAppDialogs();
 createCenterView();

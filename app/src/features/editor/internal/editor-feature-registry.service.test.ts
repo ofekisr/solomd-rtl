@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Compartment, type Extension } from '@codemirror/state';
 import { createEditorFeatureRegistry } from './editor-feature-registry.service.ts';
-import { fakeContext } from './cm-probe.ts';
+import { fakeContext } from '../contracts/testkit.ts';
 import type { EditorFeature } from '../contracts/editor-feature.port.ts';
 
 const tag = (name: string): Extension => ({ name } as unknown as Extension);

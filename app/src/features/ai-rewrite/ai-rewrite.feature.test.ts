@@ -1,7 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fakeContext } from '../editor/internal/cm-probe.ts';
-import { defaults } from '../../stores/settings.ts';
+import { fakeContext } from '../editor/contracts/testkit.ts';
 import type { EditorFeature } from '../editor/contracts/index.ts';
 import type { AiRewritePort } from './contracts/ai-rewrite.port.ts';
 
@@ -17,9 +16,8 @@ import { createAiRewriteFeature } from './contracts/ai-rewrite.feature.ts';
 const feature: EditorFeature = createAiRewriteFeature(port);
 const slotOf = (name: string) => feature.slots?.find((s) => s.slot === name);
 
-test('manifest: settingsKeys exist in defaults()', () => {
+test('manifest: id and no i18n keys', () => {
   assert.equal(feature.id, 'ai-rewrite');
-  for (const key of feature.settingsKeys) assert.ok(key in defaults(), key);
   assert.deepEqual(feature.i18nKeys, []);
 });
 

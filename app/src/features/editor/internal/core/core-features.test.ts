@@ -4,7 +4,7 @@ import { EditorState, type Extension } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
 import { EXTENSION_SLOTS } from '../../contracts/editor-feature.port.ts';
 import type { EditorFeature, EditorFeatureContext, ReconfigurableSlot } from '../../contracts/editor-feature.port.ts';
-import { fakeContext, stateWith } from '../cm-probe.ts';
+import { fakeContext, stateWith } from '../../contracts/testkit.ts';
 import { createAppearanceFeature, LANGUAGE_SLOT_KEY } from './appearance.feature.ts';
 import { createCoreFeature, DEFAULT_CURSOR_BLINK_MS, SOLID_CURSOR_BLINK_MS } from './core.feature.ts';
 import { createLiveRenderFeature, liveBlocksOptions } from './live-render.feature.ts';

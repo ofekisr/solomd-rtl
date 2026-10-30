@@ -16,8 +16,10 @@ export {
   SETTINGS_SLICES,
   defaultPdfDefaults,
   loadSettings,
+  readStoredSetting,
   setRightSidebarShell,
   type PdfDefaults,
   type Settings,
   type SettingsKey,
 } from './settings-store.contract.ts';
+export * from './settings-pages.key.ts';
