@@ -29,7 +29,7 @@ import {
   foldable,
   forceParsing,
 } from '@codemirror/language';
-import { scanHeadings, foldRangeAtLine, type FoldRange } from './heading-fold';
+import { scanHeadings, foldRangeAtLine, type FoldRange } from './heading-fold.ts';
 
 export interface HeadingFoldOptions {
   /** Label for the placeholder that replaces a folded section, e.g.
