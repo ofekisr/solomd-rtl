@@ -16,6 +16,11 @@ test('another feature may not import internal/, but may import contracts/', () =
   assert.equal(findBoundaryViolation(importer, '../../git/contracts/git.port.ts'), null);
 });
 
+test('a directory import of internal/ is a violation, but a sibling name is not', () => {
+  assert.equal(findBoundaryViolation('app/src/App.vue', './features/git/internal'), 'app/src/features/git/internal');
+  assert.equal(findBoundaryViolation('app/src/App.vue', './features/git/internals.ts'), null);
+});
+
 test('a feature may import its own internal/ and bare packages are ignored', () => {
   assert.equal(findBoundaryViolation('app/src/features/git/ui/GitPane.vue', '../internal/git.store.ts'), null);
   assert.equal(findBoundaryViolation('app/src/App.vue', 'vue'), null);

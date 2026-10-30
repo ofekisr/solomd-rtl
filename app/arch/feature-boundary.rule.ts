@@ -3,7 +3,7 @@ import { extractImports, listSourceFiles, readRepoFile } from './scan.ts';
 
 const SOURCE_ROOTS: readonly string[] = ['app/src'];
 const SOURCE_EXTS: readonly string[] = ['.ts', '.vue'];
-const INTERNAL_PATH_RE = /^app\/src\/features\/([^/]+)\/internal\//;
+const INTERNAL_PATH_RE = /^app\/src\/features\/([^/]+)\/internal(?:\/|$)/;
 const FEATURE_PATH_RE = /^app\/src\/features\/([^/]+)\//;
 const RELATIVE_PREFIX = '.';
 
