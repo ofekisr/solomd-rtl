@@ -10,7 +10,7 @@
  * Rows + chips use the design-system DsListRow / DsChip primitives.
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { eventsPort, type UnlistenFn } from '../platform/index.ts';
 import { useI18n } from '../i18n';
 import { useSavedViewsStore } from '../stores/savedViews';
 import { useWorkspaceIndexStore, type IndexEntry } from '../stores/workspaceIndex';
@@ -62,7 +62,7 @@ function open(entry: IndexEntry) {
 let unlistenIndex: UnlistenFn | null = null;
 onMounted(async () => {
   try {
-    unlistenIndex = await listen('solomd://index-updated', () => { rev.value += 1; });
+    unlistenIndex = await eventsPort.listen('solomd://index-updated', () => { rev.value += 1; });
   } catch {}
 });
 onBeforeUnmount(() => {

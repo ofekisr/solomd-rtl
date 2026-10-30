@@ -13,7 +13,7 @@
  * `solomd://index-updated` so counts stay live as notes change on disk.
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { eventsPort, type UnlistenFn } from '../platform/index.ts';
 import { useI18n } from '../i18n';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useSavedViewsStore } from '../stores/savedViews';
@@ -134,7 +134,7 @@ function onWindowClick() { if (ctx.value) closeCtx(); }
 onMounted(async () => {
   window.addEventListener('click', onWindowClick);
   try {
-    unlistenIndex = await listen('solomd://index-updated', () => { rev.value += 1; });
+    unlistenIndex = await eventsPort.listen('solomd://index-updated', () => { rev.value += 1; });
   } catch {}
 });
 onBeforeUnmount(() => {

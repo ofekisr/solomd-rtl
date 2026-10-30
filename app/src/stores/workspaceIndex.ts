@@ -13,8 +13,7 @@
  * mutation; we listen and refresh our cached `entries` array.
  */
 import { defineStore } from 'pinia';
-import { invoke } from '@tauri-apps/api/core';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { eventsPort, ragPort, type UnlistenFn } from '../platform/index.ts';
 
 export interface WikilinkRef {
   target: string;
@@ -136,10 +135,10 @@ export const useWorkspaceIndexStore = defineStore('workspaceIndex', {
       this.tags = [];
       if (!folder) return;
       try {
-        await invoke<number>('workspace_index_init', { folder });
+        await ragPort.workspaceIndexInit({ folder });
         await this.refresh();
         if (!unlistenIndex) {
-          unlistenIndex = await listen('solomd://index-updated', () => {
+          unlistenIndex = await eventsPort.listen('solomd://index-updated', () => {
             this.refresh().catch(() => {});
           });
         }
@@ -153,8 +152,8 @@ export const useWorkspaceIndexStore = defineStore('workspaceIndex', {
     async refresh(): Promise<void> {
       try {
         const [files, tags] = await Promise.all([
-          invoke<IndexEntry[]>('workspace_index_files'),
-          invoke<TagCount[]>('workspace_index_tags'),
+          ragPort.workspaceIndexFiles(),
+          ragPort.workspaceIndexTags(),
         ]);
         this.entries = files;
         this.tags = tags;
@@ -165,7 +164,7 @@ export const useWorkspaceIndexStore = defineStore('workspaceIndex', {
 
     async resolve(name: string): Promise<string | null> {
       try {
-        return await invoke<string | null>('workspace_index_resolve', { name });
+        return await ragPort.workspaceIndexResolve({ name });
       } catch {
         return null;
       }
@@ -173,7 +172,7 @@ export const useWorkspaceIndexStore = defineStore('workspaceIndex', {
 
     async backlinksFor(target: string): Promise<BacklinkRef[]> {
       try {
-        return await invoke<BacklinkRef[]>('workspace_index_backlinks', { target });
+        return await ragPort.workspaceIndexBacklinks({ target });
       } catch {
         return [];
       }
@@ -187,7 +186,7 @@ export const useWorkspaceIndexStore = defineStore('workspaceIndex', {
      */
     async referencedBy(target: string): Promise<ReferencedByRef[]> {
       try {
-        return await invoke<ReferencedByRef[]>('workspace_index_referenced_by', { target });
+        return await ragPort.workspaceIndexReferencedBy({ target });
       } catch {
         return [];
       }
@@ -195,7 +194,7 @@ export const useWorkspaceIndexStore = defineStore('workspaceIndex', {
 
     async rescan(): Promise<void> {
       try {
-        await invoke('workspace_index_rescan');
+        await ragPort.workspaceIndexRescan();
         await this.refresh();
       } catch (e) {
         this.lastError = String(e);

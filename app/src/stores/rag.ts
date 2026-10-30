@@ -8,7 +8,7 @@
  * search. We don't tear the DB down — re-enabling is then instant.
  */
 import { defineStore } from 'pinia';
-import { invoke } from '@tauri-apps/api/core';
+import { ragPort } from '../platform/index.ts';
 
 export interface RagStatus {
   enabled: boolean;
@@ -51,7 +51,7 @@ export const useRagStore = defineStore('rag', {
         return;
       }
       try {
-        this.status = await invoke<RagStatus>('rag_index_status', { folder });
+        this.status = await ragPort.ragIndexStatus({ folder });
       } catch (e) {
         this.lastError = String(e);
       }
@@ -62,7 +62,7 @@ export const useRagStore = defineStore('rag', {
       if (!folder) return;
       this.indexing = enabled;
       try {
-        this.status = await invoke<RagStatus>('rag_set_enabled', { folder, enabled });
+        this.status = await ragPort.ragSetEnabled({ folder, enabled });
       } catch (e) {
         this.lastError = String(e);
       } finally {
@@ -75,7 +75,7 @@ export const useRagStore = defineStore('rag', {
       this.indexing = true;
       this.lastError = null;
       try {
-        this.status = await invoke<RagStatus>('rag_reindex', { folder });
+        this.status = await ragPort.ragReindex({ folder });
       } catch (e) {
         this.lastError = String(e);
       } finally {
@@ -88,7 +88,7 @@ export const useRagStore = defineStore('rag', {
       this.searching = true;
       this.lastError = null;
       try {
-        const hits = await invoke<RagHit[]>('rag_search', {
+        const hits = await ragPort.ragSearch({
           args: { folder, query, limit },
         });
         return hits;
@@ -104,7 +104,7 @@ export const useRagStore = defineStore('rag', {
     async reindexFile(folder: string | null, filePath: string): Promise<void> {
       if (!folder) return;
       try {
-        await invoke('rag_reindex_file', { folder, filePath });
+        await ragPort.ragReindexFile({ folder, filePath });
       } catch {
         // best-effort; full reindex will catch up if this misses.
       }
