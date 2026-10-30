@@ -1,4 +1,4 @@
-#[path = "commands.rs"]
+#[path = "commands/mod.rs"]
 mod commands;
 
 #[path = "image_upload.rs"]
@@ -767,24 +767,24 @@ pub fn run_with(initial_file: Option<String>) {
         .manage(recipe_runner::RecipesState::new())
         .manage(crate::git_pane::commands::GitPaneState::default())
         .invoke_handler(tauri::generate_handler![
-            commands::read_file,
-            commands::read_binary_file,
-            commands::write_file,
-            commands::write_binary_file,
-            commands::print_webview,
-            commands::copy_file,
+            commands::file_io::read_file,
+            commands::file_io::read_binary_file,
+            commands::file_io::write_file,
+            commands::file_io::write_binary_file,
+            commands::print::print_webview,
+            commands::fs_ops::copy_file,
             image_upload::upload_image,
-            commands::list_dir,
-            commands::fs_create_file,
-            commands::fs_create_dir,
-            commands::fs_delete,
-            commands::fs_dir_exists,
-            commands::fs_file_exists,
-            commands::fs_rename,
-            commands::fs_move,
-            commands::fs_list_dirs,
-            commands::fs_list_extensions,
-            commands::fs_dirs_with_extensions,
+            commands::list_dir::list_dir,
+            commands::fs_ops::fs_create_file,
+            commands::fs_ops::fs_create_dir,
+            commands::fs_ops::fs_delete,
+            commands::fs_ops::fs_dir_exists,
+            commands::fs_ops::fs_file_exists,
+            commands::fs_ops::fs_rename,
+            commands::fs_move::fs_move,
+            commands::fs_list::fs_list_dirs,
+            commands::fs_list::fs_list_extensions,
+            commands::fs_list::fs_dirs_with_extensions,
             search::search_in_dir,
             replace::replace_in_dir,
             replace::replace_in_text,
@@ -807,8 +807,8 @@ pub fn run_with(initial_file: Option<String>) {
             // writes + F3 inverse-relationship lookup 404'd at runtime until
             // registered here too. (Same class as the #94 rag::* omission.)
             workspace_index::workspace_index_referenced_by,
-            commands::update_frontmatter_property,
-            commands::delete_frontmatter_property,
+            commands::frontmatter::update_frontmatter_property,
+            commands::frontmatter::delete_frontmatter_property,
             spellcheck::spellcheck_init,
             spellcheck::spellcheck_check,
             spellcheck::spellcheck_suggest,

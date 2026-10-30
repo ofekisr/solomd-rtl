@@ -5,7 +5,6 @@
     "app/src-tauri/src/agent_tools.rs": 1432,
     "app/src-tauri/src/ai_proxy.rs": 2933,
     "app/src-tauri/src/capture_endpoint.rs": 1341,
-    "app/src-tauri/src/commands.rs": 1743,
     "app/src-tauri/src/convert.rs": 602,
     "app/src-tauri/src/crypto.rs": 707,
     "app/src-tauri/src/git_history.rs": 737,
