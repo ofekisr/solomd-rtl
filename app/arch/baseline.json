@@ -31,7 +31,7 @@
     "app/src/components/AgentSetupWizard.vue": 699,
     "app/src/components/BasesView.vue": 839,
     "app/src/components/CjkProofread.vue": 586,
-    "app/src/components/Editor.vue": 5026,
+    "app/src/components/Editor.vue": 5024,
     "app/src/components/FileTree.vue": 2941,
     "app/src/components/GithubSyncSettings.vue": 1417,
     "app/src/components/GlobalSearch.vue": 615,
@@ -48,7 +48,7 @@
     "app/src/components/SettingsPanel.vue": 2612,
     "app/src/components/Slideshow.vue": 501,
     "app/src/components/ThemeStudio.vue": 579,
-    "app/src/components/Toolbar.vue": 1614,
+    "app/src/components/Toolbar.vue": 1610,
     "app/src/components/TraceView.vue": 647,
     "app/src/composables/useCommands.ts": 818,
     "app/src/composables/useExport.ts": 688,
@@ -75,22 +75,13 @@
   },
   "rawIpc": [
     "app/src/App.vue",
-    "app/src/components/Toolbar.vue",
-    "app/src/lib/devtools.ts",
     "app/src/stores/savedViews.ts"
   ],
   "libPurity": [
     "app/src/lib/ai-activity.ts",
-    "app/src/lib/check-update.ts",
     "app/src/lib/cm-find-panel.ts",
-    "app/src/lib/code-copy.ts",
-    "app/src/lib/devtools.ts",
     "app/src/lib/formula-editor-bus.ts",
-    "app/src/lib/new-window.ts",
-    "app/src/lib/open-google-translate.ts",
     "app/src/lib/quick-capture-status.ts",
-    "app/src/lib/reveal-in-file-manager.ts",
-    "app/src/lib/table-editor-bus.ts",
-    "app/src/lib/telemetry.ts"
+    "app/src/lib/table-editor-bus.ts"
   ]
 }
