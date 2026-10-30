@@ -1,6 +1,6 @@
 ## HLD: Wave Refactor — therapy-os principles for solomd-rtl
 
-**Status**: Stable | **Version**: v3.1 | **Date**: 30-10-26
+**Status**: Stable | **Version**: v3.2 | **Date**: 30-10-26
 
 ---
 
@@ -16,6 +16,7 @@
 - **v2.0** (30-10-26): Q2 resolved — Editor wave moved before AI wave
 - **v3.0** (30-10-26): AI wave moved last (AI features not in use yet); Q3 resolved — desktop + web only
 - **v3.1** (30-10-26): corrected raw invoke count (~100 → ~250)
+- **v3.2** (30-10-26): added Wave 1b — no wave owned `App.vue` after Wave 1 (2005 lines)
 
 **Scope**
 - In: `app/src`, `app/src-tauri/src`, `mcp-mindmap/`, agent docs (`CLAUDE.md` layering), quality gates.
@@ -62,7 +63,8 @@ app/src/
 ```mermaid
 flowchart LR
   W0[Wave 0<br/>Guardrails] --> W1[Wave 1<br/>Platform seam]
-  W1 --> W2[Wave 2<br/>Editor core]
+  W1 --> W1b[Wave 1b<br/>App.vue host]
+  W1b --> W2[Wave 2<br/>Editor core]
   W2 --> W3[Wave 3<br/>Settings & shell]
   W3 --> W4[Wave 4<br/>AI seam]
 ```
@@ -71,6 +73,7 @@ flowchart LR
 |---|---|---|---|---|
 | **0 Guardrails** | File-role taxonomy, `docs/adr/`, `CLAUDE.md` layering skeleton | — | `guard`/`verify` scripts; boundary lint; file-size ratchet at today's baseline (files may shrink, never grow) | 1 day |
 | **1 Platform** | `platform/` ports + Zod per command domain (fs, git, ai, rag, settings, window); tauri + web adapters | `App.vue` → window, file-open, shortcuts, session, updates services | All ~250 `invoke` sites via ports; lint bans `@tauri-apps/api/core` outside `platform/` | 3–5 days |
+| **1b App host** | `createX`/`useX` provide-inject for host state (LLD `2026-10-30-wave1b-app-host-lld.md`) | `App.vue` → composables + `components/shell/` (layout, right sidebar, dialogs host) | `App.vue` ≤ 500 lines | 1 day |
 | **2 Editor** | `EditorFeature` contract: CM extensions + commands + settings slice + i18n keys | `Editor.vue` → features (find, spellcheck, vim, export, image-upload, folds, ai-rewrite, session); `cm-live-blocks.ts` | `Editor.vue` is a host < 400 lines composing registered features; `ai-rewrite` keeps today's AI path behind a thin shim until Wave 4 | 5–8 days |
 | **3 Settings & shell** | Per-feature settings slice schema + migration (theme pattern) | `stores/settings.ts`, `SettingsPanel.vue`, `FileTree.vue`, `Toolbar.vue`; Rust `commands.rs`, `git_pane/cli/actions.rs` | Settings UI rendered from feature registry; ratchet tightened to final budget (except AI files) | 5–7 days |
 | **4 AI** | `LlmClient`, `ToolContract`, `PromptTemplate` registry, canned driver, fallback rule | `ai_proxy.rs` → per-provider drivers, wire, stream, cancel; `AISettings.vue`, `AgentPanel.vue` | `ai-rewrite` feature, agent panel, RAG go through `ai/`; temporary AI shim from Wave 2 deleted; AI settings slice joins the registry; MCP tool schemas shared with `mcp-mindmap` | 4–6 days |
@@ -121,12 +124,13 @@ No persisted-data change except Wave 4: today's single settings blob splits into
 ### AI Context YAML
 
 ```yaml
-hld_version: v3.1
+hld_version: v3.2
 feature: "Wave Refactor — therapy-os principles"
 status: stable
 waves:
   - {id: 0, name: guardrails, define: [file-role taxonomy, adr dir, claude-md layering], integrate: [guard script, boundary lint, size ratchet]}
   - {id: 1, name: platform, define: [platform ports + zod, tauri/web adapters], decompose: [App.vue], integrate: [ban raw invoke]}
+  - {id: 1b, name: app-host, define: [host composables provide/inject], decompose: [App.vue], integrate: [App.vue <= 500 lines]}
   - {id: 2, name: editor, define: [EditorFeature], decompose: [Editor.vue, cm-live-blocks.ts], integrate: [Editor host < 400 lines]}
   - {id: 3, name: settings-shell, define: [settings slice schema], decompose: [stores/settings.ts, SettingsPanel.vue, FileTree.vue, Toolbar.vue, commands.rs, git_pane actions], integrate: [registry-rendered settings]}
   - {id: 4, name: ai, define: [LlmClient, ToolContract, PromptTemplate, canned driver], decompose: [ai_proxy.rs, AISettings.vue, AgentPanel.vue], integrate: [ai callers via ai/]}

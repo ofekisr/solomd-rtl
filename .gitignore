@@ -72,3 +72,6 @@ __pycache__/
 
 # Dev app seed (copy of the installed app's localStorage)
 app/dev-seed/
+
+# Playwright run output
+app/test-results/

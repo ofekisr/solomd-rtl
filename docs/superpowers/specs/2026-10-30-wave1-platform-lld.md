@@ -333,6 +333,7 @@ No persisted data changes. Rollback = revert the PR's commits; every PR is indep
 
 ### Parked for Wave 2+
 
+- `App.vue` 2005 → ≤ 500 lines (Wave 1b, [LLD](2026-10-30-wave1b-app-host-lld.md)).
 - `lib/` files that do IPC through ports → `features/<f>/internal/` (Wave 2).
 - Flip proven domains from `report` to `strict` validation (Wave 3, new ADR).
 - Rust commands regrouped by domain mirroring `platform/` (Wave 3, `commands.rs` split).

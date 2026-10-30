@@ -12,6 +12,29 @@ App-wide services extracted from `App.vue` (Wave 1 PR-9). Spec: [LLD §PR-9](../
 | `session.service.ts` | Tabs + tiles persistence, tiles init / sync |
 | `updates.service.ts` | Startup update check + toast |
 
+## Host composables and components (Wave 1b)
+
+Spec: [Wave 1b LLD](../../../docs/superpowers/specs/2026-10-30-wave1b-app-host-lld.md). Vue state that `App.vue` used to hold lives in `composables/`; its template lives in `components/shell/`.
+
+| File | Owns |
+|---|---|
+| `composables/useRightSidebar.ts` | Pane visibility, master visibility, narrow drawer, search pane, `ctxToggle`, width + resize |
+| `composables/useRsPaneReorder.ts` | Pointer-driven pane reorder (#131) |
+| `composables/useAppDialogs.ts` | Modal open flags, Settings deep-link, unsaved / file-changed dialogs, `aiHasKey` |
+| `composables/useCenterView.ts` | Bases / inbox / type-lens / saved-view content swap |
+| `composables/useEditorCursor.ts` | Cursor, selection, outline line |
+| `composables/useAppTypography.ts` | Font CSS vars, markdown-it flags |
+| `composables/useWorkspaceSync.ts` | Folder-scoped back ends: index, properties, capture, RAG, spellcheck, git pane |
+| `composables/useWikiOpen.ts` | `solomd:wiki-open` |
+| `lib/right-sidebar.ts` | Pure pane order + pane flex style |
+| `components/shell/AppLayout.vue` | Editing-mode chrome |
+| `components/shell/RightSidebar.vue` | One sidebar strip (`side` prop) |
+| `components/shell/SidebarContextMenu.vue` | Right-click pane toggles |
+| `components/shell/AppDialogs.vue` | Every modal; mounted in reading mode too |
+
+- Shared state: `App.vue` calls `createX()` once (it `provide`s); components call `useX()` (`inject`, throws when missing).
+- Window listeners register at setup from composables `App.vue` calls, never from a component that mounts only outside reading mode.
+
 ## Deps contract
 
 - Shape: `createXService(deps: XDeps): XService`. `App.vue` builds each service once in `<script setup>`.
@@ -21,7 +44,7 @@ App-wide services extracted from `App.vue` (Wave 1 PR-9). Spec: [LLD §PR-9](../
 
 ## Rules
 
-- **Vue reactivity stays in `App.vue`.** Every `watch` / `watchEffect` lives there; its body is one service call. Read reactive values in the effect (before any `await`) and pass them in.
+- **No Vue reactivity in services.** Watchers that drive a service live in `App.vue`; their body is one service call. Read reactive values in the effect (before any `await`) and pass them in. Watchers with no service behind them live in the host composables above.
 - **onMounted order is load-bearing.** Services expose step methods (`fileOpen.listenOpenedFile`, `windowService.cleanAuxRegistry`, …). `App.vue` calls them in the original order, interleaved with its own work. Do not collapse them into one `start()` call there.
 - `stop()` removes only what `App.vue`'s `onBeforeUnmount` removed before. Listeners never removed stay that way.
 - DOM listeners for keydown / wheel / blur / help / search / CJK stay registered in `App.vue`, bound to service handlers (stable references).

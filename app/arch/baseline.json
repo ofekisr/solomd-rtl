@@ -24,7 +24,6 @@
     "app/src-tauri/src/runner.rs": 1129,
     "app/src-tauri/src/trace.rs": 778,
     "app/src-tauri/src/workspace_index.rs": 1426,
-    "app/src/App.vue": 2005,
     "app/src/components/AIRewriteOverlay.vue": 711,
     "app/src/components/AISettings.vue": 1370,
     "app/src/components/AgentPanel.vue": 1014,

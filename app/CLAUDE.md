@@ -6,10 +6,11 @@ Vue 3 + CodeMirror 6 + Pinia front end. `src-tauri/` is the Rust desktop shell. 
 
 | Path | Today | Wave target |
 |---|---|---|
-| `src/App.vue` | Root host; logic in `shell/` | Thin host: wiring, watchers, template |
+| `src/App.vue` | Thin host (≤ 500 lines): services, startup order, root element | Stays |
+| `src/components/shell/` | App chrome split out of `App.vue`: layout, right sidebar, dialogs host | Stays |
 | `src/shell/` | App-wide services (window, file-open, shortcuts, session, updates). Read [shell/CLAUDE.md](src/shell/CLAUDE.md) | Stays |
 | `src/components/` | ~118 flat Vue components; `git/`, `properties/` subfolders | Empties into `features/<f>/ui/` by Wave 4 |
-| `src/composables/` | `use*` hooks | Move with their feature |
+| `src/composables/` | `use*` hooks; host state for `App.vue` (`createX`/`useX`, see shell/CLAUDE.md) | Move with their feature; host ones stay |
 | `src/stores/` | Pinia stores; `settings.ts` holds all settings | Per-feature settings slices (Wave 3) |
 | `src/platform/` | Typed ports over Tauri; only importer of `@tauri-apps/*`. Read [platform/CLAUDE.md](src/platform/CLAUDE.md) | Stays |
 | `src/lib/` | Mostly pure TS: CM extensions (`cm-*.ts`), parsers, `theme/`, `git-pane/`, `fixtures/`. Some files still import `vue`/`pinia`/`@tauri-apps/*` | Stays. Fully pure as the PR-2 baseline shrinks |
@@ -41,7 +42,7 @@ Unit tests run on Node type-stripping: import local files with the `.ts` extensi
 | `src/features/<f>/` | That feature's `CLAUDE.md` (each feature gets one from Wave 1) |
 | `arch/` | [arch/CLAUDE.md](arch/CLAUDE.md) |
 | `src/platform/` | [src/platform/CLAUDE.md](src/platform/CLAUDE.md) |
-| `src/shell/`, `src/App.vue` | [src/shell/CLAUDE.md](src/shell/CLAUDE.md) |
+| `src/shell/`, `src/App.vue`, `src/components/shell/` | [src/shell/CLAUDE.md](src/shell/CLAUDE.md) |
 | `src/lib/theme/` | `docs/superpowers/specs/2026-10-29-theme-layer-design.md` |
 | `../demos/` | [demos/CLAUDE.md](../demos/CLAUDE.md) |
 
