@@ -3,6 +3,7 @@ import { pathToFileURL } from 'node:url';
 import { BASELINE_PATH, loadBaseline, serializeBaseline } from './baseline-file.ts';
 import type { Baseline } from './baseline.schema.ts';
 import { checkFileSize, collectFileSize } from './file-size.rule.ts';
+import { checkFeaturePurity, collectFeaturePurity } from './feature-purity.rule.ts';
 import { checkLibPurity, collectLibPurity } from './lib-purity.rule.ts';
 import { checkRawIpc, collectRawIpc } from './raw-ipc.rule.ts';
 import { REPO_ROOT } from './scan.ts';
@@ -24,6 +25,7 @@ export function measure(repoRoot: string): Baseline {
     fileSize: collectFileSize(repoRoot),
     rawIpc: collectRawIpc(repoRoot),
     libPurity: collectLibPurity(repoRoot),
+    featurePurity: collectFeaturePurity(repoRoot),
   };
 }
 
@@ -32,6 +34,7 @@ export function rebaseline(previous: Baseline, measured: Baseline): RebaselineRe
     ...checkFileSize(measured.fileSize, previous.fileSize),
     ...checkRawIpc(measured.rawIpc, previous.rawIpc),
     ...checkLibPurity(measured.libPurity, previous.libPurity),
+    ...checkFeaturePurity(measured.featurePurity, previous.featurePurity),
   ];
   return { baseline: shrink(previous, measured), increases };
 }
@@ -45,6 +48,7 @@ export function slack(previous: Baseline, next: Baseline): string[] {
     }),
     ...droppedPaths('rawIpc', previous.rawIpc, next.rawIpc),
     ...droppedPaths('libPurity', previous.libPurity, next.libPurity),
+    ...droppedPaths('featurePurity', previous.featurePurity, next.featurePurity),
   ];
 }
 
@@ -70,11 +74,12 @@ function shrink(previous: Baseline, measured: Baseline): Baseline {
     fileSize: Object.fromEntries(kept.map((path) => [path, Math.min(previous.fileSize[path], measured.fileSize[path])])),
     rawIpc: previous.rawIpc.filter((path) => measured.rawIpc.includes(path)),
     libPurity: previous.libPurity.filter((path) => measured.libPurity.includes(path)),
+    featurePurity: previous.featurePurity.filter((path) => measured.featurePurity.includes(path)),
   };
 }
 
 function summary(baseline: Baseline): string {
-  return `fileSize ${Object.keys(baseline.fileSize).length}, rawIpc ${baseline.rawIpc.length}, libPurity ${baseline.libPurity.length}`;
+  return `fileSize ${Object.keys(baseline.fileSize).length}, rawIpc ${baseline.rawIpc.length}, libPurity ${baseline.libPurity.length}, featurePurity ${baseline.featurePurity.length}`;
 }
 
 function init(measured: Baseline): number {

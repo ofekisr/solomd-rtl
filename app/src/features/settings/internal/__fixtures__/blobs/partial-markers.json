@@ -1,0 +1,10 @@
+{
+  "fontSize": 40,
+  "previewFontSize": 18,
+  "language": "en",
+  "showFileTree": false,
+  "showAgentPanel": false,
+  "smartQuotes": true,
+  "v4AgentPanelMigrated": true,
+  "smartQuotesOptInMigrated": true
+}

@@ -9,6 +9,7 @@ Architecture specs. They run with `node --test` and fail with `[arch:<rule>]` me
 | `file-size` | `app/src` `.ts` ≤ 400, `.vue` ≤ 500; `app/src-tauri/src` `.rs` ≤ 600; `mcp-mindmap/src` `.ts` ≤ 400 | A file not in the baseline is over budget, or a baselined file grows past its recorded size | `fileSize` |
 | `raw-ipc` | `app/src` (`platform/` exempt) | A file not in the baseline imports any `@tauri-apps/*` module outside `app/src/platform/` (root Invariant 3). | `rawIpc` |
 | `lib-purity` | `app/src/lib` | A file not in the baseline imports `vue`, `vue/*`, `pinia` or `@tauri-apps/*` | `libPurity` |
+| `feature-purity` | `app/src/features` | A file not in the baseline imports `vue`, `vue/*` or `pinia` and is not under `ui/`, not named `use[A-Z]*.ts` and not `*.store.ts` | `featurePurity` |
 | `feature-boundary` | `app/src` | A relative import (`./`, `../`) reaches another feature's `features/<f>/internal/`. The repo has no import alias; if one is added, extend this rule. | none — no exceptions |
 
 `raw-ipc` exempts `app/src/platform/`: the only place allowed to import `@tauri-apps/*`.
@@ -23,7 +24,7 @@ Never scanned: tests (`*.test.ts`), `i18n/`, `node_modules/`, `dist/`, `target/`
 
 ## Moving a baselined file
 
-`git mv` it, then in the same commit rename its key in `baseline.json` (`fileSize`, `rawIpc`, `libPurity`) to the new path. Keep the value; never raise it. This is the only allowed hand edit.
+`git mv` it, then in the same commit rename its key in `baseline.json` (`fileSize`, `rawIpc`, `libPurity`, `featurePurity`) to the new path. Keep the value; never raise it. This is the only allowed hand edit.
 
 ## Shrinking the baseline
 

@@ -16,6 +16,7 @@ export function serializeBaseline(baseline: Baseline): string {
     fileSize: Object.fromEntries(Object.entries(baseline.fileSize).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))),
     rawIpc: [...baseline.rawIpc].sort(),
     libPurity: [...baseline.libPurity].sort(),
+    featurePurity: [...baseline.featurePurity].sort(),
   };
   return `${JSON.stringify(sorted, null, JSON_INDENT)}\n`;
 }

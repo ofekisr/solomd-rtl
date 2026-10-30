@@ -11,6 +11,7 @@ const PREVIOUS: Baseline = {
   fileSize: { 'app/src/big.vue': 700, 'app/src/fixed.ts': 450 },
   rawIpc: ['app/src/ipc.ts', 'app/src/old-ipc.ts'],
   libPurity: ['app/src/lib/impure.ts'],
+  featurePurity: ['app/src/features/a/internal/x.ts'],
 };
 
 test('measure collects every baselined rule from the tree', () => {
@@ -18,12 +19,14 @@ test('measure collects every baselined rule from the tree', () => {
     'app/src/big.vue': lines(650),
     'app/src/ipc.ts': "import { invoke } from '@tauri-apps/api/core';",
     'app/src/lib/impure.ts': "import { ref } from 'vue';",
+    'app/src/features/a/internal/x.ts': "import { ref } from 'vue';",
   }, (root) => {
     assert.deepEqual(measure(root), {
       version: 1,
       fileSize: { 'app/src/big.vue': 650 },
       rawIpc: ['app/src/ipc.ts'],
       libPurity: ['app/src/lib/impure.ts'],
+      featurePurity: ['app/src/features/a/internal/x.ts'],
     });
   });
 });
@@ -34,9 +37,10 @@ test('rebaseline lowers shrunk values and drops fixed entries', () => {
     fileSize: { 'app/src/big.vue': 650 },
     rawIpc: ['app/src/ipc.ts'],
     libPurity: [],
+    featurePurity: [],
   };
   assert.deepEqual(rebaseline(PREVIOUS, measured), {
-    baseline: { version: 1, fileSize: { 'app/src/big.vue': 650 }, rawIpc: ['app/src/ipc.ts'], libPurity: [] },
+    baseline: { version: 1, fileSize: { 'app/src/big.vue': 650 }, rawIpc: ['app/src/ipc.ts'], libPurity: [], featurePurity: [] },
     increases: [],
   });
 });
@@ -63,11 +67,13 @@ test('slack lists every entry a rebaseline would lower or drop', () => {
     fileSize: { 'app/src/big.vue': 650 },
     rawIpc: ['app/src/ipc.ts'],
     libPurity: [],
+    featurePurity: [],
   };
   assert.deepEqual(slack(PREVIOUS, next), [
     '[arch:tight] fileSize app/src/big.vue: 700 → 650',
     '[arch:tight] fileSize app/src/fixed.ts: 450 → removed',
     '[arch:tight] rawIpc app/src/old-ipc.ts: removed',
     '[arch:tight] libPurity app/src/lib/impure.ts: removed',
+    '[arch:tight] featurePurity app/src/features/a/internal/x.ts: removed',
   ]);
 });

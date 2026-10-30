@@ -8,6 +8,7 @@ const VALID = {
   fileSize: { 'app/src/components/Editor.vue': 5026 },
   rawIpc: ['app/src/App.vue'],
   libPurity: ['app/src/lib/saf-fs.ts'],
+  featurePurity: ['app/src/features/find/internal/cm-find-panel.ts'],
 };
 
 test('accepts a valid baseline', () => {
@@ -37,6 +38,7 @@ test('serializeBaseline sorts keys and arrays and ends with a newline', () => {
     fileSize: { 'b.ts': 500, 'a.ts': 450 },
     rawIpc: ['z.ts', 'a.ts'],
     libPurity: [],
+    featurePurity: [],
   });
   assert.equal(text, [
     '{',
@@ -49,7 +51,8 @@ test('serializeBaseline sorts keys and arrays and ends with a newline', () => {
     '    "a.ts",',
     '    "z.ts"',
     '  ],',
-    '  "libPurity": []',
+    '  "libPurity": [],',
+    '  "featurePurity": []',
     '}',
     '',
   ].join('\n'));
@@ -61,6 +64,12 @@ test('serializeBaseline orders fileSize keys by code unit (uppercase first)', ()
     fileSize: { 'a.ts': 450, 'B.ts': 500 },
     rawIpc: [],
     libPurity: [],
+    featurePurity: [],
   });
   assert.ok(text.indexOf('"B.ts"') < text.indexOf('"a.ts"'));
+});
+
+test('a baseline without featurePurity is rejected', () => {
+  const { featurePurity: _omitted, ...legacy } = VALID;
+  assert.throws(() => parseBaseline(legacy));
 });

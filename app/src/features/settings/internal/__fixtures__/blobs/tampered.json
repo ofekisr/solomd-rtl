@@ -1,0 +1,53 @@
+{
+  "fontSize": 15,
+  "autoSaveDelayMs": -5,
+  "aiReleaseDelayMs": "soon",
+  "aiStaleTimeoutMs": 1000000000000,
+  "pdfDefaults": {
+    "pageSize": "B5",
+    "customWidthMm": 9999,
+    "customHeightMm": 1,
+    "margin": "Huge",
+    "customMarginTopMm": "x",
+    "fontSize": 99,
+    "footer": "yes",
+    "codeTheme": "neon",
+    "toc": 1
+  },
+  "appearance": "sepia",
+  "windowsEditorEngine": "webkit",
+  "keybindings": {
+    "file.save": "Mod-s",
+    "edit.redo": 42,
+    "edit.undo": null,
+    "x.y": {
+      "a": 1
+    }
+  },
+  "explorerSortByFolder": {
+    "/a": "created-asc",
+    "/b": "bogus",
+    "/c": 7
+  },
+  "gitTrustedRepos": [
+    "/ok",
+    5,
+    null,
+    "/also-ok",
+    {
+      "p": 1
+    }
+  ],
+  "mindmapPasteMapTarget": "nowhere",
+  "mindmapControlStyle": "weird",
+  "convertConflictChoice": "maybe",
+  "mindmapStyleTemplates": "nope",
+  "userThemes": "bad",
+  "activeUserThemeId": "ghost",
+  "lightSlot": {
+    "themeId": 5
+  },
+  "darkSlot": "x",
+  "mindmapDefaults": "bad",
+  "aiWarningAlwaysMinimized": "true"
+}

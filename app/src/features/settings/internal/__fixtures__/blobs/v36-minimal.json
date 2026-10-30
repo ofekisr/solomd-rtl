@@ -1,0 +1,12 @@
+{
+  "theme": "dark",
+  "viewMode": "split",
+  "fontSize": 16,
+  "fontFamily": "Menlo",
+  "wordWrap": false,
+  "showLineNumbers": false,
+  "language": "en",
+  "showOutline": true,
+  "previewFitWidth": true,
+  "autoCheckUpdate": false
+}

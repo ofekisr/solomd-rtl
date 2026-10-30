@@ -13,6 +13,7 @@ export const BaselineSchema = z.strictObject({
   fileSize: z.record(RepoPath, z.number().int().positive()),
   rawIpc: z.array(RepoPath),
   libPurity: z.array(RepoPath),
+  featurePurity: z.array(RepoPath),
 });
 
 export type Baseline = z.infer<typeof BaselineSchema>;

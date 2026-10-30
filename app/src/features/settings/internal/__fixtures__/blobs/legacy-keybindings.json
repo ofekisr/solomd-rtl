@@ -1,0 +1,15 @@
+{
+  "keybindings": {
+    "mindmap.viewMap": "Alt-1",
+    "mindmap.viewSource": "Alt-2",
+    "mindmap.viewOutline": null,
+    "mindmap.cycleView": "Alt-3",
+    "mindmap.lensData": "Alt-9",
+    "file.save": "Mod-s"
+  },
+  "v4AgentPanelMigrated": true,
+  "fileTreeDefaultDesktopMigrated": true,
+  "smartQuotesOptInMigrated": true,
+  "v4810PreviewFontSynced": true,
+  "v491MobileLayoutMigrated": true
+}

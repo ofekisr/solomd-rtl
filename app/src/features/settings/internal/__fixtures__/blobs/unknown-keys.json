@@ -1,0 +1,10 @@
+{
+  "theme": "dark",
+  "fontSize": 15,
+  "futureFlag": true,
+  "aiFutureThing": {
+    "mode": "x",
+    "n": 3
+  },
+  "v4AgentPanelMigrated": true
+}

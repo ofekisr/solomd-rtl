@@ -74,5 +74,10 @@
   "libPurity": [
     "app/src/lib/ai-activity.ts",
     "app/src/lib/quick-capture-status.ts"
+  ],
+  "featurePurity": [
+    "app/src/features/find/internal/cm-find-panel.ts",
+    "app/src/features/format/internal/formula-editor-bus.ts",
+    "app/src/features/format/internal/table-editor-bus.ts"
   ]
 }
