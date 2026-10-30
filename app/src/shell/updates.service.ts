@@ -13,7 +13,7 @@ export interface UpdatesDeps {
   isAutoCheckEnabled(): boolean;
   checkForUpdateOnStartup(): Promise<UpdateCheckResult | null>;
   openReleaseUrl(url: string): Promise<unknown>;
-  showToast(message: string, timeoutMs: number, onClick: () => void): void;
+  showToast(message: string, timeoutMs: number, onClick: () => void): void | Promise<void>;
   t(key: string, params?: Record<string, string>): string;
 }
 
@@ -26,15 +26,15 @@ export function createUpdatesService(deps: UpdatesDeps): UpdatesService {
     if (isIOS() || !deps.isAutoCheckEnabled()) return;
     try {
       const result = await deps.checkForUpdateOnStartup();
-      if (result && result.hasUpdate) announce(result);
+      if (result && result.hasUpdate) await announce(result);
     } catch {
       return;
     }
   }
 
-  function announce(result: UpdateCheckResult): void {
+  async function announce(result: UpdateCheckResult): Promise<void> {
     const message = deps.t(UPDATE_AVAILABLE_KEY, { version: result.latest || '' });
-    deps.showToast(message, UPDATE_TOAST_TIMEOUT_MS, () => {
+    await deps.showToast(message, UPDATE_TOAST_TIMEOUT_MS, () => {
       void deps.openReleaseUrl(result.url);
     });
   }

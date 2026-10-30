@@ -39,6 +39,10 @@ export interface WindowService {
   onWindowBlur(): void;
   applyWindowTitle(name?: string): Promise<void>;
   applyZoom(zoom: number): void;
+  removeStaleWindowState(): void;
+  cleanAuxRegistry(): void;
+  listenCloseRequested(): Promise<void>;
+  listenWindowDestroyed(): Promise<void>;
 }
 
 export function createWindowService(deps: WindowDeps): WindowService {
@@ -151,5 +155,16 @@ export function createWindowService(deps: WindowDeps): WindowService {
     unlistenWindowDestroyed = null;
   }
 
-  return { start, stop, onWheelZoom, onWindowBlur, applyWindowTitle, applyZoom };
+  return {
+    start,
+    stop,
+    onWheelZoom,
+    onWindowBlur,
+    applyWindowTitle,
+    applyZoom,
+    removeStaleWindowState,
+    cleanAuxRegistry,
+    listenCloseRequested,
+    listenWindowDestroyed,
+  };
 }

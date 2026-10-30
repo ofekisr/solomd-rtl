@@ -62,3 +62,10 @@ test('swallows check errors silently', async () => {
   await createUpdatesService(deps).start();
   assert.equal(toasts.length, 0);
 });
+
+test('swallows a failing (lazy-loading) toast inside the silent try', async () => {
+  const { deps } = makeDeps({ hasUpdate: true, latest: '1', url: 'u' }, {
+    showToast: async () => { throw new Error('chunk load failed'); },
+  });
+  await assert.doesNotReject(createUpdatesService(deps).start());
+});

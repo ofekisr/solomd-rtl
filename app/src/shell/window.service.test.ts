@@ -122,3 +122,33 @@ test('stop runs only the window-destroyed unlisten, once', async () => {
   assert.equal(h.ports.calls.filter((c) => c === 'events.unlisten:solomd://window-destroyed').length, 1);
   assert.equal(h.ports.calls.filter((c) => c.startsWith('events.unlisten:solomd://close')).length, 0);
 });
+
+test('step methods run individually: stale-state removal, aux cleanup, both listeners', async () => {
+  const removed: string[] = [];
+  Object.defineProperty(globalThis, 'localStorage', {
+    value: { removeItem: (k: string) => void removed.push(k) },
+    configurable: true,
+  });
+  const h = harness();
+  const svc = createWindowService(h.deps);
+  svc.removeStaleWindowState();
+  assert.deepEqual(removed, ['solomd.window.v1']);
+  svc.cleanAuxRegistry();
+  assert.deepEqual(h.log, ['reload', 'unregister:aux-1', 'unregister:aux-2']);
+  await svc.listenCloseRequested();
+  await svc.listenWindowDestroyed();
+  await h.ports.events.emit('solomd://window-destroyed', 'aux-3');
+  assert.deepEqual(h.log.slice(3), ['unregister:aux-3']);
+});
+
+test('close-requested persists the session before forceCloseWindow', async () => {
+  const h = harness();
+  h.deps.persistSession = () => void h.ports.calls.push('persistSession');
+  const svc = createWindowService(h.deps);
+  await svc.listenCloseRequested();
+  await h.ports.events.emit('solomd://close-requested', null);
+  await new Promise((r) => setImmediate(r));
+  const persistAt = h.ports.calls.indexOf('persistSession');
+  const closeAt = h.ports.calls.indexOf('windowCommands.forceCloseWindow');
+  assert.ok(persistAt >= 0 && closeAt > persistAt);
+});

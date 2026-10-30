@@ -1,11 +1,22 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, watch, watchEffect, computed, provide, nextTick, defineAsyncComponent } from 'vue';
-import { getCurrentWebview } from '@tauri-apps/api/webview';
-import { getCurrentWindow } from '@tauri-apps/api/window';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
-import { invoke } from '@tauri-apps/api/core';
-import { openPath } from '@tauri-apps/plugin-opener';
-import { readText as readClipboardText } from '@tauri-apps/plugin-clipboard-manager';
+import { onMounted, onBeforeUnmount, ref, watch, watchEffect, computed, provide, nextTick, defineAsyncComponent, type Ref } from 'vue';
+import {
+  androidPort,
+  aiPort,
+  capturePort,
+  clipboardPort,
+  eventsPort,
+  openerPort,
+  settingsPort,
+  windowCommandsPort,
+  windowPort,
+} from './platform/index.ts';
+import { createWindowService } from './shell/window.service.ts';
+import { createFileOpenService } from './shell/file-open.service.ts';
+import { createShortcutsService, type OpenableOverlayHandle } from './shell/shortcuts.service.ts';
+import { createSessionService } from './shell/session.service.ts';
+import { createUpdatesService } from './shell/updates.service.ts';
+import type { ToastKind } from './stores/toasts';
 import { setMarkdownHardBreaks, setMarkdownAutoNumberHeadings, setMarkdownSmartQuotes } from './lib/markdown';
 import { openNewWindow } from './lib/new-window';
 import Toolbar from './components/Toolbar.vue';
@@ -74,7 +85,7 @@ import { useExport } from './composables/useExport';
 import { useShortcuts } from './composables/useShortcuts';
 import { useFileWatcher } from './composables/useFileWatcher';
 import { useAutoSave } from './composables/useAutoSave';
-import { isIOS, isMacOS, isAndroid, isMobile } from './lib/platform';
+import { isIOS, isMobile } from './lib/platform';
 import GitCommitPanel from './components/git/GitCommitPanel.vue';
 const GitBottomDock = defineAsyncComponent(() => import('./components/git/GitBottomDock.vue'));
 const GitPushDialog = defineAsyncComponent(() => import('./components/git/GitPushDialog.vue'));
@@ -85,7 +96,6 @@ import { isGitMockActive } from './lib/git-pane/serviceFactory';
 import { useGitPaneAvailable } from './composables/useGitPaneAvailable';
 import { useGitErrorToasts } from './composables/useGitErrorToasts';
 import { useViewport } from './composables/useViewport';
-import { nativeMenuAccelerators } from './lib/keybindings';
 import { useI18n } from './i18n';
 import { quickCaptureError } from './lib/quick-capture-status';
 import { tableEditor, closeTableEditor } from './lib/table-editor-bus';
@@ -160,36 +170,6 @@ const androidPickerOpen = ref(false);
 // process (see the resume probe in onMounted); the app must restart so shared
 // storage re-mounts.
 const androidRestartNeeded = ref(false);
-async function doAndroidRestart() {
-  androidRestartNeeded.value = false;
-  try {
-    await invoke('android_restart_app');
-  } catch (e) {
-    const toasts = (await import('./stores/toasts')).useToastsStore();
-    toasts.error(String(e));
-  }
-}
-function onAndroidFolderPick(path: string) {
-  androidPickerOpen.value = false;
-  workspace.setFolder(path);
-  if (!settings.showFileTree) settings.toggleFileTree();
-}
-async function requestAndroidStorage() {
-  const toasts = (await import('./stores/toasts')).useToastsStore();
-  try {
-    // Mark that a grant round-trip is in flight; when we resume from Settings
-    // with the permission held, the onMounted visibilitychange handler restarts
-    // the app so the storage sandbox re-mounts (grant alone doesn't remount a
-    // running process — see android_restart_app).
-    localStorage.setItem('solomd:android-storage-pending', '1');
-    await invoke('android_request_all_files_access');
-    toasts.info(
-      'Enable "Allow management of all files / All files access", then come back. The app will restart automatically to apply the permission.',
-    );
-  } catch (e) {
-    toasts.error(String(e));
-  }
-}
 const workspaceIndex = useWorkspaceIndexStore();
 const properties = usePropertiesStore();
 const rag = useRagStore();
@@ -406,102 +386,128 @@ useShortcuts({
 useFileWatcher(showFileChangedDialog);
 useAutoSave(files.saveTab);
 
-// v4.6.2 — Ctrl/Cmd + mouse wheel zooms the whole app (Obsidian-style),
-// reusing the globalZoom axis so ⌘0 still resets it and it works in edit +
-// preview + split (window-level capture handler). Trackpad pinch also arrives
-// here (browsers set ctrlKey on pinch), so pinch-to-zoom works too. passive:false
-// lets us preventDefault so the page doesn't scroll while zooming.
-let lastWheelZoomAt = 0;
-// #215 — how much wheel delta has to accumulate before one 0.1 zoom step
-// fires. The old code stepped on any `deltaY !== 0`, so on macOS — where Cmd
-// is held constantly for ⌘S, ⌘Tab, ⌘-click — a trackpad resting under a
-// drifting finger emits deltas of well under 1 and silently rescaled the whole
-// app ("sometimes the mouse or trackpad zooms even without scrolling"). Rate-throttling alone could
-// not fix that: it caps how often a step fires, not how little input it takes.
-const WHEEL_ZOOM_STEP_DELTA = 12;
-let wheelZoomAccum = 0;
-function onWheelZoom(e: WheelEvent): void {
-  if (!(e.ctrlKey || e.metaKey)) return;
-  if (!settings.wheelZoomEnabled) return; // #215 — gesture switched off entirely
-  e.preventDefault();
-  if (e.deltaY === 0) return;
-
-  // Reverse of direction ends a gesture: drop the accumulator so a deliberate
-  // zoom-out right after a zoom-in isn't swallowed by leftover opposite delta.
-  if (wheelZoomAccum !== 0 && Math.sign(e.deltaY) !== Math.sign(wheelZoomAccum)) {
-    wheelZoomAccum = 0;
-  }
-  wheelZoomAccum += e.deltaY;
-  if (Math.abs(wheelZoomAccum) < WHEEL_ZOOM_STEP_DELTA) return;
-
-  // #125 — a trackpad pinch / momentum wheel fires dozens of events per gesture;
-  // applying a 0.1 step to each rocketed the zoom and made the layout shake.
-  // Throttle to one step per ~60ms so zooming is smooth and controllable.
-  const now = Date.now();
-  if (now - lastWheelZoomAt < 60) return;
-  lastWheelZoomAt = now;
-  const dir = wheelZoomAccum < 0 ? 1 : -1;
-  wheelZoomAccum = 0;
-  settings.setGlobalZoom((settings.globalZoom || 1) + dir * 0.1);
+// Shell services (Wave 1 PR-9): the logic lives in `shell/`; App.vue binds
+// Vue state into it and keeps every watcher / listener registration here.
+async function showToast(kind: ToastKind, message: string): Promise<void> {
+  (await import('./stores/toasts')).useToastsStore()[kind](message);
 }
 
-// Esc closes the topmost modal
-function onZoomShortcut(e: KeyboardEvent): boolean {
-  // Three independent zoom axes (v4.3.0 issue #72 + PR #74 yzcj105):
-  //   ⌘= / ⌘- / ⌘0           → globalZoom (whole app, CSS zoom)
-  //   ⌘⇧= / ⌘⇧- / ⌘⇧0        → editor font size only
-  //   ⌃⌘= / ⌃⌘- / ⌃⌘0        → preview font size only
-  // On macOS the same shortcuts are also exposed via native View menu
-  // accelerators (runner.rs) — this JS handler covers Linux/Windows and
-  // catches keys before the WebView's built-in browser zoom intercepts them.
-  const cmd = e.metaKey;          // macOS Cmd
-  const ctrlOnly = e.ctrlKey && !e.metaKey; // Linux/Win Ctrl (no Cmd present)
-  if (!cmd && !ctrlOnly) return false;
-  if (e.altKey) return false;
-
-  // Identify axis: Shift = editor; Cmd+Ctrl (both) = preview; otherwise UI.
-  let axis: 'ui' | 'editor' | 'preview' = 'ui';
-  if (e.shiftKey && !(e.metaKey && e.ctrlKey)) axis = 'editor';
-  else if (e.metaKey && e.ctrlKey) axis = 'preview';
-
-  const isIn = e.key === '=' || e.key === '+';
-  const isOut = e.key === '-' || e.key === '_';
-  const isReset = e.key === '0';
-  if (!isIn && !isOut && !isReset) return false;
-  e.preventDefault();
-  if (axis === 'editor') {
-    if (isIn) settings.editorFontIn();
-    else if (isOut) settings.editorFontOut();
-    else settings.resetEditorFontSize();
-  } else if (axis === 'preview') {
-    if (isIn) settings.previewFontIn();
-    else if (isOut) settings.previewFontOut();
-    else settings.resetPreviewFontSize();
-  } else {
-    if (isIn) settings.zoomIn();
-    else if (isOut) settings.zoomOut();
-    else settings.resetZoom();
-  }
-  return true;
+function overlay(flag: Ref<boolean>): OpenableOverlayHandle {
+  return {
+    isOpen: () => flag.value,
+    close: () => {
+      flag.value = false;
+    },
+    open: () => {
+      flag.value = true;
+    },
+  };
 }
 
-function onEsc(e: KeyboardEvent) {
-  if (onZoomShortcut(e)) return;
-  if (e.key !== 'Escape') return;
-  if (sidebarCtx.value) sidebarCtx.value = null;
-  else if (aboutOpen.value) aboutOpen.value = false;
-  else if (cjkProofreadOpen.value) cjkProofreadOpen.value = false;
-  else if (ragSearchOpen.value) ragSearchOpen.value = false;
-  else if (fileChangedOpen.value) fileChangedOpen.value = false;
-  else if (searchOpen.value) searchOpen.value = false;
-  else if (helpOpen.value) helpOpen.value = false;
-  else if (quickSwitcherOpen.value) quickSwitcherOpen.value = false;
-  else if (paletteOpen.value) paletteOpen.value = false;
-  else if (settingsOpen.value) settingsOpen.value = false;
-  // v2.4: reading mode is "modal-like" too — Esc exits back to the
-  // previous view. Lowest priority so any open dialog beats it.
-  else if (settings.viewMode === 'reading') settings.exitReadingMode();
-}
+const windowService = createWindowService({
+  windowPort,
+  eventsPort,
+  windowCommandsPort,
+  document,
+  isDev: import.meta.env.DEV,
+  getGlobalZoom: () => settings.globalZoom,
+  setGlobalZoom: (zoom) => settings.setGlobalZoom(zoom),
+  isWheelZoomEnabled: () => settings.wheelZoomEnabled,
+  autoSaveDirtyTabs: () => files.autoSaveDirtyTabs(),
+  persistSession: () => {
+    tabs.persist?.();
+    tiles.persist();
+  },
+  reloadWindows: () => windowsStore.reload(),
+  getAuxLabels: () => windowsStore.auxLabels,
+  unregisterWindow: (label) => windowsStore.unregister(label),
+  isAuxLabel,
+});
+
+const session = createSessionService({
+  persistTabs: () => tabs.persist(),
+  persistTiles: () => tiles.persist(),
+  syncTilesFromTabs: (activeTabId) => tiles.syncFromTabs(activeTabId),
+  validateTiles: () => tiles.validate(tabs.tabs),
+  getFirstTabId: () => tabs.tabs[0]?.id,
+  hasFocusedActiveTab: () => !!tiles.focusedLeaf?.activeTabId,
+  initDefaultTiles: (firstTabId) => tiles.initDefault(firstTabId),
+  syncActiveTab: () => tiles.syncActiveTab(),
+});
+
+const fileOpen = createFileOpenService({
+  eventsPort,
+  windowPort,
+  androidPort,
+  windowCommandsPort,
+  openerPort,
+  openPath: (path, options) => files.openPath(path, options),
+  getActiveFilePath: () => tabs.activeTab?.filePath,
+  getSafTreeUri: () => workspace.safTreeUri,
+  setFolder: (folder) => workspace.setFolder(folder),
+  setSafVault: (treeUri, rootId, name) => workspace.setSafVault(treeUri, rootId, name),
+  isFileTreeShown: () => settings.showFileTree,
+  toggleFileTree: () => settings.toggleFileTree(),
+  showToast,
+  loadSafFs: () => import('./lib/saf-fs'),
+  setAndroidPickerOpen: (isOpen) => {
+    androidPickerOpen.value = isOpen;
+  },
+  setAndroidRestartNeeded: (isNeeded) => {
+    androidRestartNeeded.value = isNeeded;
+  },
+  getFocusedPaneId: () => tiles.focusedPaneId,
+});
+const { doAndroidRestart, onAndroidFolderPick, requestAndroidStorage } = fileOpen;
+
+const shortcuts = createShortcutsService({
+  windowCommandsPort,
+  settingsPort,
+  capturePort,
+  eventsPort,
+  clipboardPort,
+  windowPort,
+  actions: {
+    files,
+    exportPdfPrint: () => exporter.exportPdfPrint(),
+    activeTabId: () => tabs.activeId,
+    toggleOutline: (id) => tabs.toggleOutline(id),
+    zoom: settings,
+    toggleTheme: () => settings.toggleTheme(themeStore.mode),
+    toggleFileTree: () => settings.toggleFileTree(),
+    cycleViewMode: () => settings.cycleViewMode(),
+    isReadingMode: () => settings.viewMode === 'reading',
+    exitReadingMode: () => settings.exitReadingMode(),
+    overlays: {
+      sidebarCtx: { isOpen: () => !!sidebarCtx.value, close: closeSidebarCtx },
+      about: overlay(aboutOpen),
+      cjkProofread: overlay(cjkProofreadOpen),
+      ragSearch: overlay(ragSearchOpen),
+      fileChanged: overlay(fileChangedOpen),
+      search: overlay(searchOpen),
+      help: overlay(helpOpen),
+      quickSwitcher: overlay(quickSwitcherOpen),
+      palette: overlay(paletteOpen),
+      settings: overlay(settingsOpen),
+    },
+    openNewWindow,
+    openExternalFile: () => fileOpen.openExternalFile(),
+    toggleGlobalSearch,
+    showToast,
+    t: (key) => t(key),
+  },
+});
+
+const updates = createUpdatesService({
+  isAutoCheckEnabled: () => settings.autoCheckUpdate,
+  checkForUpdateOnStartup: async () => (await import('./lib/check-update')).checkForUpdateOnStartup(),
+  openReleaseUrl: async (url) => (await import('./lib/check-update')).openReleaseUrl(url),
+  // #171 — no auto-opening the browser; the toast lingers and opens the page on click.
+  showToast: async (message, timeoutMs, onClick) => {
+    (await import('./stores/toasts')).useToastsStore().success(message, timeoutMs, onClick);
+  },
+  t: (key, params) => t(key, params),
+});
 
 function onCursor(line: number, col: number) {
   cursorLine.value = line;
@@ -526,67 +532,29 @@ import { installStudioPreview } from './composables/useThemeStudio';
 // Auto-persist tabs and tiles on every change.
 watch(
   () => [tabs.tabs.map((t) => [t.id, t.fileName, t.filePath, t.content, t.savedContent, t.language].join('|')).join(';'), tabs.activeId],
-  () => {
-    tabs.persist();
-    tiles.persist();
-  },
+  () => session.persist(),
   { deep: false },
 );
 
 // Persist tiles when root structure changes
 watch(
   () => JSON.stringify(tiles.root),
-  () => tiles.persist(),
+  () => session.persistTiles(),
 );
 
 // Sync tabs.activeId changes to the focused pane's leaf.
 // When newTab() or openFromDisk() set activeId, propagate it to the tile leaf.
 watch(
   () => tabs.activeId,
-  (newActiveId) => {
-    if (newActiveId) tiles.syncFromTabs(newActiveId);
-  },
+  (newActiveId) => session.syncTilesFromTabs(newActiveId),
 );
 
-// Window title — keep "<filename> — SoloMD" so the OS taskbar /
-// dock / Cmd-Tab can distinguish multiple SoloMD windows. Falls back
-// to "SoloMD" when no document is active. Issue #53.
-//
-// Win11-ARM regression (v4.5 report, but pre-existing since v4.4.x — the
-// cold-start-with-file path is byte-identical): the document loaded but
-// the title stayed "SoloMD". On Windows the JS `setTitle()` issued during
-// the cold-start mount burst didn't land (the window isn't ready to accept
-// it yet, and the rejected promise was swallowed), whereas macOS WKWebView
-// applied it fine. Two-pronged, platform-agnostic fix:
-//   1. Set `document.title` too — on Windows, WebView2 mirrors the native
-//      window title from the page title, so this lands even when the
-//      direct `setTitle()` call is dropped. (Also fixes the stale
-//      "Tauri + Vue …" placeholder that index.html shipped with.)
-//   2. Await `setTitle()` so a rejection is actually caught + logged,
-//      instead of floating off as an unhandled promise.
-const applyWindowTitle = async (name?: string) => {
-  const appName = import.meta.env.DEV ? 'SoloMD DEV' : 'SoloMD';
-  const title = name ? `${name} — ${appName}` : appName;
-  document.title = title;
-  // macOS uses `titleBarStyle: "Overlay"` + `hiddenTitle: true` — the
-  // document name is shown in the in-app toolbar (SoloMD mark + filename).
-  // Calling setTitle() here would un-hide the native macOS title bar text,
-  // which overlaps and obscures the in-app toolbar's document name.
-  // Skip the native call on macOS; document.title above is enough for
-  // taskbar / mission-control / window-switcher labels.
-  if (isMacOS()) return;
-  try {
-    await getCurrentWindow().setTitle(title);
-  } catch (err) {
-    // Non-Tauri context (Vitest, SSR) — or a window not yet ready to
-    // accept it; document.title above is the cross-platform fallback.
-    console.debug('setTitle failed (document.title fallback applied)', err);
-  }
-};
+// Window title — "<filename> — SoloMD" so the OS can tell windows apart (#53).
+// document.title doubles as the Windows fallback; macOS skips setTitle().
 watch(
   () => tabs.activeTab?.fileName,
   (name) => {
-    void applyWindowTitle(name);
+    void windowService.applyWindowTitle(name);
   },
   { immediate: true },
 );
@@ -615,29 +583,9 @@ watchEffect(() => {
   document.documentElement.style.setProperty('--ui-font-size', `${settings.uiFontSize}px`);
 });
 
-// v4.3.0 (issue #72): global zoom — scales everything for high-DPI screens.
-// #192: CSS `zoom` on the root is render-only in WebKit — layout metrics and
-// mouse coordinates stay unscaled, so after ⌘+/⌘- CodeMirror placed the caret
-// at the *unzoomed* position under the pointer (drift grows away from the
-// top-left corner). The native webview zoom (WKWebView pageZoom / WebView2 /
-// webkit2gtk zoom level) keeps one coordinate space end to end; CSS zoom
-// stays as the browser-mode fallback where getCurrentWebview() throws.
-watchEffect(() => {
-  const z = settings.globalZoom || 1;
-  try {
-    const webview = getCurrentWebview();
-    void webview
-      .setZoom(z)
-      .then(() => {
-        (document.documentElement.style as any).zoom = '';
-      })
-      .catch(() => {
-        (document.documentElement.style as any).zoom = String(z);
-      });
-  } catch {
-    (document.documentElement.style as any).zoom = String(z);
-  }
-});
+// v4.3.0 (issue #72): global zoom. #192 — native webview zoom keeps one
+// coordinate space; CSS zoom is the browser-mode fallback.
+watchEffect(() => windowService.applyZoom(settings.globalZoom || 1));
 
 // #190 — dedicated code font. Overrides the --font-mono token app-wide
 // (code blocks in preview/live edit, inline code, fenced editors). Empty
@@ -699,21 +647,9 @@ watchEffect(() => {
   }
 });
 
-// Sync native menu bar language — and, since #180, the accelerators too:
-// a rebound action must lose its old chord from the native menu, or macOS
-// keeps firing the original and the rebind only ever adds a second key.
-watchEffect(() => {
-  // Spread rather than passing the reactive object straight through: reading
-  // it with `hasOwnProperty` (as nativeMenuAccelerators does) does not register
-  // a dependency on a key that does not exist yet, so the first rebind of an
-  // action never re-ran this effect and the native menu kept the old chord.
-  const overrides = { ...settings.keybindings };
-  invoke('set_menu_config', {
-    lang: settings.language,
-    accels: nativeMenuAccelerators(overrides),
-  }).catch(() => {});
-  invoke('save_language_preference', { lang: settings.language }).catch(() => {});
-});
+// Sync native menu bar language and accelerators (#180). Spread the
+// keybindings here so the effect tracks keys that do not exist yet.
+watchEffect(() => shortcuts.syncNativeMenu({ ...settings.keybindings }, settings.language));
 
 useThemePaint();
 installStudioPreview();
@@ -732,33 +668,19 @@ watchEffect(() => {
 
 // v2.4: push the active folder into the capture endpoint's view of the
 // world, so the localhost HTTP server knows where to write captured notes
-// (or returns 503 when no folder is open).
+// (or returns 503 when no folder is open). v4.0: same for the REST API server.
 watchEffect(() => {
-  const folder = workspace.currentFolder;
-  invoke('capture_set_workspace', { folder: folder ?? null }).catch(() => {});
-  // v4.0: same dance for the public REST API server. Both endpoints share
-  // the "I 503 when no folder is open" contract, so they read from
-  // independent state but get pushed together.
-  invoke('rest_set_workspace', { folder: folder ?? null }).catch(() => {});
+  const folder = workspace.currentFolder ?? null;
+  capturePort.captureSetWorkspace({ folder }).catch(() => {});
+  capturePort.restSetWorkspace({ folder }).catch(() => {});
 });
 
-// Quick capture's hotkey is an OS-level registration owned by Rust, but the
-// setting that decides it lives in the frontend — so push it on start and on
-// every change. Passing null unregisters, which is what "off" has to mean for
-// a chord that would otherwise stay stolen from every other application.
-watchEffect(() => {
-  const accel = settings.quickCaptureEnabled ? settings.quickCaptureShortcut : null;
-  invoke('quick_capture_set_shortcut', { accelerator: accel })
-    .then(() => {
-      quickCaptureError.value = '';
-    })
-    .catch((e) => {
-      // Almost always "another app already owns this chord". Surfaced in
-      // Settings rather than as a toast: nothing is broken, and a modal
-      // complaint at every launch would be worse than the conflict.
-      quickCaptureError.value = String(e);
-      console.warn('[quickCapture] shortcut not registered', e);
-    });
+// Quick capture's OS hotkey: push on start and on every change; off
+// unregisters. Read settings before the await so the effect tracks them.
+watchEffect(async () => {
+  const isEnabled = settings.quickCaptureEnabled;
+  const shortcut = isEnabled ? settings.quickCaptureShortcut : '';
+  quickCaptureError.value = await shortcuts.syncQuickCaptureShortcut(isEnabled, shortcut);
 });
 
 // v2.3: keep the RAG index in sync with the toggle + active folder. When
@@ -824,7 +746,7 @@ watchEffect(async () => {
   const lang = settings.spellcheckLang || 'en_US';
   if (settings.spellcheckEnabled && spellcheckLoadedFor !== lang) {
     try {
-      await invoke('spellcheck_init', { lang });
+      await settingsPort.spellcheckInit({ lang });
       spellcheckLoadedFor = lang;
     } catch (e) {
       console.warn('spellcheck_init failed', e);
@@ -832,15 +754,6 @@ watchEffect(async () => {
   }
 });
 
-function onOpenHelpEvent() {
-  helpOpen.value = true;
-}
-function onOpenSearchEvent() {
-  toggleGlobalSearch();
-}
-function onOpenCjkProofreadEvent() {
-  cjkProofreadOpen.value = true;
-}
 
 // The editor find bar (scope Folder / All) streams its query here; the pane
 // lists the hits for that root.
@@ -870,247 +783,13 @@ function onFilterTag(tag: string) {
   openGlobalSearchPane();
 }
 
-let unlistenOpened: UnlistenFn | null = null;
-let unlistenMenu: UnlistenFn | null = null;
-let unlistenWindowDestroyed: UnlistenFn | null = null;
-
-async function openExternalFile() {
-  const filePath = tabs.activeTab?.filePath;
-  if (!filePath) {
-    console.warn('openExternal: no file path');
-    return;
-  }
-  try {
-    await openPath(filePath);
-  } catch (e) {
-    (await import('./stores/toasts')).useToastsStore().error(String(e));
-  }
-}
-
-function dispatchMenuAction(id: string) {
-  switch (id) {
-    case 'file.new':
-      files.newFile();
-      break;
-    case 'file.newText':
-      files.newTextFile();
-      break;
-    case 'file.open':
-      files.openFile();
-      break;
-    case 'file.openFolder':
-      files.openFolder();
-      break;
-    case 'file.import':
-      void files.importDocuments();
-      break;
-    case 'file.save':
-      files.saveActive();
-      break;
-    case 'file.saveAs':
-      files.saveActiveAs();
-      break;
-    case 'file.openExternal':
-      openExternalFile();
-      break;
-    case 'file.print':
-      exporter.exportPdfPrint();
-      break;
-    case 'file.closeTab':
-      if (tabs.activeId) files.closeTabSafe(tabs.activeId);
-      break;
-    case 'window.new':
-      // #280 — this used to dispatch a `solomd:new-window` event that nothing
-      // listened for, so the menu item did nothing at all.
-      void openNewWindow().catch(async (e) => {
-        console.error('failed to create window', e);
-        const toasts = (await import('./stores/toasts')).useToastsStore();
-        toasts.warning(t('toast.newWindowFailed'));
-      });
-      break;
-    case 'file.exit':
-      // #221 — the Windows in-app menubar dropped the native menu's Exit item.
-      // Routes through Tauri's close-requested flow → unsaved-tabs confirm,
-      // same as the caption ✕ button.
-      void getCurrentWindow().close();
-      break;
-    case 'view.toggleTheme':
-      settings.toggleTheme(themeStore.mode);
-      break;
-    case 'view.toggleFileTree':
-      settings.toggleFileTree();
-      break;
-    case 'view.toggleOutline':
-      if (tabs.activeId) tabs.toggleOutline(tabs.activeId);
-      break;
-    case 'view.cycleView':
-      settings.cycleViewMode();
-      break;
-    // v4.3.0 PR #74 — 3-axis zoom from the native View menu.
-    case 'view.zoomUiIn':
-      settings.zoomIn();
-      break;
-    case 'view.zoomUiOut':
-      settings.zoomOut();
-      break;
-    case 'view.zoomUiReset':
-      settings.resetZoom();
-      break;
-    case 'view.zoomEditorIn':
-      settings.editorFontIn();
-      break;
-    case 'view.zoomEditorOut':
-      settings.editorFontOut();
-      break;
-    case 'view.zoomEditorReset':
-      settings.resetEditorFontSize();
-      break;
-    case 'view.zoomPreviewIn':
-      settings.previewFontIn();
-      break;
-    case 'view.zoomPreviewOut':
-      settings.previewFontOut();
-      break;
-    case 'view.zoomPreviewReset':
-      settings.resetPreviewFontSize();
-      break;
-    case 'view.cmdPalette':
-      paletteOpen.value = true;
-      break;
-    case 'view.settings':
-      settingsOpen.value = true;
-      break;
-    case 'search.global':
-      toggleGlobalSearch();
-      break;
-    case 'help.markdown':
-      helpOpen.value = true;
-      break;
-    case 'help.about':
-      aboutOpen.value = true;
-      break;
-    // Windows unified title bar — the in-app Edit menu (Toolbar.vue). The
-    // native menu used PredefinedMenuItems here; in-app we drive the focused
-    // editor directly. `execCommand` covers the Windows editors (plain
-    // textarea + contenteditable live blocks); the menubar buttons use
-    // `mousedown.prevent` so focus never leaves the editor. (CodeMirror —
-    // Vim mode on Windows — keeps its own keyboard-driven undo history.)
-    case 'edit.undo':
-      document.execCommand('undo');
-      break;
-    case 'edit.redo':
-      document.execCommand('redo');
-      break;
-    case 'edit.cut':
-      document.execCommand('cut');
-      break;
-    case 'edit.copy':
-      document.execCommand('copy');
-      break;
-    case 'edit.paste':
-      // execCommand('paste') is blocked in modern engines; read the clipboard
-      // through the Tauri plugin and insert as text at the selection.
-      void readClipboardText()
-        .then((text) => {
-          if (text) document.execCommand('insertText', false, text);
-        })
-        .catch(() => {});
-      break;
-    case 'edit.selectAll':
-      document.execCommand('selectAll');
-      break;
-    default:
-      console.warn('unknown menu action', id);
-  }
-}
-
-function onDomMenuAction(e: Event) {
-  const id = (e as CustomEvent<string>).detail;
-  if (id) dispatchMenuAction(id);
-}
-
 // Window size + position are persisted by tauri-plugin-window-state on the
-// Rust side. The plugin clamps restored coordinates to the current monitor
-// set, which prevents the "window is off-screen, only taskbar thumbnail
-// visible" bug that the old localStorage approach had.
-// Remove stale localStorage entry from earlier versions on first run.
-try {
-  localStorage.removeItem('solomd.window.v1');
-} catch {}
-
-// #85 — auto-save dirty tabs when the app window loses focus. Gated on the
-// `autoSaveOnBlur` setting (default off) inside autoSaveDirtyTabs().
-function onWindowBlur() {
-  void files.autoSaveDirtyTabs();
-}
+// Rust side. Remove the stale localStorage entry from earlier versions.
+windowService.removeStaleWindowState();
 
 onMounted(async () => {
-  // #153 (mobile) — Android's WebView reports env(safe-area-inset-top) as 0
-  // under forced edge-to-edge, so the toolbar rendered under the status bar
-  // and was untappable. Read the real bar heights natively and inject them as
-  // CSS vars (the .app padding uses max(env, var)). Physical px → CSS px via
-  // devicePixelRatio. Runs only on Android; failures leave the vars unset (0).
-  if (isAndroid()) {
-    try {
-      const insets = await invoke<{ top: number; bottom: number }>('android_system_insets');
-      const dpr = window.devicePixelRatio || 1;
-      const root = document.documentElement;
-      root.style.setProperty('--android-safe-top', `${Math.round((insets.top || 0) / dpr)}px`);
-      root.style.setProperty('--android-safe-bottom', `${Math.round((insets.bottom || 0) / dpr)}px`);
-    } catch (e) {
-      console.warn('android_system_insets failed', e);
-    }
-
-    // #148 — restore a previously-opened SAF vault. The tree URI + name are
-    // persisted in the workspace store; the OS-level grant is separately
-    // persisted (takePersistableUriPermission). If that grant is gone (revoked,
-    // or a fresh install), drop the stale vault so the user gets a clean "Open
-    // Folder" prompt instead of a tree that errors on every read.
-    if (workspace.safTreeUri) {
-      try {
-        const { safPersistedTrees } = await import('./lib/saf-fs');
-        const held = await safPersistedTrees();
-        if (!held.includes(workspace.safTreeUri)) {
-          workspace.setFolder(null);
-        }
-      } catch (e) {
-        console.warn('SAF vault restore check failed', e);
-      }
-    }
-
-    // #148 — resolve a SAF folder pick after the system picker returns. The
-    // picker is a separate activity that backgrounds our WebView, so the result
-    // (onActivityResult → native AtomicReference) can't be awaited inline; we
-    // drain it on resume. The 'solomd:saf-picking' flag (set in openFolder)
-    // scopes this to an in-flight pick.
-    const resolveSafPick = async () => {
-      if (localStorage.getItem('solomd:saf-picking') !== '1') return;
-      const { safResolvePicked } = await import('./lib/saf-fs');
-      for (let i = 0; i < 12; i++) {
-        let r: Awaited<ReturnType<typeof safResolvePicked>>;
-        try {
-          r = await safResolvePicked();
-        } catch {
-          return;
-        }
-        if (r === 'pending') {
-          await new Promise((res) => setTimeout(res, 300));
-          continue;
-        }
-        localStorage.removeItem('solomd:saf-picking');
-        if (r) {
-          workspace.setSafVault(r.treeUri, `saf:${r.rootDocId}`, r.name);
-          if (!settings.showFileTree) settings.toggleFileTree();
-        }
-        return; // resolved (folder or cancel)
-      }
-      // still pending after retries — leave the flag so the next resume retries
-    };
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') void resolveSafPick();
-    });
-    void resolveSafPick();
-  }
+  // #153 / #148 — Android insets, SAF vault restore and SAF pick resolution.
+  await fileOpen.initAndroid();
 
   // #87(3) — if a startup view mode is pinned, force it now (overrides the
   // persisted last-used `viewMode`). Empty/null = resume whatever the user
@@ -1136,12 +815,12 @@ onMounted(async () => {
     }
   }
 
-  window.addEventListener('keydown', onEsc);
-  window.addEventListener('wheel', onWheelZoom, { passive: false, capture: true });
-  window.addEventListener('blur', onWindowBlur);
-  window.addEventListener('solomd:open-help', onOpenHelpEvent as EventListener);
-  window.addEventListener('solomd:open-global-search', onOpenSearchEvent as EventListener);
-  window.addEventListener('solomd:open-cjk-proofread', onOpenCjkProofreadEvent as EventListener);
+  window.addEventListener('keydown', shortcuts.onEsc);
+  window.addEventListener('wheel', windowService.onWheelZoom, { passive: false, capture: true });
+  window.addEventListener('blur', windowService.onWindowBlur);
+  window.addEventListener('solomd:open-help', shortcuts.onOpenHelpEvent);
+  window.addEventListener('solomd:open-global-search', shortcuts.onOpenSearchEvent);
+  window.addEventListener('solomd:open-cjk-proofread', shortcuts.onOpenCjkProofreadEvent);
 
   track('app_launched', {
     locale: settings.language,
@@ -1149,101 +828,13 @@ onMounted(async () => {
     live_preview: settings.livePreview ? 1 : 0,
   });
 
-  // OS file association — an OS-level file-open always belongs in the current
-  // window (this window was just spawned for it). Bypass new-window routing.
-  try {
-    unlistenOpened = await listen<string>('solomd://opened-file', async (e) => {
-      if (e.payload) await files.openPath(e.payload, { bypassNewWindow: true });
-    });
-  } catch (err) {
-    console.warn('opened-file listener not available', err);
-  }
-
-  // #148 / #151 — Android real-folder vault picking wiring.
-  window.addEventListener('solomd:android-folder-picker', () => {
-    androidPickerOpen.value = true;
-  });
-  window.addEventListener('solomd:android-request-storage', () => {
-    void requestAndroidStorage();
-  });
-  window.addEventListener('solomd:android-restart-needed', () => {
-    androidRestartNeeded.value = true;
-  });
-
-  // iOS / Android — tauri-plugin-deep-link delivers incoming files
-  // (Files app "Open with…", Mail attachments, AirDrop) as a list of URL
-  // strings. file:// URLs point into our app's Documents dir (the OS
-  // already copied the file there before launching us, or it's a
-  // bookmark into a third-party cloud-folder we asked to open in place).
-  try {
-    const { onOpenUrl, getCurrent } = await import('@tauri-apps/plugin-deep-link');
-    const handleUrls = async (urls: string[] | null | undefined) => {
-      if (!urls) return;
-      for (const raw of urls) {
-        try {
-          // openPath normalizes file:// → path itself (#139); pass raw through.
-          await files.openPath(raw, { bypassNewWindow: true });
-        } catch (err) {
-          console.warn('deep-link openPath failed', raw, err);
-        }
-      }
-    };
-    // Live listener — files arriving while the app is already open.
-    await onOpenUrl(handleUrls);
-    // Initial payload — file that LAUNCHED the app (iOS cold start with
-    // tap-on-file from Files / Mail).
-    const initial = await getCurrent();
-    await handleUrls(initial);
-  } catch (err) {
-    // Plugin only present on mobile + matching platforms; harmless to
-    // skip on macOS/Linux/Windows (those use 'solomd://opened-file' above).
-    console.debug('deep-link plugin not active', err);
-  }
-
-  try {
-    const pending = await invoke<string[]>('drain_pending_opens');
-    for (const p of pending || []) {
-      await files.openPath(p, { bypassNewWindow: true });
-    }
-  } catch (err) {
-    console.warn('drain_pending_opens failed', err);
-  }
-
-  // New-window launched via `?path=<encoded>` (used by the "open in new
-  // window" setting). Same reasoning as above — bypass the setting.
-  let initialPath: string | null = null;
-  try {
-    const params = new URLSearchParams(window.location.search);
-    initialPath = params.get('path');
-    if (initialPath) {
-      await files.openPath(initialPath, { bypassNewWindow: true });
-    }
-  } catch {}
-
-  // #103 follow-up — auxiliary windows ("Open file in new window") close
-  // independently of the main window (handled in runner.rs, the original #103
-  // fix). We intentionally do NOT auto-resurrect them on launch.
-  //
-  // An earlier version re-spawned every *registered* aux window on every
-  // start. Entries left behind by a force-quit (onCloseRequested never fires)
-  // or by a since-deleted/temp file were never pruned, so a "ghost" window
-  // reappeared on every launch — even for paths that no longer exist (user
-  // report: "an extra window pops up on every launch"). Closed windows now stay closed.
-  //
-  // On the main window we also clear any stale registry entries so users
-  // already affected by the old behavior stop seeing the ghost window after
-  // updating. (spawnAuxWindow still works for the current session; the
-  // registry simply isn't replayed across restarts anymore.)
-  try {
-    if (!isAuxLabel(getCurrentWindow().label)) {
-      windowsStore.reload();
-      for (const label of [...windowsStore.auxLabels]) {
-        windowsStore.unregister(label);
-      }
-    }
-  } catch (err) {
-    console.warn('aux-window registry cleanup failed', err);
-  }
+  await fileOpen.listenOpenedFile();
+  fileOpen.listenAndroidEvents();
+  await fileOpen.handleDeepLinks();
+  await fileOpen.drainPendingOpens();
+  await fileOpen.openPathFromQuery();
+  // #103 — aux windows are never resurrected; the main window clears stale entries.
+  windowService.cleanAuxRegistry();
 
   // First-launch welcome tour: only when there are no tabs at all (fresh
   // install or user has cleared session) and we haven't shown it before.
@@ -1271,99 +862,12 @@ onMounted(async () => {
   window.addEventListener('solomd:open-agent-wizard', onOpenAgentWizard);
   window.addEventListener('solomd:open-image-url-dialog', onOpenImageUrlDialog);
 
-  // Initialize tile layout: validate persisted state or create default
-  tiles.validate(tabs.tabs);
-  if (!tiles.focusedLeaf?.activeTabId && tabs.tabs.length > 0) {
-    tiles.initDefault(tabs.tabs[0].id);
-  }
-  tiles.syncActiveTab();
-
-  // Window close
-  try {
-    await listen('solomd://close-requested', async () => {
-      tabs.persist?.();
-      tiles.persist();
-      await invoke('force_close_window');
-    });
-  } catch (err) {
-    console.warn('close-requested listener failed', err);
-  }
-
-  // #103 — backstop registry cleanup. The destroyed window normally
-  // unregisters itself via onCloseRequested, but a webview teardown that
-  // skips CloseRequested would leave a stale entry that resurrects on the
-  // next launch. Rust emits `solomd://window-destroyed` with the label so
-  // any surviving window drops it from the registry.
-  try {
-    unlistenWindowDestroyed = await listen<string>('solomd://window-destroyed', (e) => {
-      if (e.payload && isAuxLabel(e.payload)) windowsStore.unregister(e.payload);
-    });
-  } catch (err) {
-    console.warn('window-destroyed listener not available', err);
-  }
-
-  // Native menu bar
-  try {
-    unlistenMenu = await listen<string>('solomd://menu', (e) => {
-      if (e.payload) dispatchMenuAction(e.payload);
-    });
-  } catch (err) {
-    console.warn('menu listener not available', err);
-  }
-  // Windows unified title bar: the in-app menubar (Toolbar.vue) dispatches
-  // the same action ids through a DOM event — no Tauri round-trip needed.
-  window.addEventListener('solomd:menu-action', onDomMenuAction);
-
-  // Drag-drop file open
-  try {
-    const webview = getCurrentWebview();
-    const IMAGE_DROP_EXTS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg', 'avif', 'tiff']);
-    await webview.onDragDropEvent(async (event) => {
-      if (event.payload.type === 'drop') {
-        for (const path of event.payload.paths) {
-          const ext = (path.split('.').pop() || '').toLowerCase();
-          if (IMAGE_DROP_EXTS.has(ext)) {
-            // An image file dropped onto the editor should be inserted, not
-            // run through the markitdown document converter (png/jpg/etc are
-            // in useFiles' CONVERT_CLI set). Route it to the focused editor's
-            // insertImageFromPath, which copies it into the note's assets dir
-            // and inserts a Markdown image link.
-            window.dispatchEvent(
-              new CustomEvent('solomd:insert-image-path', {
-                detail: { path, paneId: tiles.focusedPaneId },
-              }),
-            );
-            continue;
-          }
-          // Drop targets this window explicitly — bypass new-window routing.
-          await files.openPath(path, { bypassNewWindow: true });
-        }
-      }
-    });
-  } catch (e) {
-    console.warn('drag-drop not available', e);
-  }
-
-  // Auto-check for updates
-  if (!isIOS() && settings.autoCheckUpdate) {
-    try {
-      const { checkForUpdateOnStartup, openReleaseUrl } = await import('./lib/check-update');
-      const result = await checkForUpdateOnStartup();
-      if (result && result.hasUpdate) {
-        const toastsStore = (await import('./stores/toasts')).useToastsStore();
-        const { useI18n } = await import('./i18n');
-        const { t: tr } = useI18n();
-        // #171 — no auto-opening the browser (it yanks the user out of
-        // whatever they're writing). The toast lingers; clicking it opens
-        // the download page.
-        toastsStore.success(
-          tr('settings.updateAvailable', { version: result.latest || '' }),
-          12000,
-          () => { void openReleaseUrl(result.url); },
-        );
-      }
-    } catch { /* silent */ }
-  }
+  session.initTiles();
+  await windowService.listenCloseRequested();
+  await windowService.listenWindowDestroyed();
+  await shortcuts.start();
+  await fileOpen.listenDragDrop();
+  await updates.start();
 });
 
 function onAIRewriteAccept(e: Event) {
@@ -1485,12 +989,12 @@ window.addEventListener(VIEW_CLOSE_EVENT, onCloseView as EventListener);
 window.addEventListener('solomd:open-settings', onOpenSettingsEvent as EventListener);
 
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onEsc);
-  window.removeEventListener('wheel', onWheelZoom, { capture: true } as EventListenerOptions);
-  window.removeEventListener('blur', onWindowBlur);
-  window.removeEventListener('solomd:open-help', onOpenHelpEvent as EventListener);
-  window.removeEventListener('solomd:open-global-search', onOpenSearchEvent as EventListener);
-  window.removeEventListener('solomd:open-cjk-proofread', onOpenCjkProofreadEvent as EventListener);
+  window.removeEventListener('keydown', shortcuts.onEsc);
+  window.removeEventListener('wheel', windowService.onWheelZoom, { capture: true } as EventListenerOptions);
+  window.removeEventListener('blur', windowService.onWindowBlur);
+  window.removeEventListener('solomd:open-help', shortcuts.onOpenHelpEvent);
+  window.removeEventListener('solomd:open-global-search', shortcuts.onOpenSearchEvent);
+  window.removeEventListener('solomd:open-cjk-proofread', shortcuts.onOpenCjkProofreadEvent);
   window.removeEventListener('solomd:wiki-open', onWikiOpen as EventListener);
   window.removeEventListener('solomd:ai-rewrite-accept', onAIRewriteAccept as EventListener);
   window.removeEventListener('solomd:ai-rewrite-cancel', onAIRewriteCancel as EventListener);
@@ -1505,19 +1009,9 @@ onBeforeUnmount(() => {
   window.removeEventListener('solomd:open-settings', onOpenSettingsEvent as EventListener);
   window.removeEventListener('solomd:open-agent-wizard', onOpenAgentWizard);
   window.removeEventListener('solomd:open-image-url-dialog', onOpenImageUrlDialog);
-  if (unlistenOpened) {
-    unlistenOpened();
-    unlistenOpened = null;
-  }
-  if (unlistenMenu) {
-    unlistenMenu();
-    unlistenMenu = null;
-  }
-  window.removeEventListener('solomd:menu-action', onDomMenuAction);
-  if (unlistenWindowDestroyed) {
-    unlistenWindowDestroyed();
-    unlistenWindowDestroyed = null;
-  }
+  fileOpen.stop();
+  shortcuts.stop();
+  windowService.stop();
 });
 
 const showOutlinePane = computed(
@@ -1844,7 +1338,7 @@ const aiHasKey = ref(false);
 async function refreshAiHasKey() {
   if (!settings.aiEnabled) { aiHasKey.value = false; return; }
   try {
-    aiHasKey.value = await invoke<boolean>('ai_has_key', { provider: settings.aiProvider });
+    aiHasKey.value = await aiPort.aiHasKey({ provider: settings.aiProvider });
   } catch {
     aiHasKey.value = false;
   }
