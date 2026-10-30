@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "node --test \"src/**/*.test.ts\"",
+    "test": "node --experimental-transform-types --import ./scripts/node-test-loader.mjs --test \"src/**/*.test.ts\"",
     "arch": "node --test \"arch/**/*.test.ts\"",
     "arch:rebaseline": "node arch/rebaseline.ts",
     "arch:tight": "node arch/rebaseline.ts --check",

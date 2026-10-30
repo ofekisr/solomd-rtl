@@ -41,7 +41,7 @@ import {
   filterBlocks,
   expandSnippet,
   type SlashBlock,
-} from './slash-blocks';
+} from './slash-blocks.ts';
 
 // ---------------------------------------------------------------------------
 // Public types — keep label/hint overridable for i18n.
