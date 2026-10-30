@@ -54,3 +54,13 @@ test('serializeBaseline sorts keys and arrays and ends with a newline', () => {
     '',
   ].join('\n'));
 });
+
+test('serializeBaseline orders fileSize keys by code unit (uppercase first)', () => {
+  const text = serializeBaseline({
+    version: 1,
+    fileSize: { 'a.ts': 450, 'B.ts': 500 },
+    rawIpc: [],
+    libPurity: [],
+  });
+  assert.ok(text.indexOf('"B.ts"') < text.indexOf('"a.ts"'));
+});

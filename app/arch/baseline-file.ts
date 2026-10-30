@@ -13,7 +13,7 @@ export function loadBaseline(path: string = BASELINE_PATH): Baseline {
 export function serializeBaseline(baseline: Baseline): string {
   const sorted: Baseline = {
     version: baseline.version,
-    fileSize: Object.fromEntries(Object.entries(baseline.fileSize).sort(([a], [b]) => a.localeCompare(b))),
+    fileSize: Object.fromEntries(Object.entries(baseline.fileSize).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))),
     rawIpc: [...baseline.rawIpc].sort(),
     libPurity: [...baseline.libPurity].sort(),
   };
