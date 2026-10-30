@@ -1,5 +1,5 @@
 import { FORMAT_KINDS } from '../lib/md-format';
-import { invoke } from '@tauri-apps/api/core';
+import { capturePort, clipboardPort, dialogPort, openerPort, windowPort } from '../platform/index.ts';
 import { useFiles } from './useFiles';
 import { useSettingsStore } from '../stores/settings';
 import { useThemeStore } from '../stores/theme';
@@ -13,17 +13,13 @@ import { useExport } from './useExport';
 import { MINDMAP_WORKBENCH_ACTION, openWorkbench } from './useMindmapWorkbench';
 import { MINDMAP_CONVERT_ACTIONS, MINDMAP_CONVERT_EVENT, MINDMAP_CONVERT_FOLDER_ACTION, MINDMAP_CONVERT_FOLDER_EVENT, MINDMAP_FOLDER_TREE_ACTION, MINDMAP_FOLDER_TREE_EVENT, type MindmapConvertDetail } from './useMindmapConvert';
 import { useToastsStore } from '../stores/toasts';
-import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { openNewWindow } from '../lib/new-window';
-import { open as openFileDialog } from '@tauri-apps/plugin-dialog';
-import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 // opencc-js + pinyin-pro are dictionaries, not code; loading them at startup
 // cost every launch for a command most users never run.
 const loadChineseConvert = () => import('../lib/chinese-convert');
 import { cleanAIArtifacts, stripMarkdownToPlain } from '../lib/clean-ai';
 import { openWelcomeTour } from '../lib/welcome-tour';
 import { formatMarkdown } from '../lib/markdown-format';
-import { openPath } from '@tauri-apps/plugin-opener';
 import { useDailyNotes } from './useDailyNotes';
 import { usePandocExport } from './usePandocExport';
 import { useBasesView } from './useBasesView';
@@ -257,7 +253,7 @@ export function useCommands(): Command[] {
           return;
         }
         try {
-          await openPath(path);
+          await openerPort.openPath(path);
         } catch (e) {
           toasts.warning(`Failed: ${e}`);
         }
@@ -338,7 +334,7 @@ export function useCommands(): Command[] {
           toasts.warning('No active document');
           return;
         }
-        await writeText((await loadChineseConvert()).pinyin(t.content));
+        await clipboardPort.writeText((await loadChineseConvert()).pinyin(t.content));
         toasts.success('Pinyin copied to clipboard');
       },
     },
@@ -380,7 +376,7 @@ export function useCommands(): Command[] {
       hint: 'Open the small capture box and file a note straight into the Inbox',
       run: async () => {
         try {
-          await invoke('quick_capture_open');
+          await capturePort.quickCaptureOpen();
         } catch (e) {
           toasts.error(`Quick capture failed: ${e}`);
         }
@@ -449,7 +445,7 @@ export function useCommands(): Command[] {
           toasts.warning('No active document');
           return;
         }
-        const sel = await openFileDialog({
+        const sel = await dialogPort.open({
           multiple: false,
           defaultPath: await files.filePickerStartDir(),
           filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg', 'avif', 'tiff'] }],
@@ -682,7 +678,7 @@ export function useCommands(): Command[] {
           );
           return;
         }
-        await writeText(url);
+        await clipboardPort.writeText(url);
         toasts.success('Share link copied. Note must be in a public GitHub repo to render.');
       },
     },
@@ -696,7 +692,7 @@ export function useCommands(): Command[] {
           toasts.warning('Open a note in a Git-linked workspace first.');
           return;
         }
-        await writeText(url);
+        await clipboardPort.writeText(url);
         toasts.success('Git URL copied to clipboard.');
       },
     },
@@ -740,7 +736,7 @@ export function useCommands(): Command[] {
         } catch {}
         const label = `solomd-slideshow-${Date.now()}`;
         try {
-          const win = new WebviewWindow(label, {
+          const win = windowPort.createWebviewWindow(label, {
             url: '/?slideshow=1',
             title: 'SoloMD — Slideshow',
             width: 1200,

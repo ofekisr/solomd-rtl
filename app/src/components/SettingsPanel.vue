@@ -7,13 +7,12 @@ import { MINDMAP_CONTROL_STYLES, type MindmapControlStyle } from '../lib/mindmap
 import { ref, computed, watch, watchEffect, onUnmounted, nextTick } from 'vue';
 import { shortcutLabel } from '../lib/keybindings';
 import { builtinLabelFor } from '../lib/mindmap-keymap';
-import { invoke } from '@tauri-apps/api/core';
+import { dialogPort, fsPort, openerPort, settingsPort } from '../platform/index.ts';
 import { useSettingsStore } from '../stores/settings';
 import { useTabsStore } from '../stores/tabs';
 import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useRagStore } from '../stores/rag';
-import { open as openFileDialog } from '@tauri-apps/plugin-dialog';
 import { useI18n } from '../i18n';
 import { quickCaptureError } from '../lib/quick-capture-status';
 import {
@@ -60,7 +59,6 @@ import type { Appearance } from '../lib/theme/migrate';
 import type { Theme as AppTheme, ThemeMode } from '../lib/theme/schema';
 import { groupSlotOptions, isPairedTheme, parseSlotValue, slotValue } from '../lib/theme/picker';
 import { useThemeStudio } from '../composables/useThemeStudio';
-import { openPath } from '@tauri-apps/plugin-opener';
 import { DsModal } from '../ui';
 import { getDict } from '../i18n';
 import { flatten, englishFallbackNeedles, blockMatches, normalize, queryMatcher } from '../lib/settings-search';
@@ -238,7 +236,7 @@ const settingDefault = ref(false);
 async function setAsDefault() {
   settingDefault.value = true;
   try {
-    const msg = await invoke<string>('set_as_default_markdown_editor');
+    const msg = await settingsPort.setAsDefaultMarkdownEditor();
     toasts.success(msg);
   } catch (e) {
     toasts.error(String(e));
@@ -468,7 +466,7 @@ onUnmounted(() => {
 const spellDicts = ref<string[]>(['en_US']);
 async function refreshSpellDicts() {
   try {
-    spellDicts.value = await invoke<string[]>('spellcheck_list_dicts');
+    spellDicts.value = await settingsPort.spellcheckListDicts();
   } catch {
     spellDicts.value = ['en_US'];
   }
@@ -477,8 +475,8 @@ async function refreshSpellDicts() {
  *  app_config_dir(). Re-scans on return so a just-added pair shows up. */
 async function openDictsFolder() {
   try {
-    const dir = await invoke<string>('spellcheck_dicts_dir');
-    await openPath(dir);
+    const dir = await settingsPort.spellcheckDictsDir();
+    await openerPort.openPath(dir);
     setTimeout(refreshSpellDicts, 1500);
   } catch (e) {
     toasts.error(`${e}`);
@@ -495,7 +493,7 @@ const completionStatusText = computed(() =>
 );
 async function openCompletionsFolder(): Promise<void> {
   try {
-    await invoke<string>('directive_completions_open_folder');
+    await settingsPort.directiveCompletionsOpenFolder();
   } catch (error: unknown) {
     toasts.error(t('settings.directiveCompletionOpenFailed', { error: String(error) }));
   }
@@ -565,14 +563,14 @@ function onSlot(mode: ThemeMode, value: string) {
 }
 
 async function importThemeFile() {
-  const path = await openFileDialog({
+  const path = await dialogPort.open({
     multiple: false,
     defaultPath: await files.filePickerStartDir(),
     filters: [{ name: 'Theme', extensions: ['json', 'css'] }],
   });
   if (typeof path !== 'string') return;
   try {
-    const { content } = await invoke<{ content: string }>('read_file', { path });
+    const { content } = await fsPort.readFile({ path });
     const theme = await importThemeContent(path, content);
     themeStore.useTheme(theme.id);
   } catch (e) {
