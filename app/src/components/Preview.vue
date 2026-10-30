@@ -6,7 +6,6 @@ import { mermaidConfigFor, graphvizThemeFor, cssColorToHex } from '../lib/theme/
 import { useThemeStore } from '../stores/theme';
 import { findMindmapFences, MINDMAP_OPEN_EVENT, type MindmapOpenDetail } from '../lib/mindmap-fence';
 import type { ReadOnlyMindmap } from '../lib/mindmap-readonly';
-import { openUrl } from '@tauri-apps/plugin-opener';
 import { documentDirection } from '../lib/doc-direction';
 import { isFullMdFile } from '../lib/markdown-block-badges';
 import { renderMarkdown, extractImageRoot } from '../lib/markdown';
@@ -14,8 +13,7 @@ import { plantumlSvgUrl } from '../lib/plantuml';
 import { installSvgImageFallbacks, rewriteImageUrls } from '../lib/image-resolve';
 import { openImageOverlay, type OverlayStrings } from '../lib/image-overlay';
 import { svgToPngBlob, diagramBackground } from '../lib/mermaid-export';
-import { save as saveDialog } from '@tauri-apps/plugin-dialog';
-import { invoke } from '@tauri-apps/api/core';
+import { clipboardPort, dialogPort, fsPort, openerPort } from '../platform/index.ts';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
 import { useSettingsStore } from '../stores/settings';
@@ -503,13 +501,13 @@ async function exportDiagramPng(svg: SVGElement) {
   const toasts = useToastsStore();
   try {
     const blob = await svgToPngBlob(svg, { scale: 2, background: diagramBackground() });
-    const path = await saveDialog({
+    const path = await dialogPort.save({
       defaultPath: diagramExportName(),
       filters: [{ name: 'PNG Image', extensions: ['png'] }],
     });
     if (!path) return;
     const buffer = new Uint8Array(await blob.arrayBuffer());
-    await invoke('write_binary_file', { path, data: Array.from(buffer) });
+    await fsPort.writeBinaryFile({ path, data: Array.from(buffer) });
     toasts.success(`Saved ${path.split(/[\\/]/).pop()}`);
   } catch (err) {
     toasts.error(`Export failed: ${err}`);
@@ -526,10 +524,8 @@ async function copyDiagramPng(svg: SVGElement) {
     } catch {
       // WKWebView denies navigator.clipboard outside a user gesture /
       // focused document — same fallback as useExport.copyAsImage.
-      const { writeImage } = await import('@tauri-apps/plugin-clipboard-manager');
-      const { Image } = await import('@tauri-apps/api/image');
-      const img = await Image.fromBytes(new Uint8Array(await blob.arrayBuffer()));
-      await writeImage(img);
+      const img = await clipboardPort.imageFromBytes(new Uint8Array(await blob.arrayBuffer()));
+      await clipboardPort.writeImage(img);
     }
     toasts.success(t('overlay.copyImage') + ' ✓');
   } catch (err) {
@@ -598,7 +594,7 @@ function handleLinkClick(e: MouseEvent) {
   e.stopPropagation();
   // External URL: open in system browser
   if (/^(https?|mailto|tel):/i.test(href)) {
-    openUrl(href).catch((err) => {
+    openerPort.openUrl(href).catch((err) => {
       console.warn('[Preview] openUrl failed:', href, err);
     });
     return;

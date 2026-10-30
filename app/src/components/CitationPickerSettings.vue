@@ -14,7 +14,7 @@
   the parent has wired those fields in (see SUMMARY.md).
 -->
 <script setup lang="ts">
-import { open as openFileDialog } from '@tauri-apps/plugin-dialog';
+import { dialogPort } from '../platform/index.ts';
 import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
@@ -63,7 +63,7 @@ function applySetting(key: 'workspaceBibliography' | 'workspaceCsl', value: stri
 }
 
 async function pickBibliography() {
-  const path = await openFileDialog({
+  const path = await dialogPort.open({
     multiple: false,
     defaultPath: await files.filePickerStartDir(),
     filters: [
@@ -78,7 +78,7 @@ async function pickBibliography() {
 }
 
 async function pickCsl() {
-  const path = await openFileDialog({
+  const path = await dialogPort.open({
     multiple: false,
     defaultPath: await files.filePickerStartDir(),
     filters: [{ name: 'CSL Style', extensions: ['csl', 'xml'] }],

@@ -17,7 +17,7 @@ import { useSettingsStore } from '../stores/settings';
 import { useThemeStore } from '../stores/theme';
 import { DEFAULT_SLOTS } from '../lib/theme/legacy';
 import { marketplaceThemeId } from '../lib/theme/ids';
-import { invoke } from '@tauri-apps/api/core';
+import { fsPort } from '../platform/index.ts';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
 
@@ -45,7 +45,7 @@ function isInstalled(theme: ThemeManifestEntry): boolean {
 }
 
 async function convertInstalled(theme: ThemeManifestEntry, path: string): Promise<string> {
-  const { content } = await invoke<{ content: string }>('read_file', { path });
+  const { content } = await fsPort.readFile({ path });
   const converted = await themeStore.importCss(content, {
     id: themeIdFor(theme),
     name: theme.name,

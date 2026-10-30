@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { revealItemInDir } from '@tauri-apps/plugin-opener';
+import { openerPort } from '../platform/index.ts';
 import { useTabsStore } from '../stores/tabs';
 import { useFiles } from '../composables/useFiles';
 import { useI18n } from '../i18n';
@@ -73,7 +73,7 @@ async function onMenu(action: 'close' | 'closeLeft' | 'closeRight' | 'closeOther
   if (action === 'revealInFolder') {
     const path = list[idx]?.filePath;
     if (!path) return;
-    try { await revealItemInDir(path); } catch (e) { console.warn('reveal failed', e); }
+    try { await openerPort.revealItemInDir(path); } catch (e) { console.warn('reveal failed', e); }
     return;
   }
   const ids = (() => {
