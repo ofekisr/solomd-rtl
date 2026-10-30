@@ -12,6 +12,7 @@ export interface Validation {
 const ROOT_PATH = '(root)';
 
 export function createValidation(mode: ValidationMode, report: DriftReporter = (message) => console.warn(message)): Validation {
+  const reported = new Set<string>();
   return {
     mode,
     check(operation, part, schema, value) {
@@ -20,6 +21,8 @@ export function createValidation(mode: ValidationMode, report: DriftReporter = (
       if (parsed.success) return;
       const message = driftMessage(operation, part, parsed.error);
       if (mode === 'strict') throw new Error(message);
+      if (reported.has(message)) return;
+      reported.add(message);
       report(message);
     },
   };

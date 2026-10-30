@@ -31,3 +31,12 @@ test('valid values pass silently', () => {
   createValidation('report', (m) => seen.push(m)).check('read_file', 'args', schema, { path: '/a' });
   assert.deepEqual(seen, []);
 });
+
+test('report logs each distinct message once per instance', () => {
+  const seen: string[] = [];
+  const validation = createValidation('report', (m) => seen.push(m));
+  validation.check('read_file', 'args', schema, { path: 1 });
+  validation.check('read_file', 'args', schema, { path: 2 });
+  validation.check('read_file', 'args', schema, {});
+  assert.equal(seen.length, 2);
+});

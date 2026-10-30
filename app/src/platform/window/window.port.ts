@@ -1,6 +1,6 @@
-export type UnlistenFn = () => void;
+import type { UnlistenFn } from '../events/events.port.ts';
 
-export interface PlatformEvent<T = unknown> {
+export interface WindowEvent<T = unknown> {
   payload: T;
 }
 
@@ -29,16 +29,16 @@ export interface PlatformWindow {
   isFullscreen(): Promise<boolean>;
   setFullscreen(fullscreen: boolean): Promise<void>;
   startDragging(): Promise<void>;
-  onResized(handler: (event: PlatformEvent) => void): Promise<UnlistenFn>;
+  onResized(handler: (event: WindowEvent) => void): Promise<UnlistenFn>;
 }
 
 export interface PlatformWebview {
   setZoom(factor: number): Promise<void>;
-  onDragDropEvent(handler: (event: PlatformEvent<DragDropPayload>) => void | Promise<void>): Promise<UnlistenFn>;
+  onDragDropEvent(handler: (event: WindowEvent<DragDropPayload>) => void | Promise<void>): Promise<UnlistenFn>;
 }
 
 export interface PlatformWebviewWindow {
-  once(event: string, handler: (event: PlatformEvent) => void): Promise<UnlistenFn>;
+  once(event: string, handler: (event: WindowEvent) => void): Promise<UnlistenFn>;
 }
 
 export interface DeepLinkPort {

@@ -10,7 +10,6 @@ test('sync entry points throw PlatformUnsupportedError', () => {
   const port = createWebWindowPort();
   assert.throws(() => port.currentWindow(), isUnsupported('window.getCurrentWindow'));
   assert.throws(() => port.currentWebview(), isUnsupported('webview.getCurrentWebview'));
-  assert.throws(() => port.createWebviewWindow('a', {}), isUnsupported('webviewWindow.WebviewWindow'));
 });
 
 test('async entry points reject PlatformUnsupportedError', async () => {
@@ -18,4 +17,22 @@ test('async entry points reject PlatformUnsupportedError', async () => {
   await assert.rejects(port.getVersion(), isUnsupported('app.getVersion'));
   await assert.rejects(port.deepLink.onOpenUrl(() => undefined), isUnsupported('deep-link.onOpenUrl'));
   await assert.rejects(port.deepLink.getCurrent(), isUnsupported('deep-link.getCurrent'));
+});
+
+test('createWebviewWindow does not throw and reports tauri://error asynchronously', async () => {
+  const win = createWebWindowPort().createWebviewWindow('a', {});
+  const payload = await new Promise<unknown>((resolve) => {
+    void win.once('tauri://error', (event) => resolve(event.payload));
+  });
+  assert.ok(isUnsupported('webviewWindow.WebviewWindow')(payload));
+});
+
+test('createWebviewWindow never fires tauri://created', async () => {
+  const win = createWebWindowPort().createWebviewWindow('a', {});
+  let created = false;
+  await win.once('tauri://created', () => {
+    created = true;
+  });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  assert.equal(created, false);
 });
