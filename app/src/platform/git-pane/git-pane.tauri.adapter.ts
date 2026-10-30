@@ -1,21 +1,29 @@
-import { invoke } from '@tauri-apps/api/core'
-import { listen } from '@tauri-apps/api/event'
-import type { CommitPageRequest, DiffRequest } from './shared/models.ts'
-import type { GitPaneAction, GitPaneService, GitVersionInfo, OpenResult } from './service.ts'
-import { ensure, isCommitPage, isDiffResult, isEnvelope, isFileList, isSnapshot, toGitPaneError } from './validate.ts'
+import type { CommitPageRequest, DiffRequest } from '../../lib/git-pane/shared/models.ts'
+import type { GitPaneAction, GitPaneService, GitVersionInfo, OpenResult } from '../../lib/git-pane/service.ts'
+import {
+  ensure,
+  isCommitPage,
+  isDiffResult,
+  isEnvelope,
+  isFileList,
+  isSnapshot,
+  toGitPaneError,
+} from '../../lib/git-pane/validate.ts'
+import type { EventsPort } from '../events/events.port.ts'
+import type { InvokeFn } from '../ipc/command.port.ts'
 
 const CHANGED_EVENT = 'gitpane:changed'
 const SNAPSHOT_COMMIT_LIMIT = 200
 
-async function call<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
-  try {
-    return await invoke<T>(cmd, args)
-  } catch (e) {
-    throw toGitPaneError(e)
+export function createTauriGitPaneService(invoke: InvokeFn, listen: EventsPort['listen']): GitPaneService {
+  async function call<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
+    try {
+      return (await invoke(cmd, args)) as T
+    } catch (e) {
+      throw toGitPaneError(e)
+    }
   }
-}
 
-export function createTauriGitService(): GitPaneService {
   return {
     async version(): Promise<GitVersionInfo | null> {
       try {
@@ -54,7 +62,7 @@ export function createTauriGitService(): GitPaneService {
     onChanged(listener: () => void) {
       let unlisten: (() => void) | null = null
       let isDisposed = false
-      void listen(CHANGED_EVENT, () => listener()).then((off) => {
+      void listen<unknown>(CHANGED_EVENT, () => listener()).then((off) => {
         if (isDisposed) off()
         else unlisten = off
       })

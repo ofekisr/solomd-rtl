@@ -1,6 +1,6 @@
 import type { GitPaneService } from './service.ts'
 import { createMockGitService, type MockSeed } from './mockGitService.ts'
-import { createTauriGitService } from './tauriGitService.ts'
+import { gitPaneService } from '../../platform/index.ts'
 
 const MOCK_QUERY_FLAG = 'gitMock'
 
@@ -18,7 +18,7 @@ function seedFromQuery(): MockSeed {
 }
 
 export function getGitPaneService(): GitPaneService {
-  service ??= wantsMock() ? createMockGitService(seedFromQuery()) : createTauriGitService()
+  service ??= wantsMock() ? createMockGitService(seedFromQuery()) : gitPaneService()
   return service
 }
 

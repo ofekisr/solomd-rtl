@@ -15,6 +15,7 @@ Rust paths are under `src-tauri/src/`. Command ports wrap `invoke`; plugin ports
 | `convert/` | `convertPort` | command | `convert.rs`, `pandoc.rs`, `image_upload.rs` |
 | `git-sync/` | `gitSyncPort` | command | `github_sync.rs`, `crypto.rs` |
 | `git-history/` | `gitHistoryPort` | command | `git_history.rs` |
+| `git-pane/` | `gitPaneService()` | adapter over `lib/git-pane/service.ts` (`GitPaneService`) | `git_pane/` (`gitpane_*` commands, `gitpane:changed` event) |
 | `ai/` | `aiPort` | command | `ai_proxy.rs`, `ollama.rs`, `trace.rs`, `cost_meter.rs`, `agent_trace.rs` |
 | `ai-tools/` | `aiToolsPort` | command | `recipe_runner.rs`, `integrations.rs`, `mcp_profiles.rs`, `cookbook.rs` |
 | `rag/` | `ragPort` | command | `rag.rs`, `workspace_index.rs` |

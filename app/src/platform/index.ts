@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { isTauri } from '../lib/platform.ts';
+import { PlatformUnsupportedError, type InvokeFn } from './ipc/command.port.ts';
 import { createValidation, type ValidationMode } from './ipc/validation.service.ts';
 import type { AiPort } from './ai/ai.port.ts';
 import { createTauriAiPort } from './ai/ai.tauri.adapter.ts';
@@ -34,6 +35,8 @@ import { createWebFsPort } from './fs/fs.web.adapter.ts';
 import type { GitHistoryPort } from './git-history/git-history.port.ts';
 import { createTauriGitHistoryPort } from './git-history/git-history.tauri.adapter.ts';
 import { createWebGitHistoryPort } from './git-history/git-history.web.adapter.ts';
+import type { GitPaneService } from '../lib/git-pane/service.ts';
+import { createTauriGitPaneService } from './git-pane/git-pane.tauri.adapter.ts';
 import type { GitSyncPort } from './git-sync/git-sync.port.ts';
 import { createTauriGitSyncPort } from './git-sync/git-sync.tauri.adapter.ts';
 import { createWebGitSyncPort } from './git-sync/git-sync.web.adapter.ts';
@@ -57,7 +60,7 @@ import { createTauriWindowCommandsPort } from './window/window-commands.tauri.ad
 import { createWebWindowCommandsPort } from './window/window-commands.web.adapter.ts';
 
 export type { UnlistenFn, PlatformEvent } from './events/events.port.ts';
-export { PlatformUnsupportedError } from './ipc/command.port.ts';
+export { PlatformUnsupportedError };
 
 function resolveValidationMode(): ValidationMode {
   return import.meta.env?.DEV ? 'report' : 'off';
@@ -90,3 +93,8 @@ export const openerPort: OpenerPort = isDesktop ? createTauriOpenerPort() : crea
 export const clipboardPort: ClipboardPort = isDesktop ? createTauriClipboardPort() : createWebClipboardPort();
 export const pathPort: PathPort = isDesktop ? createTauriPathPort() : createWebPathPort();
 export const windowPort: WindowPort = isDesktop ? createTauriWindowPort() : createWebWindowPort();
+
+const rejectUnsupported: InvokeFn = (command) => Promise.reject(new PlatformUnsupportedError(command));
+
+export const gitPaneService = (): GitPaneService =>
+  createTauriGitPaneService(isDesktop ? invoke : rejectUnsupported, eventsPort.listen);
