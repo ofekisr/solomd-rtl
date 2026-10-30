@@ -1,0 +1,247 @@
+.integrations {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.integrations__heading {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 18px 0 0;
+}
+.integrations__intro {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin: 0 0 4px;
+  line-height: 1.5;
+}
+.ic-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ic-card__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.ic-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  word-break: break-all;
+}
+.ic-status--off {
+  color: var(--text-faint);
+}
+.ic-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.ic-dot--ok {
+  background: #22c55e;
+}
+.ic-dot--off {
+  background: var(--text-faint);
+  opacity: 0.4;
+}
+.ic-version {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-left: 14px;
+}
+.ic-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.ic-btn {
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text);
+  padding: 5px 10px;
+  font-size: 11px;
+  border-radius: 4px;
+  cursor: pointer;
+  font: inherit;
+}
+.ic-btn:hover:not(:disabled) {
+  background: var(--bg-active, var(--bg-elev));
+}
+.ic-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ic-desc {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin: 2px 0;
+  line-height: 1.5;
+}
+.ic-config-heading {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.ic-config-hint {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin: 0;
+  line-height: 1.5;
+}
+.ic-config-block {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: var(--text);
+  overflow-x: auto;
+  margin: 0;
+  cursor: copy;
+  white-space: pre;
+  line-height: 1.5;
+}
+.ic-config-block:hover {
+  border-color: var(--accent);
+}
+.ic-details {
+  margin-top: 4px;
+}
+.ic-details summary {
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+.ic-details summary:hover {
+  color: var(--text);
+}
+.ic-list {
+  list-style: none;
+  padding: 6px 0 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ic-list li {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.ic-list code {
+  background: var(--bg-elev);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  color: var(--text);
+}
+.ic-write-note {
+  font-size: 10px;
+  color: var(--text-faint);
+  margin: 6px 0 0;
+  line-height: 1.5;
+}
+
+/* v4.4.5 AI-clients card --------------------------------------------------- */
+.ic-intro-small {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+.ai-clients {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ai-client {
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: var(--bg-soft);
+}
+.ai-client__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.ai-client__row input[type='checkbox']:disabled {
+  cursor: not-allowed;
+}
+.ai-client__name {
+  font-weight: 500;
+  font-size: 12px;
+}
+.ai-client__badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  margin-left: auto;
+}
+.ai-client__badge--off {
+  background: var(--bg);
+  color: var(--text-faint);
+}
+.ai-client__badge--ok {
+  background: rgba(40, 167, 69, 0.15);
+  color: #28a745;
+}
+.ai-client__badge--pending {
+  background: rgba(255, 159, 64, 0.15);
+  color: #d97700;
+}
+.ai-client__actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+.ic-btn--small {
+  font-size: 10px;
+  padding: 3px 8px;
+}
+.ic-btn--danger {
+  color: #d33;
+  border-color: #d33;
+}
+.ic-btn--primary {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+.ai-client__path {
+  font-family: monospace;
+  font-size: 10px;
+  color: var(--text-faint);
+  margin-top: 2px;
+  word-break: break-all;
+}
+.ai-clients__controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+.ai-clients__allow-write {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  cursor: pointer;
+}

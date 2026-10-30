@@ -1,0 +1,339 @@
+.ghs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ghs__heading {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 18px 0 0;
+}
+.ghs__intro {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin: 0 0 4px;
+  line-height: 1.5;
+}
+.ghs-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ghs-card--linked {
+  border-color: var(--accent);
+}
+.ghs-card__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.ghs-sub-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 8px 0 4px;
+}
+.ghs-subblock {
+  border-top: 1px dashed var(--border);
+  padding-top: 8px;
+}
+.ghs-help {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin: 0;
+  line-height: 1.5;
+}
+.ghs-fineprint {
+  font-size: 10px;
+  color: var(--text-faint);
+  margin: 0;
+  line-height: 1.5;
+}
+.ghs-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.ghs-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 4px;
+  font: inherit;
+  font-size: 12px;
+}
+.ghs-input--mono {
+  font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 11px;
+}
+.ghs-select {
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 4px;
+  font: inherit;
+  font-size: 12px;
+}
+.ghs-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+}
+.ghs-btn {
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text);
+  padding: 5px 10px;
+  font-size: 11px;
+  border-radius: 4px;
+  cursor: pointer;
+  font: inherit;
+}
+.ghs-btn:hover:not(:disabled) {
+  background: var(--bg-active, var(--bg-elev));
+}
+.ghs-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ghs-btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text, #000);
+}
+.ghs-btn--primary:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+.ghs-btn--ghost {
+  background: transparent;
+  color: var(--text-muted);
+}
+.ghs-btn--small {
+  padding: 3px 8px;
+  font-size: 10px;
+}
+.ghs-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.ghs-status > div {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.ghs-status__pill {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.ghs-status__pill--err {
+  border-color: #d12;
+  color: #d12;
+}
+.ghs-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.ghs-dot--ok {
+  background: #22c55e;
+}
+.ghs-dot--warn {
+  background: #f59e0b;
+}
+.ghs-timestamps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.ghs-details {
+  margin-top: 4px;
+}
+.ghs-details summary {
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+.ghs-details summary:hover {
+  color: var(--text);
+}
+.ghs-advanced {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 6px;
+}
+.ghs-repolist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.ghs-repolist__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.ghs-repolist__item:last-child {
+  border-bottom: none;
+}
+.ghs-repolist__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.ghs-repolist__name {
+  color: var(--text);
+  font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ghs-repolist__pill {
+  font-size: 9px;
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.ghs-error {
+  font-size: 10px;
+  color: #d12;
+  margin: 0;
+  word-break: break-all;
+}
+.ghs-upgrade-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-top: 10px;
+}
+.ghs-upgrade-row__icon {
+  font-size: 18px;
+  line-height: 1;
+}
+.ghs-upgrade-row__copy {
+  flex: 1;
+  min-width: 0;
+}
+.ghs-upgrade-row__copy strong {
+  display: block;
+  font-size: 12px;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.ghs-upgrade-row__copy p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.ghs-upgrade-form {
+  border-top: 1px dashed var(--border);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+.ghs-warn {
+  font-size: 11px;
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.1);
+  border-left: 3px solid #f59e0b;
+  padding: 8px 10px;
+  border-radius: 4px;
+  line-height: 1.5;
+  margin: 4px 0;
+}
+.ghs-keychain-hint {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 0 0 10px;
+}
+.ghs-keychain-hint__icon {
+  font-size: 18px;
+  line-height: 1;
+}
+.ghs-keychain-hint strong {
+  display: block;
+  font-size: 12px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.ghs-keychain-hint p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+/* Token-expired warning banner — uses the danger hue, not the accent. */
+.ghs-authwarn {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: color-mix(in srgb, var(--danger, #e5484d) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger, #e5484d) 35%, transparent);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 0 0 12px;
+}
+.ghs-authwarn__icon {
+  font-size: 18px;
+  line-height: 1;
+}
+.ghs-authwarn__body {
+  flex: 1;
+}
+.ghs-authwarn__body strong {
+  display: block;
+  font-size: 12px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.ghs-authwarn__body p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
