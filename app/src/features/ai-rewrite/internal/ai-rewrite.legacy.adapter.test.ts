@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { applyAiActivity } from '../../../lib/ai-activity.ts';
+import { applyAiActivity, configureAiActivity, DEFAULT_AI_RELEASE_DELAY_MS } from '../../../lib/ai-activity.ts';
 import { stateWith } from '../../editor/contracts/testkit.ts';
 import { legacyAiRewriteAdapter } from './ai-rewrite.legacy.adapter.ts';
 
@@ -9,7 +9,13 @@ test('isLocked delegates to the ai-activity state', () => {
   assert.equal(legacyAiRewriteAdapter.isLocked(path), false);
   assert.equal(legacyAiRewriteAdapter.isLocked(undefined), false);
   applyAiActivity({ path, active: true, holder: 'test' });
-  assert.equal(legacyAiRewriteAdapter.isLocked(path), true);
+  try {
+    assert.equal(legacyAiRewriteAdapter.isLocked(path), true);
+  } finally {
+    configureAiActivity({ releaseDelayMs: 0 });
+    applyAiActivity({ path, active: false, holder: 'test' });
+    configureAiActivity({ releaseDelayMs: DEFAULT_AI_RELEASE_DELAY_MS });
+  }
 });
 
 test('extension builds into an editor state', () => {

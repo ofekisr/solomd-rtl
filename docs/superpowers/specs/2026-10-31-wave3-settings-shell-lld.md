@@ -359,9 +359,12 @@ Commits `eb78f69a..HEAD` on `main` (24 commits, 31-10-26). Each PR was reviewed 
 | `git_pane/cli/actions.rs` | 2705 | `actions/` (max 358) |
 | `fileSize` baseline | 68 | 15 (AI files only, S15) |
 | `libPurity` / `featurePurity` | 2 / — | 1 (`ai-activity.ts`) / 1 (`cm-find-panel.ts`) |
-| Unit tests | 1567 | 1756 |
+| Unit tests | 1567 | 1760 |
+| `guard` (idle, 8 cores) | 70.6 s (unit step 62.3 s) | 20.6 s (unit step 10.0 s) |
 
 Migration proof: golden fixtures (10 pre-wave blobs → today's `load()` output, captured before the store changed) pass on the new store; a differential review ran 1993 load cases old-vs-new (one mismatch: a raw JSON string blob, where the old spread leaked index keys). In the browser (`solomd-web-alt`), seeding `solomd.settings.v1` with the `v4-beta` and `full-current` pre-wave blobs and reloading gave the pre-wave state on every key except `themeLayerVersion`/`appearance`, which the unchanged theme-layer migration sets after load.
+
+Guard time cause (measured per file): `features/ai-rewrite/internal/ai-rewrite.legacy.adapter.test.ts` took 62 s alone — it left an AI-activity hold whose 60 s stale timer kept the node test process alive; every other file runs in ≤ 1.3 s. The test now releases its hold. `guard` is still above the 15 s NFR: the rest is `vue-tsc` (~9 s) and arch specs.
 
 Deviations from the plan:
 - S9: `SETTINGS_SLICES` stays in `features/settings/internal/settings-slices.ts`; `shell/settings-registry.service.ts` re-exports it and owns the registry test. The store is created by 141 importers without `main.ts`, so a setter would leave it slice-less. `SETTINGS_PAGES` lives in `shell/settings-pages.ts` and reaches the panel by `provide`/`inject`.
