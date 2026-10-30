@@ -1,12 +1,10 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { defaults } from '../../../stores/settings.ts';
 import { EditorView } from '@codemirror/view';
 import { fakeContext, stateWith } from '../../editor/internal/cm-probe.ts';
 import { createSpellcheckFeature } from './spellcheck.feature.ts';
 
-const SETTINGS_SRC = readFileSync(new URL('../../../stores/settings.ts', import.meta.url), 'utf8');
-const DEFAULTS_SRC = SETTINGS_SRC.slice(SETTINGS_SRC.indexOf('function defaults'));
 const spellcheckAttr = (spellCheck: boolean) => {
   const slot = createSpellcheckFeature().slots?.[0];
   assert.ok(slot);
@@ -17,7 +15,7 @@ const spellcheckAttr = (spellCheck: boolean) => {
 test('manifest: settingsKeys exist in defaults()', () => {
   const feature = createSpellcheckFeature();
   assert.equal(feature.id, 'spellcheck');
-  for (const key of feature.settingsKeys) assert.match(DEFAULTS_SRC, new RegExp(`\\n\\s+${key}:`));
+  for (const key of feature.settingsKeys) assert.ok(key in defaults(), key);
   assert.deepEqual(feature.i18nKeys, []);
 });
 

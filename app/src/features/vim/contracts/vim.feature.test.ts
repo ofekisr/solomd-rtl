@@ -1,11 +1,9 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { defaults } from '../../../stores/settings.ts';
 import { fakeContext, stateWith } from '../../editor/internal/cm-probe.ts';
 import { createVimFeature } from './vim.feature.ts';
 
-const SETTINGS_SRC = readFileSync(new URL('../../../stores/settings.ts', import.meta.url), 'utf8');
-const DEFAULTS_SRC = SETTINGS_SRC.slice(SETTINGS_SRC.indexOf('function defaults'));
 const slot = () => {
   const found = createVimFeature().slots?.[0];
   assert.ok(found);
@@ -15,7 +13,7 @@ const slot = () => {
 test('manifest: settingsKeys exist in defaults()', () => {
   const feature = createVimFeature();
   assert.equal(feature.id, 'vim');
-  for (const key of feature.settingsKeys) assert.match(DEFAULTS_SRC, new RegExp(`\\n\\s+${key}:`));
+  for (const key of feature.settingsKeys) assert.ok(key in defaults(), key);
   assert.deepEqual(feature.i18nKeys, []);
 });
 

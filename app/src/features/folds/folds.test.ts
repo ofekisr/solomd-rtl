@@ -2,16 +2,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { EditorView } from '@codemirror/view';
 import { stateWith, fakeView, fakeContext, type FakeContext } from '../editor/internal/cm-probe.ts';
-import { readFileSync } from 'node:fs';
+import { defaults } from '../../stores/settings.ts';
 import { en } from '../../i18n/en.ts';
 import { currentFoldRanges } from '../../lib/cm-heading-fold.ts';
 import { createFoldsFeature } from './contracts/index.ts';
 import { applyFold, foldExtensionFor } from './internal/apply-fold.ts';
 
 function defaultSettingKeys(): string[] {
-  const src = readFileSync(new URL('../../stores/settings.ts', import.meta.url), 'utf8');
-  const body = src.slice(src.indexOf('export function defaults()'));
-  return [...body.matchAll(/^ {4}(\w+):/gm)].map((m) => m[1]);
+  return Object.keys(defaults());
 }
 
 

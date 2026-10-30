@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { fakeContext } from '../editor/internal/cm-probe.ts';
+import { defaults } from '../../stores/settings.ts';
 import type { EditorFeature } from '../editor/contracts/index.ts';
 import type { AiRewritePort } from './contracts/ai-rewrite.port.ts';
 
@@ -19,9 +19,7 @@ const slotOf = (name: string) => feature.slots?.find((s) => s.slot === name);
 
 test('manifest: settingsKeys exist in defaults()', () => {
   assert.equal(feature.id, 'ai-rewrite');
-  const source = readFileSync(new URL('../../stores/settings.ts', import.meta.url), 'utf8');
-  const body = source.slice(source.indexOf('export function defaults'));
-  for (const key of feature.settingsKeys) assert.match(body, new RegExp(`^\\s+${key}:`, 'm'), key);
+  for (const key of feature.settingsKeys) assert.ok(key in defaults(), key);
   assert.deepEqual(feature.i18nKeys, []);
 });
 

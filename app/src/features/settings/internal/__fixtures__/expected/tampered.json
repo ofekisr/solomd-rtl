@@ -169,6 +169,7 @@
   "s3Region": "us-east-1",
   "s3SecretAccessKey": "",
   "s3UsePathStyle": false,
+  "settingsVersion": 2,
   "showAgentPanel": true,
   "showBacklinks": true,
   "showFileTree": true,

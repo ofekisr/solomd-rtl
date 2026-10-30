@@ -36,8 +36,7 @@
     "app/src/lib/cm-live-render.ts": 1020,
     "app/src/lib/cm-slash-commands.ts": 557,
     "app/src/lib/image-overlay.ts": 608,
-    "app/src/lib/markdown.ts": 1184,
-    "app/src/stores/settings.ts": 1793
+    "app/src/lib/markdown.ts": 1184
   },
   "rawIpc": [],
   "libPurity": [

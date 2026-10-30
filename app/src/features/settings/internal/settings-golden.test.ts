@@ -22,8 +22,7 @@ test('at least the eight pre-wave blobs are present', () => {
 for (const name of listBlobNames()) {
   test(`${name}: store state equals the captured expected output`, async () => {
     const { state, hadStored } = await captureStoreState(readBlob(name));
-    const { settingsVersion: _ignored, ...withoutVersion } = state;
-    assert.deepEqual(withoutVersion, readExpected(name));
+    assert.deepEqual(state, readExpected(name));
     assert.equal(hadStored, true);
   });
 }
