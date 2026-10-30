@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import type { SettingsRecord, SettingsSlice } from '../../contracts/index.ts';
-import { SettingsSliceManifestSchema } from '../../contracts/index.ts';
-import { EXPECTED_DIR } from '../useGoldenCapture.ts';
+import { SETTINGS_VERSION, SettingsSliceManifestSchema } from '../../contracts/index.ts';
+import { EXPECTED_DIR } from '../__fixtures__/golden-capture.fixture.ts';
 import { withLocalStorage } from '../local-storage-stub.ts';
 import { SETTINGS_SLICES } from '../settings-slices.ts';
+import { SETTINGS_MIGRATIONS } from '../settings-migrations.ts';
+import { loadSettings } from '../settings-load.service.ts';
 
 const SLICE_COUNT = 14;
 const NONE_KEYS_OMITTED = ['settingsVersion'];
@@ -180,4 +182,11 @@ test('git.normalize keeps only string repo roots', () => {
   } finally {
     stub.restore();
   }
+});
+
+test('general.normalize maps a stored language zh to en on every load, even at the current version', () => {
+  assert.equal(normalized('general', { language: 'zh' }).language, 'en');
+  assert.equal(normalized('general', { language: 'ja' }).language, 'ja');
+  const { settings } = loadSettings(JSON.stringify({ settingsVersion: SETTINGS_VERSION, language: 'zh' }), SETTINGS_SLICES, SETTINGS_MIGRATIONS);
+  assert.equal(settings.language, 'en');
 });

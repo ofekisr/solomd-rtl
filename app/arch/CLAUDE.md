@@ -9,7 +9,7 @@ Architecture specs. They run with `node --test` and fail with `[arch:<rule>]` me
 | `file-size` | `app/src` `.ts` ≤ 400, `.vue` ≤ 500; `app/src-tauri/src` `.rs` ≤ 600; `mcp-mindmap/src` `.ts` ≤ 400 | A file not in the baseline is over budget, or a baselined file grows past its recorded size | `fileSize` |
 | `raw-ipc` | `app/src` (`platform/` exempt) | A file not in the baseline imports any `@tauri-apps/*` module outside `app/src/platform/` (root Invariant 3). | `rawIpc` |
 | `lib-purity` | `app/src/lib` | A file not in the baseline imports `vue`, `vue/*`, `pinia` or `@tauri-apps/*` | `libPurity` |
-| `feature-purity` | `app/src/features` | A file not in the baseline imports `vue`, `vue/*` or `pinia` and is not under `ui/`, not named `use[A-Z]*.ts` and not `*.store.ts` | `featurePurity` |
+| `feature-purity` | `app/src/features` | A file not in the baseline imports `vue`, `vue/*` or `pinia` and is not under `ui/` or `__fixtures__/`, not named `use[A-Z]*.ts` and not `*.store.ts` | `featurePurity` |
 | `feature-boundary` | `app/src` | A relative import (`./`, `../`) reaches another feature's `features/<f>/internal/`. The repo has no import alias; if one is added, extend this rule. | none — no exceptions |
 
 `raw-ipc` exempts `app/src/platform/`: the only place allowed to import `@tauri-apps/*`.

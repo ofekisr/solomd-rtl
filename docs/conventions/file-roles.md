@@ -16,6 +16,8 @@ A file's suffix says what it is allowed to do. An agent reads the name and knows
 | `.store.ts` | One Pinia store | Direct IPC (call a port) |
 | `.slice.ts` | One settings slice: Zod schema, `defaults()`, optional `normalize` ([ADR 0005](../adr/0005-settings-slices.md)) | IPC, Vue, actions |
 | `.actions.ts` | Pinia actions for one settings area, spread into the store | IPC (call a port) |
+| `.key.ts` | One `InjectionKey` and its entry type, under `features/*/contracts` | Components, logic |
+| `.contract.ts` | A re-export surface kept out of the feature barrel (e.g. `.vue` pages) | Logic |
 | `.prompt.ts` | One AI prompt template + its input schema | Provider calls |
 | `.test.ts` | Unit tests, co-located with the file under test | — |
 | `.arch.test.ts` | Architecture specs under `app/arch/` | — |

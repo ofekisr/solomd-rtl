@@ -1,7 +1,7 @@
 import type { Tab } from '../types';
 import { compactTabs, expandTabs, setItemWithEviction } from '../lib/tab-persistence';
 import { sessionKey } from '../lib/cm-session-restore';
-import { readStoredSetting } from '../features/settings/contracts/index.ts';
+import { readStoredSetting, restoreSessionEnabled } from '../features/settings/contracts/index.ts';
 
 interface TauriWindow {
   __TAURI_INTERNALS__?: { metadata?: { currentWindow?: { label?: unknown } } };
@@ -47,13 +47,6 @@ export function windowScopeSuffix(): string {
 export interface PersistedState {
   tabs: Tab[];
   activeId: string;
-}
-
-/** Read-only check for the "restore previous session" setting, inlined
- *  from localStorage so we can run before the settings store hydrates. */
-export function restoreSessionEnabled(): boolean {
-  const stored = readStoredSetting('restoreSession');
-  return typeof stored === 'boolean' ? stored : true;
 }
 
 /** Per-workspace tab scoping. Default ON. Inlined from localStorage so it

@@ -8,6 +8,7 @@ const REACTIVE_PREFIX = 'vue/';
 const UI_SEGMENT = '/ui/';
 const COMPOSABLE_RE = /^use[A-Z][^/]*\.ts$/;
 const STORE_SUFFIX = '.store.ts';
+const FIXTURES_SEGMENT = '/__fixtures__/';
 const SCRIPT_BLOCK = /<script\b[^>]*>([\s\S]*?)<\/script>/g;
 const UNKNOWN_MODULE = 'vue or pinia';
 
@@ -22,7 +23,7 @@ export function isReactiveImport(specifier: string): boolean {
 
 export function mayImportReactive(path: string): boolean {
   const base = path.slice(path.lastIndexOf('/') + 1);
-  return path.includes(UI_SEGMENT) || COMPOSABLE_RE.test(base) || base.endsWith(STORE_SUFFIX);
+  return path.includes(UI_SEGMENT) || path.includes(FIXTURES_SEGMENT) || COMPOSABLE_RE.test(base) || base.endsWith(STORE_SUFFIX);
 }
 
 function isTypeOnlyImport(node: ts.ImportDeclaration): boolean {

@@ -345,6 +345,44 @@ No new log points. New dev-only reporter line `[settings:drift] <slice>.<key>: <
 
 `.slice.ts` and `.actions.ts` are not deviations: ADR 0005 adds them to `file-roles.md` in PR-1.
 
+### As shipped
+
+Commits `eb78f69a..HEAD` on `main` (24 commits, 31-10-26). Each PR was reviewed (Sonnet) and verified in an isolated worktree holding only its own files before commit.
+
+| Fact | Before | After |
+|---|---|---|
+| `stores/settings.ts` | 1793 | 77 (14 slices + 14 action mixins in `features/settings/internal/`) |
+| `SettingsPanel.vue` | 2612 in `components/` | 128 in `features/settings/ui/` + 19 page components |
+| `FileTree.vue` | 2941 in `components/` | 273 in `features/file-tree/ui/` |
+| `Toolbar.vue` | 1610 in `components/` | 186 in `components/shell/toolbar/` |
+| `commands.rs` | 1743 | `commands/` (8 modules, max 392) |
+| `git_pane/cli/actions.rs` | 2705 | `actions/` (max 358) |
+| `fileSize` baseline | 68 | 15 (AI files only, S15) |
+| `libPurity` / `featurePurity` | 2 / — | 1 (`ai-activity.ts`) / 1 (`cm-find-panel.ts`) |
+| Unit tests | 1567 | 1756 |
+
+Migration proof: golden fixtures (10 pre-wave blobs → today's `load()` output, captured before the store changed) pass on the new store; a differential review ran 1993 load cases old-vs-new (one mismatch: a raw JSON string blob, where the old spread leaked index keys). In the browser (`solomd-web-alt`), seeding `solomd.settings.v1` with the `v4-beta` and `full-current` pre-wave blobs and reloading gave the pre-wave state on every key except `themeLayerVersion`/`appearance`, which the unchanged theme-layer migration sets after load.
+
+Deviations from the plan:
+- S9: `SETTINGS_SLICES` stays in `features/settings/internal/settings-slices.ts`; `shell/settings-registry.service.ts` re-exports it and owns the registry test. The store is created by 141 importers without `main.ts`, so a setter would leave it slice-less. `SETTINGS_PAGES` lives in `shell/settings-pages.ts` and reaches the panel by `provide`/`inject`.
+- The settings contracts barrel exports only `SETTINGS_PAGES_KEY`; the `.vue` page list is imported by `shell/` alone (an import-graph test keeps `stores/settings.ts` free of `.vue`).
+- The lens keybinding migration runs in the app slice's `normalize`, not in `SETTINGS_MIGRATIONS` (it runs on every load today).
+- Page-local transient UI state in Settings (shortcut filter, custom-font mode, mm error) re-initializes on each modal open, because `DsModal` renders its slot under `v-if`; one extra `spellcheckListDicts` IPC per open. Accepted.
+- PR-8 workers ran in isolated git worktrees (three Rust workers in one checkout break each other's builds); their output was copied back and `generate_handler!` edits re-applied by name.
+
+### Parked for Wave 4
+
+- Token generation in `rest_api/` and `capture_endpoint/state.rs` uses a time+pid LCG, not a CSPRNG (pre-existing; flagged by security review). Fix with `getrandom`, constant-time compare, tighter CORS.
+- `featurePurity`: `find/internal/cm-find-panel.ts` (mounts `FindBar` with `createApp`).
+- `libPurity`: `lib/ai-activity.ts`; `fileSize`: the 15 AI files (S15).
+- `ai-rewrite.legacy.adapter.ts` shim (Wave 2 E10).
+- `agent_tools::tests::{list_notes_finds_seed_files, search_finds_match}` flake under parallel `cargo test` (untouched AI file; pass on rerun).
+- `src/lib/editor-language.test.ts` flakes under load (lazy grammar; likely the partial-syntax-tree class fixed in the cm-live golden).
+- `runner/events.rs` `use super::PendingOpen` needs `#[cfg(target_os = "macos")]` (unused-import warning off macOS); Windows/Linux Rust paths were not compiled locally.
+- `commands::list_dir::list_dir_inner` dead code; inject-or-throw duplicated in `Editor.vue` and `SettingsPanel.vue`.
+- Carried from Wave 1/2 (S23): `key=null` snippets, `icloud`, never-removed listeners, plain-engine pluggability, transform-case double handling, Wave 2 test gaps.
+- i18n tables stay in `i18n/` (S20); moving them per feature is open.
+
 ---
 
 ### LLD AI Context YAML

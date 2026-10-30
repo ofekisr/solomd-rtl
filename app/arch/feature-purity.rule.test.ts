@@ -8,8 +8,8 @@ test('isReactiveImport matches vue, vue/* and pinia only', () => {
   for (const spec of ['vue-router', './vue.ts', 'pinia-orm', 'zod', '@tauri-apps/api/core']) assert.equal(isReactiveImport(spec), false, spec);
 });
 
-test('mayImportReactive allows ui/, use*.ts and *.store.ts', () => {
-  for (const path of ['app/src/features/a/ui/A.vue', 'app/src/features/a/ui/deep/helper.ts', 'app/src/features/a/internal/useBus.ts', 'app/src/features/a/internal/a.store.ts']) {
+test('mayImportReactive allows ui/, __fixtures__/, use*.ts and *.store.ts', () => {
+  for (const path of ['app/src/features/a/internal/__fixtures__/capture.fixture.ts', 'app/src/features/a/ui/A.vue', 'app/src/features/a/ui/deep/helper.ts', 'app/src/features/a/internal/useBus.ts', 'app/src/features/a/internal/a.store.ts']) {
     assert.equal(mayImportReactive(path), true, path);
   }
   for (const path of ['app/src/features/a/internal/x.service.ts', 'app/src/features/a/internal/user.ts', 'app/src/features/a/internal/usebus.ts', 'app/src/features/a/internal/A.vue']) {
@@ -24,6 +24,7 @@ test('collectFeaturePurity fails a service importing vue and passes ui, composab
     'app/src/features/a/internal/pure.service.ts': "import { z } from 'zod';",
     'app/src/features/a/ui/A.vue': '<script setup lang="ts">\nimport { ref } from \'vue\';\n</script>',
     'app/src/features/a/internal/useX.ts': "import { ref } from 'vue';",
+    'app/src/features/a/internal/__fixtures__/cap.fixture.ts': "import { createPinia } from 'pinia';",
     'app/src/features/a/internal/a.store.ts': "import { defineStore } from 'pinia';",
     'app/src/features/a/internal/x.service.test.ts': "import { ref } from 'vue';",
     'app/src/lib/outside.ts': "import { ref } from 'vue';",

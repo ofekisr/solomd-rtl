@@ -5,4 +5,4 @@ export { SETTINGS_ACTIONS } from '../internal/settings-actions.ts';
 export { setRightSidebarShell } from '../internal/actions/right-sidebar-shell.ts';
 export type { Settings, SettingsKey } from '../internal/settings-types.ts';
 export { defaultPdfDefaults, type PdfDefaults } from '../internal/slices/export.slice.ts';
-export { readStoredSetting } from '../internal/stored-setting.ts';
+export { readStoredSetting, restoreSessionEnabled } from '../internal/stored-setting.ts';

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import type { SplitDirection, TileBranch, TileLeaf, TileNode } from '../types';
 import { useTabsStore } from './tabs';
 import { placeTabOnSide, type PaneSide } from '../lib/pane-place';
-import { readStoredSetting } from '../features/settings/contracts/index.ts';
+import { restoreSessionEnabled } from '../features/settings/contracts/index.ts';
 
 const LS_KEY = 'solomd.tiles.v1';
 
@@ -24,11 +24,6 @@ interface DragState {
   dragTabId: string | null;
   /** Pane + edge the pointer is hovering for a drag-to-split, or null. */
   dragSplit: { paneId: string; direction: SplitDirection } | null;
-}
-
-function restoreSessionEnabled(): boolean {
-  const stored = readStoredSetting('restoreSession');
-  return typeof stored === 'boolean' ? stored : true;
 }
 
 function loadPersisted(): PersistedState | null {

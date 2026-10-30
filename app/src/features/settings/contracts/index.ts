@@ -17,6 +17,7 @@ export {
   defaultPdfDefaults,
   loadSettings,
   readStoredSetting,
+  restoreSessionEnabled,
   setRightSidebarShell,
   type PdfDefaults,
   type Settings,

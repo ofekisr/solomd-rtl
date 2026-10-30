@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import { z } from 'zod';
 import type { SettingsRecord, SettingsSlice } from '../contracts/index.ts';
 import { SETTINGS_VERSION } from '../contracts/index.ts';
-import { EXPECTED_DIR, listBlobNames, readBlob } from './useGoldenCapture.ts';
+import { EXPECTED_DIR, listBlobNames, readBlob } from './__fixtures__/golden-capture.fixture.ts';
 import { loadSettings } from './settings-load.service.ts';
 import { withLocalStorage } from './local-storage-stub.ts';
 import { SETTINGS_MIGRATIONS } from './settings-migrations.ts';
@@ -44,11 +44,10 @@ for (const name of listBlobNames()) {
   });
 }
 
-test('a v2 blob with markers set changes nothing but settingsVersion (zh stays zh: deliberate)', async () => {
+test('a v2 blob with markers set changes nothing but settingsVersion ', async () => {
   const slice = wholeSchemaSlice(await todaysDefaults());
   const markers = Object.fromEntries(MIGRATION_OWNED_KEYS.filter((key) => key.endsWith('Migrated') || key.endsWith('Synced')).map((key) => [key, true]));
-  const stored = { ...markers, settingsVersion: SETTINGS_VERSION, language: 'zh', fontSize: 20, showFileTree: false, smartQuotes: true };
+  const stored = { ...markers, settingsVersion: SETTINGS_VERSION, language: 'ja', fontSize: 20, showFileTree: false, smartQuotes: true };
   const { settings } = loadSettings(JSON.stringify(stored), [slice], SETTINGS_MIGRATIONS, { isMobile: false });
   assert.deepEqual(pick(settings, Object.keys(stored)), stored);
-  assert.equal(settings.language, 'zh');
 });

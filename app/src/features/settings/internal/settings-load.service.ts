@@ -64,7 +64,7 @@ function reportDrift(settings: SettingsRecord, slices: readonly AnySlice[], repo
 function buildSettings(parsed: SettingsRecord, slices: readonly AnySlice[], migrations: readonly SettingsMigration[], env: SettingsMigrationEnv): SettingsRecord {
   const migrated = applyMigrations(parsed, migrations, env);
   const merged: SettingsRecord = { ...mergeDefaults(slices), ...migrated };
-  for (const slice of slices) slice.normalize?.(parsed, merged);
+  for (const slice of slices) slice.normalize?.(migrated, merged);
   return withVersion(merged);
 }
 

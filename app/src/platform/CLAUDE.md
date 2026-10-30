@@ -9,18 +9,18 @@ Rust paths are under `src-tauri/src/` (files holding the port's `#[tauri::comman
 
 | Dir | Export | Kind | Rust module(s) / plugin |
 |---|---|---|---|
-| `fs/` | `fsPort` | command | `commands.rs`, `search.rs`, `replace.rs`, `watcher.rs` |
+| `fs/` | `fsPort` | command | `commands/`, `search.rs`, `replace.rs`, `watcher.rs` |
 | `android/` | `androidPort` | command | `saf_android.rs`, `storage_android.rs` |
 | `cloud/` | `cloudPort` | command | `cloud_folder.rs` |
-| `convert/` | `convertPort` | command | `convert.rs`, `pandoc.rs`, `image_upload.rs` |
-| `git-sync/` | `gitSyncPort` | command | `github_sync.rs`, `crypto.rs` |
+| `convert/` | `convertPort` | command | `convert/`, `pandoc.rs`, `image_upload/` |
+| `git-sync/` | `gitSyncPort` | command | `github_sync/`, `crypto/` |
 | `git-history/` | `gitHistoryPort` | command | `git_history.rs` |
 | `git-pane/` | `gitPaneService()` | adapter over `lib/git-pane/service.ts` (`GitPaneService`) | `git_pane/` (`gitpane_*` commands, `gitpane:changed` event) |
 | `ai/` | `aiPort` | command | `ai_proxy.rs`, `ollama.rs`, `cost_meter.rs`, `agent_trace.rs`, `agent_tools.rs`, `cjk_proofread.rs` |
-| `ai-tools/` | `aiToolsPort` | command | `recipe_runner.rs`, `integrations.rs`, `mcp_profiles.rs`, `cookbook.rs` |
-| `rag/` | `ragPort` | command | `rag.rs`, `workspace_index.rs` |
+| `ai-tools/` | `aiToolsPort` | command | `recipe_runner.rs`, `integrations/`, `mcp_profiles.rs`, `cookbook.rs` |
+| `rag/` | `ragPort` | command | `rag.rs`, `workspace_index/` |
 | `settings/` | `settingsPort` | command | `themes.rs`, `spellcheck.rs`, `directive_completions.rs`, `set_default.rs`, `runner.rs` |
-| `capture/` | `capturePort` | command | `capture_endpoint.rs`, `quick_capture.rs`, `rest_api.rs` |
+| `capture/` | `capturePort` | command | `capture_endpoint/`, `quick_capture.rs`, `rest_api/` |
 | `window/` | `windowCommandsPort` | command | `runner.rs`, `win_chrome.rs`, `devtools.rs` |
 | `window/` | `windowPort` | API | `@tauri-apps/api` window, webview, app; deep-link plugin |
 | `events/` | `eventsPort` | API | `@tauri-apps/api/event` |

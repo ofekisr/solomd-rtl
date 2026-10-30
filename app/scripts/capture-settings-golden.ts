@@ -1,5 +1,5 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { EXPECTED_DIR, NONE_CASE, captureStoreState, listBlobNames, readBlob } from '../src/features/settings/internal/useGoldenCapture.ts';
+import { EXPECTED_DIR, NONE_CASE, captureStoreState, listBlobNames, readBlob } from '../src/features/settings/internal/__fixtures__/golden-capture.fixture.ts';
 
 const JSON_INDENT = 2;
 

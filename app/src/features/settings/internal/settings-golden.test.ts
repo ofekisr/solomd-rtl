@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { EXPECTED_DIR, NONE_CASE, captureStoreState, listBlobNames, readBlob } from './useGoldenCapture.ts';
+import { EXPECTED_DIR, NONE_CASE, captureStoreState, listBlobNames, readBlob } from './__fixtures__/golden-capture.fixture.ts';
 
 const MIN_BLOB_CASES = 8;
 

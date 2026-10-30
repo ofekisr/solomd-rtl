@@ -19,7 +19,7 @@ Vue 3 + CodeMirror 6 + Pinia front end. `src-tauri/` is the Rust desktop shell. 
 | `src/i18n/` | Locale tables. New strings go in `en.ts`. `keys.ts` exports `I18nKey` (dot-paths of `en`) | Tables stay; keys are typed per feature |
 | `src/styles/` | Global CSS and tokens | Stays |
 | `src/dev/` | Dev-only render harnesses | Stays |
-| `src-tauri/src/` | Rust commands (`commands.rs`, `ai_proxy.rs`, `git_pane/`) | Grouped by domain, mirroring `platform/` |
+| `src-tauri/src/` | Rust commands grouped by domain: `commands/` (fs, frontmatter, print), `git_pane/` (`cli/actions/` etc.), `github_sync/`, `workspace_index/`, `capture_endpoint/`, … Every `.rs` ≤ 600 lines except the AI files (`ai_proxy.rs`, `agent_*.rs`, `recipe*.rs`, `rag.rs`, `ollama.rs`, `trace.rs`). `generate_handler!` in `lib.rs` and `runner.rs` names commands by module path | AI files split in Wave 4 |
 | `e2e/` | Playwright theme e2e (macOS baselines) | Stays |
 
 Planned folder, not created yet: `src/ai/` (Wave 4).

@@ -1,6 +1,6 @@
 import { afterEach, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readStoredSetting } from './stored-setting.ts';
+import { readStoredSetting, restoreSessionEnabled } from './stored-setting.ts';
 import { SETTINGS_STORAGE_KEY } from '../contracts/settings-slice.port.ts';
 
 const store = new Map<string, string>();
@@ -50,4 +50,12 @@ test('returns the raw stored value, even of the wrong type', () => {
 test('storage that throws returns undefined', () => {
   isThrowing = true;
   assert.equal(readStoredSetting('restoreSession'), undefined);
+});
+
+test('restoreSessionEnabled defaults to true and honors a stored boolean', () => {
+  assert.equal(restoreSessionEnabled(), true);
+  store.set(SETTINGS_STORAGE_KEY, JSON.stringify({ restoreSession: false }));
+  assert.equal(restoreSessionEnabled(), false);
+  store.set(SETTINGS_STORAGE_KEY, JSON.stringify({ restoreSession: 'no' }));
+  assert.equal(restoreSessionEnabled(), true);
 });

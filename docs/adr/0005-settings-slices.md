@@ -1,6 +1,6 @@
 # 0005. Settings: typed slices over one flat blob, a versioned loader, and a page registry
 
-**Status**: accepted · **Date**: 2026-10-31
+**Status**: accepted · Decision 5 superseded by 0007 · **Date**: 2026-10-31
 
 ## Context
 

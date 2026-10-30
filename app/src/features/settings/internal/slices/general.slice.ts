@@ -107,4 +107,7 @@ export const generalSlice: SettingsSlice<GeneralSettings> = {
   id: 'general',
   schema,
   defaults,
+  normalize(_migrated, merged) {
+    if ((merged.language as string) === 'zh') merged.language = 'en';
+  },
 };

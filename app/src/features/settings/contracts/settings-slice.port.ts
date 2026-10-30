@@ -12,8 +12,8 @@ export interface SettingsSlice<S extends SettingsRecord = SettingsRecord> {
   id: string;
   schema: z.ZodObject<{ [K in keyof S]: z.ZodType<S[K]> }>;
   defaults(): S;
-  /** `parsed` is the stored object as read, BEFORE migrations; `merged` has migrations and defaults applied. Today's normalizers read the original `parsed`. */
-  normalize?(parsed: Readonly<SettingsRecord>, merged: S & SettingsRecord): void;
+  /** `migrated` is the stored object AFTER migrations, before defaults; `merged` also has defaults applied. Must be idempotent: it runs on every load. */
+  normalize?(migrated: Readonly<SettingsRecord>, merged: S & SettingsRecord): void;
 }
 
 export interface SettingsMigrationEnv {

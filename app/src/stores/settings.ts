@@ -50,6 +50,10 @@ export function hadStoredSettings(): boolean {
   return hadStoredSettingsAtLoad;
 }
 
+export function __resetHadStoredForTests(): void {
+  hadStoredSettingsAtLoad = false;
+}
+
 function load(): SettingsState {
   try {
     const { settings, hadStored } = loadFromStorage();

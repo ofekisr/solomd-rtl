@@ -12,3 +12,8 @@ export function readStoredSetting<K extends SettingsKey>(key: K): Settings[K] | 
     return undefined;
   }
 }
+
+export function restoreSessionEnabled(): boolean {
+  const stored = readStoredSetting('restoreSession');
+  return typeof stored === 'boolean' ? stored : true;
+}

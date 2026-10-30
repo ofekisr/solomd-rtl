@@ -106,11 +106,26 @@ test('slice manifest ids must be kebab-case', () => {
   assert.equal(SettingsSliceManifestSchema.safeParse({ id: 'a_b', keys: ['a'] }).success, false);
 });
 
-test('normalize receives the pre-migration parsed object', () => {
+test('normalize receives the migrated object', () => {
   let seen: Readonly<Record<string, unknown>> = {};
-  const spy: SettingsSlice<{ count: number }> = { id: 'spy', schema: z.object({ count: z.number() }), defaults: () => ({ count: 1 }), normalize: (parsed) => { seen = parsed; } };
+  const spy: SettingsSlice<{ count: number }> = { id: 'spy', schema: z.object({ count: z.number() }), defaults: () => ({ count: 1 }), normalize: (migrated) => { seen = migrated; } };
   loadSettings('{"count":2}', [spy], [bump]);
-  assert.deepEqual(seen, { count: 2 });
+  assert.deepEqual(seen, { count: 2, bumped: true });
+});
+
+test('a migration of a normalized key survives normalize', () => {
+  const rebuild: SettingsSlice<{ pdf: { size: number } }> = {
+    id: 'rebuild',
+    schema: z.object({ pdf: z.object({ size: z.number() }) }),
+    defaults: () => ({ pdf: { size: 1 } }),
+    normalize: (migrated, merged) => {
+      const pdf = migrated.pdf as { size?: unknown } | undefined;
+      merged.pdf = { size: typeof pdf?.size === 'number' ? pdf.size : 1 };
+    },
+  };
+  const retype: SettingsMigration = { to: 3, up: (raw) => ({ ...raw, pdf: { size: Number(raw.pdfSize) } }) };
+  const { settings } = loadSettings('{"settingsVersion":2,"pdfSize":"7"}', [rebuild], [retype]);
+  assert.deepEqual(settings.pdf, { size: 7 });
 });
 
 test('a load failure is reported once', () => {
