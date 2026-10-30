@@ -36,3 +36,4 @@ What gets easier, what gets harder, what we now must do.
 | [0001](0001-wave-refactor.md) | Restructure solomd-rtl in waves | accepted |
 | [0002](0002-arch-specs-not-eslint.md) | Architecture rules as `node --test` specs, not ESLint | accepted |
 | [0003](0003-platform-ports.md) | Platform ports: command catalogs, generic adapters, report-mode Zod | accepted |
+| [0004](0004-editor-feature-registry.md) | Editor features: an ordered registry of slots, commands and lifecycle hooks | accepted |
