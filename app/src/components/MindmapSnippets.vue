@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { createSnippet, SNIPPET_KINDS, type Snippet, type SnippetKind } from '../lib/mindmap-snippets';
+import { createSnippet, SNIPPET_KINDS, type Snippet, type SnippetKind } from '../lib/mindmap/snippets';
 import { useI18n } from '../i18n';
 import MindmapSnippetCard from './MindmapSnippetCard.vue';
 

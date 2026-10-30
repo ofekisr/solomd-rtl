@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import MindmapIcon, { type MindmapIconName } from './MindmapIcon.vue';
-import { CLOSED_FLYOUT, isFlyoutKey, moveFlyout, toggleFlyout, type FlyoutState } from '../lib/mindmap-flyout';
+import { CLOSED_FLYOUT, isFlyoutKey, moveFlyout, toggleFlyout, type FlyoutState } from '../lib/mindmap/flyout';
 
 export interface FlyoutOption {
   readonly id: string;

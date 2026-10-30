@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { FreezeStrip, StripChip } from '../lib/mindmap-focus';
-import { branchColorAt, EMPTY_FRAME_STYLE, type StripFrameStyle } from '../lib/mindmap-frame-style';
+import type { FreezeStrip, StripChip } from '../lib/mindmap/focus';
+import { branchColorAt, EMPTY_FRAME_STYLE, type StripFrameStyle } from '../lib/mindmap/frame-style';
 import { useSettingsStore } from '../stores/settings';
 import { useI18n } from '../i18n';
 

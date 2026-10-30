@@ -7,11 +7,11 @@ import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
 import { MAX_FILES, useMindmapFolderFiles } from '../composables/useMindmapFolderFiles';
 import { MINDMAP_CONVERT_FOLDER_EVENT } from '../composables/useMindmapConvert';
-import { rootTopicFromFileName, serializeMindmap } from '../lib/mindmap-format';
+import { rootTopicFromFileName, serializeMindmap } from '../lib/mindmap/format';
 import {
   MAX_FILE_BYTES, NODE_WARNING_THRESHOLD, buildFolderMap, countNodes, fileTitle, hasEpubSkip,
   matchesSkipKeyword, parseSkipKeywords, type FolderFile, type FolderPick,
-} from '../lib/mindmap-folder';
+} from '../lib/mindmap/folder';
 
 const ESCAPE_KEY = 'Escape';
 const MINDMAP_LANGUAGE = 'mindmap';

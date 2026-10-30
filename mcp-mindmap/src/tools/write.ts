@@ -1,9 +1,9 @@
 import type { NodeObj } from 'mind-elixir';
-import { parsePaste } from '../../../app/src/lib/mindmap-paste.ts';
-import { insertNodes, moveNode, newNodeId, removeNode, updateNode, type EditResult } from '../../../app/src/lib/mindmap-edit.ts';
-import { canBeGateTarget, isGate, makeGateNode } from '../../../app/src/lib/mindmap-gates.ts';
-import { mergeIntoGate } from '../../../app/src/lib/mindmap-duplicates.ts';
-import { CLAUDE_SESSION_KEY, fieldsPatch, notePatch, readFields, type NodeFieldEntry } from '../../../app/src/lib/mindmap-node-fields.ts';
+import { parsePaste } from '../../../app/src/lib/mindmap/paste.ts';
+import { insertNodes, moveNode, newNodeId, removeNode, updateNode, type EditResult } from '../../../app/src/lib/mindmap/edit.ts';
+import { canBeGateTarget, isGate, makeGateNode } from '../../../app/src/lib/mindmap/gates.ts';
+import { mergeIntoGate } from '../../../app/src/lib/mindmap/duplicates.ts';
+import { CLAUDE_SESSION_KEY, fieldsPatch, notePatch, readFields, type NodeFieldEntry } from '../../../app/src/lib/mindmap/node-fields.ts';
 import { requireNode, type MapDoc, type MapStore } from '../store.ts';
 
 type GateArgs =

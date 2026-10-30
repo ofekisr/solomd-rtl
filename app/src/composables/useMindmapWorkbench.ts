@@ -6,10 +6,10 @@ import { useMindmapWorkbenchStore } from '../stores/mindmapWorkbench';
 import { useFiles } from './useFiles';
 import { useI18n } from '../i18n';
 import type { Tab } from '../types';
-import { mergeMindmaps } from '../lib/mindmap-merge';
-import { rootTopicFromFileName, sanitizeMindmapData, serializeMindmap } from '../lib/mindmap-format';
-import { parseMapText, subtreeData } from '../lib/mindmap-payload';
-import { nodesStaleness, TAB_SOURCE_PREFIX, type EntryDraft, type NodesEntry, type Staleness, type WorkbenchEntry } from '../lib/mindmap-workbench';
+import { mergeMindmaps } from '../lib/mindmap/merge';
+import { rootTopicFromFileName, sanitizeMindmapData, serializeMindmap } from '../lib/mindmap/format';
+import { parseMapText, subtreeData } from '../lib/mindmap/payload';
+import { nodesStaleness, TAB_SOURCE_PREFIX, type EntryDraft, type NodesEntry, type Staleness, type WorkbenchEntry } from '../lib/mindmap/workbench';
 
 export const MINDMAP_WORKBENCH_EVENT = 'solomd:mindmap-workbench';
 export const MINDMAP_WORKBENCH_ACTION = 'mindmap.workbench';

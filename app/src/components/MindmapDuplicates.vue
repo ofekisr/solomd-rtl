@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from '../i18n';
-import type { DuplicateGroup } from '../lib/mindmap-duplicates';
+import type { DuplicateGroup } from '../lib/mindmap/duplicates';
 
 defineProps<{ groups: DuplicateGroup[]; topicOf: (id: string) => string }>();
 const emit = defineEmits<{ merge: [keepId: string, dupId: string]; close: [] }>();

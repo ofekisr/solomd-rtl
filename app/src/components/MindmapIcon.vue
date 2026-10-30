@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useSettingsStore } from '../stores/settings';
-import type { MindmapIconName } from '../lib/mindmap-icon-names';
-import { CLASSIC_GLYPHS, CLASSIC_PATHS, CLASSIC_VIEWBOX } from '../lib/mindmap-classic-icons';
+import type { MindmapIconName } from '../lib/mindmap/icon-names';
+import { CLASSIC_GLYPHS, CLASSIC_PATHS, CLASSIC_VIEWBOX } from '../lib/mindmap/classic-icons';
 
 export type { MindmapIconName };
 

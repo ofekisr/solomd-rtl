@@ -3,9 +3,9 @@ import type { MindElixirInstance } from 'mind-elixir';
 import { useExport } from './useExport';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
-import { buildTextExport, exportFileName, MINDMAP_EXPORT_SPECS, type MindmapExportFormat } from '../lib/mindmap-export';
-import type { Snippet } from '../lib/mindmap-snippets';
-import { buildPngExport, buildSvgExport } from '../lib/mindmap-export-image';
+import { buildTextExport, exportFileName, MINDMAP_EXPORT_SPECS, type MindmapExportFormat } from '../lib/mindmap/export';
+import type { Snippet } from '../lib/mindmap/snippets';
+import { buildPngExport, buildSvgExport } from '../lib/mindmap/export-image';
 
 type ExportPayload = { kind: 'text'; content: string } | { kind: 'binary'; bytes: Uint8Array };
 const TEXT_ENCODING = 'UTF-8';

@@ -1,15 +1,15 @@
 import { access } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { createEmptyMindmap, rootTopicFromFileName, sanitizeMindmapData } from '../../../app/src/lib/mindmap-format.ts';
-import { markdownToMindmap } from '../../../app/src/lib/mindmap-convert.ts';
-import { parsePaste } from '../../../app/src/lib/mindmap-paste.ts';
-import { mergeMindmaps } from '../../../app/src/lib/mindmap-merge.ts';
-import { graftMap } from '../../../app/src/lib/mindmap-payload.ts';
-import { insertNodes } from '../../../app/src/lib/mindmap-edit.ts';
-import { buildTextExport } from '../../../app/src/lib/mindmap-export.ts';
-import { mapToHeadingsMarkdown } from '../../../app/src/lib/mindmap-headings.ts';
-import { outlineOf, pathOf } from '../../../app/src/lib/mindmap-address.ts';
+import { createEmptyMindmap, rootTopicFromFileName, sanitizeMindmapData } from '../../../app/src/lib/mindmap/format.ts';
+import { markdownToMindmap } from '../../../app/src/lib/mindmap/convert.ts';
+import { parsePaste } from '../../../app/src/lib/mindmap/paste.ts';
+import { mergeMindmaps } from '../../../app/src/lib/mindmap/merge.ts';
+import { graftMap } from '../../../app/src/lib/mindmap/payload.ts';
+import { insertNodes } from '../../../app/src/lib/mindmap/edit.ts';
+import { buildTextExport } from '../../../app/src/lib/mindmap/export.ts';
+import { mapToHeadingsMarkdown } from '../../../app/src/lib/mindmap/headings.ts';
+import { outlineOf, pathOf } from '../../../app/src/lib/mindmap/address.ts';
 import { requireNode, type MapStore } from '../store.ts';
 
 export type ExportFormat = 'outline' | 'markdown' | 'headings' | 'mermaid' | 'adjacency';

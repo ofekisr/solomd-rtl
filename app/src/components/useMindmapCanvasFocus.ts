@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import type { MindElixirInstance, NodeObj, Topic } from 'mind-elixir';
-import { buildFreezeStrip, canAnchor, getTabFocus, getTabStripRoot, pathTo, setTabFocus, setTabStripRoot, type FreezeStrip } from '../lib/mindmap-focus';
-import { EMPTY_FRAME_STYLE, readFrameVars, type StripFrameStyle } from '../lib/mindmap-frame-style';
+import { buildFreezeStrip, canAnchor, getTabFocus, getTabStripRoot, pathTo, setTabFocus, setTabStripRoot, type FreezeStrip } from '../lib/mindmap/focus';
+import { EMPTY_FRAME_STYLE, readFrameVars, type StripFrameStyle } from '../lib/mindmap/frame-style';
 
 export interface FocusDeps {
   getMind(): MindElixirInstance | null;

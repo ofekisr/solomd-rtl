@@ -4,7 +4,7 @@ import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
 import { shortcutLabel } from '../lib/keybindings';
 import { isMacOS } from '../lib/platform';
-import { createGateController, type GateMenuAction, type GateNotice } from '../lib/mindmap-gate-controller';
+import { createGateController, type GateMenuAction, type GateNotice } from '../lib/mindmap/gate-controller';
 
 const GATE_MENU_LABEL_KEYS: Record<GateMenuAction, string> = {
   'mindmap.markGateTarget': 'mindmap.gateMarkTarget',

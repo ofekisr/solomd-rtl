@@ -2,7 +2,7 @@
 /**
  * IDE-style find / replace bar. It drives a `FindTarget`: CodeMirror in a text
  * tab (`lib/cm-find-panel.ts`) or the canvas in a mind-map tab
- * (`lib/mindmap-find.ts`). Scopes "folder" (the open file's directory) and
+ * (`lib/mindmap/find.ts`). Scopes "folder" (the open file's directory) and
  * "all" (the workspace) stream the same query live to the Search-in-Folder
  * pane, which lists the hits.
  */

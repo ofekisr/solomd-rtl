@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, useId } from 'vue';
 import { useI18n } from '../i18n';
-import { MAP_THEMES, type MapThemeId } from '../lib/mindmap-themes';
+import { MAP_THEMES, type MapThemeId } from '../lib/mindmap/themes';
 import { useThemeStore } from '../stores/theme';
-import type { BranchStyle, FoldedCountMode, MapDisplay, MapFont } from '../lib/mindmap-display';
+import type { BranchStyle, FoldedCountMode, MapDisplay, MapFont } from '../lib/mindmap/display';
 
 const props = defineProps<{ value: MapDisplay; inherited?: MapDisplay; disabled?: boolean }>();
 const emit = defineEmits<{ set: [patch: MapDisplay]; clear: [key: keyof MapDisplay] }>();

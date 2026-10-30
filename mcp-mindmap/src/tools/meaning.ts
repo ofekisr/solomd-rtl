@@ -1,4 +1,4 @@
-import { markNode, readLegend, withLegend, type LegendEntry } from '../../../app/src/lib/mindmap-legend.ts';
+import { markNode, readLegend, withLegend, type LegendEntry } from '../../../app/src/lib/mindmap/legend.ts';
 import { requireNode, type MapDoc, type MapStore } from '../store.ts';
 import { applyEdit } from './write.ts';
 

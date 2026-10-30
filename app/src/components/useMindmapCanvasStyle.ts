@@ -2,10 +2,10 @@ import type { MindElixirInstance, NodeObj } from 'mind-elixir';
 import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
-import { copyStyle, pasteStyle, styleClipboard, type NodeStyle, type RenderedLook } from '../lib/mindmap-node-copy';
-import { templateName } from '../lib/mindmap-style-templates';
+import { copyStyle, pasteStyle, styleClipboard, type NodeStyle, type RenderedLook } from '../lib/mindmap/node-copy';
+import { templateName } from '../lib/mindmap/style-templates';
 import { promptText } from '../composables/useGitPrompt';
-import type { GroupMenuItem } from '../lib/mindmap-context-menu';
+import type { GroupMenuItem } from '../lib/mindmap/context-menu';
 
 export interface StyleDeps {
   getMind(): MindElixirInstance | null;

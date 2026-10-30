@@ -1,4 +1,4 @@
-import { MINDMAP_EXTENSIONS } from '../../lib/mindmap-format';
+import { MINDMAP_EXTENSIONS } from '../../lib/mindmap/format';
 
 
 // Extensions that the built-in converter handles (Rust, no Python).

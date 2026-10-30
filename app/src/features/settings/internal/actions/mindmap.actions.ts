@@ -1,13 +1,13 @@
-import type { MapDisplay } from '../../../../lib/mindmap-display.ts';
-import { parseMapDisplay } from '../../../../lib/mindmap-display.ts';
-import type { TagRule } from '../../../../lib/mindmap-folder-tree.ts';
-import { parseTagRules } from '../../../../lib/mindmap-folder-tree.ts';
-import type { MindmapControlStyle } from '../../../../lib/mindmap-icon-names.ts';
-import { normalizeControlStyle } from '../../../../lib/mindmap-icon-names.ts';
-import type { PasteMapSetting } from '../../../../lib/mindmap-insert.ts';
-import { normalizePasteMapSetting } from '../../../../lib/mindmap-insert.ts';
-import type { StyleTemplate } from '../../../../lib/mindmap-style-templates.ts';
-import { removeTemplate, upsertTemplate } from '../../../../lib/mindmap-style-templates.ts';
+import type { MapDisplay } from '../../../../lib/mindmap/display.ts';
+import { parseMapDisplay } from '../../../../lib/mindmap/display.ts';
+import type { TagRule } from '../../../../lib/mindmap/folder-tree.ts';
+import { parseTagRules } from '../../../../lib/mindmap/folder-tree.ts';
+import type { MindmapControlStyle } from '../../../../lib/mindmap/icon-names.ts';
+import { normalizeControlStyle } from '../../../../lib/mindmap/icon-names.ts';
+import type { PasteMapSetting } from '../../../../lib/mindmap/insert.ts';
+import { normalizePasteMapSetting } from '../../../../lib/mindmap/insert.ts';
+import type { StyleTemplate } from '../../../../lib/mindmap/style-templates.ts';
+import { removeTemplate, upsertTemplate } from '../../../../lib/mindmap/style-templates.ts';
 import type { SettingsThis } from './settings-this.ts';
 
 export const mindmapActions = {

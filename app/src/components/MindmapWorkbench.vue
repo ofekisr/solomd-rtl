@@ -5,7 +5,7 @@ import { useI18n } from '../i18n';
 import { useToastsStore } from '../stores/toasts';
 import { useMindmapWorkbenchStore } from '../stores/mindmapWorkbench';
 import { fileDraft, MINDMAP_WORKBENCH_EVENT, useMindmapWorkbench, type WorkbenchOpenDetail } from '../composables/useMindmapWorkbench';
-import { defaultMergeTopic, type Staleness } from '../lib/mindmap-workbench';
+import { defaultMergeTopic, type Staleness } from '../lib/mindmap/workbench';
 
 const ESCAPE_KEY = 'Escape';
 const MMAP_FILTER = [{ name: 'Mind map', extensions: ['mmap'] }];

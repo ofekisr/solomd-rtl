@@ -13,7 +13,7 @@ import {
   writerPresetActive,
   type KeyActionDef,
 } from '../../../lib/keybindings';
-import { builtinLabelFor } from '../../../lib/mindmap-keymap';
+import { builtinLabelFor } from '../../../lib/mindmap/keymap';
 import { isMacOS } from '../../../lib/platform';
 import { useSettingsStore } from '../../../stores/settings';
 import { useToastsStore } from '../../../stores/toasts';

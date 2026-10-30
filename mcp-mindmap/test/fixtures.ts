@@ -1,7 +1,7 @@
 import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { serializeMindmap } from '../../app/src/lib/mindmap-format.ts';
+import { serializeMindmap } from '../../app/src/lib/mindmap/format.ts';
 import { MapStore } from '../src/store.ts';
 import { NO_ACTIVITY } from '../src/ai-activity.ts';
 

@@ -3,7 +3,7 @@ import { isIOS, isAndroid } from '../../lib/platform';
 import { isNarrowViewport } from '../useViewport';
 import { isSafPath, fromSafPath, safRead } from '../../lib/saf-fs';
 import { fileNameOf } from '../../lib/import-plan';
-import { isXmindPath } from '../../lib/mindmap-format';
+import { isXmindPath } from '../../lib/mindmap/format';
 import { importContentUri } from './content-uri.ts';
 import { stripFileUrl, isIosContainerPath, reanchorIosPath } from './file-names.ts';
 import {

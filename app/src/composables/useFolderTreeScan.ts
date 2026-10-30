@@ -1,6 +1,6 @@
 import { fsPort } from '../platform/index.ts';
-import type { ScannedFolder, TreeEntry } from '../lib/mindmap-folder-tree';
-import { folderState, joinPath, type ScopeRules } from '../lib/mindmap-folder-scope';
+import type { ScannedFolder, TreeEntry } from '../lib/mindmap/folder-tree';
+import { folderState, joinPath, type ScopeRules } from '../lib/mindmap/folder-scope';
 
 interface DirEntry { name: string; path: string; is_dir: boolean }
 export interface TreeScanResult { root: ScannedFolder; truncated: boolean }

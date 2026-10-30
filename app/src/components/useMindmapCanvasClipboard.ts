@@ -3,15 +3,15 @@ import type { MindElixirData, MindElixirInstance, NodeObj, Topic } from 'mind-el
 import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
-import { isGate } from '../lib/mindmap-gates';
-import { runAsOneOperationAsync, type OperationBus } from '../lib/mindmap-batch';
-import { needsPasteDialog, pasteMode, resolveInsertTargetId, type PasteMapTarget } from '../lib/mindmap-insert';
-import { parsePaste, type PastePayload } from '../lib/mindmap-paste';
-import { buildIdMap, remapArrows, remapGates, remapSummaries } from '../lib/mindmap-paste-remap';
-import { withoutGateArrows } from '../lib/mindmap-graph';
+import { isGate } from '../lib/mindmap/gates';
+import { runAsOneOperationAsync, type OperationBus } from '../lib/mindmap/batch';
+import { needsPasteDialog, pasteMode, resolveInsertTargetId, type PasteMapTarget } from '../lib/mindmap/insert';
+import { parsePaste, type PastePayload } from '../lib/mindmap/paste';
+import { buildIdMap, remapArrows, remapGates, remapSummaries } from '../lib/mindmap/paste-remap';
+import { withoutGateArrows } from '../lib/mindmap/graph';
 import { copyPlainText, readPlainText } from '../lib/code-copy';
-import { copyMapText, subtreeData } from '../lib/mindmap-payload';
-import { nodePathsText } from '../lib/mindmap-node-copy';
+import { copyMapText, subtreeData } from '../lib/mindmap/payload';
+import { nodePathsText } from '../lib/mindmap/node-copy';
 
 const COPY_NODES_OPERATION = 'copyNodes';
 const MENU_GROUP_TOPIC = 'Selection';

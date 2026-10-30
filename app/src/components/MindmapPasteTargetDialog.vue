@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useI18n } from '../i18n';
-import type { PasteMapTarget } from '../lib/mindmap-insert';
+import type { PasteMapTarget } from '../lib/mindmap/insert';
 
 const emit = defineEmits<{ choose: [target: PasteMapTarget, remember: boolean]; cancel: [] }>();
 const { t } = useI18n();

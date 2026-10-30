@@ -5,7 +5,7 @@ import { openerPort } from '../platform/index.ts';
 import { useI18n } from '../i18n';
 import { useToastsStore } from '../stores/toasts';
 import { copyPlainText } from '../lib/code-copy';
-import { CLAUDE_SESSION_KEY, fieldAction, nodePath, readFields, type FieldAction, type NodeFieldEntry } from '../lib/mindmap-node-fields';
+import { CLAUDE_SESSION_KEY, fieldAction, nodePath, readFields, type FieldAction, type NodeFieldEntry } from '../lib/mindmap/node-fields';
 import MindmapNoteEditor from './MindmapNoteEditor.vue';
 
 const NOTE_COMMIT_DELAY_MS = 500;

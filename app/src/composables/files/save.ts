@@ -6,7 +6,7 @@ import type { Tab } from '../../types';
 import { isSafPath, fromSafPath, safWrite } from '../../lib/saf-fs';
 import { joinInFolder } from '../../lib/import-plan';
 import { newFileDirFor, treeSelection } from '../../lib/new-file-target';
-import { MMAP_EXTENSION, isXmindPath, mmapPathFor } from '../../lib/mindmap-format';
+import { MMAP_EXTENSION, isXmindPath, mmapPathFor } from '../../lib/mindmap/format';
 import { untitledFileName } from '../../lib/file-language';
 import { isVirtualLanguage } from '../../lib/virtual-tabs';
 import { deriveNameFromHeading, contentUriName } from './file-names.ts';

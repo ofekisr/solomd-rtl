@@ -18,7 +18,7 @@
  * folding them into a global table would change when they fire.
  */
 
-import { MINDMAP_BUILTIN_COMBOS } from './mindmap-keymap.ts';
+import { MINDMAP_BUILTIN_COMBOS } from './mindmap/keymap.ts';
 import {
   activeKeyActions,
   scopeOf,

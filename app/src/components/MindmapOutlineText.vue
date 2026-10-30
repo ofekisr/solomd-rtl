@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from '../i18n';
-import { outlineLines } from '../lib/mindmap-outline';
+import { outlineLines } from '../lib/mindmap/outline';
 
 const props = defineProps<{ markdown: string }>();
 const { t } = useI18n();

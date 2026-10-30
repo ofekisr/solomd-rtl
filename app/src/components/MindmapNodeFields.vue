@@ -3,11 +3,11 @@ import { computed, ref, watch } from 'vue';
 import type { NodeObj } from 'mind-elixir';
 import { useI18n } from '../i18n';
 import { useSettingsStore } from '../stores/settings';
-import type { EffectiveStyle } from '../lib/mindmap-effective-style';
+import type { EffectiveStyle } from '../lib/mindmap/effective-style';
 import {
   BORDER_WIDTH_MAX, PADDING_MAX, RADIUS_MAX, FONT_SIZE_MAX, FONT_SIZE_MIN, NODE_BORDER_STYLES, NODE_DECORATIONS, NODE_ICONS, NODE_SHAPES, NODE_WIDTH_MAX, NODE_WIDTH_MIN,
   fontKeyOf, formatBorder, formatPadding, isSafeLink, parseBorder, parsePadding, shapeKeyOf, type NodeBorder, type NodeField, type NodePadding,
-} from '../lib/mindmap-node-style';
+} from '../lib/mindmap/node-style';
 
 const DEFAULT_FONT_SIZE = 16;
 const DEFAULT_BORDER: NodeBorder = { width: 1, style: 'solid', color: '#888888' };

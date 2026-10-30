@@ -16,7 +16,7 @@ import { planTotals, useFolderReplace } from '../composables/useFolderReplace';
 import { useToastsStore } from '../stores/toasts';
 import RegexKeyboard, { type RegexToken } from './RegexKeyboard.vue';
 import type { FolderSearchPreset } from '../lib/folder-search';
-import { requestMindmapReveal } from '../lib/mindmap-reveal';
+import { requestMindmapReveal } from '../lib/mindmap/reveal';
 import { useFiles } from '../composables/useFiles';
 import { useTabsStore } from '../stores/tabs';
 import { useTilesStore } from '../stores/tiles';

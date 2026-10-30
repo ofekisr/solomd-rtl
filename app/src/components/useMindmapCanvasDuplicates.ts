@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import type { MindElixirInstance } from 'mind-elixir';
-import { findDuplicateGroups, mergeIntoGate, type DuplicateGroup } from '../lib/mindmap-duplicates';
-import { findNode } from '../lib/mindmap-gates';
+import { findDuplicateGroups, mergeIntoGate, type DuplicateGroup } from '../lib/mindmap/duplicates';
+import { findNode } from '../lib/mindmap/gates';
 import { fullRoot } from './useMindmapCanvasFocus.ts';
 
 const DUPLICATE_COUNT_DEBOUNCE_MS = 500;

@@ -1,7 +1,7 @@
 import type { Ref } from 'vue';
 import type { MindElixirInstance, NodeObj, Topic } from 'mind-elixir';
-import { sanitizeNodeObj } from '../lib/mindmap-format';
-import { pathTo } from '../lib/mindmap-focus';
+import { sanitizeNodeObj } from '../lib/mindmap/format';
+import { pathTo } from '../lib/mindmap/focus';
 import { fullRoot } from './useMindmapCanvasFocus.ts';
 
 const BEGIN_EDIT_OPERATION = 'beginEdit';

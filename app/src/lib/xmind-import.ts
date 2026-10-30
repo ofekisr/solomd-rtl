@@ -7,7 +7,7 @@ import {
   XMIND_CONTENT_TOO_LARGE_ERROR,
   XMIND_TOO_LARGE_ERROR,
 } from './xmind-limits.ts';
-import { parseMindmap, sanitizeMindmapData, serializeMindmap } from './mindmap-format.ts';
+import { parseMindmap, sanitizeMindmapData, serializeMindmap } from './mindmap/format.ts';
 
 export type XmindImportResult =
   | { ok: true; text: string; extraSheetCount: number }

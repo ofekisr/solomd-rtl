@@ -24,7 +24,7 @@ import { fileNameFromSavedPath, mergeTabsDedup } from './tabs-helpers.ts';
 export { inFolder } from './tabs-persist.ts';
 import { encodeDiffPath, type DiffTabRef } from '../lib/git-pane/diffTab';
 import { clampReorderIndex, togglePinned } from '../lib/tab-pin';
-import { dataToggleTarget, MINDMAP_SET_LENS_EVENT, resolveTabLens, type SetLensDetail } from '../lib/mindmap-lens';
+import { dataToggleTarget, MINDMAP_SET_LENS_EVENT, resolveTabLens, type SetLensDetail } from '../lib/mindmap/lens';
 
 let nextId = 1;
 const newId = () => `tab-${Date.now()}-${nextId++}`;

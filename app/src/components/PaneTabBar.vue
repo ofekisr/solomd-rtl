@@ -11,7 +11,7 @@ import { requestRevealInTree } from '../features/file-tree/contracts/index.ts';
 import { shortcutLabel } from '../lib/keybindings';
 import { isMacOS } from '../lib/platform';
 import { useI18n } from '../i18n';
-import { resolveTabLens } from '../lib/mindmap-lens';
+import { resolveTabLens } from '../lib/mindmap/lens';
 import { closableIds } from '../lib/tab-pin';
 import MindmapIcon from './MindmapIcon.vue';
 import { usePaneTabDrag } from './usePaneTabDrag.ts';

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import type { MindElixirData } from 'mind-elixir';
-import { entryKey, parseWorkbench, removeEntries, sanitizeSnapshot, upsertEntry, type EntryDraft, type WorkbenchEntry } from '../lib/mindmap-workbench.ts';
+import { entryKey, parseWorkbench, removeEntries, sanitizeSnapshot, upsertEntry, type EntryDraft, type WorkbenchEntry } from '../lib/mindmap/workbench.ts';
 
 const LS_KEY = 'solomd.mindmapWorkbench.v1';
 const ID_PREFIX = 'wb-';

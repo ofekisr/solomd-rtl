@@ -2,11 +2,11 @@ import { ref } from 'vue';
 import type { MindElixirInstance, NodeObj } from 'mind-elixir';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
-import { isGate } from '../lib/mindmap-gates';
-import { runAsOneOperation, type OperationBus } from '../lib/mindmap-batch';
-import { remapSummaries as remapChildSummaries, sortChildrenByTopic, type SortOrder } from '../lib/mindmap-sort';
-import { applyNumbers, numberingGroups, type NumberingScope } from '../lib/mindmap-numbering';
-import { hasOpenBranch, planSelectionToggle, setDescendantsExpanded } from '../lib/mindmap-collapse';
+import { isGate } from '../lib/mindmap/gates';
+import { runAsOneOperation, type OperationBus } from '../lib/mindmap/batch';
+import { remapSummaries as remapChildSummaries, sortChildrenByTopic, type SortOrder } from '../lib/mindmap/sort';
+import { applyNumbers, numberingGroups, type NumberingScope } from '../lib/mindmap/numbering';
+import { hasOpenBranch, planSelectionToggle, setDescendantsExpanded } from '../lib/mindmap/collapse';
 
 const SORT_TOAST_KEYS: Readonly<Record<SortOrder, string>> = { asc: 'mindmap.sortedAsc', desc: 'mindmap.sortedDesc' };
 const TREE_EDIT_OPERATION = 'moveNodeBefore';

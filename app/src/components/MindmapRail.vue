@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from '../i18n';
-import { MINDMAP_LENSES, type MindmapLens } from '../lib/mindmap-lens';
-import { MINDMAP_LAYOUT } from '../lib/mindmap-direction';
+import { MINDMAP_LENSES, type MindmapLens } from '../lib/mindmap/lens';
+import { MINDMAP_LAYOUT } from '../lib/mindmap/direction';
 import type { MindmapIconName } from './MindmapIcon.vue';
 import MindmapDock from './MindmapDock.vue';
 import MindmapDockButton from './MindmapDockButton.vue';

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { DEFAULT_AUTO_SAVE_DELAY_MS, clampAutoSaveDelay } from '../../../../lib/auto-save.ts';
 import type { ConvertConflictSetting } from '../../../../lib/convert-conflict.ts';
 import { DEFAULT_CONVERT_CONFLICT_SETTING, normalizeConvertConflictSetting } from '../../../../lib/convert-conflict.ts';
-import { migrateLensKeybindings } from '../../../../lib/mindmap-lens.ts';
+import { migrateLensKeybindings } from '../../../../lib/mindmap/lens.ts';
 import type { ViewMode } from '../../../../types.ts';
 import type { SettingsSlice } from '../../contracts/index.ts';
 

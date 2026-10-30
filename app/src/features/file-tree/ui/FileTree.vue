@@ -5,7 +5,7 @@ import { useFiles } from '../../../composables/useFiles';
 import { useInbox } from '../../../composables/useInbox';
 import { useInboxView } from '../../../composables/useInboxView';
 import { useSettingsStore } from '../../../stores/settings';
-import { entryKey } from '../../../lib/mindmap-workbench';
+import { entryKey } from '../../../lib/mindmap/workbench';
 import { useMindmapWorkbenchStore } from '../../../stores/mindmapWorkbench';
 import { fileDraft } from '../../../composables/useMindmapWorkbench';
 import { useI18n } from '../../../i18n';

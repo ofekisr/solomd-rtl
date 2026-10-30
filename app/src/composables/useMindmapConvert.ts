@@ -5,11 +5,11 @@ import { useWorkspaceStore } from '../stores/workspace';
 import { useI18n } from '../i18n';
 import type { Tab } from '../types';
 import { fileNameOf } from '../lib/import-plan';
-import { buildMindmapFence, insertBlockAfterLine, safeInsertLine } from '../lib/mindmap-fence';
-import { markdownToMindmap, sectionRange, sliceLines, SELECTION_ROOT_TOPIC, type LineRange } from '../lib/mindmap-convert';
-import { mmapPathFor, rootTopicFromFileName, sanitizeMindmapData, serializeMindmap } from '../lib/mindmap-format';
+import { buildMindmapFence, insertBlockAfterLine, safeInsertLine } from '../lib/mindmap/fence';
+import { markdownToMindmap, sectionRange, sliceLines, SELECTION_ROOT_TOPIC, type LineRange } from '../lib/mindmap/convert';
+import { mmapPathFor, rootTopicFromFileName, sanitizeMindmapData, serializeMindmap } from '../lib/mindmap/format';
 import { useConvertedOutput } from './useConvertedOutput';
-import { toWorkspaceRelative } from '../lib/mindmap-source';
+import { toWorkspaceRelative } from '../lib/mindmap/source';
 
 export type ConvertScope = 'document' | 'section' | 'selection';
 export type ConvertOutput = 'map' | 'fence';

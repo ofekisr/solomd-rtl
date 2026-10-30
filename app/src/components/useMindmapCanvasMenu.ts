@@ -3,8 +3,8 @@ import { useToastsStore } from '../stores/toasts';
 import { useMindmapWorkbenchStore } from '../stores/mindmapWorkbench';
 import { useI18n } from '../i18n';
 import { fileDraft, nodesDraft, openWorkbench } from '../composables/useMindmapWorkbench';
-import { entryKey, TAB_SOURCE_PREFIX, type EntryDraft } from '../lib/mindmap-workbench';
-import { closingMenuItems, hideContextMenu, installMenuGroup, keepMenuTopVisible, type ContextMenuItem, type GroupMenuItem } from '../lib/mindmap-context-menu';
+import { entryKey, TAB_SOURCE_PREFIX, type EntryDraft } from '../lib/mindmap/workbench';
+import { closingMenuItems, hideContextMenu, installMenuGroup, keepMenuTopVisible, type ContextMenuItem, type GroupMenuItem } from '../lib/mindmap/context-menu';
 import { liveData } from './useMindmapCanvasClipboard.ts';
 
 type MenuEntry = { name: string; onclick: () => void };

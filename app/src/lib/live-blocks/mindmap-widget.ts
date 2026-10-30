@@ -1,7 +1,7 @@
 import { RangeSetBuilder, type Text } from '@codemirror/state';
 import { Decoration, WidgetType } from '@codemirror/view';
-import { mountReadOnlyMindmap, type ReadOnlyMindmap, type ReadOnlyMountResult } from '../mindmap-readonly.ts';
-import { findMindmapFences, MINDMAP_OPEN_EVENT, type MindmapFence, type MindmapOpenDetail } from '../mindmap-fence.ts';
+import { mountReadOnlyMindmap, type ReadOnlyMindmap, type ReadOnlyMountResult } from '../mindmap/readonly.ts';
+import { findMindmapFences, MINDMAP_OPEN_EVENT, type MindmapFence, type MindmapOpenDetail } from '../mindmap/fence.ts';
 import { isLineWithin } from './layout.ts';
 import { type BlockOptions } from './options.ts';
 

@@ -1,7 +1,7 @@
 import { fsPort } from '../../platform/index.ts';
 import { fileNameOf } from '../../lib/import-plan';
-import { planXmindOpen } from '../../lib/mindmap-xmind-open';
-import { MMAP_EXTENSION, mmapPathFor } from '../../lib/mindmap-format';
+import { planXmindOpen } from '../../lib/mindmap/xmind-open';
+import { MMAP_EXTENSION, mmapPathFor } from '../../lib/mindmap/format';
 import { XMIND_TOO_LARGE_ERROR, XMIND_CONTENT_TOO_LARGE_ERROR } from '../../lib/xmind-limits';
 import type { FilesCtx, OpenPath } from './files-ctx.ts';
 

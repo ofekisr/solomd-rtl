@@ -1,5 +1,5 @@
 import { fsPort } from '../platform/index.ts';
-import { MAX_FILE_BYTES, sortFolderFiles, type FolderFile } from '../lib/mindmap-folder';
+import { MAX_FILE_BYTES, sortFolderFiles, type FolderFile } from '../lib/mindmap/folder';
 
 interface DirEntry { name: string; path: string; is_dir: boolean }
 interface ListResult { files: FolderFile[]; oversized: string[]; truncated: boolean }

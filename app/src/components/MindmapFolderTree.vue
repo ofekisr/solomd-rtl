@@ -8,12 +8,12 @@ import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
 import { MAX_TREE_ENTRIES, folderNameOf, useFolderTreeScan } from '../composables/useFolderTreeScan';
 import { MINDMAP_FOLDER_TREE_EVENT } from '../composables/useMindmapConvert';
-import { serializeMindmap } from '../lib/mindmap-format';
-import { NODE_WARNING_THRESHOLD, countNodes } from '../lib/mindmap-folder';
+import { serializeMindmap } from '../lib/mindmap/format';
+import { NODE_WARNING_THRESHOLD, countNodes } from '../lib/mindmap/folder';
 import {
   applyScope, defaultScopeRules, folderState, isPathIncluded, type ScopeKind, type ScopeRule, type ScopeState,
-} from '../lib/mindmap-folder-scope';
-import { buildFolderTreeMap, rowRange, visibleRows, type TagRule, type TreeEntry, type TreeRow } from '../lib/mindmap-folder-tree';
+} from '../lib/mindmap/folder-scope';
+import { buildFolderTreeMap, rowRange, visibleRows, type TagRule, type TreeEntry, type TreeRow } from '../lib/mindmap/folder-tree';
 
 const ESCAPE_KEY = 'Escape';
 const MINDMAP_LANGUAGE = 'mindmap';

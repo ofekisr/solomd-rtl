@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue';
-import type { Snippet, SnippetKind } from '../lib/mindmap-snippets';
-import { snippetPreviewSource } from '../lib/mindmap-snippets';
+import type { Snippet, SnippetKind } from '../lib/mindmap/snippets';
+import { snippetPreviewSource } from '../lib/mindmap/snippets';
 import { useI18n } from '../i18n';
 import Preview from './Preview.vue';
 

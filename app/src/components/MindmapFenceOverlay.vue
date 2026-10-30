@@ -4,8 +4,8 @@ import { useI18n } from '../i18n';
 import { useTabsStore } from '../stores/tabs';
 import { useToastsStore } from '../stores/toasts';
 import { useMindmapJump } from '../composables/useMindmapJump';
-import type { MindmapSource } from '../lib/mindmap-source';
-import { MINDMAP_OPEN_EVENT, mindmapFenceCodec, replaceMindmapFence, type MindmapOpenDetail } from '../lib/mindmap-fence';
+import type { MindmapSource } from '../lib/mindmap/source';
+import { MINDMAP_OPEN_EVENT, mindmapFenceCodec, replaceMindmapFence, type MindmapOpenDetail } from '../lib/mindmap/fence';
 
 const MindmapCanvas = defineAsyncComponent(() => import('./MindmapCanvas.vue'));
 

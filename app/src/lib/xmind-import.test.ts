@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import JSZip from 'jszip';
-import { parseMindmap } from './mindmap-format.ts';
+import { parseMindmap } from './mindmap/format.ts';
 import { convertXmind } from './xmind-import.ts';
 import {
   MAX_XMIND_BYTES,

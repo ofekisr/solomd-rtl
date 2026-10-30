@@ -1,5 +1,5 @@
 import type { Language } from '../types';
-import { MINDMAP_EXTENSIONS } from './mindmap-format.ts';
+import { MINDMAP_EXTENSIONS } from './mindmap/format.ts';
 
 const languagesByExtension = new Map<string, Language>([
   ['md', 'markdown'], ['markdown', 'markdown'], ['mdown', 'markdown'], ['mkd', 'markdown'],

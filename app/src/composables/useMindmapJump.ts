@@ -5,7 +5,7 @@ import { useTilesStore } from '../stores/tiles';
 import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useFiles } from './useFiles';
-import { isMarkdownSourcePath, normalizeSeparators, resolveSourcePath, type MindmapSource } from '../lib/mindmap-source';
+import { isMarkdownSourcePath, normalizeSeparators, resolveSourcePath, type MindmapSource } from '../lib/mindmap/source';
 
 const GOTO_EVENT = 'solomd:outline-goto';
 

@@ -1,5 +1,5 @@
 import { KEY_ACTIONS } from '../../lib/keybindings';
-import { runActiveMindmapAction } from '../../lib/mindmap-active';
+import { runActiveMindmapAction } from '../../lib/mindmap/active';
 import { MINDMAP_WORKBENCH_ACTION, openWorkbench } from '../useMindmapWorkbench';
 import { MINDMAP_CONVERT_ACTIONS, MINDMAP_CONVERT_EVENT, MINDMAP_CONVERT_FOLDER_ACTION, MINDMAP_CONVERT_FOLDER_EVENT, MINDMAP_FOLDER_TREE_ACTION, MINDMAP_FOLDER_TREE_EVENT, type MindmapConvertDetail } from '../useMindmapConvert';
 import type { Command, CommandCtx } from './command-types.ts';

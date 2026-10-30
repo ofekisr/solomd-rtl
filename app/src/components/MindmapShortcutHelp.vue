@@ -3,7 +3,7 @@ import { computed, ref } from 'vue';
 import { useI18n } from '../i18n';
 import { useSettingsStore } from '../stores/settings';
 import { activeKeyActions, combosFor, formatCombo } from '../lib/keybindings';
-import { MINDMAP_BUILTIN_KEYS } from '../lib/mindmap-keymap';
+import { MINDMAP_BUILTIN_KEYS } from '../lib/mindmap/keymap';
 import { isMacOS } from '../lib/platform';
 
 interface Point { x: number; y: number }

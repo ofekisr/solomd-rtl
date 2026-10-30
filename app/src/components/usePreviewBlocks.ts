@@ -3,8 +3,8 @@ import { initMermaid } from '../lib/mermaid-lazy';
 import { renderGraphvizBlocks } from '../lib/graphviz';
 import { mermaidConfigFor, graphvizThemeFor, cssColorToHex } from '../lib/theme/mermaid';
 import { useThemeStore } from '../stores/theme';
-import { findMindmapFences, MINDMAP_OPEN_EVENT, type MindmapOpenDetail } from '../lib/mindmap-fence';
-import type { ReadOnlyMindmap } from '../lib/mindmap-readonly';
+import { findMindmapFences, MINDMAP_OPEN_EVENT, type MindmapOpenDetail } from '../lib/mindmap/fence';
+import type { ReadOnlyMindmap } from '../lib/mindmap/readonly';
 import { plantumlSvgUrl } from '../lib/plantuml';
 import { useSettingsStore } from '../stores/settings';
 import { useI18n } from '../i18n';
@@ -183,7 +183,7 @@ export function usePreviewBlocks(host: Ref<HTMLDivElement | null>, props: Previe
 
   async function mountMindmapInto(wrap: HTMLElement, canvas: HTMLElement, body: string): Promise<ReadOnlyMindmap | null> {
     try {
-      const { mountReadOnlyMindmap } = await import('../lib/mindmap-readonly');
+      const { mountReadOnlyMindmap } = await import('../lib/mindmap/readonly');
       const result = await mountReadOnlyMindmap(canvas, body, isDarkTheme(), t('mindmap.gateBroken'));
       if (result.ok) return result.map;
       showMindmapError(wrap, result.error);

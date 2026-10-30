@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { DsButton, DsModal } from '../ui';
 import { useI18n } from '../i18n';
-import type { NumberingScope } from '../lib/mindmap-numbering';
+import type { NumberingScope } from '../lib/mindmap/numbering';
 
 defineProps<{ open: boolean; count: number }>();
 const emit = defineEmits<{ choose: [scope: NumberingScope]; cancel: [] }>();

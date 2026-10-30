@@ -1,6 +1,6 @@
 import type { Ref } from 'vue';
 import type { MindElixirInstance } from 'mind-elixir';
-import { frameDelta, insetRect, panDelta, parseTranslate, type FrameRect } from '../lib/mindmap-frame';
+import { frameDelta, insetRect, panDelta, parseTranslate, type FrameRect } from '../lib/mindmap/frame';
 
 const SMOOTH_MOVE_MS = 300;
 const SMOOTH_MOVE_TRANSITION = `transform ${SMOOTH_MOVE_MS / 1000}s`;
