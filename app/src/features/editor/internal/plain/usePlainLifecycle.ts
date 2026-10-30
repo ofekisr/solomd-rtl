@@ -1,6 +1,6 @@
 import { nextTick, onBeforeUnmount, onMounted, watch } from 'vue';
 import { anchorSnapshot, foldAnchorsFor, recallFolds, rememberFolds } from '../../../../lib/fold-memory';
-import { readSession } from '../../../../lib/cm-session-restore';
+import { readSession } from '../../../../lib/cm/session-restore';
 import { registerPlainSelectionGetter } from '../../../../lib/plain-selection';
 import { useSettingsStore } from '../../../../stores/settings';
 import { useTabsStore } from '../../../../stores/tabs';

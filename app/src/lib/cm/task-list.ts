@@ -20,7 +20,7 @@ import {
   ViewUpdate,
   WidgetType,
 } from '@codemirror/view';
-import { frozenDuringComposition, isImeSafeFlushTransaction } from './cm-ime-guard';
+import { frozenDuringComposition, isImeSafeFlushTransaction } from './ime-guard';
 
 const TOGGLE_EVENT = 'solomd-task-toggle';
 

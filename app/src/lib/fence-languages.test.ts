@@ -5,7 +5,7 @@ import { CompletionContext } from '@codemirror/autocomplete';
 import { EditorState } from '@codemirror/state';
 import hljs from './hljs-languages.ts';
 
-import { fenceLanguageComplete } from './cm-fence-completion.ts';
+import { fenceLanguageComplete } from './cm/fence-completion.ts';
 import { codeLanguages } from './code-languages.ts';
 import {
   FENCE_LANGUAGES,

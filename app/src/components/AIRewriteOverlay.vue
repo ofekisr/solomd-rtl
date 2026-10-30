@@ -31,7 +31,7 @@ import {
   AI_REWRITE_CANCEL_EVENT,
   type AIRewriteOpenDetail,
   type AIRewriteAcceptDetail,
-} from '../lib/cm-ai-rewrite';
+} from '../lib/cm/ai-rewrite';
 import { useI18n } from '../i18n';
 
 const { t } = useI18n();

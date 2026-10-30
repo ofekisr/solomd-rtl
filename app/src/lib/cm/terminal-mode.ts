@@ -1,7 +1,7 @@
 import type { StreamParser, StringStream } from '@codemirror/language';
 import { shell } from '@codemirror/legacy-modes/mode/shell';
 
-import { CONTINUATION_RE, PROMPT_HEAD_RE } from './terminal-block.ts';
+import { CONTINUATION_RE, PROMPT_HEAD_RE } from '../terminal-block.ts';
 
 /**
  * The code editor's half of ```terminal fences (terminal-block.ts is the

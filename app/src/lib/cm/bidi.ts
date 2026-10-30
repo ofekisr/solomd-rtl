@@ -1,7 +1,7 @@
 import { StateField, type Extension, type Range } from '@codemirror/state';
 import { Decoration, EditorView, ViewPlugin, type DecorationSet, type ViewUpdate } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
-import { documentDirection, type TextDirection } from './doc-direction.ts';
+import { documentDirection, type TextDirection } from '../doc-direction.ts';
 
 // Hebrew / Arabic: the whole document takes one direction (see
 // documentDirection), so English lines in a Hebrew note align right as well.

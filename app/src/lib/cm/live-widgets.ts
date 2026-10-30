@@ -1,7 +1,7 @@
 import { Decoration, EditorView, WidgetType } from '@codemirror/view';
-import { copyPlainText, dedentFenced, dedentIndented } from './code-copy.ts';
-import { fenceModeToolbar, type FenceViewMode } from './cm-fence-modes.ts';
-import { isTerminalLang, terminalCommands } from './terminal-block.ts';
+import { copyPlainText, dedentFenced, dedentIndented } from '../code-copy.ts';
+import { fenceModeToolbar, type FenceViewMode } from './fence-modes.ts';
+import { isTerminalLang, terminalCommands } from '../terminal-block.ts';
 
 // Minimal structural view of a lezer `SyntaxNode`. `@lezer/common` is only a
 // transitive dependency (not in our package.json), so we describe just the

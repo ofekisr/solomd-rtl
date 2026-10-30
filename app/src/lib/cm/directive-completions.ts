@@ -12,11 +12,11 @@ import { EditorView, keymap } from "@codemirror/view";
 import {
   directiveCompletionManifests,
   type LoadedDirectiveCompletionManifest,
-} from "./directive-completion-registry.ts";
+} from "../directive-completion-registry.ts";
 import {
   applyDirectiveCompletion,
   completionContextAt,
-} from "./directive-completions.ts";
+} from "../directive-completions.ts";
 
 export function directiveCompletionSource(
   context: CompletionContext,

@@ -9,7 +9,7 @@ const QUERY = /\?.*$/;
 const IS_PATH_SPECIFIER = /^(\.{1,2}\/|\/|file:)/;
 const HAS_EXTENSION = /\.\w+$/;
 // CodeMirror exports DecorationSet only as a type; strip-only Node keeps a value-style import of it
-// (lib/cm-ai-rewrite.ts imports it without `type`). Delete this hack once those imports say `type`.
+// (lib/cm/ai-rewrite.ts imports it without `type`). Delete this hack once those imports say `type`.
 const TYPE_AS_VALUE_IMPORT = /(import\s*\{[^}]*?)(?<!type\s)\bDecorationSet,\s*([^}]*\}\s*from\s*'@codemirror\/view')/;
 
 async function resolveStub(specifier, context, next) {

@@ -1,6 +1,6 @@
 import type { EditorView } from '@codemirror/view';
 import type { EditorFeature, EditorFeatureContext } from '../../editor/contracts/index.ts';
-import { currentFoldRanges, restoreFoldRanges } from '../../../lib/cm-heading-fold.ts';
+import { currentFoldRanges, restoreFoldRanges } from '../../../lib/cm/heading-fold.ts';
 import { captureFolds, foldRangesFor, recallFolds, rememberFolds } from '../../../lib/fold-memory.ts';
 import { applyFold, foldExtensionFor, type FoldAction } from '../internal/apply-fold.ts';
 

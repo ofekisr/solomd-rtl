@@ -22,10 +22,10 @@ import {
   ViewPlugin,
   ViewUpdate,
 } from '@codemirror/view';
-import { frozenDuringComposition, isImeSafeFlushTransaction } from './cm-ime-guard';
+import { frozenDuringComposition, isImeSafeFlushTransaction } from './ime-guard';
 import { tags as t } from '@lezer/highlight';
-import { isDragging, isDragEndTransaction } from './cm-drag-aware';
-import { bulletDeco, hrDeco, listItemHasTask, type MdSyntaxNode } from './cm-live-render';
+import { isDragging, isDragEndTransaction } from './drag-aware';
+import { bulletDeco, hrDeco, listItemHasTask, type MdSyntaxNode } from './live-render';
 
 // Marker node names (from @lezer/markdown) we want to hide off-line.
 // LinkMark (brackets) and CodeMark (backticks) intentionally kept visible —

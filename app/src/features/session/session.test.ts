@@ -17,7 +17,7 @@ Object.defineProperty(globalThis, 'localStorage', { value: memoryStorage(), conf
 Object.defineProperty(globalThis, 'sessionStorage', { value: memoryStorage(), configurable: true });
 
 const { stateWith, fakeView, fakeContext } = await import('../editor/contracts/testkit.ts');
-const { writeSession, readSession } = await import('../../lib/cm-session-restore.ts');
+const { writeSession, readSession } = await import('../../lib/cm/session-restore.ts');
 const { createSessionFeature } = await import('./contracts/index.ts');
 const { maybeRestoreSession } = await import('./internal/restore-session.ts');
 

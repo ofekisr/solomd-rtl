@@ -1,5 +1,5 @@
 import { Decoration } from '@codemirror/view';
-import type { LiveInlineHtmlKind } from './html-live-render.ts';
+import type { LiveInlineHtmlKind } from '../html-live-render.ts';
 
 export const HIDDEN_MARK_NODES = new Set<string>([
   'HeaderMark',     // `#`, `##`, …

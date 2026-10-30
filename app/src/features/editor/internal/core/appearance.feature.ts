@@ -1,4 +1,4 @@
-import { bidiExtension } from '../../../../lib/cm-bidi.ts';
+import { bidiExtension } from '../../../../lib/cm/bidi.ts';
 import { createLanguageExtension, loadLanguageExtension } from '../../../../lib/editor-language.ts';
 import { cmThemeFor } from '../../../../lib/themes.ts';
 import type { EditorFeature, EditorFeatureContext } from '../../contracts/editor-feature.port.ts';

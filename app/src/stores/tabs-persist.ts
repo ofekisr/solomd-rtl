@@ -1,6 +1,6 @@
 import type { Tab } from '../types';
 import { compactTabs, expandTabs, setItemWithEviction } from '../lib/tab-persistence';
-import { sessionKey } from '../lib/cm-session-restore';
+import { sessionKey } from '../lib/cm/session-restore';
 import { readStoredSetting, restoreSessionEnabled } from '../features/settings/contracts/index.ts';
 
 interface TauriWindow {

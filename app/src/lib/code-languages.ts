@@ -13,7 +13,7 @@ import { sql } from '@codemirror/lang-sql';
 import { xml } from '@codemirror/lang-xml';
 import { shell } from '@codemirror/legacy-modes/mode/shell';
 
-import { terminalSession } from './cm-terminal-mode.ts';
+import { terminalSession } from './cm/terminal-mode.ts';
 
 /**
  * The languages the code editor can actually highlight.

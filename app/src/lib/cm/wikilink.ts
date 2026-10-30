@@ -20,7 +20,7 @@ import {
   ViewUpdate,
   WidgetType,
 } from '@codemirror/view';
-import { frozenDuringComposition } from './cm-ime-guard';
+import { frozenDuringComposition } from './ime-guard';
 import type { DecorationSet } from '@codemirror/view';
 import type {
   CompletionContext,
@@ -28,7 +28,7 @@ import type {
   Completion,
 } from '@codemirror/autocomplete';
 import type { Extension } from '@codemirror/state';
-import { useWorkspaceIndexStore } from '../stores/workspaceIndex';
+import { useWorkspaceIndexStore } from '../../stores/workspaceIndex';
 
 const WIKILINK_RE = /\[\[([^\[\]\n]+?)\]\]/g;
 

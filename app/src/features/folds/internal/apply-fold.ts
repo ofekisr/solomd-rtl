@@ -2,7 +2,7 @@ import type { Extension } from '@codemirror/state';
 import type { EditorFeatureContext } from '../../editor/contracts/index.ts';
 import {
   foldAllHeadings, foldHeadingsToLevel, headingFoldExtension, toggleHeadingFoldAtCursor, unfoldAllFolds,
-} from '../../../lib/cm-heading-fold.ts';
+} from '../../../lib/cm/heading-fold.ts';
 
 export type FoldAction = 'toggle' | 'all' | 'none' | 'level';
 

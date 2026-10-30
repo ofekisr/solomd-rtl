@@ -19,8 +19,8 @@ import type {
 } from '@codemirror/autocomplete';
 import { EditorView } from '@codemirror/view';
 import type { Extension } from '@codemirror/state';
-import type { CitationEntry } from './citations';
-import { searchCitations } from './citations';
+import type { CitationEntry } from '../citations';
+import { searchCitations } from '../citations';
 
 function citationDetail(e: CitationEntry): string {
   const bits: string[] = [];

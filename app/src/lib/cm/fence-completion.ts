@@ -13,8 +13,8 @@ import {
   filterFenceLanguages,
   isInsideFenceBefore,
   matchFenceOpener,
-} from './fence-languages.ts';
-import { getRecentFenceLanguages, recordFenceLanguage } from './fence-recents.ts';
+} from '../fence-languages.ts';
+import { getRecentFenceLanguages, recordFenceLanguage } from '../fence-recents.ts';
 
 const RECENT_BOOST_DETAIL = '★';
 const TYPED_OPENER_RE = /^[ \t]*`{3,}:?([A-Za-z0-9_+.#-]+)[ \t]*$/;

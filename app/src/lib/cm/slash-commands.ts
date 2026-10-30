@@ -33,7 +33,7 @@ import {
   filterBlocks,
   expandSnippet,
   type SlashBlock,
-} from './slash-blocks.ts';
+} from '../slash-blocks.ts';
 import {
   nextSlashState,
   setSlashState,
@@ -41,10 +41,10 @@ import {
   isInsideCodeContext,
   type SlashCommandsConfig,
   type SlashState,
-} from './cm-slash-state.ts';
-import { slashTheme } from './cm-slash-theme.ts';
+} from './slash-state.ts';
+import { slashTheme } from './slash-theme.ts';
 
-export type { SlashCommandsConfig } from './cm-slash-state.ts';
+export type { SlashCommandsConfig } from './slash-state.ts';
 
 export const slashStateField = StateField.define<SlashState | null>({
   create: () => null,

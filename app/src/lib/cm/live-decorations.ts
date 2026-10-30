@@ -1,15 +1,15 @@
 import { syntaxTree } from '@codemirror/language';
 import type { Range } from '@codemirror/state';
 import { Decoration, type DecorationSet, type EditorView } from '@codemirror/view';
-import { findInlineHtmlSpans, findMarkSpans, maskInlineCode } from './html-live-render.ts';
-import { diagramFenceKind, fenceModeField } from './cm-fence-modes.ts';
+import { findInlineHtmlSpans, findMarkSpans, maskInlineCode } from '../html-live-render.ts';
+import { diagramFenceKind, fenceModeField } from './fence-modes.ts';
 import {
   bulletDeco, hrDeco, CodeCopyWidget, CodeModeWidget, codeBlockClipboardText, listItemHasTask, type MdSyntaxNode,
-} from './cm-live-widgets.ts';
+} from './live-widgets.ts';
 import {
   HIDDEN_MARK_NODES, headingClass, strongMark, emMark, strikeMark, codeMark, codeRevealedMark, codeTickMark, linkMark,
   htmlMarkMark, inlineHtmlMark, fencedPosition, quoteLine, fencedLine, fenceLangMark, headingLine, hideDeco, markerMark,
-} from './cm-live-decos.ts';
+} from './live-decos.ts';
 
 const HEADING_LEVELS: Record<string, number> = {
   ATXHeading1: 1, ATXHeading2: 2, ATXHeading3: 3,

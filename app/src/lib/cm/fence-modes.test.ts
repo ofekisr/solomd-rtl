@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { EditorState } from '@codemirror/state';
-import { fenceModeField, setFenceMode } from './cm-fence-modes.ts';
+import { fenceModeField, setFenceMode } from './fence-modes.ts';
 
 const DOC = 'intro\n\n```dot\ndigraph { a -> b }\n```\n';
 const FENCE_FROM = DOC.indexOf('```dot');

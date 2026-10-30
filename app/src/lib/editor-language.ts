@@ -2,7 +2,7 @@
 import {markdown, markdownLanguage} from '@codemirror/lang-markdown';
 import type {Extension} from '@codemirror/state';
 import type { LanguageSupport } from '@codemirror/language';
-import {cjkFriendlyEmphasis} from './cm-cjk-emphasis.ts';
+import {cjkFriendlyEmphasis} from './cm/cjk-emphasis.ts';
 import {codeLanguages} from './code-languages.ts';
 
 

@@ -3,7 +3,7 @@ import { test } from 'node:test';
 
 import { StringStream } from '@codemirror/language';
 
-import { terminalSession } from './cm-terminal-mode.ts';
+import { terminalSession } from './terminal-mode.ts';
 
 const TAB_SIZE = 2;
 

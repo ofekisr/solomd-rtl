@@ -4,7 +4,7 @@ import { isLocalSvgPath, resolveImagePath, resolveImageSrc } from '../image-reso
 import { findHtmlBlockEnd } from '../html-live-render.ts';
 import { findInlineFences } from '../inline-fence.ts';
 import { plantumlSvgUrl } from '../plantuml.ts';
-import { diagramFenceKind, fenceModeField, splitSideField } from '../cm-fence-modes.ts';
+import { diagramFenceKind, fenceModeField, splitSideField } from '../cm/fence-modes.ts';
 import { parseTldrawFence, TLDRAW_DEFAULT_HEIGHT } from '../tldraw-board.ts';
 import { IMAGE_LINE_RE, isPipeRow, isSeparatorRow } from './layout.ts';
 import { ImageWidget, TableWidget, HtmlBlockWidget, MathWidget, InlineMathWidget, inlineMathSpans } from './widgets.ts';

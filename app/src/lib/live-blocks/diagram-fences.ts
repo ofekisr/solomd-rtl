@@ -1,6 +1,6 @@
 import { RangeSetBuilder, type Text } from '@codemirror/state';
 import { Decoration } from '@codemirror/view';
-import { ModedDiagramWidget, SplitPaneWidget, SplitSpacerWidget, type DiagramKind, type FenceViewMode } from '../cm-fence-modes.ts';
+import { ModedDiagramWidget, SplitPaneWidget, SplitSpacerWidget, type DiagramKind, type FenceViewMode } from '../cm/fence-modes.ts';
 import { isLineWithin } from './layout.ts';
 import { diagramWidget } from './diagram-widgets.ts';
 import { type BlockOptions } from './options.ts';

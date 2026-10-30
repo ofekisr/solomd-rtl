@@ -1,5 +1,5 @@
 import type { Extension } from '@codemirror/state';
-import { slashCommandsExtension, type SlashCommandsConfig } from '../../../lib/cm-slash-commands.ts';
+import { slashCommandsExtension, type SlashCommandsConfig } from '../../../lib/cm/slash-commands.ts';
 import type { EditorFeatureContext } from '../../editor/contracts/index.ts';
 
 const I18N_ECHO_PREFIX = 'slashCommands.';

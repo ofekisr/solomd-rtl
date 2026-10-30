@@ -5,7 +5,7 @@ import { EditorView } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 import { classHighlighter, highlightTree } from '@lezer/highlight';
 import { createLanguageExtension, loadLanguageExtension } from './editor-language.ts';
-import { bidiExtension } from './cm-bidi.ts';
+import { bidiExtension } from './cm/bidi.ts';
 
 test('Shell source and each fence alias highlight keywords, strings and comments', () => {
   const source = 'if true; then\n  echo "Hello" # greeting\nfi';

@@ -4,11 +4,11 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { EditorState } from '@codemirror/state';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { ensureSyntaxTree } from '@codemirror/language';
-import { slashCommandsExtension, slashStateField } from './cm-slash-commands.ts';
-import { setSlashState, isTriggerPosition, isInsideCodeContext } from './cm-slash-state.ts';
+import { slashCommandsExtension, slashStateField } from './slash-commands.ts';
+import { setSlashState, isTriggerPosition, isInsideCodeContext } from './slash-state.ts';
 
 const SYNTAX_TIMEOUT_MS = 5000;
-const GOLDEN = new URL('./cm-slash-commands.golden.json', import.meta.url);
+const GOLDEN = new URL('./slash-commands.golden.json', import.meta.url);
 
 function makeState(doc: string, anchor: number): EditorState {
   const state = EditorState.create({

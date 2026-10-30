@@ -1,7 +1,7 @@
 import type { Extension } from '@codemirror/state';
-import { extractImageRoot, liveBlocksExtension, liveBlocksTheme } from '../../../../lib/cm-live-blocks.ts';
-import { livePreviewExtension, richHighlightOnly } from '../../../../lib/cm-live-preview.ts';
-import { liveEditExtension, setLiveEditCopyLabel } from '../../../../lib/cm-live-render.ts';
+import { extractImageRoot, liveBlocksExtension, liveBlocksTheme } from '../../../../lib/cm/live-blocks.ts';
+import { livePreviewExtension, richHighlightOnly } from '../../../../lib/cm/live-preview.ts';
+import { liveEditExtension, setLiveEditCopyLabel } from '../../../../lib/cm/live-render.ts';
 import { graphvizThemeFor } from '../../../../lib/theme/mermaid.ts';
 import { replaceBoardSnapshot } from '../../../../lib/tldraw-board.ts';
 import type { EditorFeature, EditorFeatureContext } from '../../contracts/editor-feature.port.ts';

@@ -39,13 +39,13 @@
 import { syntaxHighlighting } from '@codemirror/language';
 import type { Extension } from '@codemirror/state';
 import { type DecorationSet, type EditorView, ViewPlugin, type ViewUpdate } from '@codemirror/view';
-import { frozenDuringComposition, isImeSafeFlushTransaction } from './cm-ime-guard.ts';
-import { isDragging, isDragEndTransaction } from './cm-drag-aware.ts';
-import { setFenceMode } from './cm-fence-modes.ts';
-import { buildDecorations } from './cm-live-decorations.ts';
-import { liveEditHighlightStyle, liveEditTheme } from './cm-live-theme.ts';
+import { frozenDuringComposition, isImeSafeFlushTransaction } from './ime-guard.ts';
+import { isDragging, isDragEndTransaction } from './drag-aware.ts';
+import { setFenceMode } from './fence-modes.ts';
+import { buildDecorations } from './live-decorations.ts';
+import { liveEditHighlightStyle, liveEditTheme } from './live-theme.ts';
 
-export type { MdSyntaxNode } from './cm-live-widgets.ts';
+export type { MdSyntaxNode } from './live-widgets.ts';
 export {
   bulletDeco,
   hrDeco,
@@ -53,7 +53,7 @@ export {
   CodeModeWidget,
   setLiveEditCopyLabel,
   codeBlockClipboardText,
-} from './cm-live-widgets.ts';
+} from './live-widgets.ts';
 
 const makeLiveRenderPlugin = (showMarkers: boolean) => ViewPlugin.fromClass(
   class {

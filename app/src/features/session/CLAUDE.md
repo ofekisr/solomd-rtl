@@ -9,4 +9,4 @@ Consumed by: `shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`), pr
 | `contracts/index.ts` | Public surface: factory |
 | `internal/restore-session.ts` | `maybeRestoreSession(ctx, view)`: inserts the snapshot only into an empty tab and empty doc |
 
-- Storage is `localStorage` via `lib/cm-session-restore.ts`; tests install an in-memory stub before importing.
+- Storage is `localStorage` via `lib/cm/session-restore.ts`; tests install an in-memory stub before importing.

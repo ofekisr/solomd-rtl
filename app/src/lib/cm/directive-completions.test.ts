@@ -8,11 +8,11 @@ import type { EditorView } from "@codemirror/view";
 import {
   directiveCompletionSource,
   shouldStartDirectiveCompletion,
-} from "./cm-directive-completions.ts";
+} from "./directive-completions.ts";
 import {
   installDirectiveCompletionLoadResult,
   type LoadedDirectiveCompletionManifest,
-} from "./directive-completion-registry.ts";
+} from "../directive-completion-registry.ts";
 
 const epubManifest: LoadedDirectiveCompletionManifest = {
   sourceFile: "epub.json",

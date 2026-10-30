@@ -20,13 +20,13 @@
 
 import { StateField, Prec, EditorSelection, Transaction, EditorState } from '@codemirror/state';
 import { keymap, type DecorationSet, EditorView, ViewPlugin } from '@codemirror/view';
-import { isDragging, isDragEndTransaction } from './cm-drag-aware.ts';
-import { frozenFieldDuringComposition, isImeSafeFlushTransaction } from './cm-ime-guard.ts';
-import { fenceModesExtension, setFenceMode, setSplitSide } from './cm-fence-modes.ts';
-import { relayoutEffect } from './live-blocks/layout.ts';
-import { TldrawWidget } from './live-blocks/tldraw-widget.ts';
-import type { BlockOptions } from './live-blocks/options.ts';
-import { buildBlockDecorations } from './live-blocks/decorations.ts';
+import { isDragging, isDragEndTransaction } from './drag-aware.ts';
+import { frozenFieldDuringComposition, isImeSafeFlushTransaction } from './ime-guard.ts';
+import { fenceModesExtension, setFenceMode, setSplitSide } from './fence-modes.ts';
+import { relayoutEffect } from '../live-blocks/layout.ts';
+import { TldrawWidget } from '../live-blocks/tldraw-widget.ts';
+import type { BlockOptions } from '../live-blocks/options.ts';
+import { buildBlockDecorations } from '../live-blocks/decorations.ts';
 
 /**
  * Live-render of standalone images / tables / block-math / Mermaid in the
@@ -166,7 +166,7 @@ export function liveBlocksExtension(opts: BlockOptions = {}) {
   return [fenceModesExtension, field, relayout, blockArrowKeymap, vimBlockHop];
 }
 
-export { liveBlocksTheme } from './live-blocks/theme.ts';
+export { liveBlocksTheme } from '../live-blocks/theme.ts';
 // Re-exported helpers in case the editor wants to wire up the imageRoot
 // extractor from outside.
-export { extractImageRoot } from './markdown';
+export { extractImageRoot } from '../markdown';

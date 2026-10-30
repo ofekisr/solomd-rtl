@@ -13,7 +13,7 @@
  */
 import { StateEffect, StateField, type Text } from '@codemirror/state';
 import { EditorView, ViewPlugin, WidgetType } from '@codemirror/view';
-import { isGraphvizLang } from './graphviz.ts';
+import { isGraphvizLang } from '../graphviz.ts';
 
 export type FenceViewMode = 'edit' | 'split' | 'preview';
 export type DiagramKind = 'mermaid' | 'graphviz';

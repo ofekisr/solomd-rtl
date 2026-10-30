@@ -1,9 +1,9 @@
 import { autocompletion } from '@codemirror/autocomplete';
-import { citationCompleteSource, citationsExtension } from '../../../lib/cm-citations.ts';
-import { directiveCompletionExtension, directiveCompletionSource } from '../../../lib/cm-directive-completions.ts';
-import { fenceLanguageComplete, fenceLanguageExtension } from '../../../lib/cm-fence-completion.ts';
-import { tagAutocompleteExtension, tagComplete } from '../../../lib/cm-tag-autocomplete.ts';
-import { wikilinkComplete, wikilinkExtension } from '../../../lib/cm-wikilink.ts';
+import { citationCompleteSource, citationsExtension } from '../../../lib/cm/citations.ts';
+import { directiveCompletionExtension, directiveCompletionSource } from '../../../lib/cm/directive-completions.ts';
+import { fenceLanguageComplete, fenceLanguageExtension } from '../../../lib/cm/fence-completion.ts';
+import { tagAutocompleteExtension, tagComplete } from '../../../lib/cm/tag-autocomplete.ts';
+import { wikilinkComplete, wikilinkExtension } from '../../../lib/cm/wikilink.ts';
 import type { EditorFeature } from '../../editor/contracts/index.ts';
 import { slashExt } from '../internal/slash.ts';
 

@@ -3,8 +3,8 @@ import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirro
 import { Compartment, EditorState, type Extension } from '@codemirror/state';
 import { EditorView, keymap, placeholder } from '@codemirror/view';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { bidiExtension } from '../lib/cm-bidi';
-import { liveEditExtension } from '../lib/cm-live-render';
+import { bidiExtension } from '../lib/cm/bidi';
+import { liveEditExtension } from '../lib/cm/live-render';
 import { createLanguageExtension } from '../lib/editor-language';
 
 const props = defineProps<{ value: string; docKey: string; disabled: boolean; placeholder: string }>();

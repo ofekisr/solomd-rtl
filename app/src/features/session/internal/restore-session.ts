@@ -1,6 +1,6 @@
 import type { EditorView } from '@codemirror/view';
 import type { EditorFeatureContext } from '../../editor/contracts/index.ts';
-import { readSession } from '../../../lib/cm-session-restore.ts';
+import { readSession } from '../../../lib/cm/session-restore.ts';
 
 export function maybeRestoreSession(ctx: EditorFeatureContext, view: Pick<EditorView, 'state' | 'dispatch'>): void {
   const saved = readSession(ctx.tab().id);

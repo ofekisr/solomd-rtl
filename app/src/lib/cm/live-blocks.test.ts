@@ -30,7 +30,7 @@ before(async () => {
   const outfile = join(outDir, `bundle-${process.pid}.mjs`);
   bundlePath = outfile;
   await build({
-    entryPoints: [join(here, 'cm-live-blocks.ts')],
+    entryPoints: [join(here, 'live-blocks.ts')],
     outfile,
     bundle: true,
     format: 'esm',

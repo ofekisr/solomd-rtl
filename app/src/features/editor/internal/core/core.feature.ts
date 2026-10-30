@@ -11,10 +11,10 @@ import {
   lineNumbers,
   rectangularSelection,
 } from '@codemirror/view';
-import { dragAwareExtension } from '../../../../lib/cm-drag-aware.ts';
-import { imeCompositionGuard } from '../../../../lib/cm-ime-guard.ts';
-import { stableClickSelection } from '../../../../lib/cm-stable-click.ts';
-import { taskListExtension } from '../../../../lib/cm-task-list.ts';
+import { dragAwareExtension } from '../../../../lib/cm/drag-aware.ts';
+import { imeCompositionGuard } from '../../../../lib/cm/ime-guard.ts';
+import { stableClickSelection } from '../../../../lib/cm/stable-click.ts';
+import { taskListExtension } from '../../../../lib/cm/task-list.ts';
 import type { EditorFeature } from '../../contracts/editor-feature.port.ts';
 
 export const SOLID_CURSOR_BLINK_MS = 0;

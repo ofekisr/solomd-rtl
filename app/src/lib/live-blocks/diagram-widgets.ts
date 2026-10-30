@@ -1,5 +1,5 @@
 import { WidgetType } from '@codemirror/view';
-import { type DiagramKind } from '../cm-fence-modes.ts';
+import { type DiagramKind } from '../cm/fence-modes.ts';
 import { type MermaidTheme, mermaidSvgCache, mermaidKey, ensureMermaidRendered, graphvizSvgCache, ensureGraphvizRendered } from './diagram-cache.ts';
 
 // v4.3.0 issue #57a — mermaid fenced blocks. Mermaid is async so we render

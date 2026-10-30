@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { EditorView } from '@codemirror/view';
 import { stateWith, fakeView, fakeContext, type FakeContext } from '../editor/contracts/testkit.ts';
-import { currentFoldRanges } from '../../lib/cm-heading-fold.ts';
+import { currentFoldRanges } from '../../lib/cm/heading-fold.ts';
 import { createFoldsFeature } from './contracts/index.ts';
 import { applyFold, foldExtensionFor } from './internal/apply-fold.ts';
 

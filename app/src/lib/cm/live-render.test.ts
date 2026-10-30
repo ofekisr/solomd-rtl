@@ -5,11 +5,11 @@ import { EditorState } from '@codemirror/state';
 import type { EditorView } from '@codemirror/view';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { ensureSyntaxTree, syntaxTree } from '@codemirror/language';
-import { buildDecorations } from './cm-live-decorations.ts';
-import { codeBlockClipboardText, listItemHasTask, LIVE_EDIT_CLASSES } from './cm-live-render.ts';
+import { buildDecorations } from './live-decorations.ts';
+import { codeBlockClipboardText, listItemHasTask, LIVE_EDIT_CLASSES } from './live-render.ts';
 
 const SYNTAX_TIMEOUT_MS = 5000;
-const GOLDEN = new URL('./cm-live-render.golden.json', import.meta.url);
+const GOLDEN = new URL('./live-render.golden.json', import.meta.url);
 
 const DOC = [
   '# Heading **bold**',

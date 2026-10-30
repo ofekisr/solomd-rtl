@@ -938,7 +938,7 @@ body.solomd-printing--dark {
 /* ── Code-block copy affordance (#195, extended in v4.11.18) ───────────────
  * Shared by the preview pane, the Windows plain-block live editor and the
  * CodeMirror live-edit mode (that one styles its widget in the CM theme —
- * see lib/cm-live-render.ts). Kept global rather than inside Preview.vue so
+ * see lib/cm/live-render.ts). Kept global rather than inside Preview.vue so
  * every surface renders the identical button. */
 .code-block-shell {
   position: relative;

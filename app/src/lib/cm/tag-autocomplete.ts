@@ -20,7 +20,7 @@ import type {
   Completion,
 } from '@codemirror/autocomplete';
 import type { Extension } from '@codemirror/state';
-import { useWorkspaceIndexStore } from '../stores/workspaceIndex';
+import { useWorkspaceIndexStore } from '../../stores/workspaceIndex';
 
 /** A tag-name char, matching what `workspace_index.rs` accepts. */
 const TAG_CHAR = /[\p{L}\p{N}_/\-]/u;

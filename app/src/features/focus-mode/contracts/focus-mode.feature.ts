@@ -1,4 +1,4 @@
-import { focusModeExtension, typewriterModeExtension } from '../../../lib/cm-focus-mode.ts';
+import { focusModeExtension, typewriterModeExtension } from '../../../lib/cm/focus-mode.ts';
 import type { EditorFeature } from '../../editor/contracts/index.ts';
 
 export function createFocusModeFeature(): EditorFeature {

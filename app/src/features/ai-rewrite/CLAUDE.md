@@ -7,7 +7,7 @@ Consumed by: `shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`), pr
 |---|---|
 | `contracts/ai-rewrite.port.ts` | `AiRewritePort`: `extension(cmKey)`, `isLocked(filePath)` |
 | `contracts/ai-rewrite.feature.ts` | `createAiRewriteFeature(port = legacyAiRewriteAdapter)` |
-| `internal/ai-rewrite.legacy.adapter.ts` | Wave 2 shim over `lib/cm-ai-rewrite` + `lib/ai-activity`. Deleted in Wave 4 (LLD E10) |
+| `internal/ai-rewrite.legacy.adapter.ts` | Wave 2 shim over `lib/cm/ai-rewrite` + `lib/ai-activity`. Deleted in Wave 4 (LLD E10) |
 | `internal/rewrite-key.ts` | `currentAiRewriteKey` (unbound -> `F24`), `aiLockExtension` |
 
 ## Rules

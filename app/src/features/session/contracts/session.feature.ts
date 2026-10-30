@@ -1,5 +1,5 @@
 import type { EditorFeature } from '../../editor/contracts/index.ts';
-import { clearSession, sessionRestoreExtension } from '../../../lib/cm-session-restore.ts';
+import { clearSession, sessionRestoreExtension } from '../../../lib/cm/session-restore.ts';
 import { maybeRestoreSession } from '../internal/restore-session.ts';
 
 export function createSessionFeature(): EditorFeature {
