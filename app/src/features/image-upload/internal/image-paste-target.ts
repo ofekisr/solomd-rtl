@@ -1,7 +1,7 @@
 import { fsPort, pathPort } from '../../../platform/index.ts';
 import { uploadImage, type ResolvedUploader } from './image-upload.ts';
 import { markdownImage } from '../../../lib/md-image-url.ts';
-import { isSafPath } from '../../../lib/image-source.ts';
+import { isSafPath } from '../../../lib/image/source.ts';
 import type { ImagePasteOptions } from './image-paste-types.ts';
 import { dirnameOf, joinPath, parseImageRootFast, resolveAssetsDir } from './image-paths.ts';
 

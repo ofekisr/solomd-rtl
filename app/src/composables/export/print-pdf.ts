@@ -1,6 +1,6 @@
 import { convertPort } from '../../platform/index.ts';
 import { isWindowsDesktop } from '../../lib/platform';
-import { renderMarkdown, extractImageRoot } from '../../lib/markdown';
+import { renderMarkdown, extractImageRoot } from '../../lib/markdown/markdown';
 // Tiny shim: the mermaid bundle itself stays behind a dynamic import inside
 // it, so touching this module costs nothing at startup.
 import { initMermaid } from '../../lib/mermaid-lazy';
@@ -12,7 +12,7 @@ import {
   printableBox,
   withPrintPagination,
 } from '../../lib/print-pages';
-import { rewriteLinkUrls, rewriteImageUrls } from '../../lib/image-resolve';
+import { rewriteLinkUrls, rewriteImageUrls } from '../../lib/image/resolve';
 import { useThemeStore } from '../../stores/theme';
 import { track } from '../../lib/telemetry';
 import {
@@ -21,7 +21,7 @@ import {
   buildPrintStyle,
   buildWindowsPrintFrameStyle,
   withPdfToc,
-} from '../../lib/pdf-options';
+} from '../../lib/pdf/options';
 import type { useSettingsStore } from '../../stores/settings';
 import type { useToastsStore } from '../../stores/toasts';
 import type { useI18n } from '../../i18n';

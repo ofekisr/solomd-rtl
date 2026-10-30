@@ -1,6 +1,6 @@
 import { RangeSetBuilder, EditorState } from '@codemirror/state';
 import { Decoration, type DecorationSet } from '@codemirror/view';
-import { isLocalSvgPath, resolveImagePath, resolveImageSrc } from '../image-resolve.ts';
+import { isLocalSvgPath, resolveImagePath, resolveImageSrc } from '../image/resolve.ts';
 import { findHtmlBlockEnd } from '../html-live-render.ts';
 import { findInlineFences } from '../inline-fence.ts';
 import { plantumlSvgUrl } from '../plantuml.ts';

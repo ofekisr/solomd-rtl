@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref } from 'vue';
-import { renderMarkdown } from '../lib/markdown';
+import { renderMarkdown } from '../lib/markdown/markdown';
 import { windowPort } from '../platform/index.ts';
 import Reveal from 'reveal.js';
 import 'reveal.js/reveal.css';

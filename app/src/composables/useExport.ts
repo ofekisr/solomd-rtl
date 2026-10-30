@@ -6,7 +6,7 @@ import { useTabsStore } from '../stores/tabs';
 import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
 import { track } from '../lib/telemetry';
-import { resolvePdfOptions, userTouchedPdfDefaults } from '../lib/pdf-options';
+import { resolvePdfOptions, userTouchedPdfDefaults } from '../lib/pdf/options';
 import { getEditorSelectionMd } from './export/selection-source.ts';
 import { buildStandaloneHtml, markdownToDocxBlob, markdownToPdfBlob, markdownToImageBlob } from './export/lazy-exporters.ts';
 import { iosSavedToast, type ActiveDocument } from './export/export-shared.ts';

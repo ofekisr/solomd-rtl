@@ -3,7 +3,7 @@ import { resolveUploader, uploadImage, type ImageUploadSettings } from './image-
 import { imageSrcChanges, localImageSources, parseFrontMatterImageRoot } from './image-links.ts';
 
 async function resolveLocalImageAbsPath(ctx: EditorFeatureContext, src: string): Promise<string | null> {
-  const { resolveImagePath } = await import('../../../lib/image-resolve.ts');
+  const { resolveImagePath } = await import('../../../lib/image/resolve.ts');
   const imageRoot = parseFrontMatterImageRoot(ctx.tab().content) ?? null;
   const abs = resolveImagePath(src, imageRoot, ctx.tab().filePath);
   return abs || null;

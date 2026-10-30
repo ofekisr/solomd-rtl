@@ -95,7 +95,7 @@ Notes:
 }
 
 // ---------------------------------------------------------------------------
-// Markdown rendering — must match app/src/lib/markdown.ts config
+// Markdown rendering — must match app/src/lib/markdown/markdown.ts config
 // ---------------------------------------------------------------------------
 
 const md = new MarkdownIt({
@@ -106,7 +106,7 @@ const md = new MarkdownIt({
 }).use(katex.default ?? katex, { throwOnError: false }).use(footnote).use(mark);
 
 // ---------------------------------------------------------------------------
-// Leniency preprocessors — MUST mirror app/src/lib/markdown.ts preprocessMarkdown
+// Leniency preprocessors — MUST mirror app/src/lib/markdown/markdown.ts preprocessMarkdown
 // (inline-HTML-block unwrapping #71, malformed table-delimiter repair, list
 // re-indent #132). This headless script keeps its own copy on purpose (no TS
 // build step); keep it in sync with markdown.ts. Covered by the self-test in
@@ -331,7 +331,7 @@ function stripMarkdown(src) {
 
 // ---------------------------------------------------------------------------
 // Image resolution + embedding — Node fs replaces Tauri invoke. Logic
-// mirrors app/src/lib/docx-export.ts + image-resolve.ts.
+// mirrors app/src/lib/docx/export.ts + image-resolve.ts.
 // ---------------------------------------------------------------------------
 
 function imageTypeFromPath(p) {
@@ -449,7 +449,7 @@ function extractImageRoot(source) {
 }
 
 // ---------------------------------------------------------------------------
-// DOCX — port of app/src/lib/docx-export.ts to plain ESM JS for headless
+// DOCX — port of app/src/lib/docx/export.ts to plain ESM JS for headless
 // use. Engine-parity (same markdown-it config, same `docx` lib, same
 // blockquote / table / list / image embedding logic).
 // ---------------------------------------------------------------------------

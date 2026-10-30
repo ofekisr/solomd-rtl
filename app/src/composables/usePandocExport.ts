@@ -31,7 +31,7 @@ import {
   parseCslJson,
   type CitationEntry,
 } from '../lib/citations';
-import { preprocessMarkdown } from '../lib/markdown';
+import { preprocessMarkdown } from '../lib/markdown/markdown';
 
 export interface PandocInfo {
   path: string;

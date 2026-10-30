@@ -3,7 +3,7 @@ import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useTabsStore } from '../stores/tabs';
 import { useSettingsStore } from '../stores/settings';
 import { useI18n } from '../i18n';
-import { extractOutline, type OutlineItem } from '../lib/markdown';
+import { extractOutline, type OutlineItem } from '../lib/markdown/markdown';
 
 interface OutlineNode {
   item: OutlineItem;

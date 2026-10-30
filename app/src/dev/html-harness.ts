@@ -21,8 +21,8 @@ import {
   resolveImagePath,
   rewriteImageUrls,
   type BinaryReader,
-} from '../lib/image-resolve';
-import { renderMarkdown } from '../lib/markdown';
+} from '../lib/image/resolve';
+import { renderMarkdown } from '../lib/markdown/markdown';
 
 const statusEl = document.getElementById('status') as HTMLElement;
 const beforeEl = document.getElementById('before') as HTMLElement;
@@ -175,7 +175,7 @@ async function exportWhole(input: StandaloneHtmlInput): Promise<string> {
 }
 
 async function docx(markdown: string): Promise<string> {
-  const { markdownToDocxBlob } = await import('../lib/docx-export');
+  const { markdownToDocxBlob } = await import('../lib/docx/export');
   const blob = await markdownToDocxBlob(markdown, 'harness');
   const buf = new Uint8Array(await blob.arrayBuffer());
   let bin = '';

@@ -25,7 +25,7 @@ import {
   emptyTable,
   type TableAlign,
   type TableModel,
-} from '../lib/markdown-table';
+} from '../lib/markdown/table';
 import { useI18n } from '../i18n';
 
 const props = defineProps<{ source: string }>();

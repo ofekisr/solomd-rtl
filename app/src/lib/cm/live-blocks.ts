@@ -169,4 +169,4 @@ export function liveBlocksExtension(opts: BlockOptions = {}) {
 export { liveBlocksTheme } from '../live-blocks/theme.ts';
 // Re-exported helpers in case the editor wants to wire up the imageRoot
 // extractor from outside.
-export { extractImageRoot } from '../markdown';
+export { extractImageRoot } from '../markdown/markdown';

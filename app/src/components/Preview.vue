@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { documentDirection } from '../lib/doc-direction';
-import { isFullMdFile } from '../lib/markdown-block-badges';
-import { renderMarkdown, extractImageRoot } from '../lib/markdown';
-import { rewriteImageUrls } from '../lib/image-resolve';
+import { isFullMdFile } from '../lib/markdown/block-badges';
+import { renderMarkdown, extractImageRoot } from '../lib/markdown/markdown';
+import { rewriteImageUrls } from '../lib/image/resolve';
 import { openerPort } from '../platform/index.ts';
 import { useSettingsStore } from '../stores/settings';
 import { useI18n } from '../i18n';

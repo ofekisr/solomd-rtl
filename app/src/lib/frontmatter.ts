@@ -12,7 +12,7 @@
  *     note's presentation keys (icon/color/order/…).
  *   - `setMemberType(path, name)` — set/replace a member note's `type:` field.
  *
- * We use `js-yaml` (already a dependency, see lib/markdown.ts) to parse the
+ * We use `js-yaml` (already a dependency, see lib/markdown/markdown.ts) to parse the
  * existing block into an object, apply the patch, then re-dump just that block.
  * Comments inside the frontmatter are not preserved (js-yaml limitation) — the
  * type-definition notes are app-managed so this is acceptable; for member

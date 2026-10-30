@@ -16,7 +16,7 @@
 import { EditorView } from '@codemirror/view';
 import { fsPort } from '../../../platform/index.ts';
 import { markdownImage } from '../../../lib/md-image-url.ts';
-import { isContentUri, sniffImageExt } from '../../../lib/image-source.ts';
+import { isContentUri, sniffImageExt } from '../../../lib/image/source.ts';
 import type { ImagePasteOptions } from './image-paste-types.ts';
 import { extFromMime, extFromName, makeFilename, randSuffix } from './image-paths.ts';
 import {

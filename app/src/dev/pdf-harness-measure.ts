@@ -1,4 +1,4 @@
-import { isCleanRowData } from '../lib/pdf-paginate.ts';
+import { isCleanRowData } from '../lib/pdf/paginate.ts';
 
 /** Height of the strip drawn around each page break, in raster pixels. */
 export const STRIP = 90;

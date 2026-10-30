@@ -4,7 +4,7 @@
  */
 import { watchEffect } from 'vue';
 import { useSettingsStore, buildEditorFontStack } from '../stores/settings';
-import { setMarkdownHardBreaks, setMarkdownAutoNumberHeadings, setMarkdownSmartQuotes } from '../lib/markdown';
+import { setMarkdownHardBreaks, setMarkdownAutoNumberHeadings, setMarkdownSmartQuotes } from '../lib/markdown/markdown';
 
 const DEFAULT_PREVIEW_FONT_SIZE = 15;
 const MONO_FALLBACK = '"JetBrains Mono", "SF Mono", "Cascadia Code", Menlo, Consolas, monospace';

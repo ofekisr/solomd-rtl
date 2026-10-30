@@ -11,8 +11,8 @@
  * export now chooses, and draws a strip of each page break so the difference
  * is visible, not just asserted.
  */
-import { capturePdfRaster, buildHtml2PdfOptions } from '../lib/pdf-export';
-import { buildPagedCanvas } from '../lib/pdf-paginate';
+import { capturePdfRaster, buildHtml2PdfOptions } from '../lib/pdf/export';
+import { buildPagedCanvas } from '../lib/pdf/paginate';
 import {
   isSheared, blankRun, rowsTouchingRightEdge, strip, table, px, countPdfPages,
   type BoundaryCheck,

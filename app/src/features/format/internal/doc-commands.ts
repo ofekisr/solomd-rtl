@@ -1,7 +1,7 @@
 import type { DocAccess } from '../../editor/contracts/index.ts';
 import { collectLabels, findMathSpanAt } from '../../../lib/equations.ts';
 import { openFormulaEditor } from './useFormulaEditorBus.ts';
-import { findTableSpan } from '../../../lib/markdown-table.ts';
+import { findTableSpan } from '../../../lib/markdown/table.ts';
 import { openTableEditor } from './useTableEditorBus.ts';
 
 export interface DocRange { from: number; to: number }

@@ -7,8 +7,8 @@
  * and fonts are written in only when the note has math (#313). Nothing in the
  * page points at a CDN.
  */
-import { renderMarkdown, extractImageRoot } from './markdown';
-import { inlineLocalImages, rewriteLinkUrls, rewriteImageUrls, type BinaryReader } from './image-resolve';
+import { renderMarkdown, extractImageRoot } from './markdown/markdown';
+import { inlineLocalImages, rewriteLinkUrls, rewriteImageUrls, type BinaryReader } from './image/resolve';
 import { inlineDiagramsInHtml } from './diagram-export';
 import { hasKatex, standaloneKatexCss } from './katex-standalone';
 import { terminalExportCss } from './terminal-block';

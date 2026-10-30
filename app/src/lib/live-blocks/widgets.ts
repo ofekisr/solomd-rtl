@@ -1,6 +1,6 @@
 import { WidgetType } from '@codemirror/view';
-import { installSvgImageFallbacks, rewriteImageUrls } from '../image-resolve.ts';
-import { renderMarkdown } from '../markdown.ts';
+import { installSvgImageFallbacks, rewriteImageUrls } from '../image/resolve.ts';
+import { renderMarkdown } from '../markdown/markdown.ts';
 import katex from 'katex';
 import { trackImageHeights } from './layout.ts';
 import 'katex/contrib/mhchem';

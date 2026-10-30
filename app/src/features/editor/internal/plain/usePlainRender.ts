@@ -2,10 +2,10 @@ import { type PlainBlock, plainTocFingerprint, splitPlainMarkdownBlocks } from '
 import { attachCodeCopyButtons } from '../../../../lib/code-copy';
 import { computed, nextTick } from 'vue';
 import { cssColorToHex, graphvizThemeFor, mermaidConfigFor } from '../../../../lib/theme/mermaid';
-import { extractImageRoot as extractMarkdownImageRoot, renderMarkdown } from '../../../../lib/markdown';
+import { extractImageRoot as extractMarkdownImageRoot, renderMarkdown } from '../../../../lib/markdown/markdown';
 import { findTldrawFences } from '../../../../lib/tldraw-board';
 import { initMermaid } from '../../../../lib/mermaid-lazy';
-import { installSvgImageFallbacks, rewriteImageUrls } from '../../../../lib/image-resolve';
+import { installSvgImageFallbacks, rewriteImageUrls } from '../../../../lib/image/resolve';
 import { plantumlSvgUrl } from '../../../../lib/plantuml';
 import { renderGraphvizBlocks } from '../../../../lib/graphviz';
 import { useSettingsStore } from '../../../../stores/settings';

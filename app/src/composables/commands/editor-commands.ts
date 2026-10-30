@@ -1,7 +1,7 @@
 import { capturePort, clipboardPort, dialogPort } from '../../platform/index.ts';
 import { FORMAT_KINDS } from '../../lib/md-format';
 import { cleanAIArtifacts, stripMarkdownToPlain } from '../../lib/clean-ai';
-import { formatMarkdown } from '../../lib/markdown-format';
+import { formatMarkdown } from '../../lib/markdown/format';
 import type { Command, CommandCtx } from './command-types.ts';
 
 // opencc-js + pinyin-pro are dictionaries, not code; loading them at startup

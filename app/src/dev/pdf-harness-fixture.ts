@@ -1,4 +1,4 @@
-import type { ResolvedPdfOptions } from '../lib/pdf-options.ts';
+import type { ResolvedPdfOptions } from '../lib/pdf/options.ts';
 
 /** A4 with the app's default 10mm side / 10+12mm vertical margins. */
 export const PDF_OPTS: ResolvedPdfOptions = {

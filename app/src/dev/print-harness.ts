@@ -23,13 +23,13 @@ import 'katex/dist/katex.min.css';
 // Preview.vue's unscoped <style> block carries the `.preview-content` skin the
 // overlay uses; importing the SFC is what injects it, as it does in the app.
 import '../components/Preview.vue';
-import { renderMarkdown } from '../lib/markdown';
+import { renderMarkdown } from '../lib/markdown/markdown';
 import {
   buildPrintStyle,
   buildWindowsPrintFrameStyle,
   resolvePdfOptions,
   withPdfToc,
-} from '../lib/pdf-options';
+} from '../lib/pdf/options';
 import { defaultPdfDefaults } from '../stores/settings';
 import { mountPrintOverlay } from '../lib/print-overlay';
 import {

@@ -14,7 +14,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { renderMarkdown, preprocessMarkdown } from './markdown.ts';
+import { renderMarkdown, preprocessMarkdown } from './markdown/markdown.ts';
 
 test('indented blocks follow RTL document direction and preserve their text', () => {
   const html = renderMarkdown('שלום עולם\n\n    טקסט מוזח\n');

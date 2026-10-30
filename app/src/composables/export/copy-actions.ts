@@ -1,6 +1,6 @@
 import { clipboardPort, fsPort } from '../../platform/index.ts';
 import { isIOS } from '../../lib/platform';
-import { renderMarkdown } from '../../lib/markdown';
+import { renderMarkdown } from '../../lib/markdown/markdown';
 import type { useSettingsStore } from '../../stores/settings';
 import type { useToastsStore } from '../../stores/toasts';
 import { getEditorSelectionMd } from './selection-source.ts';

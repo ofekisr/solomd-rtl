@@ -1,5 +1,5 @@
 import { pathPort } from '../../platform/index.ts';
-import { openImageOverlay, type OverlayStrings } from '../../lib/image-overlay';
+import { openImageOverlay, type OverlayStrings } from '../../lib/image/overlay';
 import type { FilesCtx } from './files-ctx.ts';
 
 export function createImageOpener(ctx: FilesCtx) {

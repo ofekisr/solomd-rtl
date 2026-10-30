@@ -1,6 +1,6 @@
 import type { Ref } from 'vue';
-import { installSvgImageFallbacks } from '../lib/image-resolve';
-import { openImageOverlay, type OverlayStrings } from '../lib/image-overlay';
+import { installSvgImageFallbacks } from '../lib/image/resolve';
+import { openImageOverlay, type OverlayStrings } from '../lib/image/overlay';
 import { svgToPngBlob, diagramBackground } from '../lib/mermaid-export';
 import { clipboardPort, dialogPort, fsPort } from '../platform/index.ts';
 import { useToastsStore } from '../stores/toasts';
