@@ -35,7 +35,7 @@ import MindmapMapFields from './MindmapMapFields.vue';
 import MindmapOutlineText from './MindmapOutlineText.vue';
 import type { MapDisplay } from '../lib/mindmap-display';
 import { createMapDisplayApplier } from '../composables/useMindmapDisplay';
-import Editor from './Editor.vue';
+import { Editor } from '../features/editor/contracts/editor-component.ts';
 import Preview from './Preview.vue';
 import type { Snippet } from '../lib/mindmap-snippets';
 import MindmapSnippets from './MindmapSnippets.vue';

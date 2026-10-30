@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount, defineAsyncComponent } from 'vue';
-import Editor from './Editor.vue';
+import { Editor } from '../features/editor/contracts/editor-component.ts';
 import Preview from './Preview.vue';
 import { useSettingsStore } from '../stores/settings';
 import { useTilesStore } from '../stores/tiles';

@@ -28,3 +28,5 @@ Features are registered in `src/shell/editor-registry.service.ts` (`EDITOR_FEATU
 4. Write characterization tests with `cm-probe` (`stateWith`, `fakeView`, `fakeContext`).
 5. Command names are global; a duplicate throws at registry creation.
 - `when()` must be stable for the life of a view: a slot excluded at build time has no compartment, so reconfiguring it later is a silent no-op. Use an always-present slot with a conditional `build` instead.
+
+- The host component lives in `ui/Editor.vue`; outside code imports it through `contracts/editor-component.ts` (never via `contracts/index.ts`, which Node tests import).

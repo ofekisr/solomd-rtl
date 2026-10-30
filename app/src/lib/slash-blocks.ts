@@ -19,7 +19,7 @@
  * v2.5 — bonus feature from GitHub Discussion #30.
  */
 
-import { newBoardId } from './tldraw-markdown';
+import { newBoardId } from './tldraw-markdown.ts';
 
 export interface SlashBlock {
   /** Stable id, e.g. `h1`, `code`, `table`. Used for i18n keys + tests. */
