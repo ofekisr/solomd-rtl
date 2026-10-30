@@ -1,0 +1,77 @@
+.ftree__ctx {
+  position: fixed;
+  z-index: 200;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  padding: 4px 0;
+  min-width: 180px;
+  font-size: 13px;
+  user-select: none;
+}
+.ftree__ctx-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px 14px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+.ftree__ctx-item:hover {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.ftree__ctx-item--danger {
+  color: #d12;
+}
+.ftree__ctx-item--danger:hover {
+  background: rgba(221, 17, 34, 0.12);
+}
+.ftree__ctx-sub {
+  position: relative;
+}
+.ftree__ctx-item--sub {
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ftree__ctx-arrow,
+.ftree__ctx-ext {
+  color: var(--text-muted, var(--text));
+  opacity: 0.6;
+  font-size: 11px;
+}
+.ftree__ctx-arrow {
+  font-size: 13px;
+}
+.ftree__ctx-icon {
+  display: inline-block;
+  width: 22px;
+  font-size: 11px;
+  text-align: center;
+  margin-inline-end: 6px;
+}
+.ftree__ctx--sub {
+  position: absolute;
+  top: -4px;
+  left: 100%;
+  min-width: 160px;
+}
+.ftree__ctx-sub--flip > .ftree__ctx--sub {
+  left: auto;
+  right: 100%;
+}
+.ftree__ctx-sub--raise > .ftree__ctx--sub {
+  top: auto;
+  bottom: -4px;
+}
+.ftree__ctx-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}

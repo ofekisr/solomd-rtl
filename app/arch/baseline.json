@@ -28,7 +28,6 @@
     "app/src/components/AgentSetupWizard.vue": 699,
     "app/src/components/BasesView.vue": 839,
     "app/src/components/CjkProofread.vue": 586,
-    "app/src/components/FileTree.vue": 2941,
     "app/src/components/GithubSyncSettings.vue": 1417,
     "app/src/components/GlobalSearch.vue": 615,
     "app/src/components/IntegrationsSettings.vue": 706,

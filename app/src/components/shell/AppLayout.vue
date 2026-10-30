@@ -6,7 +6,7 @@ import TileRoot from '../TileRoot.vue';
 import StatusBar from '../StatusBar.vue';
 import TableEditor from '../TableEditor.vue';
 import FormulaEditor from '../FormulaEditor.vue';
-import FileTree from '../FileTree.vue';
+import { FileTree } from '../../features/file-tree/contracts/file-tree-component.ts';
 import ViewsPanel from '../ViewsPanel.vue';
 import ViewNoteList from '../ViewNoteList.vue';
 import BasesView from '../BasesView.vue';

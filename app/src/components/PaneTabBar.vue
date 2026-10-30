@@ -7,7 +7,7 @@ import { useTilesStore } from '../stores/tiles';
 import { useSettingsStore } from '../stores/settings';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useFiles } from '../composables/useFiles';
-import { requestRevealInTree } from '../composables/useFileTreeReveal';
+import { requestRevealInTree } from '../features/file-tree/contracts/index.ts';
 import { shortcutLabel } from '../lib/keybindings';
 import { isMacOS } from '../lib/platform';
 import { useI18n } from '../i18n';

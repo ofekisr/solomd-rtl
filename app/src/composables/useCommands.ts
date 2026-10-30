@@ -30,7 +30,7 @@ import { useAutoCommit } from './useAutoCommit';
 import { useWorkspaceIndexStore } from '../stores/workspaceIndex';
 import { useGitHistoryStore } from '../stores/gitHistory';
 import { useWorkspaceStore } from '../stores/workspace';
-import { requestNewFileInTree } from './useFileTreeNewFile';
+import { requestNewFileInTree } from '../features/file-tree/contracts/index.ts';
 import { useGithubSyncStore } from '../stores/githubSync';
 import { useGithubSync } from './useGithubSync';
 import { IS_APP_STORE_BUILD } from '../lib/app-build';
