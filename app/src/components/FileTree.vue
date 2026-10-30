@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, h as hEdit, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { clipboardPort, eventsPort, fsPort, type UnlistenFn } from '../platform/index.ts';
 import { revealInFileManager } from '../lib/reveal-in-file-manager';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useFiles } from '../composables/useFiles';
@@ -10,7 +9,6 @@ import { useInboxView } from '../composables/useInboxView';
 import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
 import { useGithubSyncStore } from '../stores/githubSync';
-import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { isMindmapPath, isXmindPath } from '../lib/mindmap-format';
 import { entryKey } from '../lib/mindmap-workbench';
 import { useMindmapWorkbenchStore } from '../stores/mindmapWorkbench';
@@ -124,7 +122,7 @@ async function copyGitUrl(node: Node) {
   const folderNorm = folder.endsWith(sep) ? folder : folder + sep;
   const rel = node.path.slice(folderNorm.length).split('\\').join('/').split('/').map(encodeURIComponent).join('/');
   const blobSeg = /gitlab/i.test(host) ? '/-/blob/' : '/blob/';
-  await writeText(`https://${host}/${owner}/${repo}${blobSeg}main/${rel}`);
+  await clipboardPort.writeText(`https://${host}/${owner}/${repo}${blobSeg}main/${rel}`);
   toasts.success(t('explorer.copyGitUrlDone') || 'Git URL copied to clipboard.');
   closeCtx();
 }
@@ -154,7 +152,7 @@ async function copyMapFile(path: string): Promise<void> {
       toasts.error(t('mindmap.workbenchMissing'));
       return;
     }
-    await writeText(copyMapText(data));
+    await clipboardPort.writeText(copyMapText(data));
     toasts.success(t('mindmap.mapCopied'));
   } catch (e) {
     toasts.error(String(e));
@@ -163,7 +161,7 @@ async function copyMapFile(path: string): Promise<void> {
 
 /** #120 — copy the node's absolute filesystem path (file OR folder). */
 async function copyNodePath(node: Node) {
-  await writeText(node.path);
+  await clipboardPort.writeText(node.path);
   toasts.success(t('explorer.copyPathDone') || 'Path copied.');
   closeCtx();
 }
@@ -196,7 +194,7 @@ async function copyNodeRelativePath(node: Node) {
     const folderNorm = folder.endsWith(sep) ? folder : folder + sep;
     if (node.path.startsWith(folderNorm)) rel = node.path.slice(folderNorm.length);
   }
-  await writeText(rel.split('\\').join('/'));
+  await clipboardPort.writeText(rel.split('\\').join('/'));
   toasts.success(t('explorer.copyRelPathDone') || 'Relative path copied.');
   closeCtx();
 }
@@ -298,7 +296,7 @@ async function loadManualOrder() {
   const path = orderPath();
   if (!path) return;
   try {
-    const fr = await invoke<{ content: string }>('read_file', { path });
+    const fr = await fsPort.readFile({ path });
     const parsed = JSON.parse(fr.content);
     if (parsed && typeof parsed === 'object') {
       const clean: Record<string, string[]> = {};
@@ -315,8 +313,8 @@ async function saveManualOrder() {
   const path = orderPath();
   if (!path) return;
   try {
-    await invoke('fs_create_dir', { path: path.replace(/[\\/][^\\/]+$/, '') }).catch(() => {});
-    await invoke('write_file', {
+    await fsPort.fsCreateDir({ path: path.replace(/[\\/][^\\/]+$/, '') }).catch(() => {});
+    await fsPort.writeFile({
       path,
       content: JSON.stringify(manualOrder.value, null, 2) + '\n',
       encoding: 'UTF-8',
@@ -378,7 +376,7 @@ async function loadDir(path: string): Promise<{ children: Node[]; truncated: boo
         truncated: false,
       };
     }
-    const entries = await invoke<Entry[]>('list_dir', {
+    const entries = await fsPort.listDir({
       path,
       showHidden: settings.explorerShowHidden,
       withTimes: sortNeedsTimes(sortMode.value),
@@ -405,7 +403,7 @@ async function loadDir(path: string): Promise<{ children: Node[]; truncated: boo
     // vanished mid-expand just lists as empty.
     if (path === workspace.currentFolder) {
       try {
-        rootMissing.value = !(await invoke<boolean>('fs_dir_exists', { path }));
+        rootMissing.value = !(await fsPort.fsDirExists({ path }));
       } catch {
         rootMissing.value = false;
       }
@@ -526,7 +524,7 @@ async function refreshFilterDirs() {
     return;
   }
   try {
-    const rels = await invoke<string[]>('fs_dirs_with_extensions', {
+    const rels = await fsPort.fsDirsWithExtensions({
       root: rootPath,
       exts: extFilter.value,
       showHidden: settings.explorerShowHidden,
@@ -556,7 +554,7 @@ async function openFilter() {
     return;
   }
   try {
-    extList.value = await invoke<{ ext: string; count: number }[]>('fs_list_extensions', {
+    extList.value = await fsPort.fsListExtensions({
       root: rootPath,
       showHidden: settings.explorerShowHidden,
     });
@@ -655,12 +653,12 @@ onMounted(async () => {
   window.addEventListener('solomd:remote-pulled', onRemotePulled as EventListener);
   window.addEventListener('beforeunload', onBeforeUnload);
   try {
-    unlistenIndex = await listen('solomd://index-updated', () => scheduleRefresh());
+    unlistenIndex = await eventsPort.listen('solomd://index-updated', () => scheduleRefresh());
   } catch {}
   try {
     // A quick capture writes straight to disk from Rust; without this the new
     // Inbox note is invisible until something else happens to refresh.
-    unlistenCapture = await listen('solomd://capture-written', () => scheduleRefresh());
+    unlistenCapture = await eventsPort.listen('solomd://capture-written', () => scheduleRefresh());
   } catch {}
 });
 onBeforeUnmount(() => {
@@ -871,7 +869,7 @@ async function repointTab(
   }
   tabs.markSaved(tab.id, next);
   try {
-    const fr = await invoke<{ content: string }>('read_file', { path: next });
+    const fr = await fsPort.readFile({ path: next });
     tabs.setContent(tab.id, fr.content);
     tabs.markSaved(tab.id, next);
   } catch (err) {
@@ -915,7 +913,7 @@ async function moveNode(from: string, destDir: string, isDir: boolean) {
     // A pending delete on the destination path would fire later and take the
     // moved file with it. Same race the new-file path guards against.
     await pendingDeletes.flushUnder(target);
-    await invoke('fs_move', { from, to: target });
+    await fsPort.fsMove({ from, to: target });
   } catch (err) {
     // By far the likeliest failure, and the raw Rust string is half English
     // and half absolute path — say it in the user's language instead.
@@ -944,7 +942,7 @@ async function moveNode(from: string, destDir: string, isDir: boolean) {
  *  relative links back the way they were. */
 async function undoMove(current: string, original: string, isDir: boolean, name: string) {
   try {
-    await invoke('fs_move', { from: current, to: original });
+    await fsPort.fsMove({ from: current, to: original });
   } catch (err) {
     toasts.error(
       t('explorer.moveFailed', { name, error: String(err) }) ||
@@ -966,7 +964,7 @@ async function startMoveTo(node: Node) {
   const rootPath = workspace.currentFolder;
   if (!rootPath || !canMove.value) return;
   try {
-    const dirs = await invoke<string[]>('fs_list_dirs', {
+    const dirs = await fsPort.fsListDirs({
       root: rootPath,
       showHidden: settings.explorerShowHidden,
     });
@@ -1335,13 +1333,13 @@ async function commitEdit() {
       // A pending delete on this exact path would fire later and take the new
       // file with it. Commit it now so the two never race.
       await pendingDeletes.flushUnder(target);
-      await invoke('fs_create_file', { path: target, content: '' });
+      await fsPort.fsCreateFile({ path: target, content: '' });
       editing.value = null;
       scheduleRefresh();
       await files.openPath(target, { bypassNewWindow: true });
     } else if (e.kind === 'new-dir') {
       await pendingDeletes.flushUnder(joinPath(e.parent, name));
-      await invoke('fs_create_dir', { path: joinPath(e.parent, name) });
+      await fsPort.fsCreateDir({ path: joinPath(e.parent, name) });
       editing.value = null;
       scheduleRefresh();
     } else if (e.kind === 'rename' && e.original) {
@@ -1351,7 +1349,7 @@ async function commitEdit() {
         return;
       }
       await pendingDeletes.flushUnder(target);
-      await invoke('fs_rename', { from: e.original, to: target });
+      await fsPort.fsRename({ from: e.original, to: target });
       editing.value = null;
       // #342 — a renamed child keeps its hand-placed position.
       const key = orderKey(e.parent);
@@ -1432,7 +1430,7 @@ async function confirmDelete() {
     delayMs: UNDO_WINDOW_MS,
     commit: async () => {
       try {
-        await invoke('fs_delete', { path });
+        await fsPort.fsDelete({ path });
       } catch (e) {
         toasts.error(`Delete failed: ${e}`);
       }
