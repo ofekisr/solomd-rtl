@@ -40,18 +40,11 @@
     "app/src/composables/useExport.ts": 688,
     "app/src/composables/useFiles.ts": 1042,
     "app/src/features/image-upload/internal/cm-image-paste.ts": 671,
-    "app/src/lib/bases.ts": 815,
     "app/src/lib/cm-live-render.ts": 1020,
     "app/src/lib/cm-slash-commands.ts": 557,
-    "app/src/lib/git-pane/shared/models.ts": 450,
     "app/src/lib/image-overlay.ts": 608,
-    "app/src/lib/keybindings.ts": 639,
     "app/src/lib/markdown.ts": 1184,
-    "app/src/lib/viewFile.ts": 505,
-    "app/src/stores/githubSync.ts": 466,
-    "app/src/stores/pomodoro.ts": 409,
-    "app/src/stores/settings.ts": 1793,
-    "app/src/stores/tabs.ts": 568
+    "app/src/stores/settings.ts": 1793
   },
   "rawIpc": [],
   "libPurity": [

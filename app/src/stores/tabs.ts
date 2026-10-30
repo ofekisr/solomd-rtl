@@ -8,130 +8,29 @@ import { useTilesStore } from './tiles';
 import { useWritingSessionStore } from './writingSession';
 import { useWindowsStore } from './windows';
 import { stampGoalSetAtIfMissing } from '../composables/useWritingGoals';
-import { compactTabs, expandTabs, setItemWithEviction } from '../lib/tab-persistence';
-import { sessionKey } from '../lib/cm-session-restore';
+import {
+  bucketKey,
+  currentWindowLabel,
+  currentWorkspaceFolder,
+  loadPersisted as loadPersistedTabs,
+  perWorkspaceTabsEnabled,
+  readBucket,
+  windowScopeSuffix,
+  writeBucket,
+  type PersistedState,
+} from './tabs-persist.ts';
+import { fileNameFromSavedPath, mergeTabsDedup } from './tabs-helpers.ts';
+
+export { inFolder } from './tabs-persist.ts';
 import { encodeDiffPath, type DiffTabRef } from '../lib/git-pane/diffTab';
 import { clampReorderIndex, togglePinned } from '../lib/tab-pin';
 import { dataToggleTarget, MINDMAP_SET_LENS_EVENT, resolveTabLens, type SetLensDetail } from '../lib/mindmap-lens';
-
-// Legacy / global key (used when per-workspace tabs is OFF, and as the
-// migration source on first upgrade).
-const LS_KEY = 'solomd.tabs.v1';
-// Per-workspace bucket prefix: `solomd.tabs.v1::<folder>`. Each workspace
-// remembers its own open tabs, so opening folder A never dumps folder B's
-// accumulated tabs, and two windows on different workspaces write distinct
-// keys instead of clobbering one global blob.
-const LS_BUCKET_PREFIX = 'solomd.tabs.v1::';
-const NO_WORKSPACE = '__none__';
-
-// #103 — auxiliary windows ("Open file in new window") get their own tab
-// bucket so multiple windows on the same folder don't clobber each other's
-// open tabs. The main window keeps the un-suffixed keys above (backward
-// compatible — existing sessions restore unchanged); auxiliary windows
-// append `::win::<label>`. Labels are the stable `solomd-window-N` ids the
-// windows store hands out.
-const AUX_LABEL_PREFIX = 'solomd-window-';
-
-/** The current Tauri window's label, or 'main' outside Tauri (Vitest, the
- *  marketing site preview, etc.). Read lazily and defensively because tabs.ts
- *  initializes before the Tauri API is guaranteed ready. */
-function currentWindowLabel(): string {
-  try {
-    const internals = (window as any).__TAURI_INTERNALS__;
-    const label = internals?.metadata?.currentWindow?.label;
-    if (typeof label === 'string' && label) return label;
-  } catch {}
-  return 'main';
-}
-
-/** Per-window scope suffix appended to a bucket key. Empty for the main
- *  window (preserves legacy keys); `::win::<label>` for auxiliary windows. */
-function windowScopeSuffix(): string {
-  const label = currentWindowLabel();
-  return label.startsWith(AUX_LABEL_PREFIX) ? `::win::${label}` : '';
-}
 
 let nextId = 1;
 const newId = () => `tab-${Date.now()}-${nextId++}`;
 
 function inferLanguage(name: string): Language {
   return inferFileLanguage(name);
-}
-
-interface PersistedState {
-  tabs: Tab[];
-  activeId: string;
-}
-
-/** Read-only check for the "restore previous session" setting, inlined
- *  from localStorage so we can run before the settings store hydrates. */
-function restoreSessionEnabled(): boolean {
-  try {
-    const raw = localStorage.getItem('solomd.settings.v1');
-    if (raw) {
-      const s = JSON.parse(raw);
-      if (s && typeof s.restoreSession === 'boolean') return s.restoreSession;
-    }
-  } catch {}
-  return true;
-}
-
-/** Per-workspace tab scoping. Default ON. Inlined from localStorage so it
- *  works before the settings store hydrates (loadPersisted runs at store
- *  creation). */
-function perWorkspaceTabsEnabled(): boolean {
-  try {
-    const raw = localStorage.getItem('solomd.settings.v1');
-    if (raw) {
-      const s = JSON.parse(raw);
-      if (s && typeof s.perWorkspaceTabs === 'boolean') return s.perWorkspaceTabs;
-    }
-  } catch {}
-  return true;
-}
-
-/** Current workspace folder, read straight from localStorage to avoid a
- *  static import cycle with the workspace store and to work at init time. */
-function currentWorkspaceFolder(): string | null {
-  try {
-    const raw = localStorage.getItem('solomd.workspace.v1');
-    if (raw) {
-      const w = JSON.parse(raw);
-      if (w && typeof w.currentFolder === 'string') return w.currentFolder;
-    }
-  } catch {}
-  return null;
-}
-
-function recentWorkspaceFolders(): string[] {
-  try {
-    const w = JSON.parse(localStorage.getItem('solomd.workspace.v1') || 'null');
-    if (w && Array.isArray(w.recentFolders)) return w.recentFolders.filter((f: unknown) => typeof f === 'string');
-  } catch {}
-  return [];
-}
-
-function writeBucket(key: string, state: PersistedState): void {
-  setItemWithEviction(
-    localStorage,
-    key,
-    JSON.stringify({ tabs: compactTabs(state.tabs), activeId: state.activeId }),
-    {
-      bucketPrefix: LS_BUCKET_PREFIX,
-      sessionPrefix: sessionKey(''),
-      recentBucketKeys: recentWorkspaceFolders().map(bucketKey),
-      liveTabIds: new Set(state.tabs.map((t) => t.id)),
-    },
-  );
-}
-
-/** localStorage key for a workspace's tab bucket. Falls back to the single
- *  global key when per-workspace scoping is off. Auxiliary windows (#103)
- *  get a per-window suffix so they don't share a bucket with the main window
- *  or each other; the main window's keys are unchanged. */
-function bucketKey(folder: string | null): string {
-  if (!perWorkspaceTabsEnabled()) return LS_KEY + windowScopeSuffix();
-  return LS_BUCKET_PREFIX + (folder || NO_WORKSPACE) + windowScopeSuffix();
 }
 
 const THEME_STUDIO_TITLE = 'Theme Studio';
@@ -142,61 +41,8 @@ function isDirty(t: Tab): boolean {
   return t.content !== t.savedContent;
 }
 
-/** True when `filePath` lives inside `folder`. Separator- and (on Windows)
- *  case-insensitive so OneDrive / drive-letter paths compare correctly. */
-export function inFolder(filePath: string | undefined, folder: string | null): boolean {
-  if (!filePath || !folder) return false;
-  const norm = (s: string) => s.replace(/\\/g, '/').replace(/\/+$/, '');
-  const root = norm(folder);
-  const fp = norm(filePath);
-  const ci = /^[a-zA-Z]:\//.test(root);
-  const r = ci ? root.toLowerCase() : root;
-  const f = ci ? fp.toLowerCase() : fp;
-  return f === r || f.startsWith(r + '/');
-}
-
-function readBucket(key: string): PersistedState | null {
-  try {
-    const raw = localStorage.getItem(key);
-    if (raw) {
-      const data = JSON.parse(raw) as PersistedState;
-      if (Array.isArray(data.tabs)) return { tabs: expandTabs(data.tabs), activeId: data.activeId || '' };
-    }
-  } catch {}
-  return null;
-}
-
-function loadPersisted(): PersistedState {
-  if (!restoreSessionEnabled()) return { tabs: [], activeId: '' };
-  // Per-workspace OFF → behave exactly like before (single global blob).
-  if (!perWorkspaceTabsEnabled()) {
-    return readBucket(bucketKey(null)) ?? { tabs: [], activeId: '' };
-  }
-  const folder = currentWorkspaceFolder();
-  const bucket = readBucket(bucketKey(folder));
-  if (bucket) return bucket;
-  // #103 — auxiliary windows never inherit the main window's legacy global
-  // tab blob; they start from their own (possibly empty) bucket and get
-  // their document via the `?path=` query param. Only the main window runs
-  // the upgrade migration below.
-  if (windowScopeSuffix()) return { tabs: [], activeId: '' };
-  // First launch after upgrade: no bucket yet for this workspace. Seed it
-  // by scoping the legacy global tab list to the current folder (plus any
-  // untitled or unsaved tabs), so an upgrading user with tabs accumulated
-  // across many folders doesn't get all of them dumped into this window.
-  const legacy = readBucket(LS_KEY);
-  if (legacy) {
-    const scoped = legacy.tabs.filter(
-      (t) => !t.filePath || inFolder(t.filePath, folder) || isDirty(t),
-    );
-    const activeKept = scoped.some((t) => t.id === legacy.activeId);
-    return { tabs: scoped, activeId: activeKept ? legacy.activeId : scoped[0]?.id ?? '' };
-  }
-  return { tabs: [], activeId: '' };
-}
-
 export const useTabsStore = defineStore('tabs', {
-  state: (): PersistedState => loadPersisted(),
+  state: (): PersistedState => loadPersistedTabs(isDirty),
   getters: {
     activeTab(state): Tab | undefined {
       return state.tabs.find((t) => t.id === state.activeId);
@@ -338,19 +184,7 @@ export const useTabsStore = defineStore('tabs', {
       const t = this.tabs.find((x) => x.id === id);
       if (!t) return;
       t.filePath = filePath;
-      // Android SAF save-as hands back a content:// URI whose last '/'
-      // segment is the percent-encoded documentId ("primary%3A…%2Fnote.md");
-      // decode it so the tab shows "note.md", not the raw id.
-      if (filePath.startsWith('content://')) {
-        try {
-          t.fileName =
-            decodeURIComponent(filePath).split(/[\\/:]/).filter(Boolean).pop() ?? t.fileName;
-        } catch {
-          t.fileName = filePath.split(/[\\/]/).pop() ?? t.fileName;
-        }
-      } else {
-        t.fileName = filePath.split(/[\\/]/).pop() ?? t.fileName;
-      }
+      t.fileName = fileNameFromSavedPath(filePath, t.fileName);
       // v2.5 — auto-stamp `goal_set_at: <today>` on the first save of any
       // doc that declares a `goal:`. This is the anchor the streak counter
       // uses. Idempotent — no-op when the field already exists or there's
@@ -526,23 +360,7 @@ export const useTabsStore = defineStore('tabs', {
       const restored = settings.restoreSession
         ? readBucket(bucketKey(newFolder)) ?? { tabs: [], activeId: '' }
         : { tabs: [], activeId: '' };
-      const seenPaths = new Set<string>();
-      const seenIds = new Set<string>();
-      const merged: Tab[] = [];
-      const push = (t: Tab) => {
-        // Dedup by id AND by path. The id check matters for untitled tabs
-        // (no path): a carried untitled and its copy persisted in the new
-        // workspace's bucket share an id, so without this they'd both be
-        // added and untitled tabs would multiply on every workspace switch.
-        if (seenIds.has(t.id)) return;
-        if (t.filePath && seenPaths.has(t.filePath)) return;
-        seenIds.add(t.id);
-        if (t.filePath) seenPaths.add(t.filePath);
-        merged.push(t);
-      };
-      // Carried tabs win (they hold the live, possibly-unsaved content).
-      carried.forEach(push);
-      restored.tabs.forEach(push);
+      const merged = mergeTabsDedup(carried, restored.tabs);
       const removed = this.tabs.filter((t) => !merged.some((m) => m.id === t.id));
       this.tabs = merged;
       if (removed.some((t) => t.language === 'theme-studio')) useThemeStudio().resetDraft();

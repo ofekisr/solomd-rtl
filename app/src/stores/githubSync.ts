@@ -19,6 +19,8 @@
 import { defineStore } from 'pinia';
 import { hasGitBackend } from '../lib/platform';
 import { gitSyncPort } from '../platform/index.ts';
+import { classifyPullError, classifyPushError, isGithubAuthError } from './githubSync-errors.ts';
+import type { CryptoStatus, GitHubRepo, PullResult, State } from './githubSync-types.ts';
 
 /**
  * #230 — `github_*` and `proxy_*` are registered behind
@@ -38,112 +40,21 @@ function guarded<T>(cmd: string, run: () => Promise<T>): Promise<T> {
   return run();
 }
 
-export interface GitHubUser {
-  login: string;
-  name: string | null;
-  avatar_url: string;
-}
-
-export interface GitHubRepo {
-  name: string;
-  full_name: string;
-  clone_url: string;
-  private: boolean;
-  default_branch: string;
-  html_url: string;
-  updated_at: string;
-}
-
-export interface SyncConfig {
-  remote_url: string;
-  auto_push: boolean;
-  auto_pull_minutes: number;
-  last_push_at: number | null;
-  last_pull_at: number | null;
-}
-
-export interface SyncStatus {
-  linked: boolean;
-  remote_url: string;
-  auto_push: boolean;
-  auto_pull_minutes: number;
-  encrypted: boolean;
-  provider: string;
-  ahead: number;
-  behind: number;
-  dirty: boolean;
-  has_conflicts: boolean;
-  conflicts: string[];
-  last_push_at: number | null;
-  last_pull_at: number | null;
-}
-
-export interface CryptoStatus {
-  enabled: boolean;
-  has_key: boolean;
-}
-
-export interface PullResult {
-  kind: 'fast_forward' | 'up_to_date' | 'conflicts' | 'merged';
-  conflicts: string[];
-}
-
-interface State {
-  hasToken: boolean;
-  user: GitHubUser | null;
-  repos: GitHubRepo[];
-  folder: string | null;
-  status: SyncStatus | null;
-  loading: boolean;
-  pushing: boolean;
-  pulling: boolean;
-  lastError: string | null;
-  /** Set when GitHub rejects the stored token (401 / Bad credentials), i.e.
-   *  the PAT expired or was revoked. Drives a "reconnect" banner + toast so the
-   *  user isn't left staring at a raw `GitHub API 401` on their next sync. */
-  tokenInvalid: boolean;
-  /** Classified push error type after last failed push attempt. Reset on next push. */
-  pushErrorType: PushErrorType;
-  /** Classified pull error type after last failed pull attempt. Reset on next pull. */
-  pullErrorType: PullErrorType;
-
-  // Gitea-specific state
-  giteaUrl: string;
-  hasGiteaToken: boolean;
-  giteaUser: GitHubUser | null;
-  giteaRepos: GitHubRepo[];
-  giteaLoading: boolean;
-  giteaUrlValid: boolean | null;
-  giteaTokenInvalid: boolean;
-}
-
-/** Does this error indicate the GitHub token is no longer valid (expired /
- *  revoked)? The Rust side surfaces `GitHub API 401 Unauthorized: {...Bad
- *  credentials...}`; match on either signal. Exported so the auto-sync glue
- *  reuses the exact same classification. */
-export function isGithubAuthError(e: unknown): boolean {
-  const s = String((e as { message?: string })?.message ?? e ?? '');
-  return /\b401\b|bad credentials/i.test(s);
-}
-
-/** Classify push errors from the Rust backend. Returns a machine-readable tag. */
-export type PushErrorType = 'none' | 'auth' | 'protected-branch' | 'non-fast-forward' | 'other';
-export type PullErrorType = 'none' | 'auth' | 'conflict' | 'other';
-
-export function classifyPushError(e: unknown): PushErrorType {
-  if (isGithubAuthError(e)) return 'auth';
-  const s = String(e);
-  if (/protected branch/i.test(s) || /create a pull request/i.test(s)) return 'protected-branch';
-  if (/non-fast-forward/i.test(s) || /pull first/i.test(s)) return 'non-fast-forward';
-  return 'other';
-}
-
-export function classifyPullError(e: unknown): PullErrorType {
-  if (isGithubAuthError(e)) return 'auth';
-  const s = String(e);
-  if (/conflict/i.test(s)) return 'conflict';
-  return 'other';
-}
+export {
+  classifyPullError,
+  classifyPushError,
+  isGithubAuthError,
+  type PullErrorType,
+  type PushErrorType,
+} from './githubSync-errors.ts';
+export type {
+  CryptoStatus,
+  GitHubRepo,
+  GitHubUser,
+  PullResult,
+  SyncConfig,
+  SyncStatus,
+} from './githubSync-types.ts';
 
 export const useGithubSyncStore = defineStore('githubSync', {
   state: (): State => ({

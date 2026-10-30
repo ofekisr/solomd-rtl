@@ -107,3 +107,12 @@ test('git shortcuts do not collide with existing defaults, zoom or find chords',
     }
   }
 });
+
+test('combo spelling for Tauri and CodeMirror', async () => {
+  const { toTauriAccelerator, toCodeMirrorKey, normalizeCombo } = await import('./keybindings.ts');
+  assert.equal(toTauriAccelerator('Mod+Shift+K'), 'CmdOrCtrl+Shift+K');
+  assert.equal(toTauriAccelerator('Mod+Comma'), 'CmdOrCtrl+Comma');
+  assert.equal(toCodeMirrorKey('Mod+Shift+K'), 'Mod-Shift-k');
+  assert.equal(toCodeMirrorKey('Mod+Slash'), 'Mod-/');
+  assert.equal(normalizeCombo('shift+mod+k'), 'Mod+Shift+K');
+});
