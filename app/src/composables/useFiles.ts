@@ -1,8 +1,5 @@
 import { inject } from 'vue';
-import { invoke, convertFileSrc } from '@tauri-apps/api/core';
-import { open as openDialog, save as saveDialog } from '@tauri-apps/plugin-dialog';
-import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
-import { documentDir, desktopDir, homeDir, join } from '@tauri-apps/api/path';
+import { fsPort, convertPort, dialogPort, windowPort, pathPort, openerPort } from '../platform/index.ts';
 import { isIOS, isAndroid, isWindowsDesktop } from '../lib/platform';
 import { isNarrowViewport } from './useViewport';
 import { useTabsStore } from '../stores/tabs';
@@ -13,9 +10,8 @@ import { useToastsStore } from '../stores/toasts';
 import { useRecentEditsStore } from '../stores/recentEdits';
 import { useWindowsStore } from '../stores/windows';
 import { openImageOverlay, type OverlayStrings } from '../lib/image-overlay';
-import { openPath as openWithSystemDefault } from '@tauri-apps/plugin-opener';
 import { useI18n } from '../i18n';
-import type { FileReadResult, Tab } from '../types';
+import type { Tab } from '../types';
 import { isSafPath, fromSafPath, safRead, safWrite, safLaunchPicker } from '../lib/saf-fs';
 import { baseNameOf, fileNameOf, claimImportName, joinInFolder } from '../lib/import-plan';
 import { newFileDirFor, treeSelection } from '../lib/new-file-target';
@@ -76,7 +72,7 @@ export function useFiles() {
       // Windows ships frameless (unified title bar; tauri.windows.conf.json
       // only covers the main window) — aux windows must match or they'd get
       // native chrome PLUS the in-app caption buttons Toolbar.vue renders.
-      new WebviewWindow(label, {
+      windowPort.createWebviewWindow(label, {
         url,
         title: 'SoloMD',
         width: 1000,
@@ -103,7 +99,7 @@ export function useFiles() {
     // No filters: rfd's filter behavior on macOS greys out non-matching files
     // and `'*'` is not treated as a wildcard. Letting the user pick anything
     // is simpler and more reliable.
-    const selected = await openDialog({
+    const selected = await dialogPort.open({
       multiple: false,
       defaultPath: await filePickerStartDir(),
     });
@@ -161,7 +157,7 @@ export function useFiles() {
     const fileName = path.split(/[\\/]/).pop() ?? path;
     try {
       const img = new Image();
-      img.src = convertFileSrc(path);
+      img.src = pathPort.convertFileSrc(path);
       img.alt = fileName;
       await new Promise<void>((resolve, reject) => {
         if (img.complete && img.naturalWidth > 0) return resolve();
@@ -184,8 +180,7 @@ export function useFiles() {
    *  SoloMD Documents folder — mirroring what iOS does with Files-app opens —
    *  and hand back a real filesystem path for the rest of openPath. */
   async function importContentUri(uri: string): Promise<string> {
-    const { readFile, exists } = await import('@tauri-apps/plugin-fs');
-    const bytes = await readFile(uri as unknown as string);
+    const bytes = await pathPort.readFile(uri as unknown as string);
     // Recover a filename where the URI encodes one ("…document/primary%3A
     // Download%2Fnote.md"); opaque numeric document ids fall back to a
     // timestamped name.
@@ -208,21 +203,21 @@ export function useFiles() {
       }
     }
     if (!name) name = `imported-${Date.now()}.md`;
-    const dir = await documentDir();
-    let dest = await join(dir, name);
+    const dir = await pathPort.documentDir();
+    let dest = await pathPort.join(dir, name);
     // Never overwrite an existing note the user may have edited — pick a
     // suffixed sibling instead.
-    if (await exists(dest)) {
+    if (await pathPort.exists(dest)) {
       const dot = name.lastIndexOf('.');
       const stem = dot > 0 ? name.slice(0, dot) : name;
       const ext = dot > 0 ? name.slice(dot) : '';
       let n = 1;
-      while (await exists(dest)) {
-        dest = await join(dir, `${stem}-${n}${ext}`);
+      while (await pathPort.exists(dest)) {
+        dest = await pathPort.join(dir, `${stem}-${n}${ext}`);
         n += 1;
       }
     }
-    await invoke('write_binary_file', { path: dest, data: Array.from(bytes) });
+    await fsPort.writeBinaryFile({ path: dest, data: Array.from(bytes) });
     return dest;
   }
 
@@ -270,7 +265,7 @@ export function useFiles() {
     // paths (/…/Bundle/Application/<UUID>/…), which are not ours to re-anchor.
     if (isIOS() && /\/Data\/Application\/[^/]+\//.test(path)) {
       try {
-        const docDir = await documentDir(); // …/Data/Application/<current>/Documents
+        const docDir = await pathPort.documentDir(); // …/Data/Application/<current>/Documents
         const curRoot = docDir.replace(/\/Documents\/?$/, '');
         path = path.replace(/^.*?\/Data\/Application\/[^/]+/, curRoot);
       } catch {
@@ -279,7 +274,7 @@ export function useFiles() {
     }
 
     // Folder arguments reuse the picker flow before any file-specific routing.
-    if (!isAndroid() && !isIOS() && await invoke<boolean>('fs_dir_exists', { path })) {
+    if (!isAndroid() && !isIOS() && await fsPort.fsDirExists({ path })) {
       openFolderPath(path);
       return;
     }
@@ -322,7 +317,7 @@ export function useFiles() {
       const isSaf = isSafPath(path);
       const result = isSaf
         ? await safRead(workspace.safTreeUri!, fromSafPath(path))
-        : await invoke<FileReadResult>('read_file', { path });
+        : await fsPort.readFile({ path });
 
       // Reveal the file's folder in the sidebar BEFORE adding the tab.
       // Order matters: `workspace.setFolder` switches the per-workspace tab
@@ -388,7 +383,7 @@ export function useFiles() {
         };
       }
       try {
-        await openWithSystemDefault(path);
+        await openerPort.openPath(path);
       } catch (e) {
         console.error('openWithSystemDefault failed', e);
         toasts.error(`Failed to open: ${e}`);
@@ -420,7 +415,7 @@ export function useFiles() {
   }
 
   async function importXmindTab(path: string, fileName: string): Promise<void> {
-    const bytes = new Uint8Array(await invoke<number[]>('read_binary_file', { path }));
+    const bytes = new Uint8Array(await fsPort.readBinaryFile({ path }));
     const { convertXmind } = await import('../lib/xmind-import');
     const result = await convertXmind(bytes, fileName);
     if (!result.ok) {
@@ -435,7 +430,7 @@ export function useFiles() {
 
   async function sidecarMmapExists(path: string): Promise<boolean> {
     try {
-      return await invoke<boolean>('fs_file_exists', { path: mmapPathFor(path) });
+      return await fsPort.fsFileExists({ path: mmapPathFor(path) });
     } catch {
       return false;
     }
@@ -469,7 +464,7 @@ export function useFiles() {
     const fileName = path.split(/[\\/]/).pop() ?? path;
     const tid = toasts.info(`Converting ${fileName} to Markdown…`, 0);
     try {
-      const markdown = await invoke<string>('convert_file_to_markdown', { path });
+      const markdown = await convertPort.convertFileToMarkdown({ path });
       toasts.dismiss(tid);
       const targetPath = convertedMarkdownPath(path);
       const opened = await openConvertedContent({
@@ -512,7 +507,7 @@ export function useFiles() {
    * falls back to the old behaviour and opens unsaved tabs.
    */
   async function importDocuments() {
-    const selected = await openDialog({
+    const selected = await dialogPort.open({
       multiple: true,
       defaultPath: await filePickerStartDir(),
       filters: [
@@ -542,7 +537,7 @@ export function useFiles() {
     const taken = new Set<string>();
     if (writeToDisk) {
       try {
-        const entries = await invoke<Array<{ name: string }>>('list_dir', { path: folder });
+        const entries = await fsPort.listDir({ path: folder });
         for (const e of entries) taken.add(e.name.toLowerCase());
       } catch {
         /* an unreadable folder will surface on the first write anyway */
@@ -564,14 +559,14 @@ export function useFiles() {
         0,
       );
       try {
-        const markdown = await invoke<string>('convert_file_to_markdown', { path });
+        const markdown = await convertPort.convertFileToMarkdown({ path });
         const base = baseNameOf(fileName);
         if (writeToDisk) {
           // `claimImportName` is where an existing note is protected — see
           // import-plan.ts. It also reserves the name inside this batch, so
           // importing two `report.*` files produces two notes.
           const target = joinInFolder(folder!, claimImportName(taken, fileName));
-          await invoke('write_file', { path: target, content: markdown, encoding: 'UTF-8' });
+          await fsPort.writeFile({ path: target, content: markdown, encoding: 'UTF-8' });
           imported.push(target);
         } else {
           const targetPath = convertedMarkdownPath(path);
@@ -652,16 +647,16 @@ export function useFiles() {
     const candidates = [
       ...preferred,
       workspace.currentFolder,
-      await desktopDir().catch(() => null),
-      await documentDir().catch(() => null),
-      await homeDir().catch(() => null),
+      await pathPort.desktopDir().catch(() => null),
+      await pathPort.documentDir().catch(() => null),
+      await pathPort.homeDir().catch(() => null),
     ];
     for (const c of candidates) {
       if (!c) continue;
       try {
         // A SAF vault path ("saf:…") is not a filesystem path — skip it and
         // let the next candidate win, same as a folder that has gone away.
-        if (await invoke<boolean>('fs_dir_exists', { path: c })) return c;
+        if (await fsPort.fsDirExists({ path: c })) return c;
       } catch {
         /* path API unavailable — try the next candidate */
       }
@@ -734,7 +729,7 @@ export function useFiles() {
     }
     if (isIOS()) {
       try {
-        const dir = await documentDir();
+        const dir = await pathPort.documentDir();
         workspace.setFolder(dir);
         if (!settings.showFileTree) settings.toggleFileTree();
         toasts.info(
@@ -745,7 +740,7 @@ export function useFiles() {
       }
       return;
     }
-    const selected = await openDialog({
+    const selected = await dialogPort.open({
       directory: true,
       multiple: false,
       defaultPath: await pickerStartDir(),
@@ -764,8 +759,8 @@ export function useFiles() {
       deriveNameFromHeading(tab) ||
       tab.fileName ||
       untitledFileName(tab.language);
-    const dir = await documentDir();
-    return await join(dir, fname);
+    const dir = await pathPort.documentDir();
+    return await pathPort.join(dir, fname);
   }
 
 
@@ -776,8 +771,7 @@ export function useFiles() {
    *  save dialog had already created the (empty) document, which is how
    *  "Save As produced a 0-byte file" happened on Android. */
   async function writeContentUri(uri: string, payload: string): Promise<void> {
-    const { writeTextFile } = await import('@tauri-apps/plugin-fs');
-    await writeTextFile(uri as unknown as string, payload);
+    await pathPort.writeTextFile(uri as unknown as string, payload);
   }
 
   /** Display name for a content:// URI ("…%2Fnote.md" → "note.md"). */
@@ -832,7 +826,7 @@ export function useFiles() {
         // ContentResolver route as the original save.
         await writeContentUri(path, payload);
       } else {
-        await invoke('write_file', {
+        await fsPort.writeFile({
           path,
           content: payload,
           encoding: tab.encoding || 'UTF-8',
@@ -889,7 +883,7 @@ export function useFiles() {
       const dir = tab.filePath || importedPath
         ? null
         : await pickerStartDir(newFileDirFor(treeSelection(), tabs.activeTab?.filePath));
-      path = await saveDialog({
+      path = await dialogPort.save({
         defaultPath: tab.filePath ?? importedPath ?? (dir ? joinInFolder(dir, defaultName) : defaultName),
         filters: SAVE_FILTERS,
       });
@@ -911,7 +905,7 @@ export function useFiles() {
         toasts.success(`Saved as ${fileName}`);
         return true;
       }
-      await invoke('write_file', {
+      await fsPort.writeFile({
         path,
         content: payload,
         encoding: tab.encoding || 'UTF-8',

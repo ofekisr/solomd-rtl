@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createTauriPathPort, type FsModule, type PathModule } from './path.tauri.adapter.ts';
+import { createTauriPathPort, type ConvertFileSrc, type FsModule, type PathModule } from './path.tauri.adapter.ts';
 
 type Call = { fn: string; args: unknown[] };
 
@@ -24,7 +24,8 @@ function setup() {
     exists: record('exists', Promise.resolve(true)),
     writeTextFile: record('writeTextFile', Promise.resolve()),
   } as unknown as FsModule;
-  return { calls, bytes, port: createTauriPathPort(mod, () => Promise.resolve(fs)) };
+  const convert = record('convertFileSrc', 'asset://localhost/f') as ConvertFileSrc;
+  return { calls, bytes, port: createTauriPathPort(mod, () => Promise.resolve(fs), convert) };
 }
 
 test('path functions forward arguments and return raw values', async () => {
@@ -49,4 +50,10 @@ test('fs functions load plugin-fs lazily and forward arguments', async () => {
     { fn: 'exists', args: ['/f'] },
     { fn: 'writeTextFile', args: ['/f', 'x'] },
   ]);
+});
+
+test('convertFileSrc forwards path and protocol synchronously', () => {
+  const { calls, port } = setup();
+  assert.equal(port.convertFileSrc('/f', 'custom'), 'asset://localhost/f');
+  assert.deepEqual(calls, [{ fn: 'convertFileSrc', args: ['/f', 'custom'] }]);
 });

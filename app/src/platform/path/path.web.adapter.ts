@@ -17,5 +17,8 @@ export function createWebPathPort(): PathPort {
     readFile: () => unsupported('fs.readFile'),
     exists: () => unsupported('fs.exists'),
     writeTextFile: () => unsupported('fs.writeTextFile'),
+    convertFileSrc: () => {
+      throw new PlatformUnsupportedError('core.convertFileSrc');
+    },
   };
 }

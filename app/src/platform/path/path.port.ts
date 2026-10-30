@@ -8,4 +8,5 @@ export interface PathPort {
   readFile(path: string): Promise<Uint8Array>;
   exists(path: string): Promise<boolean>;
   writeTextFile(path: string, contents: string): Promise<void>;
+  convertFileSrc(filePath: string, protocol?: string): string;
 }

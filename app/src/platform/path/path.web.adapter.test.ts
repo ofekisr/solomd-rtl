@@ -7,6 +7,10 @@ test('sep throws synchronously', () => {
   assert.throws(() => createWebPathPort().sep(), PlatformUnsupportedError);
 });
 
+test('convertFileSrc throws synchronously', () => {
+  assert.throws(() => createWebPathPort().convertFileSrc('/f'), PlatformUnsupportedError);
+});
+
 test('async path and fs functions reject with PlatformUnsupportedError', async () => {
   const port = createWebPathPort();
   const attempts = [
