@@ -1,9 +1,9 @@
-import { invoke } from '@tauri-apps/api/core';
+import { windowCommandsPort } from '../platform/index.ts';
 
 const OPEN_ON_LOAD_KEY = 'solomd.openInspectorOnLoad';
 
 export async function openInspector(): Promise<void> {
-  await invoke('open_devtools');
+  await windowCommandsPort.openDevtools();
 }
 
 /** sessionStorage survives `location.reload()`, so the flag reaches the

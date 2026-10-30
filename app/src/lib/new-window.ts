@@ -1,4 +1,5 @@
-import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { windowPort } from '../platform/index.ts';
+import type { PlatformWebviewWindow } from '../platform/window/window.port.ts';
 
 /**
  * #280 — open a second SoloMD window.
@@ -16,9 +17,9 @@ import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 export function openNewWindow(): Promise<void> {
   return new Promise((resolve, reject) => {
     const label = `solomd-${Date.now()}`;
-    let win: WebviewWindow;
+    let win: PlatformWebviewWindow;
     try {
-      win = new WebviewWindow(label, {
+      win = windowPort.createWebviewWindow(label, {
         url: '/',
         title: 'SoloMD',
         width: 1000,

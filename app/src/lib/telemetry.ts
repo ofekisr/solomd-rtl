@@ -24,7 +24,7 @@
  * Set `localStorage.solomd.telemetryDebug = '1'` to log every track()
  * in the devtools console.
  */
-import { getVersion } from '@tauri-apps/api/app';
+import { windowPort } from '../platform/index.ts';
 import { useSettingsStore } from '../stores/settings';
 
 type EventProps = Record<string, string | number | boolean>;
@@ -90,7 +90,7 @@ let cachedVersion: string | null = null;
 async function getAppVersion(): Promise<string | null> {
   if (cachedVersion) return cachedVersion;
   try {
-    cachedVersion = await getVersion();
+    cachedVersion = await windowPort.getVersion();
     return cachedVersion;
   } catch {
     return null;

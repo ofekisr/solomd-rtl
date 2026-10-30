@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import { getVersion } from '@tauri-apps/api/app';
-import { openUrl } from '@tauri-apps/plugin-opener';
+import { openerPort, windowPort } from '../platform/index.ts';
 import { DsModal } from '../ui';
 import BrandMark from './BrandMark.vue';
 
@@ -11,7 +10,7 @@ const emit = defineEmits<{ (e: 'close'): void }>();
 const VERSION = ref('…');
 onMounted(async () => {
   try {
-    VERSION.value = await getVersion();
+    VERSION.value = await windowPort.getVersion();
   } catch {
     VERSION.value = '2.5.0';
   }
@@ -54,7 +53,7 @@ const links = {
 // collides with the `open` prop and the template would shadow it.
 async function visit(url: string) {
   try {
-    await openUrl(url);
+    await openerPort.openUrl(url);
   } catch (e) {
     console.error('failed to open url', e);
   }

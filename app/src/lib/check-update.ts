@@ -1,5 +1,4 @@
-import { getVersion } from '@tauri-apps/api/app';
-import { openUrl } from '@tauri-apps/plugin-opener';
+import { openerPort, windowPort } from '../platform/index.ts';
 
 /**
  * Update check protocol.
@@ -80,7 +79,7 @@ async function fetchFromGitHubDirect(): Promise<{ tag: string; url: string } | n
 }
 
 export async function checkForUpdate(): Promise<UpdateResult> {
-  const current = await getVersion().catch(() => '0.0.0');
+  const current = await windowPort.getVersion().catch(() => '0.0.0');
   if (MAS_BUILD) {
     return { current, latest: null, hasUpdate: false, url: '', error: false };
   }
@@ -122,7 +121,7 @@ const DOWNLOAD_PAGE = 'https://solomd.app/#download';
 
 export async function openReleaseUrl(_url: string): Promise<void> {
   try {
-    await openUrl(DOWNLOAD_PAGE);
+    await openerPort.openUrl(DOWNLOAD_PAGE);
   } catch {
     /* ignore */
   }
