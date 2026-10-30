@@ -362,6 +362,8 @@ Deviations from the plan:
 ### Parked for Wave 3+
 
 - `Editor.vue` imports `createEditorRegistry` from `shell/` (feature -> shell edge). Inject a factory instead.
+- Features purity ratchet: `find/internal/cm-find-panel.ts` and `format/internal/{table,formula}-editor-bus.ts` import `vue`/`pinia`; leaving `lib/` dropped them from `libPurity`. Add a `featurePurity` baseline or move them to `ui/`.
+- Tests in other features import `editor/internal/cm-probe.ts` (arch exempts tests); expose it as `contracts/testkit.ts`.
 - Per-feature settings slices: features declare `settingsKeys`, the store is still one `settings.ts` (E17).
 - i18n keys into features: features declare `i18nKeys`, tables stay in `i18n/` (E16).
 - `libPurity`: `lib/ai-activity.ts` (Wave 4), `lib/quick-capture-status.ts` (Wave 3).

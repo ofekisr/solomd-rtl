@@ -22,23 +22,24 @@ import { useEditorFeatures } from '../internal/useEditorFeatures.ts';
 import { createEditorRegistry } from '../../../shell/editor-registry.service.ts';
 import PlainEditor from './PlainEditor.vue';
 
-const props = withDefaults(
-  defineProps<{
-    tab: Tab;
-    focusMode?: boolean;
-    typewriterMode?: boolean;
-    spellCheck?: boolean;
-  }>(),
-  {
-    focusMode: false,
-    typewriterMode: false,
-    spellCheck: true,
-  },
-);
-const emit = defineEmits<{
+type Props = {
+  tab: Tab;
+  focusMode?: boolean;
+  typewriterMode?: boolean;
+  spellCheck?: boolean;
+};
+
+type Emits = {
   (e: 'cursor', line: number, col: number): void;
   (e: 'selection', text: string): void;
-}>();
+};
+
+const props = withDefaults(defineProps<Props>(), {
+  focusMode: false,
+  typewriterMode: false,
+  spellCheck: true,
+});
+const emit = defineEmits<Emits>();
 
 const tabs = useTabsStore();
 const settings = useSettingsStore();

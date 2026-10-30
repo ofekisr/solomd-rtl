@@ -10,7 +10,7 @@ Editor features (Wave 2). ADR: [0004](../../../../docs/adr/0004-editor-feature-r
 | `contracts/editor-component.ts` | Exports `Editor.vue` (Vue; separate entry) |
 | `internal/editor-feature-registry.service.ts` | Validates features, orders extensions by slot rank, resolves commands |
 | `internal/cm-probe.ts` | Test helpers: `stateWith`, `fakeView`, `fakeContext` |
-| `ui/Editor.vue` | Host (188 lines): builds the context, composes the registry and host composables, forwards `EditorApi`, renders CM or `PlainEditor` |
+| `ui/Editor.vue` | Host (< 200 lines): builds the context, composes the registry and host composables, forwards `EditorApi`, renders CM or `PlainEditor` |
 
 Registered in `src/shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`); `Editor.vue` calls `createEditorRegistry()`.
 
@@ -54,7 +54,7 @@ Registered in `src/shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`
 
 ## Rules
 
-- Features and `.service.ts` files import no `vue` / `pinia` (type-only imports are fine). Only the `use*.ts` composables, `ui/*.vue` and their tests import `vue`.
+- Features and `.service.ts` files import no `vue` / `pinia` (type-only imports are fine). Only the `use*.ts` composables, `ui/*.vue` and their tests import `vue`. Exceptions moved from `lib/` (untracked by `libPurity` since): `find/internal/cm-find-panel.ts` (mounts `FindBar.vue`), `format/internal/{table,formula}-editor-bus.ts` (`reactive` refs).
 - Local imports carry the `.ts` extension (Node type-stripping tests).
 - Each `.ts` file is at most 400 lines. No `any`.
 - A feature talks to another feature only through `ctx.run(command, ...args)`.
@@ -66,7 +66,9 @@ Registered in `src/shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`
 3. Add a factory to `EDITOR_FEATURE_FACTORIES`. Order there is lifecycle-hook order.
 4. Write characterization tests with `cm-probe` (`stateWith`, `fakeView`, `fakeContext`).
 5. Command names are global; a duplicate throws at registry creation.
-- `when()` must be stable for the life of a view: a slot excluded at build time has no compartment, so reconfiguring it later is a silent no-op. Use an always-present slot with a conditional `build` instead.
+- `when()` is read only when the state is built: a slot excluded then has no compartment and is skipped on reconfigure until the next `setState` (tab switch). Prefer an always-present slot with a conditional `build`.
+- Slot reconfigures skip tab switches: `setState` rebuilds every compartment, so put tab-switch side effects in `onTabSwitch`, not in a slot's `after`.
+- `setup` must not call `ctx.run`: `Editor.vue` binds the context after `useEditorFeatures` returns, i.e. after every `setup` has run.
 
 - The host component lives in `ui/Editor.vue`; outside code imports it through `contracts/editor-component.ts` (never via `contracts/index.ts`, which Node tests import).
 

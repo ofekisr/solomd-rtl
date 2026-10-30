@@ -37,13 +37,16 @@ function watchSlots(
   compartmentFor: (key: string) => Compartment,
 ): void {
   watch(
-    () => registry.slots.map((s) => s.spec.deps(ctx)),
-    (next, prev) => {
+    () => [ctx.tab().id, registry.slots.map((s) => s.spec.deps(ctx))] as const,
+    ([id, next], [prevId, prev]) => {
+      // A tab switch rebuilds every compartment through setState, and onTabSwitch hooks cover the side effects.
+      // Dispatching here would hit the outgoing doc before useCmTabSwitch snapshots its caret and scroll.
+      if (id !== prevId) return;
       const changed = registry.slots.filter((_, i) => !isSame(next[i], prev[i]));
       const view = ctx.view();
       if (view) {
         const effects: StateEffect<unknown>[] = changed
-          .filter((s) => s.spec.when?.(ctx) !== false)
+          .filter((s) => compartmentFor(s.key).get(view.state) !== undefined)
           .map((s) => compartmentFor(s.key).reconfigure(s.spec.build(ctx)));
         if (effects.length > 0) view.dispatch({ effects });
       }

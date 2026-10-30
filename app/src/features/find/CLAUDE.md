@@ -12,7 +12,7 @@ Consumed by: `shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`), wh
 ## Files
 
 - `contracts/find.feature.ts` — `createFindFeature()`
-- `internal/cm-find-panel.ts` — `createFindPanel(filePath)` (moved from `lib/`)
+- `internal/cm-find-panel.ts` — `createFindPanel(filePath)` (moved from `lib/`; imports `vue`/`pinia` to mount `FindBar.vue`)
 - `internal/incremental-find.ts` — `firstMatch`, `incrementalFindScroll` (scroll to first match while typing)
 
 ## Tests

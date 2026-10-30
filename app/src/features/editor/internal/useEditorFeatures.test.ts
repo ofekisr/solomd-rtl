@@ -7,6 +7,7 @@ import { createEditorFeatureRegistry } from './editor-feature-registry.service.t
 import { useEditorFeatures } from './useEditorFeatures.ts';
 import { fakeContext, fakeView } from './cm-probe.ts';
 import type { EditorFeature } from '../contracts/editor-feature.port.ts';
+import type { Tab } from '../../../types.ts';
 
 function harness(extra: Partial<EditorFeature> = {}, withView = true) {
   const settings = reactive({ a: 1, b: 1 });
@@ -164,4 +165,26 @@ test('fakeContext records reconfigure calls', () => {
   const ctx = fakeContext();
   ctx.reconfigure('a:b', []);
   assert.equal(ctx.reconfigured.length, 1);
+});
+test('a tab switch does not reconfigure slots on the outgoing doc', async () => {
+  const current = reactive({ tab: { id: 'a', language: 'markdown' } });
+  const log: string[] = [];
+  const registry = createEditorFeatureRegistry([{
+    id: 'x', settingsKeys: [], i18nKeys: [],
+    slots: [{ slot: 'language', deps: (c) => c.tab().language, build: () => [] as Extension, after: () => { log.push('language'); } }],
+  }]);
+  let view: ReturnType<typeof fakeView> | null = null;
+  const ctx = fakeContext({ view: () => view as unknown as EditorView, tab: () => current.tab as unknown as Tab });
+  const scope = effectScope();
+  const host = scope.run(() => useEditorFeatures(registry, ctx))!;
+  view = fakeView(EditorState.create({ extensions: host.extensions() }));
+  current.tab = { id: 'b', language: 'ts' };
+  await nextTick();
+  assert.equal(view.dispatched.length, 0);
+  assert.deepEqual(log, []);
+  current.tab = { id: 'b', language: 'json' };
+  await nextTick();
+  assert.equal(view.dispatched.length, 1);
+  assert.deepEqual(log, ['language']);
+  scope.stop();
 });
