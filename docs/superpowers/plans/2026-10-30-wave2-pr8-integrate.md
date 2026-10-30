@@ -12,6 +12,8 @@
 
 ## Global Constraints
 
+- Rulings carried in: `md-completion` needs no safe-mode gate (flags were constant false); the CM transform-case/format listeners now live in the `format` feature's `setup` — `Editor.vue` must stop registering its own; the host runs `useEditorFeatures` on both engines (view null on plain) so setup/watches behave as today's component-wide watchers, but plain-only reactions (viewMode → plain sync, folding off → clear plain folds) stay in `PlainEditor`.
+
 - No behavior change. The CM extension order is pinned by `EXTENSION_SLOTS`; the host's update listener sits in slot `update-listener`.
 - `features/editor/ui/Editor.vue` < 400 lines; every new `.ts` ≤ 400, `.vue` ≤ 500.
 - Lifecycle order must match today: mount → create view → (appearance) lazy language → (session) restore → (folds) restore; tab switch → (folds) save → caret memory save → `setState` → lazy language → session restore → folds restore → scroll reassert; unmount → folds save → listener cleanup → flush pending content → destroy.
@@ -20,6 +22,13 @@
 - Workers never commit; the controller commits per task after `pnpm --dir app verify`.
 
 ---
+
+### Task 0: Register every feature (controller task from PR-4…PR-7)
+
+**Files:** Modify `app/src/shell/editor-registry.service.ts`; create `app/src/shell/editor-registry.service.test.ts`.
+
+- `EDITOR_FEATURE_FACTORIES` = `createCoreFeature, createAppearanceFeature, createLiveRenderFeature` (core lives inside the editor feature — export the three factories from `features/editor/contracts/index.ts`), then `createFindFeature, createVimFeature, createSpellcheckFeature, createAiRewriteFeature, createFocusModeFeature, createImageUploadFeature, createCompletionFeature, createSessionFeature, createFoldsFeature, createFormatFeature` (each from its `contracts/index.ts`). Session before folds (lifecycle order).
+- Golden test: every `EXTENSION_SLOTS` entry except `update-listener` is used by ≥ 1 registered feature (static `extensions` key or slot); ids unique; commands unique; `createEditorRegistry().extensions(fakeContext({ settings: <defaults-like object> }), compartments)` builds an `EditorState` for a markdown tab and for a `ts` tab.
 
 ### Task 1: Host composables + `cm-api.ts`
 
@@ -64,7 +73,7 @@ Order: (a) `core` + `appearance` + `live-render` + host update listener; (b) `fi
 
 ### Task 3: Moves
 
-- `git mv app/src/components/Editor.vue app/src/features/editor/ui/Editor.vue`; `EditorContextMenu.vue` → `app/src/features/context-menu/ui/`. Re-export both from their `contracts/index.ts` (`export { default as Editor } from '../ui/Editor.vue'`). Update `PaneContent.vue`, `Preview.vue`, any other importer (`grep -rn "Editor.vue\|EditorContextMenu" app/src`).
+- `Editor.vue` already moved in PR-2 (`features/editor/ui/`, imported via `contracts/editor-component.ts`). `git mv app/src/components/EditorContextMenu.vue app/src/features/context-menu/ui/`; re-export it from a `contracts/context-menu-component.ts` (never from `contracts/index.ts`, which Node tests load); update `Preview.vue`, `Editor.vue`, `PlainEditor.vue`, and the `import type { EditorMenuAction }` sites.
 - `git mv` (E11/E12): `lib/cm-find-panel.ts` → `features/find/internal/`; `lib/cm-spellcheck.ts`, `lib/cm-spellcheck-theme.ts` → `features/spellcheck/internal/`; `lib/cm-image-paste.ts`, `lib/image-upload.ts` → `features/image-upload/internal/`; `lib/table-editor-bus.ts`, `lib/formula-editor-bus.ts` → `features/format/internal/`. Move their co-located tests too. Fix relative imports inside moved files; outside importers (`SettingsPanel.vue`, `AppLayout.vue`, `lib/settings-nav.ts` if it imports code, not just a string) import through the feature's `contracts/index.ts` (add re-exports). A `lib/` file that must import a moved module is a stop: report it (lib must not depend on features).
 - `baseline.json`: rename `fileSize`/`libPurity` keys for moved files; `pnpm --dir app arch:rebaseline` → `Editor.vue` and `cm-live-blocks.ts` drop out of `fileSize`, `libPurity` 5 → 2.
 
