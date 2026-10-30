@@ -14,8 +14,7 @@
  */
 
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { aiPort, aiToolsPort, eventsPort, type UnlistenFn } from '../platform/index.ts';
 import { useRecipesStore, type RecipeSummary, type RunMeta } from '../stores/recipes';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useToastsStore } from '../stores/toasts';
@@ -49,7 +48,7 @@ let unlistenRunFinished: UnlistenFn | null = null;
 
 onMounted(async () => {
   await store.subscribe(() => folder.value);
-  unlistenRunFinished = await listen<RunMeta>(
+  unlistenRunFinished = await eventsPort.listen<RunMeta>(
     'solomd://recipes-run-finished',
     (e) => {
       const slug = slugByRunId.value.get(e.payload.run_id);
@@ -209,7 +208,7 @@ async function toggleHistory(run: RunMeta) {
 async function onReplayFromStep(runId: string, payload: { seq: number; runId: string }) {
   if (!folder.value) return;
   try {
-    const newRunId = await invoke<string>('agent_trace_replay_from', {
+    const newRunId = await aiPort.agentTraceReplayFrom( {
       workspace: folder.value,
       runId: payload.runId ?? runId,
       seq: payload.seq,
@@ -348,7 +347,7 @@ const installing = ref<string | null>(null);
 async function openCookbook() {
   if (cookbookEntries.value.length === 0) {
     try {
-      cookbookEntries.value = await invoke<CookbookEntry[]>('cookbook_list');
+      cookbookEntries.value = await aiToolsPort.cookbookList();
     } catch (e) {
       toasts.error(`Cookbook: ${e}`);
       return;
@@ -364,7 +363,7 @@ async function installCookbookEntry(entry: CookbookEntry) {
   }
   installing.value = entry.file_stem;
   try {
-    const path = await invoke<string>('cookbook_install', {
+    const path = await aiToolsPort.cookbookInstall( {
       workspace: folder.value,
       fileStem: entry.file_stem,
     });

@@ -18,7 +18,7 @@
  * No persistence. The trace is on disk; reloading the app re-reads it.
  */
 import { defineStore } from 'pinia';
-import { invoke } from '@tauri-apps/api/core';
+import { aiPort } from '../platform/index.ts';
 
 /** One parsed line from `trace.jsonl`. Mirrors `crate::trace::TraceLine`. */
 export interface TraceLine {
@@ -88,7 +88,7 @@ export const useAgentTraceStore = defineStore('agentTrace', {
       }
       this.loading[key] = true;
       try {
-        const lines = await invoke<TraceLine[]>('agent_trace_read', {
+        const lines = await aiPort.agentTraceRead( {
           workspace,
           runId,
         });
@@ -114,7 +114,7 @@ export const useAgentTraceStore = defineStore('agentTrace', {
       }
       this.loading[key] = true;
       try {
-        const list = await invoke<RunSummary[]>('agent_trace_list', { workspace });
+        const list = await aiPort.agentTraceList( { workspace });
         this.runs[workspace] = list;
         this.error = null;
         return list;
@@ -132,7 +132,7 @@ export const useAgentTraceStore = defineStore('agentTrace', {
      * responsible for re-issuing the model call (P1's `ai_chat`).
      */
     async replayFrom(workspace: string, runId: string, seq: number): Promise<string> {
-      const newRunId = await invoke<string>('agent_trace_replay_from', {
+      const newRunId = await aiPort.agentTraceReplayFrom( {
         workspace,
         runId,
         seq,
