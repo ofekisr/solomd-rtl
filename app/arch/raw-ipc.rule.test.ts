@@ -9,6 +9,7 @@ test('collectRawIpc finds static and dynamic imports of @tauri-apps/api/core in 
     'app/src/b.vue': "<script setup lang=\"ts\">\nconst { invoke } = await import('@tauri-apps/api/core');\n</script>",
     'app/src/c.ts': "import { open } from '@tauri-apps/plugin-dialog';",
     'app/src/d.test.ts': "import { invoke } from '@tauri-apps/api/core';",
+    'app/src/platform/ipc/x.tauri.adapter.ts': "import { invoke } from '@tauri-apps/api/core';",
     'mcp-mindmap/src/e.ts': "import { invoke } from '@tauri-apps/api/core';",
   }, (root) => {
     assert.deepEqual(collectRawIpc(root), ['app/src/a.ts', 'app/src/b.vue']);

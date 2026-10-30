@@ -4,9 +4,11 @@ export const RAW_IPC_MODULE = '@tauri-apps/api/core';
 
 const RAW_IPC_ROOTS: readonly string[] = ['app/src'];
 const RAW_IPC_EXTS: readonly string[] = ['.ts', '.vue'];
+const PLATFORM_DIR = 'app/src/platform/';
 
 export function collectRawIpc(repoRoot: string): string[] {
   return listSourceFiles(repoRoot, RAW_IPC_ROOTS, RAW_IPC_EXTS)
+    .filter((path) => !path.startsWith(PLATFORM_DIR))
     .filter((path) => extractImports(readRepoFile(repoRoot, path), path).includes(RAW_IPC_MODULE));
 }
 
