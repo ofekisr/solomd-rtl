@@ -1,0 +1,66 @@
+.plain-find {
+  position: absolute;
+  top: 8px;
+  right: 16px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--bg-elevated, var(--bg));
+  border: 1px solid var(--border, rgba(127, 127, 127, 0.35));
+  border-radius: 8px;
+  padding: 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+/* #330 — the current match would sit under the bar (only possible near the
+   top of the document, where it cannot be scrolled lower): dock at the bottom. */
+.plain-find--dodge {
+  top: auto;
+  bottom: 8px;
+}
+.plain-find__row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.plain-find__input {
+  width: 200px;
+  padding: 4px 8px;
+  border: 1px solid var(--border, rgba(127, 127, 127, 0.35));
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+}
+.plain-find__input:focus {
+  border-color: var(--accent, #ff9f40);
+}
+.plain-find__count {
+  font-size: 12px;
+  color: var(--text-faint, #888);
+  min-width: 40px;
+  text-align: center;
+}
+.plain-find__btn {
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+.plain-find__btn:hover {
+  background: var(--bg-hover, rgba(127, 127, 127, 0.15));
+}
+.plain-find__btn--on {
+  color: var(--accent, #ff9f40);
+  border-color: var(--accent, #ff9f40);
+}
+.plain-find__btn--text {
+  font-size: 12px;
+}

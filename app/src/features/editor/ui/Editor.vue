@@ -7,8 +7,8 @@ import { createFindPanel } from '../../../lib/cm-find-panel';
 import { Compartment, EditorState, type Extension } from '@codemirror/state';
 import { crosshairCursor, drawSelection, EditorView, highlightActiveLine, keymap, lineNumbers, rectangularSelection } from '@codemirror/view';
 import { vim, Vim } from '@replit/codemirror-vim';
-import { clipboardPort } from '../../../platform/index.ts';
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { readClipboard, writeClipboard } from '../../context-menu/contracts/index.ts';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useFormatHints } from '../../../composables/useFormatHints';
 import { usePandocExport } from '../../../composables/usePandocExport';
 import { useI18n } from '../../../i18n';
@@ -23,8 +23,8 @@ import { dragAwareExtension } from '../../../lib/cm-drag-aware';
 import { fenceLanguageComplete, fenceLanguageExtension } from '../../../lib/cm-fence-completion';
 import { focusModeExtension, typewriterModeExtension } from '../../../lib/cm-focus-mode';
 import { currentFoldRanges, foldAllHeadings, foldHeadingsToLevel, headingFoldExtension, restoreFoldRanges, toggleHeadingFoldAtCursor, unfoldAllFolds } from '../../../lib/cm-heading-fold';
-import { anchorSnapshot, captureFolds, foldAnchorsFor, foldRangesFor, recallFolds, rememberFolds } from '../../../lib/fold-memory';
-import { imagePasteExtension, type ImagePasteOptions, imageTextFromPath, insertImageFromPath as cmInsertImageFromPath } from '../../../lib/cm-image-paste';
+import { captureFolds, foldRangesFor, recallFolds, rememberFolds } from '../../../lib/fold-memory';
+import { imagePasteExtension, type ImagePasteOptions, insertImageFromPath as cmInsertImageFromPath } from '../../../lib/cm-image-paste';
 import { imeCompositionGuard } from '../../../lib/cm-ime-guard';
 import { extractImageRoot, liveBlocksExtension, liveBlocksTheme } from '../../../lib/cm-live-blocks';
 import { livePreviewExtension, richHighlightOnly } from '../../../lib/cm-live-preview';
@@ -44,11 +44,8 @@ import { wikilinkComplete, wikilinkExtension } from '../../../lib/cm-wikilink';
 import { createLanguageExtension, loadLanguageExtension } from '../../../lib/editor-language.ts';
 import { collectLabels, findMathSpanAt } from '../../../lib/equations';
 
-import type { PlainDeps } from '../internal/plain/plain-deps.ts';
-import { usePlainEngine } from '../internal/plain/usePlainEngine.ts';
 
 import { openFormulaEditor } from '../../../lib/formula-editor-bus';
-import { scanHeadings } from '../../../lib/heading-fold';
 
 import { type ImageUploadSettings, resolveUploader, uploadImage } from '../../../lib/image-upload';
 import { combosFor, toCodeMirrorKey } from '../../../lib/keybindings';
@@ -56,8 +53,6 @@ import { combosFor, toCodeMirrorKey } from '../../../lib/keybindings';
 import { findTableSpan } from '../../../lib/markdown-table';
 import { applyFormat, FORMAT_KINDS, type FormatKind } from '../../../lib/md-format';
 import { encodeImageDestination, markdownImage } from '../../../lib/md-image-url';
-
-import { registerPlainSelectionGetter } from '../../../lib/plain-selection';
 
 import { isAndroid, isIOS, isWindowsEditorRuntime, shouldUsePlainWindowsEditor } from '../../../lib/platform';
 import { openTableEditor } from '../../../lib/table-editor-bus';
@@ -73,6 +68,8 @@ import { useToastsStore } from '../../../stores/toasts';
 
 import type { Tab } from '../../../types';
 import EditorContextMenu, { type EditorMenuAction } from '../../../components/EditorContextMenu.vue';
+import type { EditorApi, FoldAction, LineSelection } from '../contracts/editor-api.port.ts';
+import PlainEditor from './PlainEditor.vue';
 import { openInGoogleTranslate } from '../../../lib/open-google-translate';
 
 // Incremental find. CoreMirror's search panel only scrolls to a match when you
@@ -163,10 +160,10 @@ watch(
 );
 
 const host = ref<HTMLDivElement | null>(null);
+const plainRef = ref<InstanceType<typeof PlainEditor> | null>(null);
 let view: EditorView | null = null;
 let cleanupRelayout: (() => void) | null = null;
 let cleanupTransformCase: (() => void) | null = null;
-let cleanupPlainSelection: (() => void) | null = null;
 let contentSyncTimer: ReturnType<typeof setTimeout> | null = null;
 
 const themeCompartment = new Compartment();
@@ -294,108 +291,6 @@ function syncEditorContentSoon(text: string) {
   }, 350);
 }
 
-const plainDeps: PlainDeps = {
-  props,
-  usePlainWindowsEditor,
-  emitCursor: (line, col) => emit('cursor', line, col),
-  emitSelection: (text) => emit('selection', text),
-  getCitations: () => cachedCitations,
-  imagePasteOpts,
-};
-const {
-  acIndex,
-  acItems,
-  acOpen,
-  acPos,
-  activatePlainBlockFromClick,
-  applyPlainAutocomplete,
-  applyPlainContent,
-  clearPlainContextSavedRange,
-  clearPlainContextTextarea,
-  clearStrayDocumentSelection,
-  closePlainFind,
-  disposePlainOverlays,
-  emitPlainCursorAndSelection,
-  focusPlainEditor,
-  gotoPlainMatch,
-  handlePlainBlockCompositionEnd,
-  handlePlainBlockCompositionStart,
-  handlePlainBlockInput,
-  handlePlainBlockKeydown,
-  handlePlainEditorKeydown,
-  handlePlainInput,
-  handlePlainPaste,
-  installPlainOverlayListeners,
-  onEditorMouseDownCapture,
-  onPlainFindEnter,
-  onPlainFindInput,
-  onPlainLiveHostMouseDown,
-  onPlainScroll,
-  openPlainFind,
-  plainAbsoluteSelection,
-  plainActiveBlock,
-  plainBlockEditors,
-  plainBlockHidden,
-  plainBlocks,
-  plainCaretBox,
-  plainComposing,
-  plainContextSelectionText,
-  plainEditor,
-  plainEditorStyle,
-  plainFindBar,
-  plainFindBoxes,
-  plainFindCaseSensitive,
-  plainFindDodge,
-  plainFindInput,
-  plainFindOpen,
-  plainFindQuery,
-  plainFocusBand,
-  plainFocusMode,
-  plainFoldedLines,
-  plainFolds,
-  plainGutterEnabled,
-  plainGutterWidth,
-  plainHeadingFolded,
-  plainHeadingFor,
-  plainHiddenLineCount,
-  plainInsertText,
-  plainLineHeightPx,
-  plainLineHeights,
-  plainLineStartOffset,
-  plainLineTops,
-  plainLiveEnabled,
-  plainLiveHost,
-  plainMatchIndex,
-  plainMatches,
-  plainPaddingTopPx,
-  plainReplaceValue,
-  plainScrollToLine,
-  plainScrollTop,
-  plainSelectAll,
-  plainSelectionText,
-  plainSetCaret,
-  plainShadeLeft,
-  plainSolidCaretOn,
-  plainText,
-  processPlainLiveRenderedBlocks,
-  recordPlainHistory,
-  replacePlainAll,
-  replacePlainCurrent,
-  resetPlainHistory,
-  resolvePlainContextMenu,
-  revealPlainMatchFromAnchor,
-  runPlainEditorMenuAction,
-  schedulePlainOverlays,
-  setPlainBlockEditor,
-  setPlainFold,
-  setPlainSelectAllPending,
-  syncPlainEditorAfterModeSwitch,
-  syncPlainEditorFromStore,
-  togglePlainFold,
-  updatePlainBlock,
-} = usePlainEngine(plainDeps);
-
-
 // ── Editor right-click menu (#210) ─────────────────────────────────────────
 // The webview's own menu came up on Windows without Cut/Copy for a selection
 // the user had just made, so mouse-only users could select but not act. On
@@ -412,75 +307,40 @@ function onEditorContextMenu(event: MouseEvent) {
   // Linux keep the system menu (spelling, Look Up, Services, writing tools)
   // except over a selection, where ours adds "Translate with Google".
   if (!isWindowsEditorRuntime()) {
-    if (usePlainWindowsEditor || !view || view.state.selection.main.empty) return;
+    if (!view || view.state.selection.main.empty) return;
   }
   event.preventDefault();
-  let hasSelection = false;
-  if (!usePlainWindowsEditor) {
-    hasSelection = !!view && !view.state.selection.main.empty;
-    clearPlainContextTextarea();
-  } else {
-    hasSelection = resolvePlainContextMenu(event);
-  }
-  clearPlainContextSavedRange();
+  const hasSelection = !!view && !view.state.selection.main.empty;
   editorCtx.value = { x: event.clientX, y: event.clientY, hasSelection };
 }
 
-async function writeClipboard(text: string) {
-  try {
-    await clipboardPort.writeText(text);
-  } catch {
-    await navigator.clipboard?.writeText(text);
-  }
-}
-async function readClipboard(): Promise<string> {
-  try {
-    return (await clipboardPort.readText()) ?? '';
-  } catch {
-    try {
-      return (await navigator.clipboard?.readText()) ?? '';
-    } catch {
-      return '';
-    }
-  }
-}
-
 function editorSelectionText(): string {
-  if (!usePlainWindowsEditor) {
-    const sel = view?.state.selection.main;
-    return view && sel && !sel.empty ? view.state.sliceDoc(sel.from, sel.to) : '';
-  }
-  return plainContextSelectionText();
+  const sel = view?.state.selection.main;
+  return view && sel && !sel.empty ? view.state.sliceDoc(sel.from, sel.to) : '';
 }
 
 async function onEditorMenuAction(id: EditorMenuAction) {
   editorCtx.value = null;
   if (id === 'translate') {
-    const text = editorSelectionText();
-    clearPlainContextTextarea();
-    await openInGoogleTranslate(text);
+    await openInGoogleTranslate(editorSelectionText());
     return;
   }
-  if (!usePlainWindowsEditor) {
-    const v = view;
-    if (!v) return;
-    const sel = v.state.selection.main;
-    if (id === 'selectAll') {
-      v.dispatch({ selection: { anchor: 0, head: v.state.doc.length }, userEvent: 'select' });
-    } else if (id === 'copy' || id === 'cut') {
-      if (sel.empty) return;
-      await writeClipboard(v.state.sliceDoc(sel.from, sel.to));
-      if (id === 'cut') {
-        v.dispatch({ changes: { from: sel.from, to: sel.to, insert: '' }, userEvent: 'delete.cut' });
-      }
-    } else if (id === 'paste') {
-      const text = await readClipboard();
-      if (text) v.dispatch({ ...v.state.replaceSelection(text), userEvent: 'input.paste', scrollIntoView: true });
+  const v = view;
+  if (!v) return;
+  const sel = v.state.selection.main;
+  if (id === 'selectAll') {
+    v.dispatch({ selection: { anchor: 0, head: v.state.doc.length }, userEvent: 'select' });
+  } else if (id === 'copy' || id === 'cut') {
+    if (sel.empty) return;
+    await writeClipboard(v.state.sliceDoc(sel.from, sel.to));
+    if (id === 'cut') {
+      v.dispatch({ changes: { from: sel.from, to: sel.to, insert: '' }, userEvent: 'delete.cut' });
     }
-    v.focus();
-    return;
+  } else if (id === 'paste') {
+    const text = await readClipboard();
+    if (text) v.dispatch({ ...v.state.replaceSelection(text), userEvent: 'input.paste', scrollIntoView: true });
   }
-  await runPlainEditorMenuAction(id);
+  v.focus();
 }
 
 
@@ -746,19 +606,6 @@ function buildExtensions() {
 function maybeRestoreSession() {
   const saved = readSession(props.tab.id);
   if (!saved || saved === '' || props.tab.content !== '') return;
-  if (usePlainWindowsEditor) {
-    if (plainLiveEnabled.value) {
-      plainText.value = saved;
-      tabs.setContent(props.tab.id, saved);
-      return;
-    }
-    const el = plainEditor.value;
-    if (!el || el.value.length > 0) return;
-    el.value = saved;
-    tabs.setContent(props.tab.id, saved);
-    emitPlainCursorAndSelection();
-    return;
-  }
   if (
     view &&
     view.state.doc.length === 0 &&
@@ -769,10 +616,9 @@ function maybeRestoreSession() {
 }
 
 onMounted(() => {
-  // Registered before the plain-editor early return below — this listener has
-  // to exist on ALL three editor paths, and the CodeMirror-only setup that
-  // follows is unreachable on Windows. (Putting it further down is what made
-  // the first attempt silently no-op on the plain editors.)
+  // The plain engine mounts its own copy of these listeners (PlainEditor);
+  // exactly one editor component per pane handles each event.
+  if (usePlainWindowsEditor) return;
   window.addEventListener('solomd:transform-case', onTransformCase as EventListener);
   window.addEventListener('solomd:format-markdown', onFormatMarkdown as EventListener);
   cleanupTransformCase = () => {
@@ -780,23 +626,6 @@ onMounted(() => {
     window.removeEventListener('solomd:format-markdown', onFormatMarkdown as EventListener);
   };
 
-  if (usePlainWindowsEditor) installPlainOverlayListeners();
-
-  if (usePlainWindowsEditor) {
-    syncPlainEditorFromStore(props.tab.content);
-    maybeRestoreSession();
-    restoreFolds();
-    void processPlainLiveRenderedBlocks();
-    focusPlainEditor();
-    // #126 — let the toolbar AI-rewrite button read this editor's selection
-    // (no CodeMirror view exists on this path for it to scan).
-    cleanupPlainSelection = registerPlainSelectionGetter(() => {
-      const sel = plainAbsoluteSelection();
-      const text = plainSelectionText();
-      return sel && text ? { selection: text, from: sel.from, to: sel.to } : null;
-    });
-    return;
-  }
   if (!host.value) return;
   view = new EditorView({
     state: EditorState.create({ doc: props.tab.content, extensions: buildExtensions() }),
@@ -826,14 +655,9 @@ onMounted(() => {
 
 /**
  * Gitee IK8QG3 — upper / lower / Title case over the selection, or the word
- * under the caret when there is no selection.
- *
- * Deliberately routed through the same handler for all three editors this
- * component can be: CodeMirror, the plain block editor, and the plain flat
- * editor. Wiring only one of them is how the slash-command autocomplete came
- * to be dead on Windows for months (IK6JCC) — the shared decision of *what* to
- * change lives in lib/text-case.ts, and each branch below only supplies the
- * current text + selection and writes the result back.
+ * under the caret when there is no selection. The shared decision of *what* to
+ * change lives in lib/text-case.ts; the plain engine has its own handler in
+ * PlainEditor (internal/plain/usePlainTextTransforms.ts).
  */
 function onTransformCase(e: Event) {
   const detail = (e as CustomEvent).detail || {};
@@ -841,129 +665,50 @@ function onTransformCase(e: Event) {
   // Split view mounts one Editor per pane and they all hear this event, so
   // only the one showing the active tab may act.
   if (props.tab.id !== tabs.activeId) return;
-
-  if (!usePlainWindowsEditor) {
-    if (!view) return;
-    const sel = view.state.selection.main;
-    const doc = view.state.doc.toString();
-    const target = caseTargetRange(doc, sel.from, sel.to);
-    if (!target) return;
-    const next = mode === 'cycle' ? nextCaseInCycle(target.text) : mode;
-    const replaced = transformCase(target.text, next);
-    if (replaced === target.text) return;
-    view.dispatch({
-      changes: { from: target.from, to: target.to, insert: replaced },
-      selection: { anchor: target.from, head: target.from + replaced.length },
-    });
-    view.focus();
-    return;
-  }
-
-  // Plain paths — the block editor edits one block's textarea, the flat one
-  // edits the whole document, so resolve the element first and then share
-  // the rest.
-  const el = plainLiveEnabled.value
-    ? plainBlockEditors.value[plainActiveBlock.value]
-    : plainEditor.value;
-  if (!el) return;
-  const target = caseTargetRange(el.value, el.selectionStart ?? 0, el.selectionEnd ?? 0);
+  if (!view) return;
+  const sel = view.state.selection.main;
+  const doc = view.state.doc.toString();
+  const target = caseTargetRange(doc, sel.from, sel.to);
   if (!target) return;
   const next = mode === 'cycle' ? nextCaseInCycle(target.text) : mode;
   const replaced = transformCase(target.text, next);
   if (replaced === target.text) return;
-  const value = el.value.slice(0, target.from) + replaced + el.value.slice(target.to);
-  recordPlainHistory();
-  if (plainLiveEnabled.value) {
-    updatePlainBlock(plainActiveBlock.value, value, target.from + replaced.length);
-    nextTick(() => {
-      const e2 = plainBlockEditors.value[plainActiveBlock.value];
-      if (e2) {
-        e2.focus();
-        e2.setSelectionRange(target.from, target.from + replaced.length);
-      }
-    });
-    return;
-  }
-  el.value = value;
-  plainText.value = value;
-  tabs.setContent(props.tab.id, value);
-  nextTick(() => {
-    el.focus();
-    el.setSelectionRange(target.from, target.from + replaced.length);
-    emitPlainCursorAndSelection();
+  view.dispatch({
+    changes: { from: target.from, to: target.to, insert: replaced },
+    selection: { anchor: target.from, head: target.from + replaced.length },
   });
+  view.focus();
 }
 
 /**
  * #296 / #274 — bold, italic, headings, lists… from a shortcut or the palette.
- *
- * Same shape as `onTransformCase` above, for the same reason: lib/md-format.ts
- * decides the edit from a string and a selection, and the three editors only
- * differ in how they hand those over and write the result back.
+ * lib/md-format.ts decides the edit from a string and a selection; the plain
+ * engine has its own handler in PlainEditor.
  */
 function onFormatMarkdown(e: Event) {
   const kind = ((e as CustomEvent).detail || {}).kind as FormatKind;
   if (!FORMAT_KINDS.includes(kind)) return;
   if (props.tab.id !== tabs.activeId) return;
   if (props.tab.language !== 'markdown') return;
-
-  if (!usePlainWindowsEditor) {
-    if (!view) return;
-    const sel = view.state.selection.main;
-    const edit = applyFormat(view.state.doc.toString(), sel.from, sel.to, kind);
-    view.dispatch({
-      changes: { from: edit.from, to: edit.to, insert: edit.insert },
-      selection: { anchor: edit.selFrom, head: edit.selTo },
-      scrollIntoView: true,
-      userEvent: 'input.format',
-    });
-    view.focus();
-    return;
-  }
-
-  const el = plainLiveEnabled.value
-    ? plainBlockEditors.value[plainActiveBlock.value]
-    : plainEditor.value;
-  if (!el) return;
-  const edit = applyFormat(el.value, el.selectionStart ?? 0, el.selectionEnd ?? 0, kind);
-  const value = el.value.slice(0, edit.from) + edit.insert + el.value.slice(edit.to);
-  recordPlainHistory();
-  if (plainLiveEnabled.value) {
-    updatePlainBlock(plainActiveBlock.value, value, edit.selTo);
-    nextTick(() => {
-      const e2 = plainBlockEditors.value[plainActiveBlock.value];
-      if (!e2) return;
-      e2.focus();
-      // A fence or a blank line can split the block, and then these offsets
-      // belong to a different textarea — leave the caret where the re-split
-      // put it rather than selecting the wrong text.
-      if (e2.value === value) e2.setSelectionRange(edit.selFrom, edit.selTo);
-    });
-    return;
-  }
-  const keepScroll = el.scrollTop;
-  el.value = value;
-  plainText.value = value;
-  tabs.setContent(props.tab.id, value);
-  nextTick(() => {
-    el.focus();
-    el.setSelectionRange(edit.selFrom, edit.selTo);
-    el.scrollTop = keepScroll;
-    emitPlainCursorAndSelection();
+  if (!view) return;
+  const sel = view.state.selection.main;
+  const edit = applyFormat(view.state.doc.toString(), sel.from, sel.to, kind);
+  view.dispatch({
+    changes: { from: edit.from, to: edit.to, insert: edit.insert },
+    selection: { anchor: edit.selFrom, head: edit.selTo },
+    scrollIntoView: true,
+    userEvent: 'input.format',
   });
+  view.focus();
 }
 
 /**
- * #137 — open the find/replace UI. The panel already exists on both editor
- * paths (CodeMirror's search panel + the plain-textarea find bar) behind
- * Ctrl+F, but had no toolbar / command-palette entry, so users thought it was
- * gone. PaneContent forwards `solomd:editor-find` here for the focused pane.
+ * #137 — open the find/replace UI. The panel already exists behind Ctrl+F, but
+ * had no toolbar / command-palette entry, so users thought it was gone.
+ * PaneContent forwards `solomd:editor-find` here for the focused pane.
  */
 function openFind(): void {
-  if (usePlainWindowsEditor) {
-    openPlainFind();
-    return;
-  }
+  if (usePlainWindowsEditor) return plainRef.value?.openFind();
   if (view) {
     view.focus();
     openSearchPanel(view);
@@ -971,24 +716,18 @@ function openFind(): void {
 }
 
 /**
- * Open the grid editor on the table the caret is in.
- *
- * Works off the document text and line offsets rather than either editor's
- * internals, so the same code serves CodeMirror and the Windows plain
- * textarea; only the write-back differs.
+ * Open the grid editor on the table the caret is in. Works off the document
+ * text and line offsets; only the write-back differs between engines.
  */
 function openTableAtCursor(): void {
-  const source = usePlainWindowsEditor ? plainText.value || '' : view?.state.doc.toString() ?? '';
+  if (usePlainWindowsEditor) return plainRef.value?.openTableAtCursor();
+  const source = view?.state.doc.toString() ?? '';
   if (!source) {
     toasts.info(t('tableEditor.notInTable'));
     return;
   }
   const lines = source.split('\n');
-  const caret = usePlainWindowsEditor
-    ? plainCaretOffset()
-    : view
-      ? view.state.selection.main.head
-      : 0;
+  const caret = view ? view.state.selection.main.head : 0;
 
   // Offset → line index, plus each line's start offset for the reverse trip.
   const starts: number[] = [];
@@ -1023,12 +762,9 @@ function openTableAtCursor(): void {
  * the same action from the user's side.
  */
 function openFormulaAtCursor(): void {
-  const source = usePlainWindowsEditor ? plainText.value || '' : view?.state.doc.toString() ?? '';
-  const caret = usePlainWindowsEditor
-    ? plainCaretOffset()
-    : view
-      ? view.state.selection.main.head
-      : 0;
+  if (usePlainWindowsEditor) return plainRef.value?.openFormulaAtCursor();
+  const source = view?.state.doc.toString() ?? '';
+  const caret = view ? view.state.selection.main.head : 0;
   const span = findMathSpanAt(source, caret);
   const from = span ? span.from : caret;
   const to = span ? span.to : caret;
@@ -1067,75 +803,18 @@ function formatMath(
   return alone ? `$$\n${latex}\n$$` : `$$${latex}$$`;
 }
 
-/** Caret offset in the plain editor, in whole-document coordinates. */
-function plainCaretOffset(): number {
-  if (plainLiveEnabled.value) {
-    const block = plainBlocks.value[plainActiveBlock.value];
-    const el = plainBlockEditors.value[plainActiveBlock.value];
-    return (block?.start ?? 0) + (el?.selectionStart ?? 0);
-  }
-  return plainEditor.value?.selectionStart ?? 0;
-}
-
-/** Replace a document range in whichever editor this pane is running. */
 function replaceDocRange(from: number, to: number, text: string): void {
-  if (usePlainWindowsEditor) {
-    const src = plainText.value || '';
-    recordPlainHistory();
-    applyPlainContent(src.slice(0, from) + text + src.slice(to), from + text.length);
-    return;
-  }
   if (!view) return;
   view.dispatch({ changes: { from, to, insert: text } });
 }
 
-/**
- * Heading folding, driven from the command palette / shortcuts.
- *
- * `level` only applies to `'level'`. The Windows source textarea is the one
- * path that cannot fold — a <textarea> has no way to hide a line — so it says
- * so instead of silently doing nothing.
- */
-function applyFold(action: 'toggle' | 'all' | 'none' | 'level', level = 2): void {
+/** Heading folding, driven from the command palette / shortcuts. `level` only applies to `'level'`. */
+function applyFold(action: FoldAction, level = 2): void {
+  if (usePlainWindowsEditor) return plainRef.value?.applyFold(action, level);
   if (!settings.foldingEnabled) {
     toasts.info(t('fold.disabledHint'));
     return;
   }
-  if (props.tab.language !== 'markdown' && action !== 'none') {
-    // Non-markdown files still fold their own blocks through the gutter and
-    // CodeMirror's keymap; only the heading-level commands need a document
-    // with headings.
-    if (usePlainWindowsEditor) return;
-  }
-
-  if (usePlainWindowsEditor) {
-    if (!plainLiveEnabled.value) {
-      toasts.info(t('fold.plainSourceHint'));
-      return;
-    }
-    const text = plainText.value || '';
-    const spans = scanHeadings(text).filter((h) => h.foldable);
-    if (action === 'none') {
-      plainFolds.value = [];
-      return;
-    }
-    if (action === 'all') {
-      plainFolds.value = spans.map((h) => ({ line: h.line, title: h.title }));
-      return;
-    }
-    if (action === 'level') {
-      plainFolds.value = spans
-        .filter((h) => h.level >= level)
-        .map((h) => ({ line: h.line, title: h.title }));
-      return;
-    }
-    const caret = plainBlocks.value[plainActiveBlock.value]?.start ?? 0;
-    const enclosing = spans.filter((h) => caret >= h.start && caret <= h.end).pop();
-    if (!enclosing) return;
-    setPlainFold(enclosing, !plainFoldedLines.value.has(enclosing.line));
-    return;
-  }
-
   if (!view) return;
   view.focus();
   if (action === 'toggle') toggleHeadingFoldAtCursor(view);
@@ -1149,9 +828,6 @@ onBeforeUnmount(() => {
   cleanupRelayout?.();
   cleanupTransformCase?.();
   cleanupTransformCase = null;
-  cleanupPlainSelection?.();
-  cleanupPlainSelection = null;
-  disposePlainOverlays();
   if (contentSyncTimer) {
     // A Vim-mode toggle remounts the Windows editor. Flush the current
     // CodeMirror document before cancelling the debounce so the last keystroke
@@ -1172,9 +848,7 @@ onBeforeUnmount(() => {
 // session-restore plugin is recreated with the new tab id).
 // #144 — per-tab caret + scroll memory (runtime-only, per editor pane; a tab
 // shown in two split panes keeps an independent position in each). Without
-// this, switching tabs dropped the position: the plain textarea's `el.value =`
-// re-sync moves the caret to the END of the document, and the CodeMirror
-// `setState` reset it to 0.
+// this, the CodeMirror `setState` reset the position to 0.
 const tabCaretMemory = new Map<string, { caret: number; scrollTop: number }>();
 
 // Folds are remembered per document (file path, else tab id) rather than per
@@ -1185,56 +859,13 @@ function foldMemoryKey(tab: Tab): string {
 let foldKey = foldMemoryKey(props.tab);
 
 function saveFolds(): void {
-  if (usePlainWindowsEditor) rememberFolds(foldKey, anchorSnapshot(plainText.value, plainFolds.value));
-  else if (view) rememberFolds(foldKey, captureFolds(view.state.doc.toString(), currentFoldRanges(view.state)));
+  if (view) rememberFolds(foldKey, captureFolds(view.state.doc.toString(), currentFoldRanges(view.state)));
 }
 
 function restoreFolds(): void {
   foldKey = foldMemoryKey(props.tab);
   const snapshot = settings.foldingEnabled ? recallFolds(foldKey) : null;
-  if (usePlainWindowsEditor) {
-    plainFolds.value = snapshot ? foldAnchorsFor(plainText.value, snapshot) : [];
-    return;
-  }
   if (view && snapshot) restoreFoldRanges(view, foldRangesFor(view.state.doc.toString(), snapshot));
-}
-
-// #169 (Windows) — one synchronous scrollTop assignment is not enough on the
-// plain paths: focusPlainEditor() focuses on nextTick, and the browser then
-// scrolls the caret back into view — line 1 when the user only scrolled and
-// never clicked, which is exactly the reported "switch back → reset to top".
-// The live block editor additionally re-renders its blocks asynchronously,
-// growing scrollHeight after the restore. Pin the saved position through that
-// settle window, backing off the moment the user scrolls themselves.
-function restorePlainScroll(saved?: { caret: number; scrollTop: number }) {
-  const scroller = (): HTMLElement | null =>
-    plainLiveEnabled.value ? plainLiveHost.value : plainEditor.value;
-  const el = scroller();
-  if (!el) return;
-  if (!plainLiveEnabled.value) {
-    const ta = el as HTMLTextAreaElement;
-    const pos = Math.min(saved?.caret ?? 0, ta.value.length);
-    ta.setSelectionRange(pos, pos);
-  }
-  const st = saved?.scrollTop ?? 0;
-  el.scrollTop = st;
-  let cancelled = false;
-  const cancel = () => {
-    cancelled = true;
-  };
-  const intentEvents = ['wheel', 'pointerdown', 'keydown', 'touchstart'] as const;
-  for (const ev of intentEvents) el.addEventListener(ev, cancel, { passive: true });
-  const reassert = () => {
-    const cur = scroller();
-    if (!cancelled && cur && Math.abs(cur.scrollTop - st) > 1) cur.scrollTop = st;
-  };
-  nextTick(() => requestAnimationFrame(reassert));
-  setTimeout(reassert, 120);
-  setTimeout(reassert, 400);
-  setTimeout(() => {
-    for (const ev of intentEvents) el.removeEventListener(ev, cancel);
-  }, 800);
-  setTimeout(reassert, 780);
 }
 
 watch(
@@ -1244,19 +875,7 @@ watch(
     // still holds the old document (re-sync happens below).
     if (oldId) {
       saveFolds();
-      if (usePlainWindowsEditor) {
-        if (plainLiveEnabled.value) {
-          tabCaretMemory.set(oldId, {
-            caret: 0,
-            scrollTop: plainLiveHost.value?.scrollTop ?? 0,
-          });
-        } else if (plainEditor.value) {
-          tabCaretMemory.set(oldId, {
-            caret: plainEditor.value.selectionStart ?? 0,
-            scrollTop: plainEditor.value.scrollTop,
-          });
-        }
-      } else if (view) {
+      if (view) {
         tabCaretMemory.set(oldId, {
           caret: view.state.selection.main.head,
           scrollTop: view.scrollDOM.scrollTop,
@@ -1264,26 +883,6 @@ watch(
       }
     }
     const saved = newId ? tabCaretMemory.get(newId) : undefined;
-    if (usePlainWindowsEditor) {
-      // The Editor component is reused across tabs (no :key), so switching to /
-      // creating a document must re-sync content, reset per-document state, and
-      // re-focus — otherwise the new doc shows stale text and can't be typed in.
-      plainSelectAll.value = false;
-      setPlainSelectAllPending(false);
-      plainActiveBlock.value = 0;
-      resetPlainHistory();
-      closePlainFind();
-      syncPlainEditorFromStore(props.tab.content);
-      maybeRestoreSession();
-      restoreFolds();
-      void processPlainLiveRenderedBlocks();
-      focusPlainEditor();
-      // Restore the caret/scroll (default: document START, not end — the
-      // `el.value =` assignment above parked it at the end). Block live-edit
-      // restores the scroll container only; per-block focus is its own.
-      restorePlainScroll(saved);
-      return;
-    }
     if (!view) return;
     view.setState(
       EditorState.create({
@@ -1379,15 +978,6 @@ watch(
 watch(
   () => props.tab.content,
   (next) => {
-    if (usePlainWindowsEditor) {
-      // The #186 defenses below were only ever applied to the CodeMirror
-      // branch — this one returned before reaching them, so on Windows an
-      // external content update still reset the caret and killed an in-flight
-      // IME composition. Same two guards, expressed for the textarea.
-      if (plainComposing.value) return;
-      syncPlainEditorFromStore(next, true);
-      return;
-    }
     if (!view) return;
     if (view.state.doc.toString() !== next) {
       // #186 defense-in-depth: never interrupt an active IME composition —
@@ -1466,7 +1056,6 @@ watch(
   () => settings.foldingEnabled,
   (on) => {
     view?.dispatch({ effects: foldCompartment.reconfigure(foldExtensionFor(on)) });
-    if (!on) plainFolds.value = [];
   }
 );
 
@@ -1519,27 +1108,7 @@ watch(
   () => settings.viewMode,
   () => {
     view?.dispatch({ effects: richCompartment.reconfigure(richExtensionsFor(props.tab)) });
-    syncPlainEditorAfterModeSwitch();
-    void processPlainLiveRenderedBlocks();
   }
-);
-
-// A stale select-all must not survive leaving live edit (the merged single
-// block would greet the user on re-entry).
-watch(plainLiveEnabled, () => {
-  plainSelectAll.value = false;
-  setPlainSelectAllPending(false);
-});
-
-watch(
-  () => [plainLiveEnabled.value, plainText.value, plainActiveBlock.value, themeStore.revision, settings.language],
-  () => {
-    // No mermaid.initialize here any more: the render pass configures it with
-    // the current theme itself, and doing it here would load the renderer for
-    // a document that has no diagrams.
-    void processPlainLiveRenderedBlocks();
-  },
-  { flush: 'post' },
 );
 
 // v2.5: hot-toggle the slash-command extension when the user flips
@@ -1555,18 +1124,7 @@ watch(
 );
 
 function gotoLine(line: number) {
-  if (usePlainWindowsEditor) {
-    if (plainLiveEnabled.value) {
-      plainSetCaret(plainLineStartOffset(line));
-      plainScrollToLine(line);
-      return;
-    }
-    const el = plainEditor.value;
-    if (!el) return;
-    plainSetCaret(plainLineStartOffset(line));
-    plainScrollToLine(line);
-    return;
-  }
+  if (usePlainWindowsEditor) return plainRef.value?.gotoLine(line);
   if (!view) return;
   const safe = Math.max(1, Math.min(line, view.state.doc.lines));
   const lineObj = view.state.doc.line(safe);
@@ -1578,13 +1136,7 @@ function gotoLine(line: number) {
 }
 
 async function insertImageFromPath(srcPath: string): Promise<void> {
-  if (usePlainWindowsEditor) {
-    // Was `plainInsertText(srcPath)`: a dropped image file landed as a bare
-    // path instead of an image link.
-    const text = await imageTextFromPath(srcPath, imagePasteOpts());
-    if (text) plainInsertText(text);
-    return;
-  }
+  if (usePlainWindowsEditor) return plainRef.value?.insertImageFromPath(srcPath);
   if (!view) return;
   await cmInsertImageFromPath(view, srcPath, imagePasteOpts());
 }
@@ -1592,12 +1144,9 @@ async function insertImageFromPath(srcPath: string): Promise<void> {
 /** Insert a markdown image link for a user-supplied URL (web image) at the
  *  cursor — no upload, no local copy. Used by the "Image from URL…" dialog. */
 function insertImageUrl(url: string, alt = ''): void {
+  if (usePlainWindowsEditor) return plainRef.value?.insertImageUrl(url, alt);
   const clean = (url || '').trim();
   if (!clean) return;
-  if (usePlainWindowsEditor) {
-    plainInsertText(markdownImage(clean, alt));
-    return;
-  }
   if (!view) return;
   insertMarkdown(markdownImage(clean, alt));
 }
@@ -1609,6 +1158,7 @@ function insertImageUrl(url: string, alt = ''): void {
  * via toasts. No-op (with a hint) when no uploader is configured.
  */
 async function uploadLocalImages(): Promise<void> {
+  if (usePlainWindowsEditor) return plainRef.value?.uploadLocalImages();
   if (!view) return;
   const up0 = resolveUploader(settings as unknown as ImageUploadSettings, 'x.png');
   if (settings.imageUploader === 'none' || !up0) {
@@ -1690,8 +1240,9 @@ function parseFrontMatterImageRoot(source: string): string | undefined {
   return im ? im[1].replace(/^["']|["']$/g, '').trim() || undefined : undefined;
 }
 
-function getLineSelection(): { fromLine: number; toLine: number; headLine: number; isEmpty: boolean } | null {
-  if (usePlainWindowsEditor || !view) return null;
+function getLineSelection(): LineSelection | null {
+  if (usePlainWindowsEditor) return plainRef.value?.getLineSelection() ?? null;
+  if (!view) return null;
   const { doc, selection } = view.state;
   const main = selection.main;
   const toLine = doc.lineAt(main.to);
@@ -1706,35 +1257,7 @@ function getLineSelection(): { fromLine: number; toLine: number; headLine: numbe
 
 /** Returns the 1-indexed line currently at the top of the visible viewport. */
 function getViewLine(): number | null {
-  if (usePlainWindowsEditor) {
-    if (plainLiveEnabled.value) {
-      const block = plainBlocks.value[plainActiveBlock.value];
-      if (!block) return 1;
-      return plainText.value.slice(0, block.start).split('\n').length;
-    }
-    const el = plainEditor.value;
-    if (!el) return null;
-    const top = el.scrollTop;
-    const tops = plainLineTops.value;
-    if (tops) {
-      // Largest line whose measured top is at/above the viewport top, plus
-      // the fraction of that line already scrolled past — split-pane sync
-      // interpolates on it so the panes stay level inside tall wrapped lines.
-      const y = Math.max(0, top - plainPaddingTopPx(el));
-      let lo = 0;
-      let hi = tops.length - 1;
-      while (lo < hi) {
-        const mid = (lo + hi + 1) >> 1;
-        if (tops[mid] <= y) lo = mid;
-        else hi = mid - 1;
-      }
-      const h = lo + 1 < tops.length ? tops[lo + 1] - tops[lo] : plainLineHeightPx();
-      const frac = h > 0 ? Math.min(0.999, (y - tops[lo]) / h) : 0;
-      return lo + 1 + Math.max(0, frac);
-    }
-    const line = Math.max(1, Math.floor(top / plainLineHeightPx()) + 1);
-    return line;
-  }
+  if (usePlainWindowsEditor) return plainRef.value?.getViewLine() ?? null;
   if (!view) return null;
   const top = view.scrollDOM.scrollTop;
   const block = view.lineBlockAtHeight(top);
@@ -1749,14 +1272,7 @@ function getViewLine(): number | null {
  * between two of these to keep the panes pixel-level, not just line-level.
  */
 function lineTopY(line: number): number | null {
-  if (usePlainWindowsEditor) {
-    if (plainLiveEnabled.value) return null;
-    const el = plainEditor.value;
-    const tops = plainLineTops.value;
-    if (!el || !tops) return null;
-    const i = Math.max(0, Math.min(Math.floor(line) - 1, tops.length - 1));
-    return plainPaddingTopPx(el) + tops[i];
-  }
+  if (usePlainWindowsEditor) return plainRef.value?.lineTopY(line) ?? null;
   if (!view) return null;
   const safe = Math.max(1, Math.min(Math.floor(line), view.state.doc.lines));
   return view.lineBlockAt(view.state.doc.line(safe).from).top;
@@ -1768,10 +1284,7 @@ function lineTopY(line: number): number | null {
  * split-pane sync can interpolate inside tall wrapped lines.
  */
 function scrollToLine(line: number): void {
-  if (usePlainWindowsEditor) {
-    plainScrollToLine(line);
-    return;
-  }
+  if (usePlainWindowsEditor) return plainRef.value?.scrollToLine(line);
   if (!view) return;
   const safe = Math.max(1, Math.min(Math.floor(line), view.state.doc.lines));
   const frac = Math.max(0, Math.min(line - safe, 0.999));
@@ -1794,10 +1307,7 @@ function scrollToLine(line: number): void {
  * Otherwise the cursor is placed at the end of the inserted text.
  */
 function insertMarkdown(snippet: string): void {
-  if (usePlainWindowsEditor) {
-    plainInsertText(snippet);
-    return;
-  }
+  if (usePlainWindowsEditor) return plainRef.value?.insertMarkdown(snippet);
   if (!view) return;
   const CURSOR = '$|$';
   const cursorIdx = snippet.indexOf(CURSOR);
@@ -1817,7 +1327,8 @@ function insertMarkdown(snippet: string): void {
   view.focus();
 }
 
-defineExpose({ getLineSelection, gotoLine, insertImageFromPath, insertImageUrl, uploadLocalImages, getViewLine, scrollToLine, lineTopY, insertMarkdown, openFind, applyFold, openTableAtCursor, openFormulaAtCursor });
+const editorApi: EditorApi = { getLineSelection, gotoLine, insertImageFromPath, insertImageUrl, uploadLocalImages, getViewLine, scrollToLine, lineTopY, insertMarkdown, openFind, applyFold, openTableAtCursor, openFormulaAtCursor };
+defineExpose(editorApi);
 
 const cls = computed(() => ({
   'cm-host': true,
@@ -1840,241 +1351,18 @@ const cls = computed(() => ({
     ref="host"
     @contextmenu="onEditorContextMenu"
   ></div>
-  <div
+  <PlainEditor
     v-else
-    class="plain-host"
-    @mousedown.capture="onEditorMouseDownCapture"
-    @contextmenu="onEditorContextMenu"
-  >
-    <div
-      v-if="plainLiveEnabled"
-      ref="plainLiveHost"
-      :class="[
-        cls,
-        'plain-block-editor',
-        {
-          'plain-block-editor--cb-numbers': settings.codeBlockLineNumbers,
-          'plain-block-editor--focus': plainFocusMode,
-        },
-      ]"
-      :style="plainEditorStyle"
-      @mousedown="onPlainLiveHostMouseDown"
-    >
-      <div
-        v-for="(block, index) in plainBlocks"
-        v-show="!plainBlockHidden(block, index)"
-        :key="block.id"
-        class="plain-block"
-        :class="{
-          'plain-block--active': index === plainActiveBlock,
-          'plain-block--heading': !!plainHeadingFor(block),
-        }"
-        @click="(event) => activatePlainBlockFromClick(index, event)"
-      >
-        <button
-          v-if="plainHeadingFor(block)"
-          class="plain-fold-toggle"
-          :class="{ 'plain-fold-toggle--folded': plainHeadingFolded(block) }"
-          :title="plainHeadingFolded(block) ? t('fold.expand') : t('fold.collapse')"
-          :aria-expanded="!plainHeadingFolded(block)"
-          @click.stop="togglePlainFold(block)"
-        >{{ plainHeadingFolded(block) ? '›' : '⌄' }}</button>
-        <span
-          v-if="plainHeadingFolded(block)"
-          class="plain-fold-count"
-          @click.stop="togglePlainFold(block)"
-        >{{ t('fold.placeholder', { lines: plainHiddenLineCount(block) }) }}</span>
-        <textarea
-          v-if="index === plainActiveBlock"
-          :ref="(el) => setPlainBlockEditor(index, el as HTMLTextAreaElement | null)"
-          class="plain-block__textarea"
-          :class="{
-            'plain-textarea--wrap': settings.wordWrap,
-            'plain-textarea--solid-caret': plainSolidCaretOn,
-          }"
-          :spellcheck="props.spellCheck"
-          :wrap="settings.wordWrap ? 'soft' : 'off'"
-          @keydown="(event) => handlePlainBlockKeydown(index, event)"
-          @paste="handlePlainPaste"
-          @input="(event) => handlePlainBlockInput(index, event)"
-          @compositionstart="handlePlainBlockCompositionStart"
-          @compositionend="(event) => handlePlainBlockCompositionEnd(index, event)"
-          @click.stop
-          @blur="schedulePlainOverlays"
-          @keyup="emitPlainCursorAndSelection"
-          @mouseup="emitPlainCursorAndSelection"
-          @select="emitPlainCursorAndSelection"
-          @focus="emitPlainCursorAndSelection"
-        ></textarea>
-        <div
-          v-else
-          class="plain-block__render"
-          v-html="block.html"
-        ></div>
-        <!-- #330 — the current find match, drawn: the textarea paints no
-             selection while the find box has focus. Positioned inside its
-             own block, so it moves with the text when anything above
-             re-renders to a different height (the browser's scroll anchoring
-             keeps the text still on screen, and a highlight placed in the
-             scroll container's coordinates would be left behind). -->
-        <template v-if="index === plainActiveBlock">
-          <div
-            v-for="(r, i) in plainFindBoxes"
-            :key="'find-' + i"
-            class="plain-find-hl"
-            aria-hidden="true"
-            :style="{ top: r.top + 'px', left: r.left + 'px', width: r.width + 'px', height: r.height + 'px' }"
-          ></div>
-        </template>
-      </div>
-      <div
-        v-if="plainCaretBox"
-        class="plain-caret"
-        aria-hidden="true"
-        :style="{
-          top: plainCaretBox.top + 'px',
-          left: plainCaretBox.left + 'px',
-          height: plainCaretBox.height + 'px',
-        }"
-      ></div>
-    </div>
-    <div v-else :class="[cls, 'plain-source']" :style="plainEditorStyle">
-      <div
-        v-if="plainGutterEnabled"
-        class="plain-gutter"
-        aria-hidden="true"
-        :style="{ width: `calc(${plainGutterWidth} + 20px)` }"
-      >
-        <div class="plain-gutter__inner" :style="{ transform: `translateY(${-plainScrollTop}px)` }">
-          <div
-            v-for="(h, i) in plainLineHeights"
-            :key="i"
-            class="plain-gutter__num"
-            :style="{ height: h + 'px' }"
-          >{{ i + 1 }}</div>
-        </div>
-      </div>
-      <textarea
-        ref="plainEditor"
-        class="plain-editor"
-        :class="{
-          'plain-textarea--wrap': settings.wordWrap,
-          'plain-textarea--solid-caret': plainSolidCaretOn,
-        }"
-        :spellcheck="props.spellCheck"
-        :wrap="settings.wordWrap ? 'soft' : 'off'"
-        @keydown="handlePlainEditorKeydown"
-        @paste="handlePlainPaste"
-        @input="handlePlainInput"
-        @scroll="onPlainScroll"
-        @mousedown="$event.button === 0 && clearStrayDocumentSelection($event.currentTarget as HTMLElement)"
-        @blur="schedulePlainOverlays"
-        @keyup="emitPlainCursorAndSelection"
-        @mouseup="emitPlainCursorAndSelection"
-        @select="emitPlainCursorAndSelection"
-        @focus="emitPlainCursorAndSelection"
-      ></textarea>
-      <!-- #316 — focus mode: a <textarea> can't dim individual lines, so the
-           inactive part of the document is covered in the editor's own
-           background instead. Purely decorative; never takes a click. -->
-      <template v-if="plainFocusBand">
-        <div
-          class="plain-shade"
-          aria-hidden="true"
-          :style="{ top: 0, left: plainShadeLeft, height: Math.max(0, plainFocusBand.top) + 'px' }"
-        ></div>
-        <div
-          class="plain-shade"
-          aria-hidden="true"
-          :style="{ top: Math.max(0, plainFocusBand.bottom) + 'px', left: plainShadeLeft, bottom: 0 }"
-        ></div>
-      </template>
-      <div
-        v-if="plainCaretBox"
-        class="plain-caret"
-        aria-hidden="true"
-        :style="{
-          top: plainCaretBox.top + 'px',
-          left: plainCaretBox.left + 'px',
-          height: plainCaretBox.height + 'px',
-        }"
-      ></div>
-      <!-- #330 — the current find match, drawn: the textarea paints no
-           selection while the find box has focus. -->
-      <div
-        v-for="(r, i) in plainFindBoxes"
-        :key="'find-' + i"
-        class="plain-find-hl"
-        aria-hidden="true"
-        :style="{ top: r.top + 'px', left: r.left + 'px', width: r.width + 'px', height: r.height + 'px' }"
-      ></div>
-    </div>
-
-    <!-- In-document find / replace (Ctrl+F). The textarea path has no CodeMirror
-         search panel, so this provides one. -->
-    <div
-      v-if="plainFindOpen"
-      ref="plainFindBar"
-      class="plain-find"
-      :class="{ 'plain-find--dodge': plainFindDodge }"
-      @keydown.esc.prevent.stop="closePlainFind(true)"
-    >
-      <div class="plain-find__row">
-        <!-- Enter / Shift+Enter step through matches and keep focus here;
-             Esc hands the editor the current match (#330). -->
-        <input
-          ref="plainFindInput"
-          class="plain-find__input"
-          :value="plainFindQuery"
-          :placeholder="t('plainFind.findPlaceholder')"
-          @input="(e) => onPlainFindInput((e.target as HTMLInputElement).value, (e as InputEvent).isComposing)"
-          @compositionend="(e) => onPlainFindInput((e.target as HTMLInputElement).value)"
-          @keydown.enter="onPlainFindEnter"
-        />
-        <span class="plain-find__count">{{ plainMatches.length ? (plainMatchIndex + 1) + '/' + plainMatches.length : '0/0' }}</span>
-        <button class="plain-find__btn" :title="t('plainFind.prev')" @click="gotoPlainMatch(-1)">‹</button>
-        <button class="plain-find__btn" :title="t('plainFind.next')" @click="gotoPlainMatch(1)">›</button>
-        <button
-          class="plain-find__btn"
-          :class="{ 'plain-find__btn--on': plainFindCaseSensitive }"
-          :title="t('plainFind.matchCase')"
-          @click="plainFindCaseSensitive = !plainFindCaseSensitive; revealPlainMatchFromAnchor()"
-        >Aa</button>
-        <button class="plain-find__btn" :title="t('plainFind.close')" @click="closePlainFind(true)">✕</button>
-      </div>
-      <div class="plain-find__row">
-        <input
-          class="plain-find__input"
-          :value="plainReplaceValue"
-          :placeholder="t('plainFind.replacePlaceholder')"
-          @input="(e) => plainReplaceValue = (e.target as HTMLInputElement).value"
-          @keydown.enter="(e) => { if (!e.isComposing && e.keyCode !== 229) { e.preventDefault(); replacePlainCurrent(); } }"
-        />
-        <button class="plain-find__btn plain-find__btn--text" @click="replacePlainCurrent">{{ t('plainFind.replaceOne') }}</button>
-        <button class="plain-find__btn plain-find__btn--text" @click="replacePlainAll">{{ t('plainFind.replaceAll') }}</button>
-      </div>
-    </div>
-
-    <!-- Autocomplete popup (/ slash, [[ wikilink, # tag, @ citation,
-         ``` fence language). -->
-    <ul
-      v-if="acOpen && acItems.length"
-      class="plain-ac"
-      :style="{ left: acPos.left + 'px', top: acPos.top + 'px' }"
-    >
-      <li
-        v-for="(item, i) in acItems"
-        :key="i"
-        class="plain-ac__item"
-        :class="{ 'plain-ac__item--active': i === acIndex }"
-        @mousedown.prevent="applyPlainAutocomplete(item)"
-        @mouseenter="acIndex = i"
-      >
-        <span class="plain-ac__label">{{ item.label }}</span>
-        <span v-if="item.hint" class="plain-ac__hint">{{ item.hint }}</span>
-      </li>
-    </ul>
-  </div>
+    ref="plainRef"
+    :tab="tab"
+    :focus-mode="focusMode"
+    :typewriter-mode="typewriterMode"
+    :spell-check="spellCheck"
+    :get-citations="() => cachedCitations"
+    :image-paste-opts="imagePasteOpts"
+    @cursor="(line, col) => emit('cursor', line, col)"
+    @selection="(text) => emit('selection', text)"
+  />
   <Teleport to="body">
     <EditorContextMenu
       v-if="editorCtx"
@@ -2103,492 +1391,11 @@ const cls = computed(() => ({
   margin-left: auto;
   margin-right: auto;
 }
-.cm-host--limit-width.plain-block-editor :deep(.plain-block),
-.cm-host--limit-width.plain-block-editor :deep(.plain-block__textarea),
-.cm-host--limit-width :deep(.plain-editor) {
-  max-width: 760px;
-  margin-left: auto;
-  margin-right: auto;
-}
 :deep(.cm-editor) {
   height: 100%;
   outline: none;
 }
 :deep(.cm-editor.cm-focused) {
   outline: none;
-}
-.plain-host {
-  position: relative;
-  height: 100%;
-  width: 100%;
-}
-.plain-find {
-  position: absolute;
-  top: 8px;
-  right: 16px;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  background: var(--bg-elevated, var(--bg));
-  border: 1px solid var(--border, rgba(127, 127, 127, 0.35));
-  border-radius: 8px;
-  padding: 6px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-}
-/* #330 — the current match would sit under the bar (only possible near the
-   top of the document, where it cannot be scrolled lower): dock at the bottom. */
-.plain-find--dodge {
-  top: auto;
-  bottom: 8px;
-}
-/* #330 — the current match. Translucent so the glyphs underneath stay legible;
-   above the textarea, never takes a click. */
-.plain-find-hl {
-  position: absolute;
-  z-index: 2;
-  border-radius: 2px;
-  background: var(--accent);
-  opacity: 0.35;
-  pointer-events: none;
-}
-.plain-find__row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.plain-find__input {
-  width: 200px;
-  padding: 4px 8px;
-  border: 1px solid var(--border, rgba(127, 127, 127, 0.35));
-  border-radius: 5px;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 13px;
-  outline: none;
-}
-.plain-find__input:focus {
-  border-color: var(--accent, #ff9f40);
-}
-.plain-find__count {
-  font-size: 12px;
-  color: var(--text-faint, #888);
-  min-width: 40px;
-  text-align: center;
-}
-.plain-find__btn {
-  min-width: 26px;
-  height: 26px;
-  padding: 0 6px;
-  border: 1px solid transparent;
-  border-radius: 5px;
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
-  font-size: 14px;
-  line-height: 1;
-}
-.plain-find__btn:hover {
-  background: var(--bg-hover, rgba(127, 127, 127, 0.15));
-}
-.plain-find__btn--on {
-  color: var(--accent, #ff9f40);
-  border-color: var(--accent, #ff9f40);
-}
-.plain-find__btn--text {
-  font-size: 12px;
-}
-.plain-ac {
-  position: fixed;
-  z-index: 30;
-  margin: 0;
-  padding: 4px;
-  list-style: none;
-  min-width: 180px;
-  max-width: 360px;
-  max-height: 280px;
-  overflow-y: auto;
-  background: var(--bg-elevated, var(--bg));
-  border: 1px solid var(--border, rgba(127, 127, 127, 0.35));
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
-}
-.plain-ac__item {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 13px;
-  color: var(--text);
-}
-.plain-ac__item--active {
-  background: var(--accent, #ff9f40);
-  color: var(--accent-fg, #fff);
-}
-.plain-ac__hint {
-  font-size: 11px;
-  opacity: 0.7;
-  white-space: nowrap;
-}
-.plain-editor {
-  height: 100%;
-  width: 100%;
-  resize: none;
-  border: 0;
-  outline: none;
-  box-sizing: border-box;
-  padding: 12px 16px;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--plain-editor-font-family, var(--font-editor, var(--font-mono)));
-  font-size: var(--plain-editor-font-size, 14px);
-  line-height: 1.6;
-  tab-size: 2;
-  white-space: pre;
-  overflow: auto;
-}
-.plain-editor.plain-textarea--wrap {
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-  overflow-x: hidden;
-}
-.plain-source {
-  display: flex;
-  /* Anchors the focus shade and the drawn caret (#316); clipping keeps a
-     caret that has scrolled out of the textarea from painting over the UI. */
-  position: relative;
-  overflow: hidden;
-}
-/* #316 — focus mode's dimming for the flat textarea. Painted in the editor's
-   own background at 0.65, which reads the same as the 0.35 text opacity the
-   CodeMirror extension applies. */
-.plain-shade {
-  position: absolute;
-  right: 0;
-  z-index: 1;
-  background: var(--bg);
-  opacity: 0.65;
-  pointer-events: none;
-  transition: opacity 0.12s ease;
-}
-/* #316 — the non-blinking caret drawn for the solid cursor, matching the 2px accent
-   bar of CodeMirror's .cm-cursor. */
-.plain-caret {
-  position: absolute;
-  width: 2px;
-  z-index: 2;
-  background: var(--accent);
-  pointer-events: none;
-}
-/* Both textareas, and written as a compound selector so it still wins
-   against `.plain-block__textarea { caret-color: var(--accent) }` further
-   down the sheet — at equal specificity the later rule would take it, and
-   the native caret would blink on next to the drawn one. */
-.plain-editor.plain-textarea--solid-caret,
-.plain-block__textarea.plain-textarea--solid-caret {
-  caret-color: transparent;
-}
-.plain-source .plain-editor {
-  flex: 1 1 auto;
-  width: auto;
-  min-width: 0;
-}
-.plain-gutter {
-  flex: none;
-  overflow: hidden;
-  box-sizing: border-box;
-  /* Top padding must match .plain-editor's 12px or numbers drift off rows. */
-  padding: 12px 8px 12px 0;
-  border-right: 1px solid var(--border, rgba(127, 127, 127, 0.25));
-  background: var(--bg);
-  color: var(--text-faint, #999);
-  font-family: var(--plain-editor-font-family, var(--font-editor, var(--font-mono)));
-  font-size: var(--plain-editor-font-size, 14px);
-  line-height: 1.6;
-  text-align: right;
-  user-select: none;
-}
-.plain-gutter__num {
-  box-sizing: border-box;
-}
-.plain-block-editor {
-  overflow: auto;
-  /* Anchors the drawn caret (#316). */
-  position: relative;
-  padding: 12px 16px 80px;
-  box-sizing: border-box;
-  font-family: var(--plain-editor-font-family, var(--font-editor, var(--font-mono)));
-  font-size: var(--plain-editor-font-size, 14px);
-  line-height: 1.6;
-}
-.plain-block {
-  position: relative;
-  min-height: 1.6em;
-  padding: 1px 0;
-}
-.plain-block--active {
-  background: var(--bg);
-}
-/* #316 — focus mode in the block live editor: one element per paragraph
-   already exists, so the inactive ones just dim. Same 0.35 the CodeMirror
-   extension uses for a dimmed line. */
-.plain-block-editor--focus .plain-block {
-  opacity: 0.35;
-  transition: opacity 0.12s ease;
-}
-.plain-block-editor--focus .plain-block--active {
-  opacity: 1;
-}
-/* Fold chevron for heading blocks. Sits in the left margin so it never
-   reflows the heading text; only visible on hover (or while folded) so an
-   unfolded document reads exactly as it did before folding existed. */
-.plain-fold-toggle {
-  position: absolute;
-  left: -14px;
-  top: 2px;
-  width: 14px;
-  height: 1.4em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--fg-dim, #888);
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.12s ease;
-  font-size: 12px;
-  line-height: 1;
-}
-.plain-block:hover .plain-fold-toggle,
-.plain-fold-toggle--folded,
-.plain-fold-toggle:focus-visible {
-  opacity: 1;
-}
-.plain-fold-count {
-  position: absolute;
-  right: 8px;
-  top: 2px;
-  padding: 0 6px;
-  border-radius: 4px;
-  background: rgba(127, 127, 127, 0.18);
-  color: var(--fg-dim, #888);
-  font-size: 0.8em;
-  cursor: pointer;
-  user-select: none;
-}
-.plain-block__textarea {
-  display: block;
-  width: 100%;
-  min-height: 1.6em;
-  resize: none;
-  border: 0;
-  outline: none;
-  box-sizing: border-box;
-  padding: 0;
-  overflow: hidden;
-  background: var(--bg);
-  color: var(--text);
-  caret-color: var(--accent);
-  font: inherit;
-  line-height: inherit;
-  tab-size: 2;
-  white-space: pre;
-}
-.plain-block__textarea.plain-textarea--wrap {
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-}
-.plain-block__textarea::selection {
-  background: rgba(255, 159, 64, 0.28);
-}
-.plain-block__render {
-  color: var(--text);
-  overflow: visible;
-  /* #143 — rendered (non-focused) blocks must use the SAME user-configured
-     editor font as the focused textarea block, or live-edit looks like two
-     different documents (only the focused line honored font / font size). Fall back
-     to the old values for safety. */
-  font-family: var(--plain-editor-font-family, var(--font-ui));
-  font-size: var(--plain-editor-font-size, 15px);
-  line-height: 1.7;
-  padding: 0.05em 0;
-}
-.plain-block__render :deep(h1),
-.plain-block__render :deep(h2),
-.plain-block__render :deep(h3),
-.plain-block__render :deep(h4) {
-  font-weight: 700;
-  line-height: 1.25;
-  margin: 1.1em 0 0.45em;
-}
-.plain-block__render :deep(h1),
-.plain-block__render :deep(h2) {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 0.25em;
-}
-.plain-block__render :deep(h1) {
-  font-size: 2em;
-}
-.plain-block__render :deep(h2) {
-  font-size: 1.5em;
-}
-.plain-block__render :deep(h3) {
-  font-size: 1.2em;
-}
-.plain-block__render :deep(p),
-.plain-block__render :deep(ul),
-.plain-block__render :deep(ol),
-.plain-block__render :deep(blockquote),
-.plain-block__render :deep(pre),
-.plain-block__render :deep(table) {
-  margin-top: 0;
-  margin-bottom: 0.8em;
-}
-.plain-block__render :deep(p) {
-  white-space: pre-wrap;
-}
-.plain-block__render :deep(a) {
-  color: var(--accent);
-  text-decoration: none;
-}
-.plain-block__render :deep(a:hover) {
-  text-decoration: underline;
-}
-.plain-block__render :deep(code) {
-  font-family: var(--font-mono);
-  font-size: 0.9em;
-  background: var(--bg-hover);
-  padding: 0.15em 0.4em;
-  border-radius: 4px;
-}
-.plain-block__render :deep(pre) {
-  font-family: var(--font-mono);
-  background: var(--bg-hover);
-  padding: 14px 16px;
-  border-radius: 6px;
-  overflow-x: auto;
-}
-.plain-block__render :deep(pre code) {
-  display: block;
-  background: transparent;
-  padding: 0;
-}
-/* #211 — when the code-block-wrap setting is on, the LIVE-rendered code
- * blocks soft-wrap like the preview does, instead of the default horizontal
- * scroll. `cb-wrap-on` is set on this host via `cls` (Editor.vue) from
- * settings.codeBlockWrap — same class + rules as Preview.vue's
- * `.cb-wrap-on pre`, so wrapping is identical across modes. */
-.cb-wrap-on .plain-block__render :deep(pre) {
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  overflow-x: visible;
-}
-/* #164 — live-edit blocks honor the same `codeBlockLineNumbers` setting as
- * the preview pane (markdown.ts always emits the .cb-line wrappers; this is
- * the same pure-CSS activation Preview.vue uses, incl. the newline-collapse
- * that keeps line spacing single). */
-.plain-block-editor--cb-numbers .plain-block__render :deep(pre.cb-numbered) {
-  counter-reset: cb-line;
-}
-.plain-block-editor--cb-numbers .plain-block__render :deep(pre.cb-numbered code) {
-  white-space: normal;
-}
-.plain-block-editor--cb-numbers .plain-block__render :deep(pre.cb-numbered code .cb-line) {
-  counter-increment: cb-line;
-  display: block;
-  padding-left: 3.4em;
-  position: relative;
-  white-space: pre;
-}
-/* #211 — code-block-wrap wins over line numbers here too (mirrors Preview.vue):
- * long numbered lines soft-wrap instead of overflowing when both toggles on. */
-.cb-wrap-on.plain-block-editor--cb-numbers .plain-block__render :deep(pre.cb-numbered code .cb-line) {
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
-.plain-block-editor--cb-numbers .plain-block__render :deep(pre.cb-numbered code .cb-line::before) {
-  content: counter(cb-line);
-  position: absolute;
-  left: 0;
-  width: 2.6em;
-  padding-right: 0.6em;
-  text-align: right;
-  color: var(--text-faint);
-  border-right: 1px solid var(--border);
-  user-select: none;
-  -webkit-user-select: none;
-}
-.plain-block__render :deep(blockquote) {
-  border-left: 3px solid var(--accent);
-  padding: 0.2em 1em;
-  color: var(--text-muted);
-}
-.plain-block__render :deep(ul),
-.plain-block__render :deep(ol) {
-  padding-left: 1.6em;
-}
-.plain-block__render :deep(table) {
-  border-collapse: collapse;
-  max-width: 100%;
-}
-.plain-block__render :deep(th),
-.plain-block__render :deep(td) {
-  border: 1px solid var(--border);
-  padding: 6px 12px;
-}
-.plain-block__render :deep(thead th) {
-  background: var(--bg-soft);
-  font-weight: 600;
-}
-.plain-block__render :deep(hr) {
-  border: none;
-  border-top: 1px solid var(--border);
-  margin: 1.6em 0;
-}
-.plain-block__render :deep(img) {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  border-radius: 6px;
-}
-.plain-block__render :deep(.katex-display) {
-  overflow-x: auto;
-  overflow-y: hidden;
-  margin: 1em 0;
-  text-align: center;
-}
-.plain-block__render :deep(.plain-mermaid-block),
-.plain-block__render :deep(.plain-graphviz-block),
-.plain-block__render :deep(.plain-plantuml-block),
-.plain-block__render :deep(.plain-whiteboard-block) {
-  margin: 1em 0;
-  max-width: 100%;
-  overflow: auto;
-}
-.plain-block__render :deep(.plain-mermaid-block svg),
-.plain-block__render :deep(.plain-graphviz-block svg),
-.plain-block__render :deep(.plain-plantuml-block img),
-.plain-block__render :deep(.plain-whiteboard-block svg) {
-  max-width: 100%;
-  height: auto;
-}
-.plain-block__render :deep(.plain-whiteboard-block) {
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg);
-}
-.plain-block__render :deep(.plain-whiteboard-block--clickable) {
-  cursor: pointer;
-}
-.plain-block__render :deep(.plain-block__broken) {
-  color: var(--danger);
-  white-space: pre-wrap;
 }
 </style>

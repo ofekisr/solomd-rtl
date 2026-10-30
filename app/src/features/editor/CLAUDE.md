@@ -30,3 +30,19 @@ Features are registered in `src/shell/editor-registry.service.ts` (`EDITOR_FEATU
 - `when()` must be stable for the life of a view: a slot excluded at build time has no compartment, so reconfiguring it later is a silent no-op. Use an always-present slot with a conditional `build` instead.
 
 - The host component lives in `ui/Editor.vue`; outside code imports it through `contracts/editor-component.ts` (never via `contracts/index.ts`, which Node tests import).
+
+## Plain engine
+
+Windows uses a plain `<textarea>` editor instead of CodeMirror: WebView2's contentEditable IME path drops the first character and doubles CJK punctuation (see the comment above `usePlainWindowsEditor` in `ui/Editor.vue`). `Editor.vue` renders `<PlainEditor>` in its `v-else` branch and forwards each `EditorApi` method to it.
+
+| Path | Holds |
+|---|---|
+| `ui/PlainEditor.vue` | Plain host template, context menu, `defineExpose(EditorApi)` |
+| `ui/PlainFindBar.vue`, `ui/PlainAutocomplete.vue` | Find/replace bar and autocomplete popup; take the `PlainApi` as `engine` prop |
+| `ui/plain-*.css` | Scoped styles, loaded with `<style scoped src>` |
+| `internal/plain/usePlainEngine.ts` | Builds the shared `PlainApi`: composables created in fixed order, cycles broken by `late` / `lateRef` (`plain-late.ts`) |
+| `internal/plain/usePlainCommands.ts`, `usePlainLifecycle.ts`, `usePlainTextTransforms.ts` | Exposed methods; mount/unmount + tab/content/view-mode watchers; case and format handlers |
+| `internal/plain/plain-*.ts` | Pure helpers with characterization tests (no `vue`) |
+
+- Exactly one component handles `solomd:transform-case` / `solomd:format-markdown` per pane: `PlainEditor` on the plain engine, `Editor.vue` otherwise.
+- Dev hook: open the web build with `?forcePlain=1` to exercise the plain engine on macOS/Linux (`pnpm --dir app dev`, `:1420` / `:1430`).

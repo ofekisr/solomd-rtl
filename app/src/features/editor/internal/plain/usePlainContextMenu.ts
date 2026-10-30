@@ -1,4 +1,4 @@
-import { clipboardPort } from '../../../../platform/index.ts';
+import { readClipboard, writeClipboard } from '../../../context-menu/contracts/index.ts';
 import type { EditorMenuAction } from '../../../../components/EditorContextMenu.vue';
 import type { PlainApiStage11 } from './plain-api.ts';
 import type { PlainDeps } from './plain-deps.ts';
@@ -50,25 +50,6 @@ export function usePlainContextMenu(_deps: PlainDeps, api: PlainApiStage11) {
 
   function clearPlainContextSavedRange() {
     ctxSavedRange = null;
-  }
-
-  async function writeClipboard(text: string) {
-    try {
-      await clipboardPort.writeText(text);
-    } catch {
-      await navigator.clipboard?.writeText(text);
-    }
-  }
-  async function readClipboard(): Promise<string> {
-    try {
-      return (await clipboardPort.readText()) ?? '';
-    } catch {
-      try {
-        return (await navigator.clipboard?.readText()) ?? '';
-      } catch {
-        return '';
-      }
-    }
   }
 
   async function runPlainEditorMenuAction(id: EditorMenuAction) {

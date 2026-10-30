@@ -1,0 +1,386 @@
+.cm-host {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--bg);
+}
+.cm-host--limit-width.plain-block-editor :deep(.plain-block),
+.cm-host--limit-width.plain-block-editor :deep(.plain-block__textarea),
+.cm-host--limit-width :deep(.plain-editor) {
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.plain-host {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+/* #330 — the current match. Translucent so the glyphs underneath stay legible;
+   above the textarea, never takes a click. */
+.plain-find-hl {
+  position: absolute;
+  z-index: 2;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0.35;
+  pointer-events: none;
+}
+.plain-editor {
+  height: 100%;
+  width: 100%;
+  resize: none;
+  border: 0;
+  outline: none;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--plain-editor-font-family, var(--font-editor, var(--font-mono)));
+  font-size: var(--plain-editor-font-size, 14px);
+  line-height: 1.6;
+  tab-size: 2;
+  white-space: pre;
+  overflow: auto;
+}
+.plain-editor.plain-textarea--wrap {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  overflow-x: hidden;
+}
+.plain-source {
+  display: flex;
+  /* Anchors the focus shade and the drawn caret (#316); clipping keeps a
+     caret that has scrolled out of the textarea from painting over the UI. */
+  position: relative;
+  overflow: hidden;
+}
+/* #316 — focus mode's dimming for the flat textarea. Painted in the editor's
+   own background at 0.65, which reads the same as the 0.35 text opacity the
+   CodeMirror extension applies. */
+.plain-shade {
+  position: absolute;
+  right: 0;
+  z-index: 1;
+  background: var(--bg);
+  opacity: 0.65;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+/* #316 — the non-blinking caret drawn for the solid cursor, matching the 2px accent
+   bar of CodeMirror's .cm-cursor. */
+.plain-caret {
+  position: absolute;
+  width: 2px;
+  z-index: 2;
+  background: var(--accent);
+  pointer-events: none;
+}
+/* Both textareas, and written as a compound selector so it still wins
+   against `.plain-block__textarea { caret-color: var(--accent) }` further
+   down the sheet — at equal specificity the later rule would take it, and
+   the native caret would blink on next to the drawn one. */
+.plain-editor.plain-textarea--solid-caret,
+.plain-block__textarea.plain-textarea--solid-caret {
+  caret-color: transparent;
+}
+.plain-source .plain-editor {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+}
+.plain-gutter {
+  flex: none;
+  overflow: hidden;
+  box-sizing: border-box;
+  /* Top padding must match .plain-editor's 12px or numbers drift off rows. */
+  padding: 12px 8px 12px 0;
+  border-right: 1px solid var(--border, rgba(127, 127, 127, 0.25));
+  background: var(--bg);
+  color: var(--text-faint, #999);
+  font-family: var(--plain-editor-font-family, var(--font-editor, var(--font-mono)));
+  font-size: var(--plain-editor-font-size, 14px);
+  line-height: 1.6;
+  text-align: right;
+  user-select: none;
+}
+.plain-gutter__num {
+  box-sizing: border-box;
+}
+.plain-block-editor {
+  overflow: auto;
+  /* Anchors the drawn caret (#316). */
+  position: relative;
+  padding: 12px 16px 80px;
+  box-sizing: border-box;
+  font-family: var(--plain-editor-font-family, var(--font-editor, var(--font-mono)));
+  font-size: var(--plain-editor-font-size, 14px);
+  line-height: 1.6;
+}
+.plain-block {
+  position: relative;
+  min-height: 1.6em;
+  padding: 1px 0;
+}
+.plain-block--active {
+  background: var(--bg);
+}
+/* #316 — focus mode in the block live editor: one element per paragraph
+   already exists, so the inactive ones just dim. Same 0.35 the CodeMirror
+   extension uses for a dimmed line. */
+.plain-block-editor--focus .plain-block {
+  opacity: 0.35;
+  transition: opacity 0.12s ease;
+}
+.plain-block-editor--focus .plain-block--active {
+  opacity: 1;
+}
+/* Fold chevron for heading blocks. Sits in the left margin so it never
+   reflows the heading text; only visible on hover (or while folded) so an
+   unfolded document reads exactly as it did before folding existed. */
+.plain-fold-toggle {
+  position: absolute;
+  left: -14px;
+  top: 2px;
+  width: 14px;
+  height: 1.4em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--fg-dim, #888);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  font-size: 12px;
+  line-height: 1;
+}
+.plain-block:hover .plain-fold-toggle,
+.plain-fold-toggle--folded,
+.plain-fold-toggle:focus-visible {
+  opacity: 1;
+}
+.plain-fold-count {
+  position: absolute;
+  right: 8px;
+  top: 2px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: rgba(127, 127, 127, 0.18);
+  color: var(--fg-dim, #888);
+  font-size: 0.8em;
+  cursor: pointer;
+  user-select: none;
+}
+.plain-block__textarea {
+  display: block;
+  width: 100%;
+  min-height: 1.6em;
+  resize: none;
+  border: 0;
+  outline: none;
+  box-sizing: border-box;
+  padding: 0;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  caret-color: var(--accent);
+  font: inherit;
+  line-height: inherit;
+  tab-size: 2;
+  white-space: pre;
+}
+.plain-block__textarea.plain-textarea--wrap {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+.plain-block__textarea::selection {
+  background: rgba(255, 159, 64, 0.28);
+}
+.plain-block__render {
+  color: var(--text);
+  overflow: visible;
+  /* #143 — rendered (non-focused) blocks must use the SAME user-configured
+     editor font as the focused textarea block, or live-edit looks like two
+     different documents (only the focused line honored font / font size). Fall back
+     to the old values for safety. */
+  font-family: var(--plain-editor-font-family, var(--font-ui));
+  font-size: var(--plain-editor-font-size, 15px);
+  line-height: 1.7;
+  padding: 0.05em 0;
+}
+.plain-block__render :deep(h1),
+.plain-block__render :deep(h2),
+.plain-block__render :deep(h3),
+.plain-block__render :deep(h4) {
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 1.1em 0 0.45em;
+}
+.plain-block__render :deep(h1),
+.plain-block__render :deep(h2) {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.25em;
+}
+.plain-block__render :deep(h1) {
+  font-size: 2em;
+}
+.plain-block__render :deep(h2) {
+  font-size: 1.5em;
+}
+.plain-block__render :deep(h3) {
+  font-size: 1.2em;
+}
+.plain-block__render :deep(p),
+.plain-block__render :deep(ul),
+.plain-block__render :deep(ol),
+.plain-block__render :deep(blockquote),
+.plain-block__render :deep(pre),
+.plain-block__render :deep(table) {
+  margin-top: 0;
+  margin-bottom: 0.8em;
+}
+.plain-block__render :deep(p) {
+  white-space: pre-wrap;
+}
+.plain-block__render :deep(a) {
+  color: var(--accent);
+  text-decoration: none;
+}
+.plain-block__render :deep(a:hover) {
+  text-decoration: underline;
+}
+.plain-block__render :deep(code) {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--bg-hover);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}
+.plain-block__render :deep(pre) {
+  font-family: var(--font-mono);
+  background: var(--bg-hover);
+  padding: 14px 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+.plain-block__render :deep(pre code) {
+  display: block;
+  background: transparent;
+  padding: 0;
+}
+/* #211 — when the code-block-wrap setting is on, the LIVE-rendered code
+ * blocks soft-wrap like the preview does, instead of the default horizontal
+ * scroll. `cb-wrap-on` is set on this host via `cls` (Editor.vue) from
+ * settings.codeBlockWrap — same class + rules as Preview.vue's
+ * `.cb-wrap-on pre`, so wrapping is identical across modes. */
+.cb-wrap-on .plain-block__render :deep(pre) {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  overflow-x: visible;
+}
+/* #164 — live-edit blocks honor the same `codeBlockLineNumbers` setting as
+ * the preview pane (markdown.ts always emits the .cb-line wrappers; this is
+ * the same pure-CSS activation Preview.vue uses, incl. the newline-collapse
+ * that keeps line spacing single). */
+.plain-block-editor--cb-numbers .plain-block__render :deep(pre.cb-numbered) {
+  counter-reset: cb-line;
+}
+.plain-block-editor--cb-numbers .plain-block__render :deep(pre.cb-numbered code) {
+  white-space: normal;
+}
+.plain-block-editor--cb-numbers .plain-block__render :deep(pre.cb-numbered code .cb-line) {
+  counter-increment: cb-line;
+  display: block;
+  padding-left: 3.4em;
+  position: relative;
+  white-space: pre;
+}
+/* #211 — code-block-wrap wins over line numbers here too (mirrors Preview.vue):
+ * long numbered lines soft-wrap instead of overflowing when both toggles on. */
+.cb-wrap-on.plain-block-editor--cb-numbers .plain-block__render :deep(pre.cb-numbered code .cb-line) {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.plain-block-editor--cb-numbers .plain-block__render :deep(pre.cb-numbered code .cb-line::before) {
+  content: counter(cb-line);
+  position: absolute;
+  left: 0;
+  width: 2.6em;
+  padding-right: 0.6em;
+  text-align: right;
+  color: var(--text-faint);
+  border-right: 1px solid var(--border);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.plain-block__render :deep(blockquote) {
+  border-left: 3px solid var(--accent);
+  padding: 0.2em 1em;
+  color: var(--text-muted);
+}
+.plain-block__render :deep(ul),
+.plain-block__render :deep(ol) {
+  padding-left: 1.6em;
+}
+.plain-block__render :deep(table) {
+  border-collapse: collapse;
+  max-width: 100%;
+}
+.plain-block__render :deep(th),
+.plain-block__render :deep(td) {
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+}
+.plain-block__render :deep(thead th) {
+  background: var(--bg-soft);
+  font-weight: 600;
+}
+.plain-block__render :deep(hr) {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.6em 0;
+}
+.plain-block__render :deep(img) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.plain-block__render :deep(.katex-display) {
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin: 1em 0;
+  text-align: center;
+}
+.plain-block__render :deep(.plain-mermaid-block),
+.plain-block__render :deep(.plain-graphviz-block),
+.plain-block__render :deep(.plain-plantuml-block),
+.plain-block__render :deep(.plain-whiteboard-block) {
+  margin: 1em 0;
+  max-width: 100%;
+  overflow: auto;
+}
+.plain-block__render :deep(.plain-mermaid-block svg),
+.plain-block__render :deep(.plain-graphviz-block svg),
+.plain-block__render :deep(.plain-plantuml-block img),
+.plain-block__render :deep(.plain-whiteboard-block svg) {
+  max-width: 100%;
+  height: auto;
+}
+.plain-block__render :deep(.plain-whiteboard-block) {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+.plain-block__render :deep(.plain-whiteboard-block--clickable) {
+  cursor: pointer;
+}
+.plain-block__render :deep(.plain-block__broken) {
+  color: var(--danger);
+  white-space: pre-wrap;
+}
