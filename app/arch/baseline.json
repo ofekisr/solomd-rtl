@@ -45,12 +45,12 @@
     "app/src/components/Preview.vue": 1424,
     "app/src/components/RecipesSettings.vue": 921,
     "app/src/components/RelationshipsPanel.vue": 591,
-    "app/src/components/SettingsPanel.vue": 2614,
+    "app/src/components/SettingsPanel.vue": 2612,
     "app/src/components/Slideshow.vue": 501,
     "app/src/components/ThemeStudio.vue": 579,
     "app/src/components/Toolbar.vue": 1614,
     "app/src/components/TraceView.vue": 647,
-    "app/src/composables/useCommands.ts": 822,
+    "app/src/composables/useCommands.ts": 818,
     "app/src/composables/useExport.ts": 688,
     "app/src/composables/useFiles.ts": 1042,
     "app/src/dev/pdf-harness.ts": 431,
@@ -75,36 +75,22 @@
   },
   "rawIpc": [
     "app/src/App.vue",
-    "app/src/components/CaptureEndpointSettings.vue",
-    "app/src/components/QuickCapture.vue",
-    "app/src/components/RestApiSettings.vue",
-    "app/src/components/SettingsPanel.vue",
     "app/src/components/Toolbar.vue",
-    "app/src/composables/useCommands.ts",
-    "app/src/lib/cm-spellcheck.ts",
     "app/src/lib/devtools.ts",
-    "app/src/lib/directive-completion-registry.ts",
-    "app/src/lib/image-upload.ts",
-    "app/src/lib/theme/sources.ts",
-    "app/src/stores/savedViews.ts",
-    "app/src/stores/themes.ts"
+    "app/src/stores/savedViews.ts"
   ],
   "libPurity": [
     "app/src/lib/ai-activity.ts",
     "app/src/lib/check-update.ts",
     "app/src/lib/cm-find-panel.ts",
-    "app/src/lib/cm-spellcheck.ts",
     "app/src/lib/code-copy.ts",
     "app/src/lib/devtools.ts",
-    "app/src/lib/directive-completion-registry.ts",
     "app/src/lib/formula-editor-bus.ts",
-    "app/src/lib/image-upload.ts",
     "app/src/lib/new-window.ts",
     "app/src/lib/open-google-translate.ts",
     "app/src/lib/quick-capture-status.ts",
     "app/src/lib/reveal-in-file-manager.ts",
     "app/src/lib/table-editor-bus.ts",
-    "app/src/lib/telemetry.ts",
-    "app/src/lib/theme/sources.ts"
+    "app/src/lib/telemetry.ts"
   ]
 }
