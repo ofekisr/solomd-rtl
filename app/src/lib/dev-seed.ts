@@ -19,7 +19,13 @@ function isDevSeed(value: unknown): value is DevSeed {
   return Object.values(items).every((v) => typeof v === 'string');
 }
 
+/** Playwright and other WebDriver runs must start from their own clean state, not the copied app's. */
+export function isAutomatedBrowser(nav: { webdriver?: boolean } | undefined): boolean {
+  return nav?.webdriver === true;
+}
+
 export async function applyDevSeed(): Promise<void> {
+  if (isAutomatedBrowser(typeof navigator === 'undefined' ? undefined : navigator)) return;
   try {
     const res = await fetch(SEED_URL, { cache: 'no-store' });
     if (!res.ok) return;
