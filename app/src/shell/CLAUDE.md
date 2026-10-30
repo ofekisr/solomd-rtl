@@ -11,6 +11,7 @@ App-wide services extracted from `App.vue` (Wave 1 PR-9). Spec: [LLD §PR-9](../
 | `shortcuts.service.ts` | Esc priority, zoom keys, native-menu sync, quick-capture hotkey, menu-action dispatch table |
 | `session.service.ts` | Tabs + tiles persistence, tiles init / sync |
 | `updates.service.ts` | Startup update check + toast |
+| `editor-registry.service.ts` | Editor feature factory list (`EDITOR_FEATURE_FACTORIES`) + `createEditorRegistry()` (Wave 2) |
 
 ## Host composables and components (Wave 1b)
 

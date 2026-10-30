@@ -9,6 +9,7 @@ Vue 3 + CodeMirror 6 + Pinia front end. `src-tauri/` is the Rust desktop shell. 
 | `src/App.vue` | Thin host (≤ 500 lines): services, startup order, root element | Stays |
 | `src/components/shell/` | App chrome split out of `App.vue`: layout, right sidebar, dialogs host | Stays |
 | `src/shell/` | App-wide services (window, file-open, shortcuts, session, updates). Read [shell/CLAUDE.md](src/shell/CLAUDE.md) | Stays |
+| `src/features/` | Editor features (Wave 2): `editor/` host + engines; one folder per feature. Read [features/editor/CLAUDE.md](src/features/editor/CLAUDE.md) | Grows per wave |
 | `src/components/` | ~118 flat Vue components; `git/`, `properties/` subfolders | Empties into `features/<f>/ui/` by Wave 4 |
 | `src/composables/` | `use*` hooks; host state for `App.vue` (`createX`/`useX`, see shell/CLAUDE.md) | Move with their feature; host ones stay |
 | `src/stores/` | Pinia stores; `settings.ts` holds all settings | Per-feature settings slices (Wave 3) |
@@ -21,7 +22,7 @@ Vue 3 + CodeMirror 6 + Pinia front end. `src-tauri/` is the Rust desktop shell. 
 | `src-tauri/src/` | Rust commands (`commands.rs`, `ai_proxy.rs`, `git_pane/`) | Grouped by domain, mirroring `platform/` |
 | `e2e/` | Playwright theme e2e (macOS baselines) | Stays |
 
-Planned folders, not created yet: `src/features/` (Wave 1+), `src/ai/` (Wave 4).
+Planned folder, not created yet: `src/ai/` (Wave 4).
 
 ## Tests
 
@@ -40,6 +41,7 @@ Unit tests run on Node type-stripping: import local files with the `.ts` extensi
 |---|---|
 | Anywhere | Root `CLAUDE.md` |
 | `src/features/<f>/` | That feature's `CLAUDE.md` (each feature gets one from Wave 1) |
+| `src/features/editor/` | [src/features/editor/CLAUDE.md](src/features/editor/CLAUDE.md) |
 | `arch/` | [arch/CLAUDE.md](arch/CLAUDE.md) |
 | `src/platform/` | [src/platform/CLAUDE.md](src/platform/CLAUDE.md) |
 | `src/shell/`, `src/App.vue`, `src/components/shell/` | [src/shell/CLAUDE.md](src/shell/CLAUDE.md) |

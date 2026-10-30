@@ -572,7 +572,7 @@ export function setRightSidebarShell(shell: {
   rightSidebarShell = shell;
 }
 
-function defaults(): Settings {
+export function defaults(): Settings {
   const prefersDark =
     typeof window !== 'undefined' &&
     window.matchMedia &&
