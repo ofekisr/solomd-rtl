@@ -7,13 +7,12 @@
  * editor shows up here without anything being told to refresh.
  */
 import { computed } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
+import { fsPort } from '../platform/index.ts';
 import { useWorkspaceIndexStore } from '../stores/workspaceIndex';
 import { useTabsStore } from '../stores/tabs';
 import { useToastsStore } from '../stores/toasts';
 import { useFiles } from './useFiles';
 import { parseTaskMeta, compareTasks, toggleTaskLine, type TaskMeta } from '../lib/tasks';
-import type { FileReadResult } from '../types';
 
 export interface WorkspaceTask {
   path: string;
@@ -71,7 +70,7 @@ export function useTasks() {
         await files.saveTab(openTab, { silent: true });
         return;
       }
-      const read = await invoke<FileReadResult>('read_file', { path: task.path });
+      const read = await fsPort.readFile({ path: task.path });
       const next = toggleTaskLine(read.content, task.line);
       if (next === null) {
         // The index is behind the file. Refusing to write is the whole point:
@@ -79,7 +78,7 @@ export function useTasks() {
         toasts.warning('That line is no longer a task — the note changed.');
         return;
       }
-      await invoke('write_file', {
+      await fsPort.writeFile({
         path: task.path,
         content: next,
         encoding: read.encoding || 'UTF-8',

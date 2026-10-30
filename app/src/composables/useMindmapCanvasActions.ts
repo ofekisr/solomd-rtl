@@ -1,6 +1,6 @@
 import type { Ref } from 'vue';
 import type { MindElixirInstance } from 'mind-elixir';
-import { writeText } from '@tauri-apps/plugin-clipboard-manager';
+import { clipboardPort } from '../platform/index.ts';
 import { useMindmapExport } from './useMindmapExport';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
@@ -48,7 +48,7 @@ export function useMindmapCanvasActions(ctx: CanvasActionContext): Record<string
   async function copyPlaintext(): Promise<void> {
     const mind = ctx.getMind();
     if (!mind) return;
-    await writeText(serializeMindmapFence(withoutGateArrows(mind.getData())));
+    await clipboardPort.writeText(serializeMindmapFence(withoutGateArrows(mind.getData())));
     toasts.success(t('mindmap.copiedPlaintext'));
   }
 

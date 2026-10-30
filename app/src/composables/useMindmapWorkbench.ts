@@ -1,11 +1,11 @@
-import { invoke } from '@tauri-apps/api/core';
+import { fsPort } from '../platform/index.ts';
 import type { MindElixirData } from 'mind-elixir';
 import { useTabsStore } from '../stores/tabs';
 import { useToastsStore } from '../stores/toasts';
 import { useMindmapWorkbenchStore } from '../stores/mindmapWorkbench';
 import { useFiles } from './useFiles';
 import { useI18n } from '../i18n';
-import type { FileReadResult, Tab } from '../types';
+import type { Tab } from '../types';
 import { mergeMindmaps } from '../lib/mindmap-merge';
 import { rootTopicFromFileName, sanitizeMindmapData, serializeMindmap } from '../lib/mindmap-format';
 import { parseMapText, subtreeData } from '../lib/mindmap-payload';
@@ -50,7 +50,7 @@ export function useMindmapWorkbench() {
       : tabs.tabs.find((x) => x.filePath === path);
     if (tab) return tab.content;
     if (path.startsWith(TAB_SOURCE_PREFIX)) return null;
-    return invoke<FileReadResult>('read_file', { path }).then((r) => r.content, () => null);
+    return fsPort.readFile({ path }).then((r) => r.content, () => null);
   }
 
   async function readSource(path: string): Promise<MindElixirData | null> {

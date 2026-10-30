@@ -18,7 +18,7 @@
  * works against a path on disk.
  */
 import { computed } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
+import { fsPort } from '../platform/index.ts';
 import { useTabsStore } from '../stores/tabs';
 import { useWorkspaceIndexStore } from '../stores/workspaceIndex';
 import { useToastsStore } from '../stores/toasts';
@@ -93,7 +93,7 @@ export function useProperties() {
       return false;
     }
     try {
-      const next = await invoke<string>('update_frontmatter_property', {
+      const next = await fsPort.updateFrontmatterProperty({
         path,
         key,
         value,
@@ -117,7 +117,7 @@ export function useProperties() {
       return false;
     }
     try {
-      const next = await invoke<string>('delete_frontmatter_property', {
+      const next = await fsPort.deleteFrontmatterProperty({
         path,
         key,
       });

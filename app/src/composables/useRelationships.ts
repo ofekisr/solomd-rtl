@@ -19,12 +19,11 @@
  * edit never races the editor autosave or clobbers unsaved body changes).
  */
 import { computed, type ComputedRef } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
+import { fsPort } from '../platform/index.ts';
 import { useTabsStore } from '../stores/tabs';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useWorkspaceIndexStore, type IndexEntry, type ReferencedByRef } from '../stores/workspaceIndex';
 import { useToastsStore } from '../stores/toasts';
-import type { FileReadResult } from '../types';
 import {
   extractRelationships,
   setRelationshipInBlock,
@@ -159,7 +158,7 @@ export function useRelationships() {
       return null;
     }
     try {
-      const res = await invoke<FileReadResult>('read_file', { path: tab.filePath });
+      const res = await fsPort.readFile({ path: tab.filePath });
       return {
         path: tab.filePath,
         content: res.content,
@@ -181,7 +180,7 @@ export function useRelationships() {
     try {
       const payload =
         doc.lineEnding === 'crlf' ? newContent.replace(/\n/g, '\r\n') : newContent;
-      await invoke('write_file', {
+      await fsPort.writeFile({
         path: doc.path,
         content: payload,
         encoding: doc.encoding,

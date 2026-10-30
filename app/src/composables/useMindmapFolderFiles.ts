@@ -1,5 +1,4 @@
-import { invoke } from '@tauri-apps/api/core';
-import type { FileReadResult } from '../types';
+import { fsPort } from '../platform/index.ts';
 import { MAX_FILE_BYTES, sortFolderFiles, type FolderFile } from '../lib/mindmap-folder';
 
 interface DirEntry { name: string; path: string; is_dir: boolean }
@@ -21,7 +20,7 @@ async function collectCandidates(folder: string): Promise<{ found: Candidate[]; 
   const found: Candidate[] = [];
   let truncated = false;
   const walk = async (dir: string, prefix: string): Promise<void> => {
-    const entries = await invoke<DirEntry[]>('list_dir', { path: dir });
+    const entries = await fsPort.listDir({ path: dir });
     for (const entry of entries) {
       if (found.length >= MAX_FILES) { truncated = true; return; }
       if (isIgnored(entry)) continue;
@@ -36,7 +35,7 @@ async function collectCandidates(folder: string): Promise<{ found: Candidate[]; 
 
 async function readCandidate(candidate: Candidate): Promise<FolderFile | null> {
   try {
-    const { content } = await invoke<FileReadResult>('read_file', { path: candidate.absPath });
+    const { content } = await fsPort.readFile({ path: candidate.absPath });
     return new TextEncoder().encode(content).length > MAX_FILE_BYTES ? null : { ...candidate, text: content };
   } catch (error) {
     console.error('mindmap folder: read failed', candidate.relPath, error);
