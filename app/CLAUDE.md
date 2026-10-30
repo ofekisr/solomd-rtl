@@ -10,6 +10,7 @@ Vue 3 + CodeMirror 6 + Pinia front end. `src-tauri/` is the Rust desktop shell. 
 | `src/components/` | ~118 flat Vue components; `git/`, `properties/` subfolders | Empties into `features/<f>/ui/` by Wave 4 |
 | `src/composables/` | `use*` hooks | Move with their feature |
 | `src/stores/` | Pinia stores; `settings.ts` holds all settings | Per-feature settings slices (Wave 3) |
+| `src/platform/` | Typed ports over Tauri; only importer of `@tauri-apps/*`. Read [platform/CLAUDE.md](src/platform/CLAUDE.md) | Stays |
 | `src/lib/` | Mostly pure TS: CM extensions (`cm-*.ts`), parsers, `theme/`, `git-pane/`, `fixtures/`. Some files still import `vue`/`pinia`/`@tauri-apps/*` | Stays. Fully pure as the PR-2 baseline shrinks |
 | `src/ui/` | `Ds*` design-system primitives | Stays |
 | `src/i18n/` | Locale tables. New strings go in `en.ts` | Keys move into features (Wave 2+) |
@@ -18,7 +19,7 @@ Vue 3 + CodeMirror 6 + Pinia front end. `src-tauri/` is the Rust desktop shell. 
 | `src-tauri/src/` | Rust commands (`commands.rs`, `ai_proxy.rs`, `git_pane/`) | Grouped by domain, mirroring `platform/` |
 | `e2e/` | Playwright theme e2e (macOS baselines) | Stays |
 
-Planned folders, not created yet: `src/platform/` (Wave 1), `src/features/` (Wave 1+), `src/shell/` (Wave 1), `src/ai/` (Wave 4).
+Planned folders, not created yet: `src/features/` (Wave 1+), `src/shell/` (Wave 1), `src/ai/` (Wave 4).
 
 ## Tests
 
@@ -38,6 +39,7 @@ Unit tests run on Node type-stripping: import local files with the `.ts` extensi
 | Anywhere | Root `CLAUDE.md` |
 | `src/features/<f>/` | That feature's `CLAUDE.md` (each feature gets one from Wave 1) |
 | `arch/` | [arch/CLAUDE.md](arch/CLAUDE.md) |
+| `src/platform/` | [src/platform/CLAUDE.md](src/platform/CLAUDE.md) |
 | `src/lib/theme/` | `docs/superpowers/specs/2026-10-29-theme-layer-design.md` |
 | `../demos/` | [demos/CLAUDE.md](../demos/CLAUDE.md) |
 
