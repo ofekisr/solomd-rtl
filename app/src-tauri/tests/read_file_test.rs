@@ -95,10 +95,15 @@ fn detect_language_from_extension() {
     let r2 = read_file(path2).unwrap();
     assert_eq!(r2.language, "plaintext");
 
-    let path3 = "/tmp/solomd-lang.rs".to_string();
+    let path3 = "/tmp/solomd-lang.unknownext".to_string();
     fs::write(&path3, "fn main(){}").unwrap();
     let r3 = read_file(path3).unwrap();
     assert_eq!(r3.language, "plaintext");
+
+    let path4 = "/tmp/solomd-lang.rs".to_string();
+    fs::write(&path4, "fn main(){}").unwrap();
+    let r4 = read_file(path4).unwrap();
+    assert_eq!(r4.language, "rust");
 }
 
 #[test]
