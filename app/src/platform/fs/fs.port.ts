@@ -11,10 +11,37 @@ const searchOptions = z.object({
   skipCode: z.boolean().optional(),
 });
 
+const language = z.enum([
+  'markdown',
+  'mindmap',
+  'git-diff',
+  'theme-studio',
+  'python',
+  'javascript',
+  'typescript',
+  'vue',
+  'svelte',
+  'scss',
+  'less',
+  'sass',
+  'rust',
+  'html',
+  'css',
+  'json',
+  'cpp',
+  'go',
+  'sql',
+  'java',
+  'yaml',
+  'xml',
+  'bash',
+  'plaintext',
+]);
+
 const fileReadResult = z.object({
   content: z.string(),
   encoding: z.string(),
-  language: z.string(),
+  language,
   had_bom: z.boolean(),
 });
 
