@@ -3,7 +3,7 @@
  *  (system opener, same as the editor's external-link handling); click the
  *  text to edit inline. Enter saves, Esc cancels. */
 import { ref, watch, nextTick } from 'vue';
-import { openUrl } from '@tauri-apps/plugin-opener';
+import { openerPort } from '../../../platform/index.ts';
 import { DsInput } from '../../../ui';
 import { useI18n } from '../../../i18n';
 
@@ -51,7 +51,7 @@ async function open() {
   const u = href();
   if (!u) return;
   try {
-    await openUrl(u);
+    await openerPort.openUrl(u);
   } catch {
     /* opener unavailable — ignore */
   }

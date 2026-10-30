@@ -11,9 +11,7 @@ import {
   crosshairCursor, drawSelection, EditorView, highlightActiveLine, keymap, lineNumbers, rectangularSelection
 } from '@codemirror/view';
 import {vim, Vim} from '@replit/codemirror-vim';
-import {
-  readText as readClipboardTextPlugin, writeText as writeClipboardTextPlugin
-} from '@tauri-apps/plugin-clipboard-manager';
+import {clipboardPort} from '../platform/index.ts';
 import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from 'vue';
 import {useFormatHints} from '../composables/useFormatHints';
 import {usePandocExport} from '../composables/usePandocExport';
@@ -2699,14 +2697,14 @@ function onEditorContextMenu(event: MouseEvent) {
 
 async function writeClipboard(text: string) {
   try {
-    await writeClipboardTextPlugin(text);
+    await clipboardPort.writeText(text);
   } catch {
     await navigator.clipboard?.writeText(text);
   }
 }
 async function readClipboard(): Promise<string> {
   try {
-    return (await readClipboardTextPlugin()) ?? '';
+    return (await clipboardPort.readText()) ?? '';
   } catch {
     try {
       return (await navigator.clipboard?.readText()) ?? '';

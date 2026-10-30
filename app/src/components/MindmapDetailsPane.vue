@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import type { NodeObj } from 'mind-elixir';
-import { openUrl } from '@tauri-apps/plugin-opener';
+import { openerPort } from '../platform/index.ts';
 import { useI18n } from '../i18n';
 import { useToastsStore } from '../stores/toasts';
 import { copyPlainText } from '../lib/code-copy';
@@ -71,7 +71,7 @@ function removeRow(index: number): void {
 }
 
 async function runAction(action: FieldAction): Promise<void> {
-  if (action.kind === 'link') await openUrl(action.url).catch(() => toasts.error(t('mindmap.detailsOpenFailed')));
+  if (action.kind === 'link') await openerPort.openUrl(action.url).catch(() => toasts.error(t('mindmap.detailsOpenFailed')));
   if (action.kind !== 'claudeResume') return;
   await copyPlainText(action.command);
   toasts.info(t('mindmap.detailsResumeCopied'));

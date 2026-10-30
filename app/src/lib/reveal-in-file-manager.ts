@@ -1,4 +1,4 @@
-import { openPath, revealItemInDir } from '@tauri-apps/plugin-opener';
+import { openerPort } from '../platform/index.ts';
 
 /** The folder that holds `path`, or null for a bare name / a volume root. */
 export function parentDirOf(path: string): string | null {
@@ -22,12 +22,12 @@ export function parentDirOf(path: string): string | null {
  */
 export async function revealInFileManager(path: string): Promise<void> {
   try {
-    await revealItemInDir(path);
+    await openerPort.revealItemInDir(path);
   } catch (revealErr) {
     const parent = parentDirOf(path);
     if (parent) {
       try {
-        await openPath(parent);
+        await openerPort.openPath(parent);
         return;
       } catch {
         /* report the reveal error below — it is the one that explains why */
