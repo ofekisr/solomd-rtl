@@ -1,6 +1,5 @@
 import { watch, onMounted, onBeforeUnmount } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { eventsPort, fsPort, type UnlistenFn } from '../platform/index.ts';
 import { useTabsStore } from '../stores/tabs';
 import { useSettingsStore } from '../stores/settings';
 import type { FileReadResult } from '../types';
@@ -46,7 +45,7 @@ export function useFileWatcher(showDialog: ShowDialog) {
 
     for (const path of toWatch) {
       try {
-        await invoke('watch_file', { path });
+        await fsPort.watchFile({ path });
         watchedPaths.add(path);
       } catch (e) {
         console.warn('watch_file failed:', e);
@@ -55,7 +54,7 @@ export function useFileWatcher(showDialog: ShowDialog) {
 
     for (const path of toUnwatch) {
       try {
-        await invoke('unwatch_file', { path });
+        await fsPort.unwatchFile({ path });
       } catch (e) {
         console.warn('unwatch_file failed:', e);
       }
@@ -64,7 +63,7 @@ export function useFileWatcher(showDialog: ShowDialog) {
   }
 
   async function reloadTab(tabId: string, filePath: string) {
-    const result = await invoke<FileReadResult>('read_file', { path: filePath });
+    const result = await fsPort.readFile({ path: filePath });
     // CRLF→LF normalization, encoding, BOM and line-ending all live in
     // `applyDiskRead` so a reload and a fresh open cannot drift apart.
     tabs.applyDiskRead(tabId, {
@@ -76,7 +75,7 @@ export function useFileWatcher(showDialog: ShowDialog) {
 
   /** A file's current bytes, normalized the way a tab stores them. */
   async function readNormalized(filePath: string) {
-    const result = await invoke<FileReadResult>('read_file', { path: filePath });
+    const result = await fsPort.readFile({ path: filePath });
     const normalized = result.content.includes('\r\n')
       ? result.content.replace(/\r\n/g, '\n')
       : result.content;
@@ -118,8 +117,8 @@ export function useFileWatcher(showDialog: ShowDialog) {
         } else if (action === 'overwrite') {
           const payload =
             tab.lineEnding === 'crlf' ? tab.content.replace(/\n/g, '\r\n') : tab.content;
-          await invoke('write_file', {
-            path: tab.filePath,
+          await fsPort.writeFile({
+            path: filePath,
             content: payload,
             encoding: tab.encoding || 'UTF-8',
           });
@@ -217,14 +216,14 @@ export function useFileWatcher(showDialog: ShowDialog) {
 
   onMounted(async () => {
     try {
-      unlistenAi = await listen<AiActivityEvent>(AI_ACTIVITY_EVENT, (e) => applyAiActivity(e.payload));
+      unlistenAi = await eventsPort.listen<AiActivityEvent>(AI_ACTIVITY_EVENT, (e) => applyAiActivity(e.payload));
     } catch (e) {
       console.warn('ai-activity listener failed:', e);
     }
     await syncWatchedPaths();
 
     try {
-      unlisten = await listen<string>('solomd://file-changed', (e) => {
+      unlisten = await eventsPort.listen<string>('solomd://file-changed', (e) => {
         if (e.payload) handleFileChanged(e.payload);
       });
     } catch (e) {
@@ -250,7 +249,7 @@ export function useFileWatcher(showDialog: ShowDialog) {
     unlistenAi = null;
     for (const path of watchedPaths) {
       try {
-        await invoke('unwatch_file', { path });
+        await fsPort.unwatchFile({ path });
       } catch {}
     }
     watchedPaths.clear();

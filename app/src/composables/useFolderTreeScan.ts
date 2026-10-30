@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/core';
+import { fsPort } from '../platform/index.ts';
 import type { ScannedFolder, TreeEntry } from '../lib/mindmap-folder-tree';
 import { folderState, joinPath, type ScopeRules } from '../lib/mindmap-folder-scope';
 
@@ -20,7 +20,7 @@ function absPathOf(rootAbs: string, relPath: string): string {
 }
 
 async function readDir(absPath: string): Promise<DirEntry[]> {
-  const entries = await invoke<DirEntry[]>('list_dir', { path: absPath, showHidden: true });
+  const entries = await fsPort.listDir({ path: absPath, showHidden: true });
   return entries.filter((entry) => entry.name !== TRUNCATED_SENTINEL);
 }
 

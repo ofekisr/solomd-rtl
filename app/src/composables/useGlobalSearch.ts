@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/core';
+import { fsPort } from '../platform/index.ts';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useToastsStore } from '../stores/toasts';
 
@@ -44,7 +44,7 @@ export function useGlobalSearch() {
     if (!folder) return { hits: [], error: 'Open a folder first to enable global search' };
     if (!query.trim()) return { hits: [], error: null };
     try {
-      const hits = await invoke<SearchHit[]>('search_in_dir', {
+      const hits = await fsPort.searchInDir({
         root: folder,
         query,
         maxResults,

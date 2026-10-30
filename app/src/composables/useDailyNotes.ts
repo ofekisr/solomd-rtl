@@ -18,8 +18,7 @@
  * is responsible for adding them — see SUMMARY.md for the contract.
  */
 
-import { invoke } from '@tauri-apps/api/core';
-import { sep } from '@tauri-apps/api/path';
+import { fsPort, pathPort } from '../platform/index.ts';
 import { useFiles } from './useFiles';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useSettingsStore } from '../stores/settings';
@@ -57,10 +56,10 @@ function readDailySettings(): DailySettings {
 }
 
 function joinPath(...parts: string[]): string {
-  // `sep()` is a string accessor on @tauri-apps/api/path. On macOS/Linux it's
+  // `sep()` is a string accessor on the path port. On macOS/Linux it's
   // '/', on Windows '\\'. We strip leading/trailing separators on inner parts
   // so user-typed `Daily/` or `/Daily` both work.
-  const s = sep();
+  const s = pathPort.sep();
   return parts
     .filter((p) => !!p)
     .map((p, i) => {
@@ -82,7 +81,7 @@ function stem(filename: string): string {
 
 async function fileExists(path: string): Promise<boolean> {
   try {
-    await invoke('read_file', { path });
+    await fsPort.readFile({ path });
     return true;
   } catch {
     return false;
@@ -139,7 +138,7 @@ export function useDailyNotes() {
       // `write_binary_file` is used here (rather than `write_file`) because
       // it creates missing parent directories for us.
       const bytes = Array.from(new TextEncoder().encode(body));
-      await invoke('write_binary_file', { path: fullPath, data: bytes });
+      await fsPort.writeBinaryFile({ path: fullPath, data: bytes });
     } catch (e) {
       toasts.error(`Failed to create ${filename}: ${e}`);
       return;

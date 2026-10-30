@@ -5,7 +5,7 @@
  * Every run is planned first (dry run + buffer pass) so the caller can show
  * exact counts before anything is written.
  */
-import { invoke } from '@tauri-apps/api/core';
+import { fsPort } from '../platform/index.ts';
 import { inFolder, useTabsStore } from '../stores/tabs';
 import type { SearchOptions } from './useGlobalSearch';
 
@@ -67,13 +67,13 @@ export function useFolderReplace() {
   }
 
   function runOnDisk(input: ReplaceInput, exclude: string[], dryRun: boolean) {
-    return invoke<DiskSummary>('replace_in_dir', {
+    return fsPort.replaceInDir({
       request: { ...input, only: input.only ?? null, exclude, dryRun },
     });
   }
 
   async function planBuffer(input: ReplaceInput, tabId: string, text: string, filePath: string): Promise<BufferEdit> {
-    const res = await invoke<{ text: string; count: number }>('replace_in_text', {
+    const res = await fsPort.replaceInText({
       text,
       filePath,
       query: input.query,
