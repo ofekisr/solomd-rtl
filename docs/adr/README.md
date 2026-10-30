@@ -37,3 +37,5 @@ What gets easier, what gets harder, what we now must do.
 | [0002](0002-arch-specs-not-eslint.md) | Architecture rules as `node --test` specs, not ESLint | accepted |
 | [0003](0003-platform-ports.md) | Platform ports: command catalogs, generic adapters, report-mode Zod | accepted |
 | [0004](0004-editor-feature-registry.md) | Editor features: an ordered registry of slots, commands and lifecycle hooks | accepted |
+| [0005](0005-settings-slices.md) | Settings: typed slices over one flat blob, a versioned loader, and a page registry | accepted |
+| [0006](0006-strict-ipc-validation-in-dev.md) | IPC validation: strict in dev, off in production | accepted |

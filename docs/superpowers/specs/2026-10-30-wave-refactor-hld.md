@@ -1,6 +1,6 @@
 ## HLD: Wave Refactor — therapy-os principles for solomd-rtl
 
-**Status**: Stable | **Version**: v3.2 | **Date**: 30-10-26
+**Status**: Stable | **Version**: v3.3 | **Date**: 31-10-26
 
 ---
 
@@ -17,6 +17,7 @@
 - **v3.0** (30-10-26): AI wave moved last (AI features not in use yet); Q3 resolved — desktop + web only
 - **v3.1** (30-10-26): corrected raw invoke count (~100 → ~250)
 - **v3.2** (30-10-26): added Wave 1b — no wave owned `App.vue` after Wave 1 (2005 lines)
+- **v3.3** (31-10-26): §5 — the settings schema splits into slices in Wave 3; the stored blob stays one flat object (Wave 3 LLD S1, ADR 0005)
 
 **Scope**
 - In: `app/src`, `app/src-tauri/src`, `mcp-mindmap/`, agent docs (`CLAUDE.md` layering), quality gates.
@@ -88,7 +89,7 @@ Estimates assume Claude executes with the user reviewing each PR.
 
 ### 5. Data model
 
-No persisted-data change except Wave 4: today's single settings blob splits into per-feature slices behind a versioned migration (same approach as `lib/theme/migrate.ts`). Old settings files must load unchanged.
+Wave 3 splits the settings **schema** into per-feature slices behind a versioned loader (same approach as `lib/theme/migrate.ts`; [ADR 0005](../../adr/0005-settings-slices.md)). The **stored blob does not split**: it stays one flat object under `solomd.settings.v1`, gains a `settingsVersion` number, and old settings files load unchanged. Other stores read flat keys from it, and older builds must still read it. No other wave changes persisted data.
 
 ### 6. Key decisions
 
@@ -124,7 +125,7 @@ No persisted-data change except Wave 4: today's single settings blob splits into
 ### AI Context YAML
 
 ```yaml
-hld_version: v3.2
+hld_version: v3.3
 feature: "Wave Refactor — therapy-os principles"
 status: stable
 waves:
