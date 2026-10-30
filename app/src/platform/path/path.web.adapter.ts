@@ -1,4 +1,4 @@
-import { PlatformUnsupportedError } from '../ipc/command.port.ts';
+import { PlatformUnsupportedError } from '../ipc/platform-error.ts';
 import type { PathPort } from './path.port.ts';
 
 const unsupported = (operation: string): Promise<never> =>

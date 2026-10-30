@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { z } from 'zod';
-import { createValidation } from './validation.service.ts';
+import { createValidation, resolveValidationMode } from './validation.service.ts';
 
 const schema = z.object({ path: z.string() });
 
@@ -39,4 +39,11 @@ test('report logs each distinct message once per instance', () => {
   validation.check('read_file', 'args', schema, { path: 2 });
   validation.check('read_file', 'args', schema, {});
   assert.equal(seen.length, 2);
+});
+
+test('resolveValidationMode is strict in dev and off otherwise', () => {
+  assert.equal(resolveValidationMode({ DEV: true }), 'strict');
+  assert.equal(resolveValidationMode({ DEV: false }), 'off');
+  assert.equal(resolveValidationMode({}), 'off');
+  assert.equal(resolveValidationMode(undefined), 'off');
 });

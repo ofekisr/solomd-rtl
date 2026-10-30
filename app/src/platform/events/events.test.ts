@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { PlatformUnsupportedError } from '../ipc/command.port.ts';
+import { PlatformUnsupportedError } from '../ipc/platform-error.ts';
 import { createTauriEventsPort } from './events.tauri.adapter.ts';
 import { createWebEventsPort } from './events.web.adapter.ts';
 import type { PlatformEvent, UnlistenFn } from './events.port.ts';

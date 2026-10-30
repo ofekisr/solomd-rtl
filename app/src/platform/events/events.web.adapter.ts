@@ -1,4 +1,4 @@
-import { PlatformUnsupportedError } from '../ipc/command.port.ts';
+import { PlatformUnsupportedError } from '../ipc/platform-error.ts';
 import type { EventsPort } from './events.port.ts';
 
 export function createWebEventsPort(): EventsPort {

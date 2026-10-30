@@ -1,4 +1,4 @@
-import { PlatformUnsupportedError } from '../ipc/command.port.ts';
+import { PlatformUnsupportedError } from '../ipc/platform-error.ts';
 import type { PlatformWebviewWindow, WindowEvent, WindowPort } from './window.port.ts';
 import type { UnlistenFn } from '../events/events.port.ts';
 

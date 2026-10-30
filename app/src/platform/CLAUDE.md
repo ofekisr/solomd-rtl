@@ -29,7 +29,7 @@ Rust paths are under `src-tauri/src/` (files holding the port's `#[tauri::comman
 | `clipboard/` | `clipboardPort` | plugin | `plugin-clipboard-manager` |
 | `path/` | `pathPort` | plugin | `@tauri-apps/api/path`, `@tauri-apps/api/core` `convertFileSrc`, `plugin-fs` |
 
-`ipc/` is the generic core: catalog types, Tauri/web command adapters, validation, fixture checker.
+`ipc/` is the generic core: catalog types (`command.port.ts`), `command-name.ts` (`snakeToCamel`), `platform-error.ts` (`PlatformUnsupportedError`), Tauri/web command adapters, validation (`resolveValidationMode`), fixture checker.
 
 ## Rules
 
@@ -37,7 +37,7 @@ Rust paths are under `src-tauri/src/` (files holding the port's `#[tauri::comman
 - Adapters return raw IPC results and never wrap errors.
 - Sync stays sync (`windowPort.currentWindow`, `pathPort.sep`).
 - Web adapters reject with `PlatformUnsupportedError` (sync methods throw it).
-- `.port.ts` holds types and Zod only; no `@tauri-apps/*`. Exception: `ipc/command.port.ts` also holds `PlatformUnsupportedError` and `snakeToCamel` (moving them is parked for Wave 2).
+- `.port.ts` holds types and Zod only; no `@tauri-apps/*`. `ipc/command.port.ts` holds types only; `PlatformUnsupportedError` lives in `ipc/platform-error.ts`, `snakeToCamel` in `ipc/command-name.ts`.
 - Adapters export their injected-module types as test seams.
 - Schemas must match Rust serde output and the args callers pass today.
 
@@ -45,9 +45,9 @@ Rust paths are under `src-tauri/src/` (files holding the port's `#[tauri::comman
 
 | Mode | Where | Behavior |
 |---|---|---|
-| `report` | dev (`import.meta.env.DEV`) | Warn `[platform:drift]` on schema mismatch |
+| `strict` | dev (`import.meta.env.DEV`), unit tests | Throw on schema mismatch ([ADR 0006](../../../docs/adr/0006-strict-ipc-validation-in-dev.md)) |
 | `off` | prod | No parsing |
-| `strict` | adapter and validation unit tests | Throw on mismatch |
+| `report` | only callers passing it to `createValidation` | Warn `[platform:drift]` once, return raw value |
 
 ## Add a command
 

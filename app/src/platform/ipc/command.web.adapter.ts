@@ -1,4 +1,6 @@
-import { PlatformUnsupportedError, snakeToCamel, type CommandCatalog, type CommandPort } from './command.port.ts';
+import { PlatformUnsupportedError } from './platform-error.ts';
+import { snakeToCamel } from './command-name.ts';
+import type { CommandCatalog, CommandPort } from './command.port.ts';
 
 export function createWebPort<C extends CommandCatalog>(catalog: C, overrides: Partial<CommandPort<C>> = {}): CommandPort<C> {
   const port: Record<string, () => Promise<never>> = {};

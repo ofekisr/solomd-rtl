@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { PlatformUnsupportedError } from '../ipc/command.port.ts';
+import { PlatformUnsupportedError } from '../ipc/platform-error.ts';
 import { createTauriOpenerPort } from './opener.tauri.adapter.ts';
 import { createWebOpenerPort } from './opener.web.adapter.ts';
 

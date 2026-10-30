@@ -1,4 +1,4 @@
-import { PlatformUnsupportedError } from '../ipc/command.port.ts';
+import { PlatformUnsupportedError } from '../ipc/platform-error.ts';
 import type { DialogPort } from './dialog.port.ts';
 
 export function createWebDialogPort(): DialogPort {

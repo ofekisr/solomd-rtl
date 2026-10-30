@@ -1,7 +1,8 @@
 import { invoke } from '@tauri-apps/api/core';
 import { isTauri } from '../lib/platform.ts';
-import { PlatformUnsupportedError, type InvokeFn } from './ipc/command.port.ts';
-import { createValidation, type ValidationMode } from './ipc/validation.service.ts';
+import { PlatformUnsupportedError } from './ipc/platform-error.ts';
+import type { InvokeFn } from './ipc/command.port.ts';
+import { createValidation, resolveValidationMode } from './ipc/validation.service.ts';
 import type { AiPort } from './ai/ai.port.ts';
 import { createTauriAiPort } from './ai/ai.tauri.adapter.ts';
 import { createWebAiPort } from './ai/ai.web.adapter.ts';
@@ -63,12 +64,8 @@ import { createWebWindowCommandsPort } from './window/window-commands.web.adapte
 export type { UnlistenFn, PlatformEvent } from './events/events.port.ts';
 export { PlatformUnsupportedError };
 
-function resolveValidationMode(): ValidationMode {
-  return import.meta.env?.DEV ? 'report' : 'off';
-}
-
 const isDesktop = isTauri();
-const validation = createValidation(resolveValidationMode());
+const validation = createValidation(resolveValidationMode(import.meta.env));
 
 export const fsPort: FsPort = isDesktop ? createTauriFsPort(invoke, validation) : createWebFsPort();
 export const androidPort: AndroidPort = isDesktop ? createTauriAndroidPort(invoke, validation) : createWebAndroidPort();

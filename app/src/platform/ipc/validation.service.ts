@@ -9,6 +9,10 @@ export interface Validation {
   check(operation: string, part: ValidationPart, schema: z.ZodType | undefined, value: unknown): void;
 }
 
+export function resolveValidationMode(env: { readonly DEV?: boolean } | undefined): ValidationMode {
+  return env?.DEV ? 'strict' : 'off';
+}
+
 const ROOT_PATH = '(root)';
 
 export function createValidation(mode: ValidationMode, report: DriftReporter = (message) => console.warn(message)): Validation {

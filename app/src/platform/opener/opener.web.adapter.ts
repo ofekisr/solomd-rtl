@@ -1,4 +1,4 @@
-import { PlatformUnsupportedError } from '../ipc/command.port.ts';
+import { PlatformUnsupportedError } from '../ipc/platform-error.ts';
 import type { OpenerPort } from './opener.port.ts';
 
 export function createWebOpenerPort(): OpenerPort {

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { z } from 'zod';
-import { PlatformUnsupportedError, type CommandCatalog } from './command.port.ts';
+import { PlatformUnsupportedError } from './platform-error.ts';
+import type { CommandCatalog } from './command.port.ts';
 import { createWebPort } from './command.web.adapter.ts';
 
 const catalog = {

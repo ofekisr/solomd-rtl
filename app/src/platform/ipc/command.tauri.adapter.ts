@@ -1,4 +1,5 @@
-import { snakeToCamel, type CommandCatalog, type CommandPort, type CommandSpec, type InvokeFn } from './command.port.ts';
+import { snakeToCamel } from './command-name.ts';
+import type { CommandCatalog, CommandPort, CommandSpec, InvokeFn } from './command.port.ts';
 import type { Validation } from './validation.service.ts';
 
 type RawMethod = (args?: Record<string, unknown>) => Promise<unknown>;

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { PlatformUnsupportedError } from '../ipc/command.port.ts';
+import { PlatformUnsupportedError } from '../ipc/platform-error.ts';
 import { catalogFixtureProblems, type CatalogFixtures } from '../ipc/catalog-fixtures.ts';
 import { createTauriPort } from '../ipc/command.tauri.adapter.ts';
 import { createValidation } from '../ipc/validation.service.ts';

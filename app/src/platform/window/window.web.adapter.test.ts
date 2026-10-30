@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { PlatformUnsupportedError } from '../ipc/command.port.ts';
+import { PlatformUnsupportedError } from '../ipc/platform-error.ts';
 import { createWebWindowPort } from './window.web.adapter.ts';
 
 const isUnsupported = (operation: string) => (e: unknown): boolean =>
