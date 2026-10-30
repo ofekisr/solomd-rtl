@@ -31,8 +31,8 @@ export function directiveCompletionSource(
 
   const options: Completion[] = shared.options.map((sharedOption) => ({
     label: sharedOption.label,
-    detail: sharedOption.detail,
-    info: sharedOption.info,
+    detail: sharedOption.detail ?? undefined,
+    info: sharedOption.info ?? undefined,
     type: shared.kind === "snippet" ? "snippet" : "keyword",
     apply: (view, _completion, from, to) => {
       const applied = applyDirectiveCompletion(

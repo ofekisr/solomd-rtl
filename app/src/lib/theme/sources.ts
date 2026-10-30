@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/core';
+import { settingsPort } from '../../platform/index.ts';
 import { parseTheme, serializeTheme, type Theme } from './schema.ts';
 
 type JsonFile = { id: string; json: string };
@@ -18,7 +18,7 @@ function parseFile(file: JsonFile): { theme?: Theme; error?: string } {
 }
 
 async function listFiles(): Promise<JsonFile[]> {
-  const files = await invoke<JsonFile[] | null>('theme_json_list').catch(() => null);
+  const files = await settingsPort.themeJsonList().catch(() => null);
   return Array.isArray(files) ? files : [];
 }
 
@@ -31,9 +31,9 @@ export async function loadMyThemes(): Promise<{ themes: Theme[]; errors: string[
 }
 
 export async function saveMyTheme(theme: Theme): Promise<void> {
-  await invoke('theme_json_save', { id: theme.id, json: serializeTheme(theme) });
+  await settingsPort.themeJsonSave({ id: theme.id, json: serializeTheme(theme) });
 }
 
 export async function removeMyTheme(id: string): Promise<void> {
-  await invoke('theme_json_remove', { id });
+  await settingsPort.themeJsonRemove({ id });
 }

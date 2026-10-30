@@ -6,8 +6,8 @@ import type {
 
 export interface DirectiveCompletionOption {
   label: string;
-  detail?: string;
-  info?: string;
+  detail?: string | null;
+  info?: string | null;
   insertText: string;
   cursorOffset: number;
 }
@@ -248,8 +248,8 @@ function keyOption(directive: DirectiveDefinition): DirectiveCompletionOption {
 function option(
   label: string,
   insertText: string,
-  detail?: string,
-  info?: string,
+  detail?: string | null,
+  info?: string | null,
 ): DirectiveCompletionOption {
   return { label, insertText, cursorOffset: insertText.length, detail, info };
 }

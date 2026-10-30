@@ -31,7 +31,7 @@ export function nativeDirectiveCompletion(
     to: sharedContext.to,
     items: sharedContext.options.map((option) => ({
       label: option.label,
-      hint: option.detail ?? option.info,
+      hint: option.detail ?? option.info ?? undefined,
       insert: option.insertText,
       cursorOffset: option.cursorOffset,
     })),

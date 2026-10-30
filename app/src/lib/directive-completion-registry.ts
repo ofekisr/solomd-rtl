@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/core';
+import { settingsPort } from '../platform/index.ts';
 
 export interface DirectiveGrammar {
   opening: string;
@@ -12,9 +12,9 @@ export interface DirectiveDefinition {
   key: string;
   type: string;
   values: readonly string[];
-  default?: string;
-  label?: string;
-  description?: string;
+  default?: string | null;
+  label?: string | null;
+  description?: string | null;
 }
 
 export interface LoadedDirectiveCompletionManifest {
@@ -75,7 +75,7 @@ export async function loadDirectiveCompletions(): Promise<DirectiveCompletionLoa
   if (typeof window === 'undefined' || !('__TAURI_INTERNALS__' in window)) {
     return EMPTY_RESULT;
   }
-  return invoke<DirectiveCompletionLoadResult>('directive_completions_load');
+  return settingsPort.directiveCompletionsLoad();
 }
 
 function freezeLoadResult(

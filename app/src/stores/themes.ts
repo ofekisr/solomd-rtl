@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { invoke } from '@tauri-apps/api/core';
+import { settingsPort } from '../platform/index.ts';
 
 /**
  * v2.5 — Community theme marketplace store.
@@ -125,7 +125,7 @@ export const useThemesStore = defineStore('themes', {
 
     async refreshInstalled() {
       try {
-        this.installed = await invoke<InstalledTheme[]>('theme_list_installed');
+        this.installed = await settingsPort.themeListInstalled();
       } catch (e) {
         // Don't surface this as a user error — the dir may not exist yet.
         console.warn('theme_list_installed failed:', e);
@@ -144,7 +144,7 @@ export const useThemesStore = defineStore('themes', {
         if (!res.ok) throw new Error(`download HTTP ${res.status}`);
         const css = await res.text();
         if (!css.trim()) throw new Error('downloaded CSS is empty');
-        const result = await invoke<{ path: string }>('theme_install', {
+        const result = await settingsPort.themeInstall({
           id: theme.id,
           css,
         });
@@ -156,7 +156,7 @@ export const useThemesStore = defineStore('themes', {
     },
 
     async uninstall(id: string): Promise<void> {
-      await invoke('theme_uninstall', { id });
+      await settingsPort.themeUninstall({ id });
       await this.refreshInstalled();
     },
 

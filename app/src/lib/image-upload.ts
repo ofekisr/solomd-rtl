@@ -12,7 +12,7 @@
  * the remaining fields are backend-specific (camelCase).
  */
 
-import { invoke } from '@tauri-apps/api/core';
+import { convertPort } from '../platform/index.ts';
 
 export type UploaderKind = 'none' | 'picgo' | 'command' | 'smms' | 's3' | 'github';
 
@@ -141,7 +141,7 @@ export function hasUploader(s: ImageUploadSettings): boolean {
 /** Invoke the Rust uploader. Resolves to the hosted URL; rejects with a
  *  human-readable message on failure. */
 export async function uploadImage(cfg: UploaderConfig, path: string): Promise<string> {
-  const url = await invoke<string>('upload_image', { config: cfg, path });
+  const url = await convertPort.uploadImage({ config: cfg, path });
   if (!url || typeof url !== 'string') throw new Error('empty url');
   return url.trim();
 }

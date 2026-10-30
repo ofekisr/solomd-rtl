@@ -18,7 +18,7 @@
  * decoration set is empty.
  */
 
-import { invoke } from '@tauri-apps/api/core';
+import { settingsPort } from '../platform/index.ts';
 import { RangeSetBuilder } from '@codemirror/state';
 import type { Extension } from '@codemirror/state';
 import {
@@ -168,7 +168,7 @@ export function spellcheckExtension(opts: SpellcheckOptions): Extension {
             misses = cached;
           } else {
             try {
-              const raw = await invoke<Misspelling[]>('spellcheck_check', { text });
+              const raw = await settingsPort.spellcheckCheck({ text });
               // Convert byte offsets → UTF-16 char offsets.
               misses = raw.map((m: Misspelling) => ({
                 word: m.word,
