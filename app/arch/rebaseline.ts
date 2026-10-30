@@ -8,6 +8,8 @@ import { checkRawIpc, collectRawIpc } from './raw-ipc.rule.ts';
 import { REPO_ROOT } from './scan.ts';
 
 const INIT_FLAG = '--init';
+const CHECK_FLAG = '--check';
+const TIGHT_HINT = 'baseline.json has slack. Run `pnpm --dir app arch:rebaseline` and commit baseline.json with the shrink. See app/arch/CLAUDE.md.';
 const EXIT_OK = 0;
 const EXIT_REFUSED = 1;
 
@@ -32,6 +34,33 @@ export function rebaseline(previous: Baseline, measured: Baseline): RebaselineRe
     ...checkLibPurity(measured.libPurity, previous.libPurity),
   ];
   return { baseline: shrink(previous, measured), increases };
+}
+
+export function slack(previous: Baseline, next: Baseline): string[] {
+  return [
+    ...Object.entries(previous.fileSize).flatMap(([path, lines]) => {
+      const now = next.fileSize[path];
+      if (now === undefined) return [`[arch:tight] fileSize ${path}: ${lines} → removed`];
+      return now < lines ? [`[arch:tight] fileSize ${path}: ${lines} → ${now}`] : [];
+    }),
+    ...droppedPaths('rawIpc', previous.rawIpc, next.rawIpc),
+    ...droppedPaths('libPurity', previous.libPurity, next.libPurity),
+  ];
+}
+
+function droppedPaths(key: string, previous: readonly string[], next: readonly string[]): string[] {
+  const kept = new Set(next);
+  return previous.filter((path) => !kept.has(path)).map((path) => `[arch:tight] ${key} ${path}: removed`);
+}
+
+function checkTight(previous: Baseline, next: Baseline): number {
+  const lines = slack(previous, next);
+  if (lines.length === 0) {
+    console.log(`baseline is tight: ${summary(previous)}`);
+    return EXIT_OK;
+  }
+  console.error([...lines, TIGHT_HINT].join('\n'));
+  return EXIT_REFUSED;
 }
 
 function shrink(previous: Baseline, measured: Baseline): Baseline {
@@ -61,11 +90,13 @@ function init(measured: Baseline): number {
 function main(args: readonly string[]): number {
   const measured = measure(REPO_ROOT);
   if (args.includes(INIT_FLAG)) return init(measured);
-  const { baseline, increases } = rebaseline(loadBaseline(), measured);
+  const previous = loadBaseline();
+  const { baseline, increases } = rebaseline(previous, measured);
   if (increases.length > 0) {
     console.error([...increases, 'rebaseline refused: baseline values may only go down.'].join('\n'));
     return EXIT_REFUSED;
   }
+  if (args.includes(CHECK_FLAG)) return checkTight(previous, baseline);
   writeFileSync(BASELINE_PATH, serializeBaseline(baseline));
   console.log(`baseline updated: ${summary(baseline)}`);
   return EXIT_OK;
