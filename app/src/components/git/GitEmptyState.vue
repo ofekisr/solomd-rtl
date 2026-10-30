@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from '../../i18n';
+import { openerPort } from '../../platform/index.ts';
 import { useGitPaneStore, type GitPaneStatus } from '../../stores/gitPane';
 import { useSettingsStore } from '../../stores/settings';
 
@@ -17,8 +18,7 @@ function trustRepo(): void {
 }
 
 async function openInstall(): Promise<void> {
-  const { openUrl } = await import('@tauri-apps/plugin-opener');
-  await openUrl(INSTALL_GIT_URL);
+  await openerPort.openUrl(INSTALL_GIT_URL);
 }
 </script>
 

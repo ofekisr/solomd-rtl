@@ -9,6 +9,7 @@ import { useFiles } from '../../composables/useFiles';
 import { groupChanges, type ChangeGroupId } from '../../lib/git-pane/groupChanges';
 import type { WireWorkingTreeFile } from '../../lib/git-pane/shared/models';
 import GitChangeRow from './GitChangeRow.vue';
+import { gitHistoryPort } from '../../platform/index.ts';
 import GitEmptyState from './GitEmptyState.vue';
 import GitConflictBanner from './GitConflictBanner.vue';
 import GitMenu, { type GitMenuItem } from './GitMenu.vue';
@@ -136,8 +137,7 @@ async function initRepo(): Promise<void> {
   const folder = workspace.currentFolder;
   if (!folder) return;
   try {
-    const { invoke } = await import('@tauri-apps/api/core');
-    await invoke('git_init_workspace', { folder, initialMessage: null, excludeAssets: false });
+    await gitHistoryPort.gitInitWorkspace({ folder, initialMessage: null, excludeAssets: false });
     await git.open(folder);
   } catch (e) {
     toasts.error(String(e));
