@@ -12,9 +12,7 @@
  */
 
 import { ref, computed, onMounted } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
-import { writeText } from '@tauri-apps/plugin-clipboard-manager';
-import { openPath, openUrl, revealItemInDir } from '@tauri-apps/plugin-opener';
+import { aiToolsPort, clipboardPort, openerPort } from '../platform/index.ts';
 import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useI18n } from '../i18n';
@@ -52,19 +50,17 @@ const claudeConfigPath = ref<string | null>(null);
 
 async function refreshAll() {
   try {
-    cli.value = await invoke<CliStatus>('cli_status');
+    cli.value = await aiToolsPort.cliStatus();
   } catch (e) {
     cli.value = { installed: false };
   }
   try {
-    mcp.value = await invoke<McpPath>('mcp_path');
+    mcp.value = await aiToolsPort.mcpPath();
   } catch (e) {
     mcp.value = { path: null, bundled: false };
   }
   try {
-    claudeConfigPath.value = await invoke<string | null>(
-      'mcp_claude_desktop_config_path'
-    );
+    claudeConfigPath.value = await aiToolsPort.mcpClaudeDesktopConfigPath();
   } catch {
     claudeConfigPath.value = null;
   }
@@ -77,13 +73,13 @@ onMounted(refreshAll);
 // ---------------------------------------------------------------------------
 
 async function copyInstallCmd() {
-  await writeText(CLI_INSTALL_CMD);
+  await clipboardPort.writeText(CLI_INSTALL_CMD);
   toasts.success(t('integrations.cliCopiedToast'));
 }
 
 async function showInstall() {
   // We don't run sudo from the GUI. Toast the command + copy it for them.
-  await writeText(CLI_INSTALL_CMD);
+  await clipboardPort.writeText(CLI_INSTALL_CMD);
   toasts.info(t('integrations.cliInstallToast') + '  ' + CLI_INSTALL_CMD);
 }
 
@@ -112,7 +108,7 @@ const claudeConfigJson = computed(() => {
 });
 
 async function copyMcpConfig() {
-  await writeText(claudeConfigJson.value);
+  await clipboardPort.writeText(claudeConfigJson.value);
   if (!workspace.currentFolder) {
     toasts.info(t('integrations.mcpNoWorkspace'));
   } else {
@@ -123,12 +119,12 @@ async function copyMcpConfig() {
 async function openClaudeConfigFile() {
   if (!claudeConfigPath.value) return;
   try {
-    await openPath(claudeConfigPath.value);
+    await openerPort.openPath(claudeConfigPath.value);
   } catch (e) {
     // File may not exist yet — reveal the parent folder so the user can
     // create it, or fall back to surfacing the path in a toast.
     try {
-      await revealItemInDir(claudeConfigPath.value);
+      await openerPort.revealItemInDir(claudeConfigPath.value);
     } catch {
       toasts.info(claudeConfigPath.value);
     }
@@ -137,7 +133,7 @@ async function openClaudeConfigFile() {
 
 async function openMcpDocs() {
   try {
-    await openUrl(MCP_DOCS_URL.value);
+    await openerPort.openUrl(MCP_DOCS_URL.value);
   } catch (e) {
     toasts.error(String(e));
   }
@@ -145,7 +141,7 @@ async function openMcpDocs() {
 
 async function openCliDocs() {
   try {
-    await openUrl(CLI_DOCS_URL.value);
+    await openerPort.openUrl(CLI_DOCS_URL.value);
   } catch (e) {
     toasts.error(String(e));
   }
@@ -171,7 +167,7 @@ const injectBusy = ref(false);
 
 async function refreshClients() {
   try {
-    const list = await invoke<AiClient[]>('detect_ai_clients');
+    const list = await aiToolsPort.detectAiClients();
     clients.value = list;
     // Default: tick every client whose config dir already exists AND that
     // doesn't already have a solomd entry. Skips clients that aren't
@@ -204,7 +200,7 @@ async function injectChecked() {
     let okCount = 0;
     for (const c of targets) {
       try {
-        await invoke<string>('inject_mcp', {
+        await aiToolsPort.injectMcp({
           clientId: c.id,
           workspace: workspace.currentFolder,
           allowWrite: injectAllowWrite.value,
@@ -227,7 +223,7 @@ async function injectChecked() {
 
 async function removeOne(c: AiClient) {
   try {
-    await invoke('remove_mcp', { clientId: c.id });
+    await aiToolsPort.removeMcp({ clientId: c.id });
     toasts.success(
       t('integrations.aiClientsRemovedToast', { name: c.display_name }),
     );
@@ -239,10 +235,10 @@ async function removeOne(c: AiClient) {
 
 async function openClientConfig(c: AiClient) {
   try {
-    await openPath(c.config_path);
+    await openerPort.openPath(c.config_path);
   } catch {
     try {
-      await revealItemInDir(c.config_path);
+      await openerPort.revealItemInDir(c.config_path);
     } catch {
       toasts.info(c.config_path);
     }

@@ -23,9 +23,7 @@
  */
 
 import { ref, computed, onMounted, reactive } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
-import { writeText } from '@tauri-apps/plugin-clipboard-manager';
-import { open as openDialog } from '@tauri-apps/plugin-dialog';
+import { aiToolsPort, clipboardPort, dialogPort } from '../platform/index.ts';
 import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useFiles } from '../composables/useFiles';
@@ -81,7 +79,7 @@ function syncDraftsFromStore() {
 
 onMounted(async () => {
   try {
-    mcpPath.value = await invoke<McpPath>('mcp_path');
+    mcpPath.value = await aiToolsPort.mcpPath();
   } catch {
     mcpPath.value = { path: null, bundled: false };
   }
@@ -108,7 +106,7 @@ function moveDraftEntry(d: DraftProfile, idx: number, delta: number) {
 }
 
 async function pickPathForEntry(d: DraftProfile, idx: number) {
-  const selected = await openDialog({
+  const selected = await dialogPort.open({
     directory: true,
     multiple: false,
     // The entry's own path when it still exists — otherwise the shared
@@ -252,7 +250,7 @@ async function copyConfigFor(d: DraftProfile) {
   }
   try {
     const snippet = await store.exportConfig(d.originalName, mcpPath.value.path);
-    await writeText(snippet);
+    await clipboardPort.writeText(snippet);
     if (!mcpPath.value.bundled) {
       toasts.info(t('integrations.profilesNoMcpBinary'));
     } else {

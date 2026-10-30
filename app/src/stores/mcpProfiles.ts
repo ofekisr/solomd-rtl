@@ -12,7 +12,7 @@
  * round-trip to Tauri lands.
  */
 import { defineStore } from 'pinia';
-import { invoke } from '@tauri-apps/api/core';
+import { aiToolsPort } from '../platform/index.ts';
 
 export interface McpWorkspaceEntry {
   alias: string;
@@ -53,7 +53,7 @@ export const useMcpProfilesStore = defineStore('mcpProfiles', {
       this.loading = true;
       this.error = '';
       try {
-        this.profiles = await invoke<McpProfile[]>('mcp_profiles_list');
+        this.profiles = await aiToolsPort.mcpProfilesList();
         this.loaded = true;
       } catch (e) {
         this.error = String((e as Error)?.message ?? e);
@@ -76,7 +76,7 @@ export const useMcpProfilesStore = defineStore('mcpProfiles', {
         const idx = this.profiles.findIndex((p) => p.name === profile.name);
         if (idx >= 0) this.profiles[idx] = profile;
         else this.profiles.push(profile);
-        this.profiles = await invoke<McpProfile[]>('mcp_profiles_save', {
+        this.profiles = await aiToolsPort.mcpProfilesSave({
           profile,
         });
       } finally {
@@ -88,7 +88,7 @@ export const useMcpProfilesStore = defineStore('mcpProfiles', {
       const before = this.profiles;
       this.profiles = this.profiles.filter((p) => p.name !== name);
       try {
-        this.profiles = await invoke<McpProfile[]>('mcp_profiles_delete', {
+        this.profiles = await aiToolsPort.mcpProfilesDelete({
           name,
         });
       } catch (e) {
@@ -99,7 +99,7 @@ export const useMcpProfilesStore = defineStore('mcpProfiles', {
     },
 
     async exportConfig(name: string, mcpPath: string | null): Promise<string> {
-      return await invoke<string>('mcp_profiles_export_config', {
+      return await aiToolsPort.mcpProfilesExportConfig({
         name,
         mcpPath: mcpPath ?? null,
       });
