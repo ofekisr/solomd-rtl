@@ -28,7 +28,7 @@
     "app/src/components/AIRewriteOverlay.vue": 711,
     "app/src/components/AISettings.vue": 1370,
     "app/src/components/AgentPanel.vue": 1014,
-    "app/src/components/AgentSetupWizard.vue": 700,
+    "app/src/components/AgentSetupWizard.vue": 699,
     "app/src/components/BasesView.vue": 839,
     "app/src/components/CjkProofread.vue": 586,
     "app/src/components/Editor.vue": 5026,

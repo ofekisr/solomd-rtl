@@ -297,7 +297,7 @@ export function useExport() {
         plantumlServer: settings.plantumlEnabled ? settings.plantumlServer : null,
       });
       toasts.dismiss(tid);
-      await fsPort.writeFile( { path, content: html, encoding: 'UTF-8' });
+      await fsPort.writeFile({ path, content: html, encoding: 'UTF-8' });
       toasts.success(isIOS() ? iosSavedToast(filename) : 'Exported to HTML');
     } catch (e) {
       toasts.dismiss(tid);
@@ -322,7 +322,7 @@ export function useExport() {
       );
       const buffer = new Uint8Array(await blob.arrayBuffer());
       // Tauri 2 serializes Uint8Array as a number array which Rust accepts as Vec<u8>.
-      await fsPort.writeBinaryFile( { path, data: Array.from(buffer) });
+      await fsPort.writeBinaryFile({ path, data: Array.from(buffer) });
       toasts.success(isIOS() ? iosSavedToast(filename) : 'Exported to DOCX');
     } catch (e) {
       console.error(e);
@@ -347,7 +347,7 @@ export function useExport() {
       );
       const blob = await markdownToPdfBlob(ctx.content, ctx.baseName, pdfOpts, ctx.filePath);
       const buffer = new Uint8Array(await blob.arrayBuffer());
-      await fsPort.writeBinaryFile( { path, data: Array.from(buffer) });
+      await fsPort.writeBinaryFile({ path, data: Array.from(buffer) });
       toasts.dismiss(tid);
       toasts.success(isIOS() ? iosSavedToast(filename) : 'Exported to PDF');
     } catch (e) {
@@ -503,7 +503,7 @@ export function useExport() {
     }
     try {
       await convertPort.printWebview();
-      // The native print sheet is modal; by the time invoke resolves,
+      // The native print sheet is modal; by the time the port call resolves,
       // the user has already dismissed it. Safe to tear down shortly after.
       setTimeout(cleanup, 100);
     } catch (e) {
@@ -536,7 +536,7 @@ export function useExport() {
         toasts.success(okMsg);
         return;
       } catch {
-        // fall through to Tauri plugin
+        // fall through to the port save-as
       }
     }
     try {
@@ -602,7 +602,7 @@ export function useExport() {
         branding: settings.imageExportBranding,
       });
       const buffer = new Uint8Array(await blob.arrayBuffer());
-      await fsPort.writeBinaryFile( { path, data: Array.from(buffer) });
+      await fsPort.writeBinaryFile({ path, data: Array.from(buffer) });
       toasts.dismiss(tid);
       const msg = isIOS()
         ? iosSavedToast(filename)
@@ -641,7 +641,7 @@ export function useExport() {
           toasts.success(isSelection ? 'Copied selection as image' : 'Copied as image');
           return;
         } catch {
-          // fall through to Tauri plugin
+          // fall through to the port save-as
         }
       }
 
@@ -662,7 +662,7 @@ export function useExport() {
             branding: settings.imageExportBranding,
           });
           const buffer = new Uint8Array(await blob2.arrayBuffer());
-          await fsPort.writeBinaryFile( { path, data: Array.from(buffer) });
+          await fsPort.writeBinaryFile({ path, data: Array.from(buffer) });
           toasts.success(isIOS() ? iosSavedToast(filename) : 'Clipboard failed — saved as PNG instead');
         } else {
           toasts.error(`Copy image failed: ${e}`);

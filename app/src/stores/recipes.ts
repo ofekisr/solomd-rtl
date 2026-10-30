@@ -109,9 +109,9 @@ export const useRecipesStore = defineStore('recipes', {
       this.lastError = null;
       try {
         const [recipes, pending, history] = await Promise.all([
-          aiToolsPort.recipesList( { workspace }),
-          aiToolsPort.recipesPendingRuns( { workspace }),
-          aiToolsPort.recipesHistory( { workspace }),
+          aiToolsPort.recipesList({ workspace }),
+          aiToolsPort.recipesPendingRuns({ workspace }),
+          aiToolsPort.recipesHistory({ workspace }),
         ]);
         this.recipes = recipes;
         this.pendingRuns = pending;
@@ -128,7 +128,7 @@ export const useRecipesStore = defineStore('recipes', {
     async runNow(workspace: string, slug: string): Promise<string | null> {
       this.lastError = null;
       try {
-        const runId = await aiToolsPort.recipesRunNow( { workspace, slug });
+        const runId = await aiToolsPort.recipesRunNow({ workspace, slug });
         // Refresh on completion is already triggered by the
         // `recipes-run-finished` listener; no need to await it here.
         return runId;
@@ -146,7 +146,7 @@ export const useRecipesStore = defineStore('recipes', {
     ): Promise<string | null> {
       this.lastError = null;
       try {
-        const path = await aiToolsPort.recipesSave( {
+        const path = await aiToolsPort.recipesSave({
           req: { workspace, yaml, slug: slug ?? null },
         });
         await this.refresh(workspace);
@@ -159,7 +159,7 @@ export const useRecipesStore = defineStore('recipes', {
 
     async readYaml(workspace: string, slug: string): Promise<string | null> {
       try {
-        return await aiToolsPort.recipesGet( { workspace, slug });
+        return await aiToolsPort.recipesGet({ workspace, slug });
       } catch (e) {
         this.lastError = String(e);
         return null;
@@ -168,7 +168,7 @@ export const useRecipesStore = defineStore('recipes', {
 
     async delete(workspace: string, slug: string): Promise<void> {
       try {
-        await aiToolsPort.recipesDelete( { workspace, slug });
+        await aiToolsPort.recipesDelete({ workspace, slug });
         await this.refresh(workspace);
       } catch (e) {
         this.lastError = String(e);
@@ -177,7 +177,7 @@ export const useRecipesStore = defineStore('recipes', {
 
     async readDiff(workspace: string, runId: string): Promise<string | null> {
       try {
-        return await aiToolsPort.recipesRunDiff( { workspace, runId });
+        return await aiToolsPort.recipesRunDiff({ workspace, runId });
       } catch (e) {
         this.lastError = String(e);
         return null;
@@ -186,7 +186,7 @@ export const useRecipesStore = defineStore('recipes', {
 
     async readTrace(workspace: string, runId: string): Promise<string | null> {
       try {
-        return await aiToolsPort.recipesReadTrace( { workspace, runId });
+        return await aiToolsPort.recipesReadTrace({ workspace, runId });
       } catch (e) {
         this.lastError = String(e);
         return null;
@@ -195,7 +195,7 @@ export const useRecipesStore = defineStore('recipes', {
 
     async readRunMd(workspace: string, runId: string): Promise<string | null> {
       try {
-        return await aiToolsPort.recipesReadRunMd( { workspace, runId });
+        return await aiToolsPort.recipesReadRunMd({ workspace, runId });
       } catch (e) {
         this.lastError = String(e);
         return null;
@@ -205,7 +205,7 @@ export const useRecipesStore = defineStore('recipes', {
     async accept(workspace: string, runId: string): Promise<boolean> {
       this.lastError = null;
       try {
-        await aiToolsPort.recipesAcceptRun( { workspace, runId });
+        await aiToolsPort.recipesAcceptRun({ workspace, runId });
         await this.refresh(workspace);
         return true;
       } catch (e) {
@@ -217,7 +217,7 @@ export const useRecipesStore = defineStore('recipes', {
     async reject(workspace: string, runId: string): Promise<boolean> {
       this.lastError = null;
       try {
-        await aiToolsPort.recipesRejectRun( { workspace, runId });
+        await aiToolsPort.recipesRejectRun({ workspace, runId });
         await this.refresh(workspace);
         return true;
       } catch (e) {

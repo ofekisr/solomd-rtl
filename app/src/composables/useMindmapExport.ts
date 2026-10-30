@@ -18,10 +18,10 @@ async function buildPayload(mind: MindElixirInstance, format: MindmapExportForma
 
 async function writePayload(path: string, payload: ExportPayload): Promise<void> {
   if (payload.kind === 'binary') {
-    await fsPort.writeBinaryFile( { path, data: Array.from(payload.bytes) });
+    await fsPort.writeBinaryFile({ path, data: Array.from(payload.bytes) });
     return;
   }
-  await fsPort.writeFile( { path, content: payload.content, encoding: TEXT_ENCODING });
+  await fsPort.writeFile({ path, content: payload.content, encoding: TEXT_ENCODING });
 }
 
 export function useMindmapExport() {

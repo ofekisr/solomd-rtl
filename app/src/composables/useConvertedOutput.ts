@@ -22,7 +22,7 @@ export function useConvertedOutput() {
 
   async function fileExists(path: string): Promise<boolean> {
     try {
-      return await fsPort.fsFileExists( { path });
+      return await fsPort.fsFileExists({ path });
     } catch {
       return false;
     }
@@ -36,7 +36,7 @@ export function useConvertedOutput() {
   }
 
   async function replaceTarget(output: ConvertedOutput, targetPath: string, open: Tab | undefined): Promise<Tab> {
-    await fsPort.writeFile( { path: targetPath, content: output.content, encoding: open?.encoding || UTF8 });
+    await fsPort.writeFile({ path: targetPath, content: output.content, encoding: open?.encoding || UTF8 });
     if (!open) return tabs.openFromDisk({ filePath: targetPath, content: output.content, encoding: UTF8, language: output.language, hadBom: false });
     tabs.applyExternalSave(open.id, output.content);
     tabs.activate(open.id);
@@ -48,7 +48,7 @@ export function useConvertedOutput() {
       tabs.activate(open.id);
       return open;
     }
-    const read = await fsPort.readFile( { path: targetPath });
+    const read = await fsPort.readFile({ path: targetPath });
     return tabs.openFromDisk({ filePath: targetPath, content: read.content, encoding: read.encoding, language: read.language, hadBom: read.had_bom });
   }
 

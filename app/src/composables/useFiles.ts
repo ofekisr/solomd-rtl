@@ -180,7 +180,7 @@ export function useFiles() {
    *  SoloMD Documents folder — mirroring what iOS does with Files-app opens —
    *  and hand back a real filesystem path for the rest of openPath. */
   async function importContentUri(uri: string): Promise<string> {
-    const bytes = await pathPort.readFile(uri as unknown as string);
+    const bytes = await pathPort.readFile(uri);
     // Recover a filename where the URI encodes one ("…document/primary%3A
     // Download%2Fnote.md"); opaque numeric document ids fall back to a
     // timestamped name.
@@ -771,7 +771,7 @@ export function useFiles() {
    *  save dialog had already created the (empty) document, which is how
    *  "Save As produced a 0-byte file" happened on Android. */
   async function writeContentUri(uri: string, payload: string): Promise<void> {
-    await pathPort.writeTextFile(uri as unknown as string, payload);
+    await pathPort.writeTextFile(uri, payload);
   }
 
   /** Display name for a content:// URI ("…%2Fnote.md" → "note.md"). */

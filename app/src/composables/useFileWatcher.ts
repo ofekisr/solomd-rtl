@@ -118,7 +118,7 @@ export function useFileWatcher(showDialog: ShowDialog) {
           const payload =
             tab.lineEnding === 'crlf' ? tab.content.replace(/\n/g, '\r\n') : tab.content;
           await fsPort.writeFile({
-            path: filePath,
+            path: tab.filePath!,
             content: payload,
             encoding: tab.encoding || 'UTF-8',
           });

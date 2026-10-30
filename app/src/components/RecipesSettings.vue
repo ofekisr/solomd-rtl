@@ -208,7 +208,7 @@ async function toggleHistory(run: RunMeta) {
 async function onReplayFromStep(runId: string, payload: { seq: number; runId: string }) {
   if (!folder.value) return;
   try {
-    const newRunId = await aiPort.agentTraceReplayFrom( {
+    const newRunId = await aiPort.agentTraceReplayFrom({
       workspace: folder.value,
       runId: payload.runId ?? runId,
       seq: payload.seq,
@@ -363,7 +363,7 @@ async function installCookbookEntry(entry: CookbookEntry) {
   }
   installing.value = entry.file_stem;
   try {
-    const path = await aiToolsPort.cookbookInstall( {
+    const path = await aiToolsPort.cookbookInstall({
       workspace: folder.value,
       fileStem: entry.file_stem,
     });

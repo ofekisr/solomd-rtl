@@ -19,7 +19,7 @@
  *   3. Done — closes wizard, marks `agentWizardSeen` so it doesn't re-fire.
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { aiPort, openerPort } from '../platform/index.ts';
+import { aiPort, eventsPort, openerPort, type UnlistenFn } from '../platform/index.ts';
 import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
 import { PROVIDERS, providerById } from '../lib/ai-providers';
@@ -127,7 +127,6 @@ async function saveCloudKey() {
 //     `request_id`.
 // `baseUrl` is optional and defaults to localhost; we pass the configured
 // one so a user who already pointed SoloMD at a LAN box sees it here too.
-import { eventsPort, type UnlistenFn } from '../platform/index.ts';
 
 interface OllamaDetect {
   ok: boolean;

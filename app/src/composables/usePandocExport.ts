@@ -239,7 +239,7 @@ export function usePandocExport() {
     track('file_exported', { format: `pandoc_${format}` });
     const tid = toasts.info(`Exporting via Pandoc (${format})…`, 0);
     try {
-      await convertPort.pandocExport( {
+      await convertPort.pandocExport({
         args: {
           input_markdown: content,
           format,
@@ -276,7 +276,7 @@ export function usePandocExport() {
     }
     try {
       // The Rust `read_file` command returns `{ content, encoding, … }`.
-      const result = await fsPort.readFile( { path });
+      const result = await fsPort.readFile({ path });
       const content = result?.content ?? '';
       const entries =
         detectCitationFormat(path) === 'csl-json'

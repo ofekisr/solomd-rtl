@@ -88,7 +88,7 @@ export const useAgentTraceStore = defineStore('agentTrace', {
       }
       this.loading[key] = true;
       try {
-        const lines = await aiPort.agentTraceRead( {
+        const lines = await aiPort.agentTraceRead({
           workspace,
           runId,
         });
@@ -114,7 +114,7 @@ export const useAgentTraceStore = defineStore('agentTrace', {
       }
       this.loading[key] = true;
       try {
-        const list = await aiPort.agentTraceList( { workspace });
+        const list = await aiPort.agentTraceList({ workspace });
         this.runs[workspace] = list;
         this.error = null;
         return list;
@@ -132,7 +132,7 @@ export const useAgentTraceStore = defineStore('agentTrace', {
      * responsible for re-issuing the model call (P1's `ai_chat`).
      */
     async replayFrom(workspace: string, runId: string, seq: number): Promise<string> {
-      const newRunId = await aiPort.agentTraceReplayFrom( {
+      const newRunId = await aiPort.agentTraceReplayFrom({
         workspace,
         runId,
         seq,

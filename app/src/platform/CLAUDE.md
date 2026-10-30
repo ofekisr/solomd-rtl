@@ -5,21 +5,21 @@ Decision: [ADR 0003](../../../docs/adr/0003-platform-ports.md). Design: [Wave 1 
 
 ## Ports
 
-Rust paths are under `src-tauri/src/`. Command ports wrap `invoke`; plugin ports wrap a Tauri plugin or API module.
+Rust paths are under `src-tauri/src/` (files holding the port's `#[tauri::command]` fns). Command ports wrap `invoke`; plugin ports wrap a Tauri plugin or API module.
 
 | Dir | Export | Kind | Rust module(s) / plugin |
 |---|---|---|---|
-| `fs/` | `fsPort` | command | `commands.rs`, `search.rs`, `replace.rs`, `watcher.rs`, `portable.rs` |
+| `fs/` | `fsPort` | command | `commands.rs`, `search.rs`, `replace.rs`, `watcher.rs` |
 | `android/` | `androidPort` | command | `saf_android.rs`, `storage_android.rs` |
 | `cloud/` | `cloudPort` | command | `cloud_folder.rs` |
 | `convert/` | `convertPort` | command | `convert.rs`, `pandoc.rs`, `image_upload.rs` |
 | `git-sync/` | `gitSyncPort` | command | `github_sync.rs`, `crypto.rs` |
 | `git-history/` | `gitHistoryPort` | command | `git_history.rs` |
 | `git-pane/` | `gitPaneService()` | adapter over `lib/git-pane/service.ts` (`GitPaneService`) | `git_pane/` (`gitpane_*` commands, `gitpane:changed` event) |
-| `ai/` | `aiPort` | command | `ai_proxy.rs`, `ollama.rs`, `trace.rs`, `cost_meter.rs`, `agent_trace.rs` |
+| `ai/` | `aiPort` | command | `ai_proxy.rs`, `ollama.rs`, `cost_meter.rs`, `agent_trace.rs`, `agent_tools.rs`, `cjk_proofread.rs` |
 | `ai-tools/` | `aiToolsPort` | command | `recipe_runner.rs`, `integrations.rs`, `mcp_profiles.rs`, `cookbook.rs` |
 | `rag/` | `ragPort` | command | `rag.rs`, `workspace_index.rs` |
-| `settings/` | `settingsPort` | command | `themes.rs`, `spellcheck.rs`, `directive_completions.rs`, `set_default.rs` |
+| `settings/` | `settingsPort` | command | `themes.rs`, `spellcheck.rs`, `directive_completions.rs`, `set_default.rs`, `runner.rs` |
 | `capture/` | `capturePort` | command | `capture_endpoint.rs`, `quick_capture.rs`, `rest_api.rs` |
 | `window/` | `windowCommandsPort` | command | `runner.rs`, `win_chrome.rs`, `devtools.rs` |
 | `window/` | `windowPort` | API | `@tauri-apps/api` window, webview, app; deep-link plugin |
@@ -27,7 +27,7 @@ Rust paths are under `src-tauri/src/`. Command ports wrap `invoke`; plugin ports
 | `dialog/` | `dialogPort` | plugin | `plugin-dialog` |
 | `opener/` | `openerPort` | plugin | `plugin-opener` |
 | `clipboard/` | `clipboardPort` | plugin | `plugin-clipboard-manager` |
-| `path/` | `pathPort` | plugin | `@tauri-apps/api/path`, `plugin-fs` |
+| `path/` | `pathPort` | plugin | `@tauri-apps/api/path`, `@tauri-apps/api/core` `convertFileSrc`, `plugin-fs` |
 
 `ipc/` is the generic core: catalog types, Tauri/web command adapters, validation, fixture checker.
 
@@ -37,7 +37,8 @@ Rust paths are under `src-tauri/src/`. Command ports wrap `invoke`; plugin ports
 - Adapters return raw IPC results and never wrap errors.
 - Sync stays sync (`windowPort.currentWindow`, `pathPort.sep`).
 - Web adapters reject with `PlatformUnsupportedError` (sync methods throw it).
-- `.port.ts` holds types and Zod only; no `@tauri-apps/*`.
+- `.port.ts` holds types and Zod only; no `@tauri-apps/*`. Exception: `ipc/command.port.ts` also holds `PlatformUnsupportedError` and `snakeToCamel` (moving them is parked for Wave 2).
+- Adapters export their injected-module types as test seams.
 - Schemas must match Rust serde output and the args callers pass today.
 
 ## Validation modes
@@ -46,12 +47,12 @@ Rust paths are under `src-tauri/src/`. Command ports wrap `invoke`; plugin ports
 |---|---|---|
 | `report` | dev (`import.meta.env.DEV`) | Warn `[platform:drift]` on schema mismatch |
 | `off` | prod | No parsing |
-| `strict` | tests | Throw on mismatch |
+| `strict` | adapter and validation unit tests | Throw on mismatch |
 
 ## Add a command
 
 1. Add the entry to the domain's `<x>Commands` catalog in `<x>.port.ts` (args + result Zod).
-2. Add a fixture in `<x>.port.test.ts`; `catalogFixtureProblems` fails on missing or invalid ones.
+2. Add a fixture in `<x>.port.test.ts`; `catalogFixtureProblems` (used by catalog tests, not `strict`) fails on missing or invalid ones.
 3. The method name is the camelCased command; no adapter edit needed.
 
 ## Add a domain
