@@ -1,0 +1,99 @@
+.toolbar__group {
+  display: flex;
+  gap: 1px;
+  align-items: center;
+}
+.toolbar__group button {
+  font-size: 12px;
+  padding: 4px 10px;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+}
+.toolbar__group button.active {
+  background: var(--bg-active);
+  color: var(--accent);
+}
+.icon-btn {
+  padding: 5px 7px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.icon-btn:hover {
+  color: var(--text);
+}
+.icon-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.icon-btn:disabled:hover {
+  color: var(--text-muted);
+}
+.clean-ai-btn {
+  position: relative;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 11px !important;
+  padding: 3px 10px !important;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  gap: 2px;
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+.clean-ai-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft, rgba(255, 159, 64, 0.08));
+}
+.clean-ai-label {
+  letter-spacing: 0.04em;
+}
+.clean-ai-broom {
+  font-size: 11px;
+  opacity: 0.85;
+  margin-right: 1px;
+}
+.ai-rewrite-btn {
+  position: relative;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 11px !important;
+  padding: 3px 10px !important;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  gap: 2px;
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+.ai-rewrite-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft, rgba(255, 159, 64, 0.08));
+}
+.ai-rewrite-label { letter-spacing: 0.04em; }
+.ai-rewrite-spark { font-size: 11px; opacity: 0.85; margin-left: 2px; }
+
+/* v2.5 F6 — CJK proofread toolbar button. Uses the literal CJK glyph
+ * glyph instead of an SVG icon: it telegraphs the feature's CJK
+ * scope at a glance and matches Spell-check (a small icon-as-mark
+ * style sits in the same toolbar group). */
+.cjk-proof-btn {
+  font-family: var(--font-zh, 'PingFang SC', 'Hiragino Sans GB', sans-serif);
+  font-size: 13px !important;
+  font-weight: 700;
+  padding: 4px 8px !important;
+  line-height: 1;
+}
+.cjk-proof-glyph {
+  display: inline-block;
+}
+
+.toolbar__divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  margin: 0 4px;
+}
+

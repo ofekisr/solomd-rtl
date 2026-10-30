@@ -1,0 +1,42 @@
+.win-controls {
+  display: flex;
+  align-self: stretch;
+  align-items: stretch;
+  margin-left: auto;
+  position: sticky;
+  right: 0;
+  background: var(--bg-elev);
+}
+.win-controls__btn {
+  width: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  border-radius: 0;
+}
+.win-controls__btn:hover,
+.win-controls__btn.is-hover {
+  background: var(--bg-active);
+  color: var(--text);
+}
+/* Snap Layouts (future-proofing — NOT functional today, verified 2026-08-06
+   on the Win11-ARM VM). WebView2's non-client region support (wry enables
+   IsNonClientRegionSupportEnabled) currently only implements `app-region:
+   drag` — COREWEBVIEW2_NON_CLIENT_REGION_KIND has no MAXIMIZE, so this value
+   is ignored and the button works through its JS click handler (no hover
+   flyout; Win+Arrow / drag-to-edge / drag-to-top snapping all still work
+   natively). A top-level WM_NCHITTEST override can't claim the button
+   either: the mouse lands on the cross-process Chrome_RenderWidgetHostHWND
+   child first, and HTTRANSPARENT bubbling stops at thread boundaries
+   (probe4b). If a future runtime adds the maximize region kind, this rule +
+   the win_chrome.rs subclass (hover mirror + SC_MAXIMIZE) light up without
+   code changes. */
+.win-controls__btn--max {
+  -webkit-app-region: maximize;
+  app-region: maximize;
+}
+.win-controls__btn--close:hover {
+  background: #e81123;
+  color: #fff;
+}

@@ -1,0 +1,120 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--titlebar-h);
+  padding: 0 12px;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+  /* #134 — on narrow windows the button groups used to overflow the strip and
+     become unclickable (no scroll). The old #181 attempt at `overflow-x: auto`
+     was reverted because dropdown menus were `position: absolute` inside the
+     bar and got clipped. They are now `<Teleport>`-ed to <body> (see the
+     `.dropdown__menu` blocks below) and repositioned on scroll via
+     `onViewportChange`, so the strip can scroll horizontally without clipping
+     any menu. overflow-y stays hidden so a stray vertical scrollbar can't eat
+     into the thin title bar. */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none; /* Firefox: hide the bar, keep wheel/trackpad scroll */
+}
+/* WebKit: hide the horizontal scrollbar so it doesn't shrink the ~40px bar. */
+.toolbar::-webkit-scrollbar { height: 0; width: 0; }
+/* v4.6 unified title bar — macOS only. The native traffic-light buttons are
+   overlaid at the top-left by `titleBarStyle: "Overlay"`; reserve room for
+   them so they don't sit on top of the brand / New button. ~72px clears the
+   three 12px lights + their inset. Windows / Linux keep native decorations
+   and never get this class, so their toolbar starts flush-left as before. */
+.toolbar--mac {
+  padding-left: 72px;
+}
+/* Windows unified title bar — frameless window, so this row IS the title bar:
+   caption buttons render flush against the top-right corner (no padding). */
+.toolbar--win {
+  padding-right: 0;
+}
+/* #346 — "hide toolbar buttons". On macOS and Windows this row is also the
+   window's title bar (traffic lights / caption buttons, drag area, menubar), so
+   only the buttons go. Elsewhere the OS draws the title bar and the row can
+   go entirely. */
+.toolbar--minimal > .toolbar__group,
+.toolbar--minimal > .toolbar__divider,
+.toolbar--minimal > .toolbar__more {
+  display: none;
+}
+.toolbar--minimal .toolbar__title {
+  margin: 0 auto;
+}
+.toolbar--gone {
+  display: none;
+}
+/* #282 — on a window too narrow for the whole strip, "more" stays pinned to
+   the right edge while the rest scrolls under it, so it can't itself be the
+   thing that scrolled out of reach. The fade tells you there IS more to the
+   left of it. On Windows it sits inboard of the three 46px caption buttons. */
+.toolbar__more--pinned {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  margin-left: auto;
+  background: var(--bg-elev);
+  box-shadow: -10px 0 10px -6px var(--bg-elev);
+}
+.toolbar--win .toolbar__more--pinned {
+  right: 138px;
+}
+/* Expanded, the bar wraps and nothing is scrolling, so un-pin it. */
+.toolbar--sheet .toolbar__more--pinned {
+  position: static;
+  margin-left: 0;
+  box-shadow: none;
+}
+
+.toolbar > * { flex-shrink: 0; }
+.toolbar__brand {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  flex: 0 0 22px;
+  margin-right: 4px;
+  pointer-events: none;
+}
+.toolbar__dev-badge {
+  padding: 1px 6px;
+  margin-right: 6px;
+  border-radius: 4px;
+  background: #ff6a00;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.toolbar__spacer { flex: 1 1 0; min-width: 0; }
+/* Document title sits right after the SoloMD mark, mirroring a native window
+   title (VSCode / macOS Notes style). flex-shrink:1 lets it ellipsis-shrink
+   on narrow windows instead of pushing tool groups off the right edge
+   (overrides `.toolbar > * { flex-shrink: 0 }`).
+   #309 — "the file name in the left panel is covered". It was the ONLY shrinkable item in the row,
+   so on a window too narrow for the strip it absorbed the entire squeeze
+   before anything else gave: measured 8px wide at 1366 with Windows chrome,
+   which renders as a single clipped glyph ("U" for Untitled.md, "c" for
+   codex-shortcuts.md — both visible in the reporters' screenshots) and reads as
+   the filename being covered up. A floor stops the shrink while the text is
+   still a name; past that the strip overflows, which is honest and is
+   exactly the case the "⋯" control already announces. */
+.toolbar__title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-left: 4px;
+  padding-right: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+  min-width: 88px;
+  flex-shrink: 1;
+  cursor: default;
+}

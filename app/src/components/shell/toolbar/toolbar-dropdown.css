@@ -1,0 +1,113 @@
+.dropdown {
+  position: relative;
+}
+.focus-with-pomo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+.pomo-chevron {
+  padding: 5px 4px !important;
+  color: var(--text-faint);
+}
+.pomo-chevron:hover { color: var(--text); }
+.dropdown__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 280px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-pop);
+  z-index: var(--z-pop);
+  padding: 4px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+.dropdown__menu--narrow {
+  min-width: 200px;
+}
+.dropdown__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 12px;
+  text-align: left;
+  border-radius: 4px;
+}
+.dropdown__name {
+  color: var(--text);
+  font-weight: 500;
+}
+.dropdown__path {
+  color: var(--text-faint);
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+.dropdown__shortcut {
+  margin-left: auto;
+  color: var(--text-faint);
+  font-size: 10px;
+  font-family: var(--font-mono);
+}
+.dropdown__item--muted {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+/* #112 — per-entry recents removal. Hidden until the row is hovered so the
+   list stays clean; sits over the right edge of the (column-flex) row. */
+.dropdown__item--recent {
+  position: relative;
+  padding-right: 26px;
+}
+.dropdown__remove {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  display: none;
+  padding: 2px 4px;
+  border-radius: 3px;
+  color: var(--text-faint);
+  font-size: 11px;
+  line-height: 1;
+}
+.dropdown__item--recent:hover .dropdown__remove {
+  display: inline-block;
+}
+.dropdown__remove:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+.dropdown__item--single {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.dropdown__item--kbd {
+  justify-content: space-between;
+}
+.dropdown__kbd {
+  font: inherit;
+  font-size: 11px;
+  color: var(--text-faint);
+  white-space: nowrap;
+  margin-left: 16px;
+}
+.dropdown__sep {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 6px;
+}
+.dropdown__empty {
+  padding: 12px;
+  color: var(--text-faint);
+  font-size: 12px;
+  text-align: center;
+}

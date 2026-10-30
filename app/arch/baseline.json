@@ -46,7 +46,6 @@
     "app/src/components/SettingsPanel.vue": 2612,
     "app/src/components/Slideshow.vue": 501,
     "app/src/components/ThemeStudio.vue": 579,
-    "app/src/components/Toolbar.vue": 1610,
     "app/src/components/TraceView.vue": 647,
     "app/src/composables/useCommands.ts": 818,
     "app/src/composables/useExport.ts": 688,

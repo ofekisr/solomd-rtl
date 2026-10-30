@@ -1,0 +1,17 @@
+.menubar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.menubar__btn {
+  font-size: 12px;
+  padding: 4px 9px;
+  border-radius: 5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.menubar__btn:hover,
+.menubar__btn.active {
+  background: var(--bg-active);
+  color: var(--text);
+}

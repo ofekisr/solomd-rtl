@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, nextTick, ref, watch } from 'vue';
-import Toolbar from '../Toolbar.vue';
+import Toolbar from './toolbar/Toolbar.vue';
 import TelemetryBanner from '../TelemetryBanner.vue';
 import TileRoot from '../TileRoot.vue';
 import StatusBar from '../StatusBar.vue';

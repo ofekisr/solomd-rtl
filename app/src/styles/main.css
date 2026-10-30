@@ -303,7 +303,7 @@ button:disabled {
    the folded state that hides all but a handful of buttons); the sheet
    itself is shared.
 
-   The `:root` prefix is load-bearing, not decoration: Toolbar.vue's scoped
+   The `:root` prefix is load-bearing, not decoration: toolbar/Toolbar.vue's scoped (toolbar.css)
    `.toolbar` compiles to `.toolbar[data-v-…]` (0,2,0) and is injected after
    this file, so a bare `.toolbar--sheet` (0,1,0) loses `height` and
    `overflow-y` to it — the bar wraps but stays clipped to one row's height,
@@ -555,7 +555,7 @@ button:disabled {
 
   /* Toolbar: horizontal scroll on touch so all 30+ buttons remain
      reachable even at iPad-portrait widths. Desktop intentionally
-     does NOT set this (see Toolbar.vue's .toolbar comment) because
+     does NOT set this (see toolbar/toolbar.css's .toolbar comment) because
      overflow-x cascades to overflow-y, truncating .dropdown__menu
      items that anchor downward (Insert / Export / Copy / etc.).
      On touch we accept that compromise — dropdowns mostly anchor
