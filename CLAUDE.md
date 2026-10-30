@@ -7,7 +7,7 @@ Fork of SoloMD (Vue + CodeMirror + Tauri Markdown editor) with Hebrew/Arabic RTL
 These hold in every wave. Break one only through a new ADR.
 
 1. **Spec wins.** If code disagrees with a Stable spec or an accepted ADR, fix the code or write a superseding ADR. Accepted ADRs in [docs/adr/](docs/adr/README.md) are settled.
-2. **Ratchets only shrink.** Arch baselines ([app/arch/baseline.json](app/arch/baseline.json)) may lose entries or lower values, never gain or raise.
+2. **Ratchets only shrink.** Arch baselines ([app/arch/baseline.json](app/arch/baseline.json)) may lose entries or lower values, never gain or raise (renaming a key when its file moves is not a gain).
 3. **IPC through ports.** From the end of Wave 1, only `app/src/platform/` imports `@tauri-apps/*`. Until then, add no new `@tauri-apps/*` imports outside it.
 4. **`lib/` stays pure.** New code in `app/src/lib/` imports no `vue`, `pinia` or `@tauri-apps/*`. Some existing files still do; they are listed in `app/arch/baseline.json` and may only shrink. Never add such an import to `lib/`.
 5. **Features are private.** Import another feature only through its `contracts/`.
