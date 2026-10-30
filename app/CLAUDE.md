@@ -18,7 +18,7 @@ Vue 3 + CodeMirror 6 + Pinia front end. `src-tauri/` is the Rust desktop shell. 
 | `src-tauri/src/` | Rust commands (`commands.rs`, `ai_proxy.rs`, `git_pane/`) | Grouped by domain, mirroring `platform/` |
 | `e2e/` | Playwright theme e2e (macOS baselines) | Stays |
 
-Planned folders, not created yet: `src/platform/` (Wave 1), `src/features/` (Wave 1+), `src/shell/` (Wave 1), `src/ai/` (Wave 4), `arch/` (Wave 0 PR-2).
+Planned folders, not created yet: `src/platform/` (Wave 1), `src/features/` (Wave 1+), `src/shell/` (Wave 1), `src/ai/` (Wave 4).
 
 ## Tests
 
@@ -27,7 +27,7 @@ Planned folders, not created yet: `src/platform/` (Wave 1), `src/features/` (Wav
 | Unit | Co-located `src/**/*.test.ts` | `pnpm --dir app test` |
 | Types | All of `src/` | `pnpm --dir app exec vue-tsc --noEmit` |
 | e2e | `e2e/` | `pnpm --dir app exec playwright test --config e2e/playwright.config.ts` (macOS) |
-| Arch | `arch/*.arch.test.ts` (from Wave 0 PR-2) | `pnpm --dir app arch` (from PR-3) |
+| Arch | `arch/*.test.ts` | `node --test "arch/**/*.test.ts"` (from `app/`); `pnpm --dir app arch` from PR-3 |
 
 Unit tests run on Node type-stripping: import local files with the `.ts` extension.
 
@@ -37,7 +37,7 @@ Unit tests run on Node type-stripping: import local files with the `.ts` extensi
 |---|---|
 | Anywhere | Root `CLAUDE.md` |
 | `src/features/<f>/` | That feature's `CLAUDE.md` (each feature gets one from Wave 1) |
-| `arch/` | `arch/CLAUDE.md` (from Wave 0 PR-2) |
+| `arch/` | [arch/CLAUDE.md](arch/CLAUDE.md) |
 | `src/lib/theme/` | `docs/superpowers/specs/2026-10-29-theme-layer-design.md` |
 | `../demos/` | [demos/CLAUDE.md](../demos/CLAUDE.md) |
 

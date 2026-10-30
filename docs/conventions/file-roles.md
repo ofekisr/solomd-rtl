@@ -17,6 +17,7 @@ A file's suffix says what it is allowed to do. An agent reads the name and knows
 | `.prompt.ts` | One AI prompt template + its input schema | Provider calls |
 | `.test.ts` | Unit tests, co-located with the file under test | — |
 | `.arch.test.ts` | Architecture specs under `app/arch/` | — |
+| `.rule.ts` | One architecture rule under `app/arch/`: `collect…` and `check…` | Assertions, writes |
 
 ## Naming
 
