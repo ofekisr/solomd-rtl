@@ -1,14 +1,11 @@
 import { imageTextFromPath } from '../../../../lib/cm-image-paste';
-import { collectLabels, findMathSpanAt } from '../../../../lib/equations';
-import { openFormulaEditor } from '../../../../lib/formula-editor-bus';
 import { scanHeadings } from '../../../../lib/heading-fold';
-import { findTableSpan } from '../../../../lib/markdown-table';
 import { markdownImage } from '../../../../lib/md-image-url';
-import { openTableEditor } from '../../../../lib/table-editor-bus';
 import { useI18n } from '../../../../i18n';
 import { useSettingsStore } from '../../../../stores/settings';
+import { openFormulaWith, openTableWith } from '../../../format/contracts/index.ts';
 import { useToastsStore } from '../../../../stores/toasts';
-import type { EditorApi, FoldAction, LineSelection } from '../../contracts/editor-api.port.ts';
+import type { DocAccess, EditorApi, FoldAction, LineSelection } from '../../contracts/editor-api.port.ts';
 import type { PlainApi } from './plain-api.ts';
 import type { PlainDeps } from './plain-deps.ts';
 
@@ -29,72 +26,20 @@ export function usePlainCommands(deps: PlainDeps, api: PlainApi): EditorApi {
     openPlainFind();
   }
 
+  function plainDocAccess(): DocAccess {
+    return {
+      getDoc: () => plainText.value || '',
+      getCaret: plainCaretOffset,
+      replaceRange: replaceDocRange,
+    };
+  }
+
   function openTableAtCursor(): void {
-    const source = plainText.value || '';
-    if (!source) {
-      toasts.info(t('tableEditor.notInTable'));
-      return;
-    }
-    const lines = source.split('\n');
-    const caret = plainCaretOffset();
-
-    // Offset → line index, plus each line's start offset for the reverse trip.
-    const starts: number[] = [];
-    let off = 0;
-    for (const line of lines) {
-      starts.push(off);
-      off += line.length + 1;
-    }
-    let caretLine = 0;
-    for (let i = 0; i < starts.length; i++) {
-      if (starts[i] <= caret) caretLine = i;
-      else break;
-    }
-
-    const span = findTableSpan(lines, caretLine);
-    if (!span) {
-      toasts.info(t('tableEditor.notInTable'));
-      return;
-    }
-    const from = starts[span.startLine];
-    const to = starts[span.endLine] + lines[span.endLine].length;
-
-    openTableEditor({
-      source: source.slice(from, to),
-      apply: (markdown: string) => replaceDocRange(from, to, markdown),
-    });
+    openTableWith(plainDocAccess(), toasts, t);
   }
 
   function openFormulaAtCursor(): void {
-    const source = plainText.value || '';
-    const caret = plainCaretOffset();
-    const span = findMathSpanAt(source, caret);
-    const from = span ? span.from : caret;
-    const to = span ? span.to : caret;
-
-    openFormulaEditor({
-      latex: span?.body ?? '',
-      display: span?.display ?? false,
-      labels: collectLabels(source),
-      apply: (latex: string, display: boolean) =>
-        replaceDocRange(from, to, formatMath(source, from, to, latex, display)),
-    });
-  }
-
-  function formatMath(
-    source: string,
-    from: number,
-    to: number,
-    latex: string,
-    display: boolean,
-  ): string {
-    if (!display) return `$${latex}$`;
-    const lineStart = source.lastIndexOf('\n', Math.max(0, from - 1)) + 1;
-    const lineEndIdx = source.indexOf('\n', to);
-    const lineEnd = lineEndIdx < 0 ? source.length : lineEndIdx;
-    const alone =
-      source.slice(lineStart, from).trim() === '' && source.slice(to, lineEnd).trim() === '';
-    return alone ? `$$\n${latex}\n$$` : `$$${latex}$$`;
+    openFormulaWith(plainDocAccess());
   }
 
   /** Caret offset in the plain editor, in whole-document coordinates. */
