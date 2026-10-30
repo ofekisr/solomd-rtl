@@ -1,3 +1,4 @@
+import ts from 'typescript';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -6,10 +7,8 @@ export const REPO_ROOT = fileURLToPath(new URL('../../', import.meta.url));
 
 const SKIPPED_DIRS = new Set(['node_modules', 'target', 'dist', 'i18n']);
 const TEST_FILE_SUFFIX = '.test.ts';
-const IMPORT_PATTERNS: readonly RegExp[] = [
-  /\b(?:import|export)\s+(?:type\s+)?(?:[\w*{}\s,$]+?\s+from\s+)?['"]([^'"]+)['"]/g,
-  /\bimport\(\s*['"]([^'"]+)['"]\s*\)/g,
-];
+const SFC_SUFFIX = '.vue';
+const SCRIPT_BLOCK = /<script\b[^>]*>([\s\S]*?)<\/script>/g;
 
 export function listSourceFiles(repoRoot: string, roots: readonly string[], exts: readonly string[]): string[] {
   const found: string[] = [];
@@ -17,13 +16,10 @@ export function listSourceFiles(repoRoot: string, roots: readonly string[], exts
   return [...new Set(found)].map((abs) => toRepoPath(repoRoot, abs)).sort();
 }
 
-export function extractImports(source: string): string[] {
-  const hits: Array<{ index: number; specifier: string }> = [];
-  for (const pattern of IMPORT_PATTERNS) {
-    for (const match of source.matchAll(pattern)) hits.push({ index: match.index ?? 0, specifier: match[1] });
-  }
-  hits.sort((a, b) => a.index - b.index);
-  return [...new Set(hits.map((hit) => hit.specifier))];
+export function extractImports(source: string, path = ''): string[] {
+  const code = path.endsWith(SFC_SUFFIX) ? scriptBlocks(source) : source;
+  const specifiers = ts.preProcessFile(code, true, true).importedFiles.map((file) => file.fileName);
+  return [...new Set(specifiers)];
 }
 
 export function countLines(source: string): number {
@@ -38,6 +34,10 @@ export function toRepoPath(repoRoot: string, absPath: string): string {
 
 export function readRepoFile(repoRoot: string, repoPath: string): string {
   return readFileSync(join(repoRoot, repoPath), 'utf8');
+}
+
+function scriptBlocks(source: string): string {
+  return [...source.matchAll(SCRIPT_BLOCK)].map((match) => match[1]).join('\n');
 }
 
 function walk(dir: string, exts: readonly string[], found: string[]): void {

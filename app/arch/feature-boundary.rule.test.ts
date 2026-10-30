@@ -29,7 +29,7 @@ test('checkFeatureBoundary passes when no features/ exists yet', () => {
 
 test('checkFeatureBoundary reports each crossing import', () => {
   withFixtureTree({
-    'app/src/App.vue': "import { s } from './features/git/internal/git.service.ts';",
+    'app/src/App.vue': "<script setup lang=\"ts\">\nimport { s } from './features/git/internal/git.service.ts';\n</script>",
     'app/src/features/git/internal/git.service.ts': 'export const s = 1;',
   }, (root) => {
     assert.deepEqual(checkFeatureBoundary(root), [

@@ -7,7 +7,7 @@ const RAW_IPC_EXTS: readonly string[] = ['.ts', '.vue'];
 
 export function collectRawIpc(repoRoot: string): string[] {
   return listSourceFiles(repoRoot, RAW_IPC_ROOTS, RAW_IPC_EXTS)
-    .filter((path) => extractImports(readRepoFile(repoRoot, path)).includes(RAW_IPC_MODULE));
+    .filter((path) => extractImports(readRepoFile(repoRoot, path), path).includes(RAW_IPC_MODULE));
 }
 
 export function checkRawIpc(current: readonly string[], baseline: readonly string[]): string[] {

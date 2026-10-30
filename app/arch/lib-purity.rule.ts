@@ -11,7 +11,7 @@ export function isFrameworkImport(specifier: string): boolean {
 
 export function collectLibPurity(repoRoot: string): string[] {
   return listSourceFiles(repoRoot, LIB_ROOTS, LIB_EXTS)
-    .filter((path) => extractImports(readRepoFile(repoRoot, path)).some(isFrameworkImport));
+    .filter((path) => extractImports(readRepoFile(repoRoot, path), path).some(isFrameworkImport));
 }
 
 export function checkLibPurity(current: readonly string[], baseline: readonly string[]): string[] {

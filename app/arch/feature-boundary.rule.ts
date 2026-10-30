@@ -17,7 +17,7 @@ export function findBoundaryViolation(importer: string, specifier: string): stri
 
 export function checkFeatureBoundary(repoRoot: string): string[] {
   return listSourceFiles(repoRoot, SOURCE_ROOTS, SOURCE_EXTS).flatMap((importer) =>
-    extractImports(readRepoFile(repoRoot, importer)).flatMap((specifier) => {
+    extractImports(readRepoFile(repoRoot, importer), importer).flatMap((specifier) => {
       const target = findBoundaryViolation(importer, specifier);
       return target === null ? [] : [boundaryMessage(importer, target)];
     }),

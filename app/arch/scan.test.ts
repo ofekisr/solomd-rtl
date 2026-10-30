@@ -59,3 +59,33 @@ test('countLines matches wc -l for files ending in a newline', () => {
   assert.equal(countLines('one\ntwo\n'), 2);
   assert.equal(countLines('one\ntwo'), 2);
 });
+
+test('extractImports ignores line and block comments', () => {
+  const source = "// import a from 'commented'\n/* import b from 'blocked' */\nconst c = 1;";
+  assert.deepEqual(extractImports(source), []);
+});
+
+test('extractImports reads specifiers across comments inside import braces', () => {
+  const source = "import {\n  a, // note\n  b\n} from 'braced';";
+  assert.deepEqual(extractImports(source), ['braced']);
+});
+
+test('extractImports reads dynamic imports with a comment before the specifier', () => {
+  const source = "const core = import(/* chunk */ '@tauri-apps/api/core');";
+  assert.deepEqual(extractImports(source), ['@tauri-apps/api/core']);
+});
+
+test('extractImports ignores import-like text inside template literals', () => {
+  const source = "const doc = `import x from 'in-template'`;";
+  assert.deepEqual(extractImports(source), []);
+});
+
+test('extractImports reads only <script> blocks of a .vue file', () => {
+  const source = [
+    '<template><p>import y from \'in-html\'</p></template>',
+    '<script setup lang="ts">',
+    "import { ref } from 'vue';",
+    '</script>',
+  ].join('\n');
+  assert.deepEqual(extractImports(source, 'x.vue'), ['vue']);
+});
