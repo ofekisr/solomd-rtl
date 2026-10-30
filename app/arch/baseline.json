@@ -52,9 +52,9 @@
     "app/src/composables/useExport.ts": 688,
     "app/src/composables/useFiles.ts": 1042,
     "app/src/dev/pdf-harness.ts": 431,
+    "app/src/features/image-upload/internal/cm-image-paste.ts": 671,
     "app/src/lib/bases.ts": 815,
     "app/src/lib/citations.ts": 421,
-    "app/src/lib/cm-image-paste.ts": 671,
     "app/src/lib/cm-live-render.ts": 1020,
     "app/src/lib/cm-slash-commands.ts": 557,
     "app/src/lib/docx-export.ts": 764,
@@ -73,9 +73,6 @@
   "rawIpc": [],
   "libPurity": [
     "app/src/lib/ai-activity.ts",
-    "app/src/lib/cm-find-panel.ts",
-    "app/src/lib/formula-editor-bus.ts",
-    "app/src/lib/quick-capture-status.ts",
-    "app/src/lib/table-editor-bus.ts"
+    "app/src/lib/quick-capture-status.ts"
   ]
 }

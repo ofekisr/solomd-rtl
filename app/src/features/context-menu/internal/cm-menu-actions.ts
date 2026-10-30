@@ -1,5 +1,5 @@
 import type { ViewLike } from '../../editor/contracts/index.ts';
-import type { EditorMenuAction } from '../../../components/EditorContextMenu.vue';
+import type { EditorMenuAction } from '../ui/EditorContextMenu.vue';
 
 export interface MenuClipboard {
   read(): Promise<string>;

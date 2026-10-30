@@ -1,4 +1,4 @@
-import { handleTextareaImagePaste } from '../../../../lib/cm-image-paste';
+import { handleTextareaImagePaste } from '../../../image-upload/contracts/index.ts';
 import { nextTick } from 'vue';
 import { splitPlainMarkdownBlocks } from './plain-blocks.ts';
 import { useTabsStore } from '../../../../stores/tabs';

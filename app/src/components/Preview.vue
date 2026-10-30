@@ -20,7 +20,7 @@ import { useSettingsStore } from '../stores/settings';
 import { useTabsStore } from '../stores/tabs';
 import { useFiles } from '../composables/useFiles';
 import PreviewSearch from './PreviewSearch.vue';
-import EditorContextMenu, { type EditorMenuAction } from './EditorContextMenu.vue';
+import { EditorContextMenu, type EditorMenuAction } from '../features/context-menu/contracts/context-menu-component.ts';
 import { openInGoogleTranslate } from '../lib/open-google-translate';
 import { attachCodeCopyButtons as attachSharedCodeCopyButtons } from '../lib/code-copy';
 import { attachPreviewFolds } from '../lib/preview-heading-fold';

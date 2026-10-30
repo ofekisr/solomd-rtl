@@ -1,5 +1,5 @@
 import type { EditorFeature } from '../../editor/contracts/index.ts';
-import { imagePasteExtension, insertImageFromPath } from '../../../lib/cm-image-paste.ts';
+import { imagePasteExtension, insertImageFromPath } from '../internal/cm-image-paste.ts';
 import { markdownImage } from '../../../lib/md-image-url.ts';
 import { imagePasteOptionsFor } from '../internal/image-paste-options.ts';
 import { uploadLocalImages } from '../internal/upload-local-images.ts';

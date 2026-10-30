@@ -1,4 +1,4 @@
-import { imageTextFromPath } from '../../../../lib/cm-image-paste';
+import { imageTextFromPath } from '../../../image-upload/contracts/index.ts';
 import { scanHeadings } from '../../../../lib/heading-fold';
 import { markdownImage } from '../../../../lib/md-image-url';
 import { useI18n } from '../../../../i18n';

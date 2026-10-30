@@ -18,7 +18,7 @@
  * decoration set is empty.
  */
 
-import { settingsPort } from '../platform/index.ts';
+import { settingsPort } from '../../../platform/index.ts';
 import { RangeSetBuilder } from '@codemirror/state';
 import type { Extension } from '@codemirror/state';
 import {

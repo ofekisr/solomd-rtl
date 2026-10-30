@@ -1,5 +1,5 @@
 import { readClipboard, writeClipboard } from '../../../context-menu/contracts/index.ts';
-import type { EditorMenuAction } from '../../../../components/EditorContextMenu.vue';
+import type { EditorMenuAction } from '../../../context-menu/contracts/context-menu-component.ts';
 import type { PlainApiStage11 } from './plain-api.ts';
 import type { PlainDeps } from './plain-deps.ts';
 

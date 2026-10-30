@@ -1,6 +1,6 @@
 import { EditorView } from '@codemirror/view';
-import { spellcheckExtension } from '../../../lib/cm-spellcheck.ts';
-import { spellcheckTheme } from '../../../lib/cm-spellcheck-theme.ts';
+import { spellcheckExtension } from '../internal/cm-spellcheck.ts';
+import { spellcheckTheme } from '../internal/cm-spellcheck-theme.ts';
 import type { EditorFeature } from '../../editor/contracts/index.ts';
 
 export function createSpellcheckFeature(): EditorFeature {

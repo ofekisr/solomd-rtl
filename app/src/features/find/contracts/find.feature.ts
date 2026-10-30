@@ -1,5 +1,5 @@
 import { openSearchPanel, search } from '@codemirror/search';
-import { createFindPanel } from '../../../lib/cm-find-panel.ts';
+import { createFindPanel } from '../internal/cm-find-panel.ts';
 import type { EditorFeature } from '../../editor/contracts/index.ts';
 import { incrementalFindScroll } from '../internal/incremental-find.ts';
 

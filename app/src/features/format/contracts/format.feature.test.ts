@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fakeContext, fakeView, stateWith, type FakeContextInit } from '../../editor/internal/cm-probe.ts';
 import { en } from '../../../i18n/en.ts';
-import { formulaEditor } from '../../../lib/formula-editor-bus.ts';
-import { tableEditor } from '../../../lib/table-editor-bus.ts';
+import { formulaEditor } from '../internal/formula-editor-bus.ts';
+import { tableEditor } from '../internal/table-editor-bus.ts';
 import { createFormatFeature } from './format.feature.ts';
 
 const CASE_EVENT = 'solomd:transform-case';

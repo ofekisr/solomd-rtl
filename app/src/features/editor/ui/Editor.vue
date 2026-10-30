@@ -9,7 +9,7 @@ import { useTabsStore } from '../../../stores/tabs';
 import { useThemeStore } from '../../../stores/theme';
 import { useToastsStore } from '../../../stores/toasts';
 import type { Tab } from '../../../types';
-import EditorContextMenu from '../../../components/EditorContextMenu.vue';
+import { EditorContextMenu } from '../../context-menu/contracts/context-menu-component.ts';
 import { useCitations } from '../../completion/contracts/citations.ts';
 import { useCmContextMenu } from '../../context-menu/contracts/index.ts';
 import { imagePasteOptionsFor } from '../../image-upload/contracts/index.ts';

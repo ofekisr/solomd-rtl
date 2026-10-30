@@ -1,6 +1,6 @@
 import type { EditorFeatureContext } from '../../editor/contracts/index.ts';
-import type { ImagePasteOptions } from '../../../lib/cm-image-paste.ts';
-import { resolveUploader, type ImageUploadSettings } from '../../../lib/image-upload.ts';
+import type { ImagePasteOptions } from './cm-image-paste.ts';
+import { resolveUploader, type ImageUploadSettings } from './image-upload.ts';
 
 export function imagePasteOptionsFor(ctx: EditorFeatureContext): ImagePasteOptions {
   const settings = ctx.settings;

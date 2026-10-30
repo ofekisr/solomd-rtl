@@ -22,8 +22,7 @@ import { useCenterView } from '../../composables/useCenterView';
 import { useGitPaneAvailable } from '../../composables/useGitPaneAvailable';
 import { useSettingsStore } from '../../stores/settings';
 import { useTilesStore } from '../../stores/tiles';
-import { tableEditor, closeTableEditor } from '../../lib/table-editor-bus';
-import { formulaEditor, closeFormulaEditor } from '../../lib/formula-editor-bus';
+import { closeFormulaEditor, closeTableEditor, formulaEditor, tableEditor } from '../../features/format/contracts/index.ts';
 
 const GitBottomDock = defineAsyncComponent(() => import('../git/GitBottomDock.vue'));
 const GitPushDialog = defineAsyncComponent(() => import('../git/GitPushDialog.vue'));

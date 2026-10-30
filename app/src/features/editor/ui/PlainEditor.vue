@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import EditorContextMenu, { type EditorMenuAction } from '../../../components/EditorContextMenu.vue';
+import { EditorContextMenu, type EditorMenuAction } from '../../context-menu/contracts/context-menu-component.ts';
 import { useI18n } from '../../../i18n';
 import type { CitationEntry } from '../../../lib/citations';
-import type { ImagePasteOptions } from '../../../lib/cm-image-paste';
+import type { ImagePasteOptions } from '../../image-upload/contracts/index.ts';
 import { openInGoogleTranslate } from '../../../lib/open-google-translate';
 import { isAndroid, isIOS, isWindowsEditorRuntime } from '../../../lib/platform';
 import { useSettingsStore } from '../../../stores/settings';

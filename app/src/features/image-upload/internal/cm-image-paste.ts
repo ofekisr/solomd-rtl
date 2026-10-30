@@ -14,10 +14,10 @@
  */
 
 import { EditorView } from '@codemirror/view';
-import { fsPort, pathPort } from '../platform/index.ts';
+import { fsPort, pathPort } from '../../../platform/index.ts';
 import { uploadImage, type ResolvedUploader } from './image-upload.ts';
-import { markdownImage } from './md-image-url.ts';
-import { isContentUri, isSafPath, sniffImageExt } from './image-source.ts';
+import { markdownImage } from '../../../lib/md-image-url.ts';
+import { isContentUri, isSafPath, sniffImageExt } from '../../../lib/image-source.ts';
 
 export interface ImagePasteOptions {
   getFilePath: () => string | undefined;

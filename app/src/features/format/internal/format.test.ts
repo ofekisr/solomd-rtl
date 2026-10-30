@@ -63,7 +63,7 @@ test('formatMath', () => {
 });
 
 test('openTableWith happy path hands the table to the editor and replaces the range', async () => {
-  const { tableEditor } = await import('../../../lib/table-editor-bus.ts');
+  const { tableEditor } = await import('./table-editor-bus.ts');
   const calls: Array<[number, number, string]> = [];
   const src = 'x\n| a |\n| - |\n| 1 |\ny';
   openTableWith(

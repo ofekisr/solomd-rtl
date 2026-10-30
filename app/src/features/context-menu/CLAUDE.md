@@ -9,4 +9,4 @@ CodeMirror right-click menu (#210). Characterization copy of Editor.vue's CM bra
 | `internal/cm-menu-actions.ts` | Pure `runCmMenuAction`, `cmSelectionText` |
 | `internal/clipboard.ts` | `clipboardPort` with `navigator.clipboard` fallback |
 
-`EditorMenuAction` is imported type-only from `components/EditorContextMenu.vue` until PR-8 moves it.
+`ui/EditorContextMenu.vue` (the menu component) is exported to other features and `components/` via `contracts/context-menu-component.ts` (never `contracts/index.ts`, which Node tests load).

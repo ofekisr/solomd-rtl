@@ -1,5 +1,5 @@
 import type { EditorFeatureContext } from '../../editor/contracts/index.ts';
-import { resolveUploader, uploadImage, type ImageUploadSettings } from '../../../lib/image-upload.ts';
+import { resolveUploader, uploadImage, type ImageUploadSettings } from './image-upload.ts';
 import { imageSrcChanges, localImageSources, parseFrontMatterImageRoot } from './image-links.ts';
 
 async function resolveLocalImageAbsPath(ctx: EditorFeatureContext, src: string): Promise<string | null> {

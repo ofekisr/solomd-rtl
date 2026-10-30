@@ -1,4 +1,4 @@
-import type { ImagePasteOptions } from '../../../../lib/cm-image-paste';
+import type { ImagePasteOptions } from '../../../image-upload/contracts/index.ts';
 import type { CitationEntry } from '../../../../lib/citations';
 import type { Tab } from '../../../../types';
 

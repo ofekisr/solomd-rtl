@@ -12,7 +12,7 @@
  * the remaining fields are backend-specific (camelCase).
  */
 
-import { convertPort } from '../platform/index.ts';
+import { convertPort } from '../../../platform/index.ts';
 
 export type UploaderKind = 'none' | 'picgo' | 'command' | 'smms' | 's3' | 'github';
 

@@ -19,8 +19,8 @@ import {
   replaceNext,
   setSearchQuery,
 } from '@codemirror/search';
-import FindBar from '../components/FindBar.vue';
-import { unicodeClasses, type FindCounter, type FindSpec, type FindTarget } from './find-spec';
+import FindBar from '../../../components/FindBar.vue';
+import { unicodeClasses, type FindCounter, type FindSpec, type FindTarget } from '../../../lib/find-spec';
 
 const MAX_COUNTED_MATCHES = 9999;
 

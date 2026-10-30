@@ -1,6 +1,6 @@
 import { ref, type Ref } from 'vue';
 import type { EditorView } from '@codemirror/view';
-import type { EditorMenuAction } from '../../../components/EditorContextMenu.vue';
+import type { EditorMenuAction } from '../ui/EditorContextMenu.vue';
 import { openInGoogleTranslate } from '../../../lib/open-google-translate.ts';
 import { isAndroid, isIOS, isWindowsEditorRuntime } from '../../../lib/platform.ts';
 import { cmSelectionText, runCmMenuAction } from './cm-menu-actions.ts';

@@ -13,8 +13,8 @@
  * the action on the selection that was there when the menu opened.
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
-import { useI18n } from '../i18n';
-import { isMacOS } from '../lib/platform';
+import { useI18n } from '../../../i18n';
+import { isMacOS } from '../../../lib/platform';
 
 export type EditorMenuAction = 'cut' | 'copy' | 'paste' | 'selectAll' | 'translate';
 
