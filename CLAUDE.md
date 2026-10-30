@@ -18,7 +18,9 @@ These hold in every wave. Break one only through a new ADR.
 
 | Dir | What |
 | --- | --- |
-| `app/` | The editor (Vue/Vite web build + `src-tauri/` desktop shell) |
+| `app/` | The editor (Vue/Vite web build + `src-tauri/` desktop shell) — see [app/CLAUDE.md](app/CLAUDE.md) |
+| `docs/adr/` | Architecture decisions. Accepted = settled — see [README](docs/adr/README.md) |
+| `docs/conventions/` | Naming rules — see [file roles](docs/conventions/file-roles.md) |
 | `demos/` | Playwright story-driven demo videos — see `demos/CLAUDE.md` |
 | `app/src/lib/theme/` | Unified theme layer (v4.39): Zod schema, resolve → `<style id="solomd-theme">`, builtin/catalog JSON, migration. Store: `app/src/stores/theme.ts`. Spec: `docs/superpowers/specs/2026-10-29-theme-layer-design.md` |
 | `mcp-mindmap/` | Stdio MCP server for `.mmap` (TS, imports `app/src/lib`) — `pnpm --dir mcp-mindmap test` |
