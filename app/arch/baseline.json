@@ -31,12 +31,7 @@
     "app/src/components/TraceView.vue": 647,
     "app/src/composables/useCommands.ts": 818,
     "app/src/composables/useExport.ts": 688,
-    "app/src/composables/useFiles.ts": 1042,
-    "app/src/features/image-upload/internal/cm-image-paste.ts": 671,
-    "app/src/lib/cm-live-render.ts": 1020,
-    "app/src/lib/cm-slash-commands.ts": 557,
-    "app/src/lib/image-overlay.ts": 608,
-    "app/src/lib/markdown.ts": 1184
+    "app/src/composables/useFiles.ts": 1042
   },
   "rawIpc": [],
   "libPurity": [

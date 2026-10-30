@@ -1,0 +1,81 @@
+{
+ "root": [
+  "./img",
+  "/abs",
+  "D:\\a",
+  null,
+  null
+ ],
+ "mime": [
+  "png",
+  "jpg",
+  "jpg",
+  "svg",
+  "tiff",
+  "png",
+  "png"
+ ],
+ "name": [
+  "png",
+  "jpg",
+  null,
+  "hidden",
+  ""
+ ],
+ "dirname": [
+  "/a/b",
+  "/",
+  ".",
+  "C:\\a",
+  "/a",
+  ".",
+  "\\"
+ ],
+ "base": [
+  "foo",
+  "foo",
+  ".md",
+  "y.tar",
+  ""
+ ],
+ "join": [
+  "b",
+  "a/b",
+  "a/b",
+  "a\\b"
+ ],
+ "assets": [
+  {
+   "dir": "/n/_assets",
+   "urlPrefix": "_assets"
+  },
+  {
+   "dir": "/n/pics",
+   "urlPrefix": "pics"
+  },
+  {
+   "dir": "/n/doc.assets",
+   "urlPrefix": "doc.assets"
+  },
+  {
+   "dir": "/n/images/doc/",
+   "urlPrefix": "./images/doc"
+  },
+  {
+   "dir": "/n/img/doc/",
+   "urlPrefix": "./img/doc"
+  },
+  {
+   "dir": "/abs/doc/",
+   "urlPrefix": "/abs/doc"
+  },
+  {
+   "dir": "C:\\pics\\doc\\",
+   "urlPrefix": "C:/pics/doc"
+  },
+  {
+   "dir": "/n/../up/x/",
+   "urlPrefix": "../up/./x"
+  }
+ ]
+}

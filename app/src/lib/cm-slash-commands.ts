@@ -20,13 +20,7 @@
  * No external deps — pure CodeMirror 6 + DOM.
  */
 
-import {
-  StateField,
-  StateEffect,
-  Prec,
-  type Extension,
-  type EditorState,
-} from '@codemirror/state';
+import { StateField, Prec, type Extension } from '@codemirror/state';
 import {
   EditorView,
   keymap,
@@ -34,93 +28,27 @@ import {
   type Tooltip,
   type TooltipView,
 } from '@codemirror/view';
-import { syntaxTree } from '@codemirror/language';
-
 import {
   SLASH_BLOCKS,
   filterBlocks,
   expandSnippet,
   type SlashBlock,
 } from './slash-blocks.ts';
+import {
+  nextSlashState,
+  setSlashState,
+  isTriggerPosition,
+  isInsideCodeContext,
+  type SlashCommandsConfig,
+  type SlashState,
+} from './cm-slash-state.ts';
+import { slashTheme } from './cm-slash-theme.ts';
 
-// ---------------------------------------------------------------------------
-// Public types — keep label/hint overridable for i18n.
-// ---------------------------------------------------------------------------
+export type { SlashCommandsConfig } from './cm-slash-state.ts';
 
-export interface SlashCommandsConfig {
-  /** Reactive on/off. Returning false disables the trigger entirely. */
-  enabled: () => boolean;
-  /**
-   * Per-id label overrides. Optional — falls back to the block's
-   * built-in English label.
-   */
-  labelFor?: (id: string) => string | undefined;
-  /** Per-id hint overrides. */
-  hintFor?: (id: string) => string | undefined;
-  /** Localized "no results" template — `{query}` is replaced. */
-  emptyHint?: (query: string) => string;
-}
-
-// ---------------------------------------------------------------------------
-// State
-// ---------------------------------------------------------------------------
-
-interface SlashState {
-  /** Position of the leading `/` character. */
-  triggerPos: number;
-  /** End of the typed query (cursor position). */
-  end: number;
-  /** Substring after `/`, lower-cased filter source. */
-  query: string;
-  /** Currently highlighted entry in the filtered list. */
-  selectedIndex: number;
-}
-
-const setSlashState = StateEffect.define<SlashState | null>();
-
-const slashStateField = StateField.define<SlashState | null>({
+export const slashStateField = StateField.define<SlashState | null>({
   create: () => null,
-  update(value, tr) {
-    // Explicit set-effects win.
-    for (const e of tr.effects) {
-      if (e.is(setSlashState)) {
-        value = e.value;
-      }
-    }
-    if (!value) return null;
-
-    // If the doc changed, walk the change set and remap our trigger /
-    // end positions. A change that removes the leading `/` cancels.
-    if (tr.docChanged) {
-      const triggerPos = tr.changes.mapPos(value.triggerPos, -1);
-      if (triggerPos >= tr.state.doc.length) return null;
-      const ch = tr.state.doc.sliceString(triggerPos, triggerPos + 1);
-      if (ch !== '/') return null;
-      // Cursor must still be on the same line as the trigger.
-      const triggerLine = tr.state.doc.lineAt(triggerPos);
-      const sel = tr.state.selection.main.head;
-      if (sel < triggerPos || sel > triggerLine.to) return null;
-      const newQuery = tr.state.doc.sliceString(triggerPos + 1, sel);
-      // Cancel on whitespace / newlines / common terminators in the query.
-      if (/[\s,;\n]/.test(newQuery)) return null;
-      value = { ...value, end: sel, query: newQuery, selectedIndex: 0 };
-      return value;
-    }
-
-    // No doc change — selection may still have moved (Esc / arrow).
-    if (tr.selection) {
-      const sel = tr.state.selection.main.head;
-      if (sel < value.triggerPos) return null;
-      const triggerLine = tr.state.doc.lineAt(value.triggerPos);
-      if (sel > triggerLine.to) return null;
-      // Cursor moved past the typed query end — accept it as the new end.
-      const newEnd = Math.max(value.triggerPos + 1, sel);
-      const newQuery = tr.state.doc.sliceString(value.triggerPos + 1, newEnd);
-      if (/[\s,;\n]/.test(newQuery)) return null;
-      value = { ...value, end: newEnd, query: newQuery };
-    }
-    return value;
-  },
+  update: nextSlashState,
   provide: (f) =>
     showTooltip.compute([f], (state) => {
       const v = state.field(f);
@@ -356,34 +284,6 @@ function insertBlock(view: EditorView, state: SlashState, block: SlashBlock): vo
 // the user types `/` at line start or after whitespace.
 // ---------------------------------------------------------------------------
 
-function isTriggerPosition(state: EditorState, pos: number): boolean {
-  if (pos <= 0) return true;
-  const line = state.doc.lineAt(pos);
-  if (pos === line.from) return true;
-  const prevCh = state.doc.sliceString(pos - 1, pos);
-  return /\s/.test(prevCh);
-}
-
-function isInsideCodeContext(state: EditorState, pos: number): boolean {
-  // Use the syntax tree so we get correct results inside fenced code,
-  // inline code, and code blocks. `resolveInner` finds the deepest node
-  // covering `pos`.
-  const node = syntaxTree(state).resolveInner(pos, -1);
-  for (let n: typeof node | null = node; n; n = n.parent) {
-    const name = n.name;
-    if (
-      name === 'FencedCode' ||
-      name === 'CodeBlock' ||
-      name === 'InlineCode' ||
-      name === 'CodeMark' ||
-      name === 'CodeText' ||
-      name === 'CodeInfo'
-    ) {
-      return true;
-    }
-  }
-  return false;
-}
 
 function makeUpdateListener(config: SlashCommandsConfig) {
   return EditorView.updateListener.of((u) => {
@@ -462,78 +362,6 @@ const popupKeymap = Prec.highest(
   ]),
 );
 
-// ---------------------------------------------------------------------------
-// Theme
-// ---------------------------------------------------------------------------
-
-const slashTheme = EditorView.theme({
-  '.cm-slash-popup': {
-    width: '280px',
-    maxHeight: '320px',
-    overflowY: 'auto',
-    background: 'var(--bg-elevated, var(--bg, #fff))',
-    border: '1px solid var(--border, rgba(0, 0, 0, 0.12))',
-    borderRadius: '6px',
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)',
-    padding: '4px',
-    fontSize: '13px',
-    fontFamily: 'inherit',
-    color: 'var(--text, #222)',
-    userSelect: 'none',
-  },
-  '.cm-slash-row': {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '6px 8px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    lineHeight: '1.3',
-  },
-  '.cm-slash-row--active': {
-    background: 'var(--bg-hover, rgba(255, 159, 64, 0.18))',
-  },
-  '.cm-slash-icon': {
-    display: 'inline-flex',
-    width: '22px',
-    height: '22px',
-    minWidth: '22px',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'var(--bg-soft, rgba(0, 0, 0, 0.04))',
-    color: 'var(--text-muted, #666)',
-    borderRadius: '4px',
-    fontFamily: 'var(--font-mono, "JetBrains Mono", Menlo, monospace)',
-    fontSize: '11px',
-    fontWeight: '600',
-  },
-  '.cm-slash-label': {
-    flex: '1 1 auto',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
-  '.cm-slash-hint': {
-    flex: '0 0 auto',
-    color: 'var(--text-faint, #999)',
-    fontSize: '11px',
-    fontFamily: 'var(--font-mono, "JetBrains Mono", Menlo, monospace)',
-  },
-  '.cm-slash-empty': {
-    padding: '8px 10px',
-    color: 'var(--text-faint, #999)',
-    fontSize: '12px',
-    lineHeight: '1.4',
-  },
-  // The CM6 tooltip wrapper itself — strip its default chrome so our
-  // own panel styling shows through.
-  '.cm-tooltip.cm-tooltip-below.cm-slash-tooltip': {
-    background: 'transparent',
-    border: 'none',
-    padding: 0,
-    boxShadow: 'none',
-  },
-});
 
 // ---------------------------------------------------------------------------
 // Public extension factory
