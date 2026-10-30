@@ -4,7 +4,7 @@
  * to convert local image paths into URLs the webview can load or bytes for embedding.
  */
 
-import { convertFileSrc, invoke } from '@tauri-apps/api/core';
+import { fsPort, pathPort } from '../platform/index.ts';
 
 /**
  * Normalize a filesystem path so `convertFileSrc` produces a URL the
@@ -142,7 +142,7 @@ export function resolveImagePath(
 
 /**
  * Resolve a single image src into something the webview can load.
- * Converts local paths to `asset://` URLs via Tauri's convertFileSrc().
+ * Converts local paths to `asset://` URLs via the path port's convertFileSrc().
  */
 export function resolveImageSrc(
   src: string,
@@ -153,7 +153,7 @@ export function resolveImageSrc(
   // If it's still a remote/data/blob URL, return as-is
   if (/^(https?|data|blob|asset|tauri):/i.test(resolved)) return resolved;
   try {
-    return convertFileSrc(resolved);
+    return pathPort.convertFileSrc(resolved);
   } catch {
     return src;
   }
@@ -172,7 +172,7 @@ export function resolveImageSrcWithMeta(
     return { src: localPath, localPath: null };
   }
   try {
-    return { src: convertFileSrc(localPath), localPath };
+    return { src: pathPort.convertFileSrc(localPath), localPath };
   } catch {
     return { src, localPath };
   }
@@ -207,7 +207,7 @@ export function rewriteImageUrls(
 
 async function loadLocalSvgDataUrl(path: string): Promise<string | null> {
   try {
-    const result = await invoke<{ content: string }>('read_file', { path });
+    const result = await fsPort.readFile({ path });
     const svg = result.content.trimStart();
     if (!svg.startsWith('<svg') && !svg.startsWith('<?xml')) return null;
     return svgTextToDataUrl(result.content);
@@ -265,7 +265,7 @@ export type BinaryReader = (path: string) => Promise<Uint8Array | null>;
 
 const readBinaryViaTauri: BinaryReader = async (path) => {
   try {
-    return new Uint8Array(await invoke<number[]>('read_binary_file', { path }));
+    return new Uint8Array(await fsPort.readBinaryFile({ path }));
   } catch {
     return null;
   }

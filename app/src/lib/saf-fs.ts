@@ -13,7 +13,7 @@
  * workspace store. The helpers below wrap the saf_* Tauri commands and shape
  * their results like the normal `list_dir` / `read_file` responses.
  */
-import { invoke } from '@tauri-apps/api/core';
+import { androidPort } from '../platform/index.ts';
 import type { FileReadResult, Language } from '../types';
 import { inferFileLanguage } from './file-language';
 
@@ -35,11 +35,6 @@ function langFor(name: string): Language {
   return MD_EXTS.has(ext) ? 'markdown' : inferFileLanguage(name);
 }
 
-interface RawSafEntry {
-  name: string;
-  docId: string;
-  isDir: boolean;
-}
 /** Same shape the file tree expects from `list_dir` (name/path/is_dir). */
 export interface SafListEntry {
   name: string;
@@ -48,18 +43,18 @@ export interface SafListEntry {
 }
 
 export async function safList(treeUri: string, docId: string): Promise<SafListEntry[]> {
-  const entries = await invoke<RawSafEntry[]>('saf_list', { treeUri, docId });
+  const entries = await androidPort.safList({ treeUri, docId });
   return entries.map((e) => ({ name: e.name, path: toSafPath(e.docId), is_dir: e.isDir }));
 }
 
 export async function safRead(treeUri: string, docId: string): Promise<FileReadResult> {
-  const content = await invoke<string>('saf_read', { treeUri, docId });
+  const content = await androidPort.safRead({ treeUri, docId });
   const name = docId.split('/').pop() || docId;
   return { content, encoding: 'UTF-8', language: langFor(name), had_bom: false };
 }
 
 export async function safWrite(treeUri: string, docId: string, content: string): Promise<void> {
-  await invoke('saf_write', { treeUri, docId, content });
+  await androidPort.safWrite({ treeUri, docId, content });
 }
 
 /** Create a file under `parentDocId`; returns its documentId. */
@@ -69,12 +64,12 @@ export async function safCreate(
   name: string,
   mime = 'text/markdown',
 ): Promise<string> {
-  return await invoke<string>('saf_create', { treeUri, parentDocId, mime, name });
+  return await androidPort.safCreate({ treeUri, parentDocId, mime, name });
 }
 
 export async function safPersistedTrees(): Promise<string[]> {
   try {
-    return await invoke<string[]>('saf_persisted_trees');
+    return await androidPort.safPersistedTrees();
   } catch {
     return [];
   }
@@ -88,7 +83,7 @@ export interface SafVault {
 
 /** Launch the system folder picker (result arrives asynchronously). */
 export async function safLaunchPicker(): Promise<void> {
-  await invoke('saf_pick_folder');
+  await androidPort.safPickFolder();
 }
 
 /**
@@ -101,10 +96,10 @@ export async function safLaunchPicker(): Promise<void> {
  *   SafVault  — a granted folder
  */
 export async function safResolvePicked(): Promise<SafVault | null | 'pending'> {
-  const res = await invoke<string | null>('saf_poll_picked');
+  const res = await androidPort.safPollPicked();
   if (res === null) return 'pending';
   if (res === '') return null;
-  const rootDocId = await invoke<string>('saf_tree_root', { treeUri: res });
-  const name = await invoke<string>('saf_tree_name', { treeUri: res, docId: rootDocId });
+  const rootDocId = await androidPort.safTreeRoot({ treeUri: res });
+  const name = await androidPort.safTreeName({ treeUri: res, docId: rootDocId });
   return { treeUri: res, rootDocId, name };
 }

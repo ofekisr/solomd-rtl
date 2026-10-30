@@ -30,7 +30,7 @@ import {
   LineRuleType,
 } from 'docx';
 import { mermaidToPng } from './diagram-export';
-import { invoke } from '@tauri-apps/api/core';
+import { fsPort } from '../platform/index.ts';
 import { md, extractImageRoot, preprocessMarkdown } from './markdown';
 import {
   resolveDocxTemplate,
@@ -82,7 +82,7 @@ async function fetchImageBytes(absPath: string): Promise<ImageCache | null> {
   if (cached) return cached;
 
   try {
-    const data = await invoke<number[]>('read_binary_file', { path: absPath });
+    const data = await fsPort.readBinaryFile({ path: absPath });
     const bytes = new Uint8Array(data);
 
     const { width, height } = readImageDimensions(bytes) ?? { width: 400, height: 300 };

@@ -14,8 +14,7 @@
  */
 
 import { EditorView } from '@codemirror/view';
-import { invoke } from '@tauri-apps/api/core';
-import { tempDir, sep, documentDir } from '@tauri-apps/api/path';
+import { fsPort, pathPort } from '../platform/index.ts';
 import { uploadImage, type ResolvedUploader } from './image-upload';
 import { markdownImage } from './md-image-url';
 import { isContentUri, isSafPath, sniffImageExt } from './image-source';
@@ -175,7 +174,7 @@ function joinPath(a: string, b: string, sepCh: string): string {
 async function resolveTempDir(override?: string): Promise<string> {
   if (override) return override;
   try {
-    return await tempDir();
+    return await pathPort.tempDir();
   } catch {
     return '/tmp';
   }
@@ -184,8 +183,7 @@ async function resolveTempDir(override?: string): Promise<string> {
 /** #349 — bytes of an Android `content://` URI, through the fs plugin's
  *  ContentResolver bridge (the same one #148 uses to open notes). */
 async function readContentUri(uri: string): Promise<Uint8Array> {
-  const { readFile } = await import('@tauri-apps/plugin-fs');
-  return readFile(uri);
+  return pathPort.readFile(uri);
 }
 
 function reportFailure(opts: ImagePasteOptions, err: unknown): void {
@@ -200,7 +198,7 @@ async function readFileAsUint8(file: File | Blob): Promise<Uint8Array> {
 
 function getSep(): string {
   try {
-    return sep();
+    return pathPort.sep();
   } catch {
     return '/';
   }
@@ -232,7 +230,7 @@ async function prepareLocalTarget(
   if (isSafPath(filePath)) {
     let base: string;
     try {
-      base = await documentDir();
+      base = await pathPort.documentDir();
     } catch {
       base = await resolveTempDir(opts.tempDir);
     }
@@ -276,7 +274,7 @@ async function prepareTempTarget(
 
 async function writeBytes(fullPath: string, bytes: Uint8Array): Promise<boolean> {
   try {
-    await invoke('write_binary_file', { path: fullPath, data: Array.from(bytes) });
+    await fsPort.writeBinaryFile({ path: fullPath, data: Array.from(bytes) });
     return true;
   } catch (err) {
     console.error('[cm-image-paste] failed to write image', err);
@@ -386,7 +384,7 @@ async function saveAndInsert(
     // otherwise copy the temp file into the attachments folder.
     if (up.keepLocal) return local.insertText;
     try {
-      await invoke('copy_file', { src: srcPath, dst: local.fullPath });
+      await fsPort.copyFile({ src: srcPath, dst: local.fullPath });
       return local.insertText;
     } catch {
       return markdownImage(srcPath.replace(/\\/g, '/'));
@@ -461,7 +459,7 @@ async function saveOrUploadText(
   return performUpload(up, srcPath, opts, async () => {
     if (up.keepLocal) return local.insertText;
     try {
-      await invoke('copy_file', { src: srcPath, dst: local.fullPath });
+      await fsPort.copyFile({ src: srcPath, dst: local.fullPath });
       return local.insertText;
     } catch {
       return markdownImage(srcPath.replace(/\\/g, '/'));
@@ -556,7 +554,7 @@ export async function insertImageFromPath(
 
   if (!up || !up.onPaste) {
     try {
-      await invoke('copy_file', { src: srcPath, dst: local.fullPath });
+      await fsPort.copyFile({ src: srcPath, dst: local.fullPath });
     } catch (err) {
       // Was a rethrow that nobody caught: the insert just didn't happen.
       reportFailure(opts, err);
@@ -570,7 +568,7 @@ export async function insertImageFromPath(
   // copy; otherwise upload the original file in place (no copy needed).
   let uploadSrc = srcPath;
   if (up.keepLocal) {
-    await invoke('copy_file', { src: srcPath, dst: local.fullPath });
+    await fsPort.copyFile({ src: srcPath, dst: local.fullPath });
     uploadSrc = local.fullPath;
   }
   const token = `solomd-uploading-${randSuffix()}${randSuffix()}`;
@@ -578,7 +576,7 @@ export async function insertImageFromPath(
   const finalText = await performUpload(up, uploadSrc, opts, async () => {
     if (up.keepLocal) return local.insertText;
     try {
-      await invoke('copy_file', { src: srcPath, dst: local.fullPath });
+      await fsPort.copyFile({ src: srcPath, dst: local.fullPath });
       return local.insertText;
     } catch {
       return markdownImage(srcPath.replace(/\\/g, '/'));
@@ -615,7 +613,7 @@ export async function imageTextFromPath(
   const local = await prepareLocalTarget(filename, opts);
   const copyLocal = async (): Promise<boolean> => {
     try {
-      await invoke('copy_file', { src: srcPath, dst: local.fullPath });
+      await fsPort.copyFile({ src: srcPath, dst: local.fullPath });
       return true;
     } catch (err) {
       reportFailure(opts, err);
