@@ -21,6 +21,7 @@ concurrency:
 
 jobs:
   mirror:
+    if: github.repository == 'zhitongblog/solomd'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
