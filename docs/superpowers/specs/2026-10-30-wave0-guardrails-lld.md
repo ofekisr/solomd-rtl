@@ -1,6 +1,6 @@
 ## LLD: Wave 0 — Guardrails
 
-**Status**: Draft | **Version**: v1.0 | **Date**: 30-10-26 | **HLD**: `2026-10-30-wave-refactor-hld.md` v3.1
+**Status**: Done | **Version**: v1.1 | **Date**: 30-10-26 | **HLD**: `2026-10-30-wave-refactor-hld.md` v3.1
 
 Wave 0 adds rules and checks only. No runtime code changes, so no app behavior can regress.
 
@@ -149,16 +149,19 @@ tests:
 |---|---|---|
 | `arch` | `node --test "arch/**/*.test.ts"` | ~1s |
 | `guard` | `arch` → `test` → `vue-tsc --noEmit` | ≤ 15s (today ~12s) — after every edit |
-| `verify` | `guard` → `vite build` → `cargo check --manifest-path src-tauri/Cargo.toml` → `pnpm --dir ../mcp-mindmap test` | before each commit |
+| `verify` | `guard` → `arch:tight` → `vite build` → `cargo check --manifest-path src-tauri/Cargo.toml` → `pnpm --dir ../mcp-mindmap test` | before each commit |
 | `full` | `verify` → `cargo test` → `playwright test --config e2e/playwright.config.ts` | before each wave's Integrate gate; macOS only (e2e baselines) |
 | `arch:rebaseline` | `node arch/rebaseline.ts` | after shrinking a file |
+| `arch:tight` | `node arch/rebaseline.ts --check` — never writes; exit 1 on any increase or slack | in `verify` and CI |
 
 **CI** `.github/workflows/ci.yml`: on `pull_request` + push to `main`, ubuntu, run `pnpm --dir app guard` then `vite build`. No cargo (Linux Tauri deps are heavy; `linux-2404-test.yml` already covers that), no e2e (macOS baselines).
 
 Root `CLAUDE.md` §Greenness ladder gets the table above in 5 lines.
 
 **Carried from the PR-2 final review**
-- CI step after `guard`: `node app/arch/rebaseline.ts && git diff --exit-code app/arch/baseline.json`. This fails a shrink that was never rebaselined, which would otherwise leave slack for the file to grow back. `app/arch/CLAUDE.md` already promises this check.
+- CI step after `guard`: `pnpm --dir app arch:tight` (`rebaseline.ts --check`). This fails a shrink that was never rebaselined, which would otherwise leave slack for the file to grow back.
+
+**As shipped** (plan `docs/superpowers/plans/2026-10-30-wave0-pr3-ladder-ci.md`): R1 `--check` replaces `rebaseline && git diff --exit-code`, which failed a correct but uncommitted rebaseline. R2 `arch:tight` runs in `verify` and CI, not `guard`. R3 CI runs `exec vite build`, not `build` (no second `vue-tsc`).
 - CI pins Node with `actions/setup-node` `node-version: 22.19`. The arch specs rely on built-in type stripping (Node ≥ 22.18), and the repo has no `.nvmrc`.
 - The arch suite takes ~1s, because importing `typescript` for `ts.preProcessFile` costs ~0.4s. This is still well inside the `guard` ≤ 15s budget.
 
@@ -201,15 +204,15 @@ N/A at runtime. Signal = script exit code + `[arch:<rule>]` prefixed messages.
 ### LLD AI Context YAML
 
 ```yaml
-lld_version: v1.0
+lld_version: v1.1
 feature: "Wave 0 — Guardrails"
 hld_version: v3.1
-status: draft
+status: done
 pr_count: 3
 execution_order: [pr-1, pr-2, pr-3]
 open_items: []
 conventions_check:
   explicit_deviations: 0
   implicit_deviations: 1
-dev_ready: false
+dev_ready: true
 ```
