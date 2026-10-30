@@ -23,8 +23,7 @@
  */
 
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { aiPort, eventsPort, type UnlistenFn } from '../platform/index.ts';
 import { ACTIONS, providerById, type AIAction, type ProviderId } from '../lib/ai-providers';
 import {
   AI_REWRITE_OPEN_EVENT,
@@ -97,7 +96,7 @@ const needsKey = computed(
 
 async function refreshLiveHasKey(): Promise<void> {
   try {
-    liveHasKey.value = await invoke<boolean>('ai_has_key', {
+    liveHasKey.value = await aiPort.aiHasKey({
       provider: props.provider,
     });
   } catch {
@@ -158,7 +157,7 @@ let unlistenError: UnlistenFn | null = null;
 
 async function ensureListeners(): Promise<void> {
   if (unlistenChunk) return;
-  unlistenChunk = await listen<{ request_id: string; chunk: string }>(
+  unlistenChunk = await eventsPort.listen<{ request_id: string; chunk: string }>(
     'solomd://ai-chunk',
     (e) => {
       console.log('[ai] chunk', e.payload.request_id, JSON.stringify(e.payload.chunk).slice(0, 80));
@@ -167,7 +166,7 @@ async function ensureListeners(): Promise<void> {
       autoscroll();
     },
   );
-  unlistenDone = await listen<{ request_id: string; full_text: string }>(
+  unlistenDone = await eventsPort.listen<{ request_id: string; full_text: string }>(
     'solomd://ai-done',
     (e) => {
       console.log('[ai] done', e.payload.request_id, 'full length=', e.payload.full_text?.length);
@@ -179,7 +178,7 @@ async function ensureListeners(): Promise<void> {
       requestId.value = null;
     },
   );
-  unlistenError = await listen<{ request_id: string; error: string }>(
+  unlistenError = await eventsPort.listen<{ request_id: string; error: string }>(
     'solomd://ai-error',
     (e) => {
       console.warn('[ai] error event', e.payload);
@@ -258,7 +257,7 @@ async function startAction(a: AIAction): Promise<void> {
       request_id: newRequestId,
     };
     console.log('[ai] invoke ai_rewrite', payload);
-    await invoke<string>('ai_rewrite', { request: payload });
+    await aiPort.aiRewrite({ request: payload });
     console.log('[ai] ai_rewrite returned request_id', newRequestId);
   } catch (err) {
     console.error('[ai] ai_rewrite invoke threw', err);
@@ -272,7 +271,7 @@ async function cancelStream(): Promise<void> {
   const id = requestId.value;
   if (id) {
     try {
-      await invoke('ai_cancel', { requestId: id });
+      await aiPort.aiCancel({ requestId: id });
     } catch {
       /* best-effort */
     }

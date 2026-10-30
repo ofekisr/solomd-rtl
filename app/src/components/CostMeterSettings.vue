@@ -8,7 +8,7 @@
  * already writes into each `agent-runs/<id>/meta.json`.
  */
 import { computed, onMounted, ref } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
+import { aiPort } from '../platform/index.ts';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
 
@@ -36,7 +36,7 @@ const meter = ref<CostMeter>({
 
 async function refresh() {
   try {
-    meter.value = await invoke<CostMeter>('cost_meter_get');
+    meter.value = await aiPort.costMeterGet();
   } catch (e) {
     // Match the toast pattern used by onToggleEnabled / onReset below —
     // a silent console.warn means the user has no idea why the table is
@@ -48,7 +48,7 @@ async function refresh() {
 async function onToggleEnabled() {
   const next = !meter.value.enabled;
   try {
-    meter.value = await invoke<CostMeter>('cost_meter_set_enabled', {
+    meter.value = await aiPort.costMeterSetEnabled({
       enabled: next,
     });
     toasts.info(next ? t('cost.enabled') : t('cost.disabled'));
@@ -59,7 +59,7 @@ async function onToggleEnabled() {
 
 async function onReset() {
   try {
-    meter.value = await invoke<CostMeter>('cost_meter_reset');
+    meter.value = await aiPort.costMeterReset();
     toasts.success(t('cost.resetDone'));
   } catch (e) {
     toasts.error(`${e}`);

@@ -9,8 +9,7 @@
  * commits on `feat/v4-panel`.
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { aiPort, eventsPort, type UnlistenFn } from '../platform/index.ts';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useSettingsStore } from '../stores/settings';
 import { useTabsStore } from '../stores/tabs';
@@ -224,7 +223,7 @@ async function send() {
   agent.currentRunId = requestId;
   agent.isStreaming = true;
   try {
-    await invoke<string>('ai_chat', {
+    await aiPort.aiChat({
       request: {
         provider: settings.aiProvider,
         api_format: apiFormat,
@@ -257,7 +256,7 @@ async function stop() {
   const id = agent.currentRunId;
   if (id) {
     try {
-      await invoke('ai_cancel', { requestId: id });
+      await aiPort.aiCancel({ requestId: id });
     } catch {
       /* best-effort */
     }
@@ -294,7 +293,7 @@ let unlistenToolResult: UnlistenFn | null = null;
 let unlistenRunStarted: UnlistenFn | null = null;
 
 onMounted(async () => {
-  unlistenChunk = await listen<{ request_id: string; chunk: string }>(
+  unlistenChunk = await eventsPort.listen<{ request_id: string; chunk: string }>(
     'solomd://ai-chunk',
     (e) => {
       if (!agent.currentRunId || e.payload.request_id !== agent.currentRunId) return;
@@ -302,7 +301,7 @@ onMounted(async () => {
       autoscroll();
     },
   );
-  unlistenDone = await listen<{ request_id: string; full_text: string }>(
+  unlistenDone = await eventsPort.listen<{ request_id: string; full_text: string }>(
     'solomd://ai-done',
     (e) => {
       if (!agent.currentRunId || e.payload.request_id !== agent.currentRunId) return;
@@ -317,7 +316,7 @@ onMounted(async () => {
       agent.currentRunId = null;
     },
   );
-  unlistenError = await listen<{ request_id: string; error: string }>(
+  unlistenError = await eventsPort.listen<{ request_id: string; error: string }>(
     'solomd://ai-error',
     (e) => {
       if (!agent.currentRunId || e.payload.request_id !== agent.currentRunId) return;
@@ -338,7 +337,7 @@ onMounted(async () => {
 
   // v4.0 — tool-call events. Insert a `tool` placeholder card on call,
   // fill the result when it lands.
-  unlistenToolCall = await listen<{
+  unlistenToolCall = await eventsPort.listen<{
     request_id: string;
     run_id: string;
     tool_call_id: string;
@@ -354,7 +353,7 @@ onMounted(async () => {
     });
     autoscroll();
   });
-  unlistenToolResult = await listen<{
+  unlistenToolResult = await eventsPort.listen<{
     request_id: string;
     run_id: string;
     tool_call_id: string;
@@ -378,7 +377,7 @@ onMounted(async () => {
     });
     autoscroll();
   });
-  unlistenRunStarted = await listen<{ request_id: string; run_id: string }>(
+  unlistenRunStarted = await eventsPort.listen<{ request_id: string; run_id: string }>(
     'solomd://ai-run-started',
     (e) => {
       if (!agent.currentRunId || e.payload.request_id !== agent.currentRunId) return;

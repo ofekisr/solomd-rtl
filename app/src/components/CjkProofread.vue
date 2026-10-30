@@ -26,7 +26,7 @@
  */
 
 import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
+import { aiPort } from '../platform/index.ts';
 import { useTabsStore } from '../stores/tabs';
 import { useToastsStore } from '../stores/toasts';
 import { useTilesStore } from '../stores/tiles';
@@ -90,7 +90,7 @@ async function rescan() {
   }
   loading.value = true;
   try {
-    const result = await invoke<Issue[]>('cjk_proofread', { text: tab.content ?? '' });
+    const result = await aiPort.cjkProofread({ text: tab.content ?? '' });
     issues.value = result;
     selectedIdx.value = -1;
   } catch (e) {
