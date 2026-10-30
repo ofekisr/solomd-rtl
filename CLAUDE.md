@@ -2,6 +2,18 @@
 
 Fork of SoloMD (Vue + CodeMirror + Tauri Markdown editor) with Hebrew/Arabic RTL and `.mmap` mind maps.
 
+## Invariants
+
+These hold in every wave. Break one only through a new ADR.
+
+1. **Spec wins.** If code disagrees with an accepted spec or ADR, fix the code or write a superseding ADR. Accepted ADRs in [docs/adr/](docs/adr/README.md) are settled.
+2. **Ratchets only shrink.** Arch baselines (`app/arch/baseline.json`, from Wave 0 PR-2) may lose entries or lower values, never gain or raise.
+3. **IPC through ports.** Once `app/src/platform/` exists (Wave 1), only it imports `@tauri-apps/*`.
+4. **`lib/` stays pure.** `app/src/lib/` imports no `vue`, `pinia` or `@tauri-apps/*`.
+5. **Features are private.** Import another feature only through its `contracts/`.
+6. **Doc sync.** Code change ⇒ update the nearest `CLAUDE.md` in the same commit.
+7. **File roles.** New and moved files follow [file roles](docs/conventions/file-roles.md).
+
 ## Layout
 
 | Dir | What |
