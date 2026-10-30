@@ -1,6 +1,6 @@
 ## LLD: Wave 0 — Guardrails
 
-**Status**: Draft | **Version**: v1.0 | **Date**: 30-10-26 | **HLD**: `2026-10-30-wave-refactor-hld.md` v3.0
+**Status**: Draft | **Version**: v1.0 | **Date**: 30-10-26 | **HLD**: `2026-10-30-wave-refactor-hld.md` v3.1
 
 Wave 0 adds rules and checks only. No runtime code changes, so no app behavior can regress.
 
@@ -13,7 +13,7 @@ Wave 0 adds rules and checks only. No runtime code changes, so no app behavior c
 | ESLint | none installed | `app/package.json` devDependencies |
 | CI | release-only, no PR checks | `.github/workflows/` (`release.yml`, `indexnow.yml`, `linux-2404-test.yml`, `mirror-gitee.yml`) |
 | Over budget | 22 `.ts` > 400, 26 `.vue` > 500, 23 `.rs` > 600 | `wc -l`, excl. tests + `i18n/` |
-| Raw IPC | ~100 `invoke(` sites, 58 files import `@tauri-apps/api/core` | HLD §1 |
+| Raw IPC | ~250 `invoke(` sites, 58 files import `@tauri-apps/api/core` | HLD §1 |
 
 ### Key decisions (LLD-level)
 
@@ -198,7 +198,7 @@ N/A at runtime. Signal = script exit code + `[arch:<rule>]` prefixed messages.
 ```yaml
 lld_version: v1.0
 feature: "Wave 0 — Guardrails"
-hld_version: v3.0
+hld_version: v3.1
 status: draft
 pr_count: 3
 execution_order: [pr-1, pr-2, pr-3]

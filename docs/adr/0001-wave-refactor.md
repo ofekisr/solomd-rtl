@@ -5,7 +5,7 @@
 ## Context
 
 - The app grew feature-first. God files: `Editor.vue` 5026 lines, `FileTree.vue` 2943, `ai_proxy.rs` 2933, `SettingsPanel.vue` 2614, `App.vue` 2511, `stores/settings.ts` 1793.
-- About 100 raw `invoke()` calls sit in 58 files.
+- About 250 raw `invoke()` calls sit in 58 files.
 - Large files and untyped IPC make every agent edit riskier.
 - Full design: [HLD v3.0](../superpowers/specs/2026-10-30-wave-refactor-hld.md).
 

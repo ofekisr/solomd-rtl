@@ -10,7 +10,7 @@ Vue 3 + CodeMirror 6 + Pinia front end. `src-tauri/` is the Rust desktop shell. 
 | `src/components/` | ~118 flat Vue components; `git/`, `properties/` subfolders | Empties into `features/<f>/ui/` by Wave 4 |
 | `src/composables/` | `use*` hooks | Move with their feature |
 | `src/stores/` | Pinia stores; `settings.ts` holds all settings | Per-feature settings slices (Wave 3) |
-| `src/lib/` | Pure TS: CM extensions (`cm-*.ts`), parsers, `theme/`, `git-pane/` | Stays. Pure: no `vue`, `pinia`, `@tauri-apps/*` |
+| `src/lib/` | Mostly pure TS: CM extensions (`cm-*.ts`), parsers, `theme/`, `git-pane/`, `fixtures/`. Some files still import `vue`/`pinia`/`@tauri-apps/*` | Stays. Fully pure as the PR-2 baseline shrinks |
 | `src/ui/` | `Ds*` design-system primitives | Stays |
 | `src/i18n/` | Locale tables. New strings go in `en.ts` | Keys move into features (Wave 2+) |
 | `src/styles/` | Global CSS and tokens | Stays |
@@ -41,4 +41,4 @@ Unit tests run on Node type-stripping: import local files with the `.ts` extensi
 | `src/lib/theme/` | `docs/superpowers/specs/2026-10-29-theme-layer-design.md` |
 | `../demos/` | [demos/CLAUDE.md](../demos/CLAUDE.md) |
 
-Changed code in an area? Update that area's `CLAUDE.md` in the same commit.
+Changed code makes an area's `CLAUDE.md` wrong? Fix it in the same commit.

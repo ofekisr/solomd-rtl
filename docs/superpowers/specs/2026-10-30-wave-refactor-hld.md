@@ -1,12 +1,12 @@
 ## HLD: Wave Refactor — therapy-os principles for solomd-rtl
 
-**Status**: Stable | **Version**: v3.0 | **Date**: 30-10-26
+**Status**: Stable | **Version**: v3.1 | **Date**: 30-10-26
 
 ---
 
 ### 1. Overview
 
-**Problem**: solomd-rtl grew feature-first. God files (`Editor.vue` 5026, `FileTree.vue` 2943, `ai_proxy.rs` 2933, `SettingsPanel.vue` 2614, `App.vue` 2511, `stores/settings.ts` 1793), ~100 raw `invoke()` calls in 58 files, AI calls scattered in components. Each new AI capability costs more than the last.
+**Problem**: solomd-rtl grew feature-first. God files (`Editor.vue` 5026, `FileTree.vue` 2943, `ai_proxy.rs` 2933, `SettingsPanel.vue` 2614, `App.vue` 2511, `stores/settings.ts` 1793), ~250 raw `invoke()` calls in 58 files, AI calls scattered in components. Each new AI capability costs more than the last.
 
 **Solution**: Restructure in waves. Each wave runs two tracks at once — **Define** (contracts, bottom-up) and **Decompose** (split god files, top-down) — and closes with an **Integrate** gate where decomposed code adopts the new contracts. Every wave ships a release.
 
@@ -15,6 +15,7 @@
 - **v1.1** (30-10-26): Q1 resolved — fork independent; full move to `features/`
 - **v2.0** (30-10-26): Q2 resolved — Editor wave moved before AI wave
 - **v3.0** (30-10-26): AI wave moved last (AI features not in use yet); Q3 resolved — desktop + web only
+- **v3.1** (30-10-26): corrected raw invoke count (~100 → ~250)
 
 **Scope**
 - In: `app/src`, `app/src-tauri/src`, `mcp-mindmap/`, agent docs (`CLAUDE.md` layering), quality gates.
@@ -69,7 +70,7 @@ flowchart LR
 | Wave | Define (contracts) | Decompose (god files) | Integrate gate | Est. |
 |---|---|---|---|---|
 | **0 Guardrails** | File-role taxonomy, `docs/adr/`, `CLAUDE.md` layering skeleton | — | `guard`/`verify` scripts; boundary lint; file-size ratchet at today's baseline (files may shrink, never grow) | 1 day |
-| **1 Platform** | `platform/` ports + Zod per command domain (fs, git, ai, rag, settings, window); tauri + web adapters | `App.vue` → window, file-open, shortcuts, session, updates services | All ~100 `invoke` sites via ports; lint bans `@tauri-apps/api/core` outside `platform/` | 3–5 days |
+| **1 Platform** | `platform/` ports + Zod per command domain (fs, git, ai, rag, settings, window); tauri + web adapters | `App.vue` → window, file-open, shortcuts, session, updates services | All ~250 `invoke` sites via ports; lint bans `@tauri-apps/api/core` outside `platform/` | 3–5 days |
 | **2 Editor** | `EditorFeature` contract: CM extensions + commands + settings slice + i18n keys | `Editor.vue` → features (find, spellcheck, vim, export, image-upload, folds, ai-rewrite, session); `cm-live-blocks.ts` | `Editor.vue` is a host < 400 lines composing registered features; `ai-rewrite` keeps today's AI path behind a thin shim until Wave 4 | 5–8 days |
 | **3 Settings & shell** | Per-feature settings slice schema + migration (theme pattern) | `stores/settings.ts`, `SettingsPanel.vue`, `FileTree.vue`, `Toolbar.vue`; Rust `commands.rs`, `git_pane/cli/actions.rs` | Settings UI rendered from feature registry; ratchet tightened to final budget (except AI files) | 5–7 days |
 | **4 AI** | `LlmClient`, `ToolContract`, `PromptTemplate` registry, canned driver, fallback rule | `ai_proxy.rs` → per-provider drivers, wire, stream, cancel; `AISettings.vue`, `AgentPanel.vue` | `ai-rewrite` feature, agent panel, RAG go through `ai/`; temporary AI shim from Wave 2 deleted; AI settings slice joins the registry; MCP tool schemas shared with `mcp-mindmap` | 4–6 days |
@@ -120,7 +121,7 @@ No persisted-data change except Wave 4: today's single settings blob splits into
 ### AI Context YAML
 
 ```yaml
-hld_version: v3.0
+hld_version: v3.1
 feature: "Wave Refactor — therapy-os principles"
 status: stable
 waves:
