@@ -74,15 +74,12 @@ const effectiveStyle = computed<EffectiveStyle | null>(() => {
 });
 const BATCH_RESHAPE_OPERATION = 'reshapeNodes';
 const EFFECTIVE_FALLBACK: EffectiveStyle = { color: '#000000', background: '#ffffff', fontSize: 16, branchColor: '#888888' };
-
 function has(part: CellPart): boolean {
   return cellHas(parts.value, part);
 }
-
 function partOrder(part: CellPart): number {
   return parts.value.indexOf(part);
 }
-
 const isSplit = computed(() => parts.value.length > 1);
 const isPanelVisible = computed(() => has('map') && settings.mindmapPanelOpen);
 const isDetailsVisible = computed(() => has('map') && hasCanvas.value && settings.mindmapDetailsOpen);
@@ -323,21 +320,17 @@ function clearOverride(key: keyof MapDisplay): void {
 
 watch(() => settings.mindmapDefaults, applyDisplay, { deep: true });
 
+const VIEW_TOGGLES: Record<string, () => void> = {
+  [TOGGLE_PANEL_ACTION]: () => settings.toggleMindmapPanel(),
+  [TOGGLE_DETAILS_ACTION]: () => settings.toggleMindmapDetails(),
+  [TOGGLE_PIN_STRIP_ACTION]: () => settings.toggleMindmapPinStrip(),
+  [TOGGLE_SNIPPETS_ACTION]: () => settings.toggleMindmapSnippets(),
+};
+
 function runViewAction(actionId: string): boolean {
-  if (actionId === TOGGLE_PANEL_ACTION) {
-    settings.toggleMindmapPanel();
-    return true;
-  }
-  if (actionId === TOGGLE_DETAILS_ACTION) {
-    settings.toggleMindmapDetails();
-    return true;
-  }
-  if (actionId === TOGGLE_PIN_STRIP_ACTION) {
-    settings.toggleMindmapPinStrip();
-    return true;
-  }
-  if (actionId === TOGGLE_SNIPPETS_ACTION) {
-    settings.toggleMindmapSnippets();
+  const toggle = VIEW_TOGGLES[actionId];
+  if (toggle) {
+    toggle();
     return true;
   }
   const target = targetLensFor(actionId, lens.value);
@@ -504,21 +497,4 @@ defineExpose({ setLens, canvas, lens, openFind });
   </div>
 </template>
 
-<style scoped>
-.mindmap-shell { display: flex; flex-direction: column; width: 100%; height: 100%; }
-.mindmap-shell__body { position: relative; flex: 1; min-height: 0; display: flex; }
-.mindmap-shell__body > * { flex: 1; min-width: 0; }
-.mindmap-shell__cell { display: flex; min-height: 0; }
-.mindmap-shell__cell > * { flex: 1; min-width: 0; min-height: 0; }
-.mindmap-shell__cell--split { gap: 1px; background: var(--border); }
-.mindmap-shell__cell--split > * { background: var(--bg); }
-.mindmap-shell__map { display: flex; flex-direction: column; min-height: 0; }
-.mindmap-shell__find { flex: none; }
-:global(.me-find-hit) { outline: 2px solid var(--accent, #ff9f40); outline-offset: 2px; }
-.mindmap-shell__canvas { flex: 1; min-height: 0; }
-.mindmap-shell__source { display: flex; flex-direction: column; }
-.mindmap-shell__error { padding: 6px 12px; font-size: 12px; background: var(--bg-elev); color: var(--text); border-block-end: 1px solid var(--border); }
-.mindmap-shell__hint { font-size: 12px; color: var(--text-faint); }
-.mindmap-shell__outline { overflow: auto; }
-.mindmap-shell__outline :deep(:is(h1, h2, h3, h4, h5, h6, li, p)) { unicode-bidi: plaintext; text-align: start; }
-</style>
+<style scoped src="./MindmapView.css"></style>

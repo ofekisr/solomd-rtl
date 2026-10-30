@@ -1,0 +1,60 @@
+.mindmap-view__canvas :deep(.mm-menu-group__list li) { display: flex; align-items: center; gap: 8px; }
+.mindmap-view__canvas :deep(.mm-menu-group__list li > span) { flex: 1; }
+.mindmap-view__canvas :deep(.mm-menu-group__remove) { border: 0; background: none; color: inherit; opacity: 0.5; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 2px; }
+.mindmap-view__canvas :deep(.mm-menu-group__remove:hover) { opacity: 1; }
+.mindmap-view__canvas :deep(.context-menu .menu-list) { overflow: visible; }
+.mindmap-view__canvas :deep(.context-menu .menu-list li.mm-menu-group) { position: relative; overflow: visible; }
+.mindmap-view__canvas :deep(.mm-menu-group__chevron) { opacity: 0.6; }
+.mindmap-view__canvas :deep(.mm-menu-group__chevron:dir(rtl)) { transform: scaleX(-1); }
+.mindmap-view__canvas :deep(.mm-menu-group__list) {
+  display: none;
+  position: absolute;
+  top: 0;
+  inset-inline-start: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0 12px 15px #0003;
+}
+.mindmap-view__canvas :deep(.mm-menu-group:is(:hover, .is-open) > .mm-menu-group__list) { display: block; }
+.mindmap-view__canvas :deep(.mm-menu-group.is-flipped > .mm-menu-group__list) { inset-inline-start: auto; inset-inline-end: 100%; }
+.mindmap-view__canvas :deep(.context-menu .menu-list .mm-menu-group__list li span:last-child) { float: none; }
+.mindmap-view { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
+.mindmap-view__stage { position: relative; flex: 1; min-height: 0; display: flex; background: var(--bg); }
+.mindmap-view__canvas { flex: 1; min-height: 0; width: 100%; }
+.mindmap-view__canvas :deep(:is([data-folded-count='direct'], [data-folded-count='all'], [data-folded-count='both']) me-epd[data-count-all]:not(.minus)) {
+  background-image: none;
+  background-color: var(--main-color);
+  color: var(--main-bgcolor);
+  width: auto;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+  white-space: nowrap;
+  opacity: 1;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+.mindmap-view__canvas :deep(:is([data-folded-count='direct'], [data-folded-count='all'], [data-folded-count='both']) .rhs me-epd[data-count-all]:not(.minus)) { left: calc(100% - 8px); right: auto; }
+.mindmap-view__canvas :deep(:is([data-folded-count='direct'], [data-folded-count='all'], [data-folded-count='both']) .lhs me-epd[data-count-all]:not(.minus)) { right: calc(100% - 8px); left: auto; }
+.mindmap-view__canvas :deep(:is([data-folded-count='direct'], [data-folded-count='all'], [data-folded-count='both']) me-nodes.down me-epd[data-count-all]:not(.minus)) { left: calc(50% - 9px); right: auto; transform: translateX(calc(-50% + 9px)); }
+.mindmap-view__canvas :deep([data-folded-count='direct'] me-epd[data-count-direct]:not(.minus)::after) { content: attr(data-count-direct); }
+.mindmap-view__canvas :deep([data-folded-count='all'] me-epd[data-count-all]:not(.minus)::after) { content: attr(data-count-all); }
+.mindmap-view__canvas :deep([data-folded-count='both'] me-epd[data-count-both]:not(.minus)::after) { content: attr(data-count-both); }
+.mindmap-view__canvas.mm-grabbing, .mindmap-view__canvas.mm-grabbing :deep(*) { cursor: grabbing !important; }
+.mindmap-view__status { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; z-index: 5; display: flex; gap: 6px; pointer-events: none; }
+.mindmap-view__badge { padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); opacity: 0.9; }
+.mindmap-view__chip { pointer-events: auto; padding: 2px 10px; border-radius: 999px; font-size: 12px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--accent); cursor: pointer; }
+.mindmap-view__error { padding: 24px; }
+.mindmap-view__error pre { white-space: pre-wrap; opacity: 0.8; }
+.mindmap-view__canvas :deep(me-tpc),
+.mindmap-view__canvas :deep(me-tpc .text),
+.mindmap-view__canvas :deep(#input-box) {
+  unicode-bidi: plaintext;
+  text-align: start;
+}

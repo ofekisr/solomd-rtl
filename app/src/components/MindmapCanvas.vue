@@ -1,67 +1,49 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import MindElixir from 'mind-elixir';
-import type { MindElixirData, MindElixirInstance, NodeObj, Topic } from 'mind-elixir';
+import type { MindElixirData, MindElixirInstance, NodeObj } from 'mind-elixir';
 import 'mind-elixir/style.css';
 import type { MindmapCodec } from '../lib/mindmap-format';
 import type { MapDisplay } from '../lib/mindmap-display';
 import type { Snippet } from '../lib/mindmap-snippets';
-import { sanitizeNodeObj } from '../lib/mindmap-format';
 import { useSettingsStore } from '../stores/settings';
 import { useThemeStore } from '../stores/theme';
 import { useToastsStore } from '../stores/toasts';
 import { fenceNodeSource, readNodeSource, type MindmapSource } from '../lib/mindmap-source';
 import { useI18n } from '../i18n';
-import { resolveBindings, shortcutLabel } from '../lib/keybindings';
-import { isMacOS } from '../lib/platform';
+import { resolveBindings } from '../lib/keybindings';
 import { createMapKeyDispatch } from '../lib/mindmap-key-dispatch';
 import { layoutDirectionFor, MINDMAP_LAYOUT } from '../lib/mindmap-direction';
 import { decorateFoldedCounts } from '../lib/mindmap-folded-count';
 import { clearActiveMindmap, setActiveMindmap, type MindmapHandle } from '../lib/mindmap-active';
-import { createGateController, type GateMenuAction, type GateNotice } from '../lib/mindmap-gate-controller';
 import { useMindmapCanvasActions } from '../composables/useMindmapCanvasActions';
 import { createChordPan } from '../composables/useMindmapChordPan';
-import { hasOpenBranch, planSelectionToggle, setDescendantsExpanded } from '../lib/mindmap-collapse';
-import { frameDelta, insetRect, panDelta, parseTranslate, type FrameRect } from '../lib/mindmap-frame';
-import { EMPTY_FRAME_STYLE, readFrameVars, type StripFrameStyle } from '../lib/mindmap-frame-style';
+import { setDescendantsExpanded } from '../lib/mindmap-collapse';
+import { withoutGateArrows } from '../lib/mindmap-graph';
+import { TAB_SOURCE_PREFIX } from '../lib/mindmap-workbench';
 import MindmapDock from './MindmapDock.vue';
 import MindmapDockButton from './MindmapDockButton.vue';
 import MindmapShortcutHelp from './MindmapShortcutHelp.vue';
 import MindmapPasteTargetDialog from './MindmapPasteTargetDialog.vue';
 import MindmapDuplicates from './MindmapDuplicates.vue';
 import MindmapNumberingDialog from './MindmapNumberingDialog.vue';
-import { applyNumbers, numberingGroups, type NumberingScope } from '../lib/mindmap-numbering';
-import { findDuplicateGroups, mergeIntoGate, type DuplicateGroup } from '../lib/mindmap-duplicates';
-import { findNode, isGate } from '../lib/mindmap-gates';
-import { runAsOneOperation, runAsOneOperationAsync, type OperationBus } from '../lib/mindmap-batch';
-import { remapSummaries as remapChildSummaries, sortChildrenByTopic, type SortOrder } from '../lib/mindmap-sort';
-import { needsPasteDialog, pasteMode, resolveInsertTargetId, type PasteMapTarget } from '../lib/mindmap-insert';
-import { parsePaste, type PastePayload } from '../lib/mindmap-paste';
-import { buildIdMap, remapArrows, remapGates, remapSummaries } from '../lib/mindmap-paste-remap';
-import { withoutGateArrows } from '../lib/mindmap-graph';
-import { copyPlainText, readPlainText } from '../lib/code-copy';
-import { copyMapText, subtreeData } from '../lib/mindmap-payload';
-import { copyStyle, nodePathsText, pasteStyle, styleClipboard, type NodeStyle, type RenderedLook } from '../lib/mindmap-node-copy';
-import { templateName } from '../lib/mindmap-style-templates';
-import { promptText } from '../composables/useGitPrompt';
-import { entryKey, TAB_SOURCE_PREFIX, type EntryDraft } from '../lib/mindmap-workbench';
-import { useMindmapWorkbenchStore } from '../stores/mindmapWorkbench';
-import { fileDraft, nodesDraft, openWorkbench } from '../composables/useMindmapWorkbench';
-import { closingMenuItems, hideContextMenu, installMenuGroup, keepMenuTopVisible, type ContextMenuItem, type GroupMenuItem } from '../lib/mindmap-context-menu';
-import { buildFreezeStrip, canAnchor, getTabFocus, getTabStripRoot, pathTo, setTabFocus, setTabStripRoot, type FreezeStrip } from '../lib/mindmap-focus';
 import MindmapFreezeStrip from './MindmapFreezeStrip.vue';
+import { useMindmapCanvasViewport, wrapMove, wrapToCenter } from './useMindmapCanvasViewport.ts';
+import { useMindmapCanvasFocus } from './useMindmapCanvasFocus.ts';
+import { useMindmapCanvasGates } from './useMindmapCanvasGates.ts';
+import { useMindmapCanvasDuplicates } from './useMindmapCanvasDuplicates.ts';
+import { useMindmapCanvasTreeEdit } from './useMindmapCanvasTreeEdit.ts';
+import { useMindmapCanvasHistory } from './useMindmapCanvasHistory.ts';
+import { useMindmapCanvasClipboard } from './useMindmapCanvasClipboard.ts';
+import { useMindmapCanvasStyle } from './useMindmapCanvasStyle.ts';
+import { useMindmapCanvasMenu } from './useMindmapCanvasMenu.ts';
 
 const SYNC_DEBOUNCE_MS = 300;
-const SMOOTH_MOVE_MS = 300;
-const SMOOTH_MOVE_TRANSITION = `transform ${SMOOTH_MOVE_MS / 1000}s`;
-const TOPIC_EDITOR_ID = 'input-box';
 const OPERATION_EVENT = 'operation';
 const EXPAND_EVENT = 'expandNode';
 const SELECT_EVENT = 'selectNodes';
 const UNSELECT_EVENT = 'unselectNodes';
-const BEGIN_EDIT_OPERATION = 'beginEdit';
-const PASTE_NOTICE_KEYS = { empty: null, tooLarge: 'mindmap.pasteTooLarge', unrecognized: 'mindmap.pasteUnrecognized' } as const;
-const MENU_GROUP_TOPIC = 'Selection';
+const TOPIC_EDITOR_ID = 'input-box';
 const TOGGLE_NODE_ACTION = 'mindmap.toggleNode';
 const LINK_DIV_EVENT = 'linkDiv';
 const CHANGE_DIRECTION_EVENT = 'changeDirection';
@@ -83,7 +65,6 @@ const emit = defineEmits<{
 const settings = useSettingsStore();
 const themeStore = useThemeStore();
 const toasts = useToastsStore();
-const workbench = useMindmapWorkbenchStore();
 const { t } = useI18n();
 
 const host = ref<HTMLElement | null>(null);
@@ -92,11 +73,6 @@ const direction = ref<number>(MINDMAP_LAYOUT.SIDE);
 const parseError = ref<string | null>(null);
 const isHelpOpen = ref(false);
 const isReadOnly = ref(false);
-const focusId = ref<string | null>(props.focusKey ? getTabFocus(props.focusKey) : null);
-const stripRootId = ref<string | null>(props.focusKey ? getTabStripRoot(props.focusKey) : null);
-const strip = ref<FreezeStrip | null>(null);
-const frameStyle = ref<StripFrameStyle>(EMPTY_FRAME_STYLE);
-let isApplyingFocus = false;
 let mind: MindElixirInstance | null = null;
 let displayOverride: MapDisplay = {};
 let snippetsOverride: Snippet[] = [];
@@ -104,7 +80,33 @@ let lastSynced = props.content;
 let syncTimer: number | null = null;
 let pristineSerialized: string | null = null;
 let loaded: { content: string; serialized: string } | null = null;
-let centerObserver: ResizeObserver | null = null;
+
+const getMind = (): MindElixirInstance | null => mind;
+const isEditBlocked = (): boolean => isReadOnly.value || props.locked;
+const canEdit = (): boolean => !isEditBlocked();
+
+const viewport = useMindmapCanvasViewport({ getMind, host, stage });
+const focus = useMindmapCanvasFocus({ getMind, focusKey: () => props.focusKey });
+const { focusId, strip, frameStyle, refreshFrameStyle, setStripRoot, focusById, refreshStrip, reapplyFocus, leaveFocusQuietly } = focus;
+const chordPan = createChordPan({ getMind });
+const gates = useMindmapCanvasGates({ getMind, isEditBlocked, scheduleSync });
+const dupes = useMindmapCanvasDuplicates({ getMind, isEditBlocked, leaveFocusQuietly, reapplyFocus, syncLabels: () => gates.syncLabels(), scheduleSync });
+const { duplicateCount, duplicateGroups, countDuplicates, findDuplicates, topicOf, mergeDuplicate } = dupes;
+const tree = useMindmapCanvasTreeEdit({ getMind, isEditBlocked, scheduleSync });
+const { pendingNumbering, toggleCollapse, selectRoot, sortSelectedChildren, requestNumbering, onNumberingChoice } = tree;
+const history = useMindmapCanvasHistory({
+  getMind, isLocked: () => props.locked, isEditBlocked, onSelection: (nodes) => emit('selection', nodes), focusId, focusById, refreshStrip, reapplyFocus, leaveFocusQuietly,
+  syncLabels: () => gates.syncLabels(), scheduleSync, scheduleDuplicateCount: dupes.scheduleDuplicateCount,
+});
+const clipboard = useMindmapCanvasClipboard({ getMind, isEditBlocked, syncLabels: () => gates.syncLabels(), selectedNodes: tree.selectedNodes });
+const { pendingPaste, onPasteTargetChosen } = clipboard;
+const styles = useMindmapCanvasStyle({ getMind, selectedNodes: tree.selectedNodes, canEditTree: tree.canEditTree, commitTreeEdit: tree.commitTreeEdit, reselect: tree.reselect });
+const menu = useMindmapCanvasMenu({
+  getMind, getHost: () => host.value, sourcePath: () => props.sourcePath, sourceLabel: () => props.sourceLabel ?? props.exportName, selectedNonRootIds: clipboard.selectedNonRootIds,
+  gateItems: () => gates.menu, jumpToSource, pinCurrentAsStripRoot: focus.pinCurrentAsStripRoot, showDetails: () => emit('show-details'), sortSelectedChildren, requestNumbering,
+  copyNodePath: clipboard.copyNodePath, copyMap: clipboard.copyMap, pasteMapFromClipboard: clipboard.pasteMapFromClipboard, copyNodeStyle: styles.copyNodeStyle, pasteNodeStyle: styles.pasteNodeStyle,
+  styleTemplateMenuItems: styles.styleTemplateMenuItems, reportingErrors: styles.reportingErrors, reportingSyncErrors: styles.reportingSyncErrors,
+});
 
 function themeFor(): typeof MindElixir.THEME {
   return themeStore.mode === 'dark' ? MindElixir.DARK_THEME : MindElixir.THEME;
@@ -122,14 +124,6 @@ function loadData(): MindElixirData | null {
   return parsed.data;
 }
 
-function canEdit(): boolean {
-  return !isEditBlocked();
-}
-
-function isEditBlocked(): boolean {
-  return isReadOnly.value || props.locked;
-}
-
 function clearPendingSync(): void {
   if (syncTimer !== null) window.clearTimeout(syncTimer);
   syncTimer = null;
@@ -144,37 +138,6 @@ function syncNow(): void {
   if (next === props.content) return;
   lastSynced = next;
   emit('update:content', lastSynced);
-}
-
-function stopCentering(): void {
-  centerObserver?.disconnect();
-  centerObserver = null;
-}
-
-function centerOnceLaidOut(): void {
-  stopCentering();
-  if (!host.value) return;
-  centerObserver = new ResizeObserver((entries) => {
-    const box = entries[0]?.contentRect;
-    if (!box || box.width === 0 || box.height === 0) return;
-    stopCentering();
-    mind?.toCenter();
-  });
-  centerObserver.observe(host.value);
-}
-
-const DUPLICATE_COUNT_DEBOUNCE_MS = 500;
-const duplicateCount = ref(0);
-let duplicateTimer: number | null = null;
-
-function countDuplicates(): void {
-  duplicateTimer = null;
-  duplicateCount.value = mind ? findDuplicateGroups(fullRoot(mind)).length : 0;
-}
-
-function scheduleDuplicateCount(): void {
-  if (duplicateTimer !== null) window.clearTimeout(duplicateTimer);
-  duplicateTimer = window.setTimeout(countDuplicates, DUPLICATE_COUNT_DEBOUNCE_MS);
 }
 
 /** Load-time fixes (refreshed gate labels) are not edits: until the map really changes, keep the file's own text. */
@@ -195,281 +158,46 @@ function mount(): void {
     el: host.value,
     direction: layoutDirectionFor(data),
     editable: canEdit(),
-    contextMenu: { extend: closingMenuItems([...gates.menu, { name: t('mindmap.jumpToSourceMenu'), onclick: jumpToSource }, { name: t('mindmap.pinStripRoot'), onclick: pinCurrentAsStripRoot }, { name: t('mindmap.detailsShow'), onclick: () => emit('show-details') }, { name: t('mindmap.sortChildrenMenu'), onclick: sortSelectedChildren }, { name: t('mindmap.numberMenu'), onclick: () => requestNumbering(true) }, { name: t('mindmap.removeNumbersMenu'), onclick: () => requestNumbering(false) }, ...workbenchMenuItems()], () => hideContextMenu(host.value)) },
+    contextMenu: { extend: menu.extendedItems() },
     before: gates.guards,
     toolBar: false,
     keypress: true,
     allowUndo: true,
     theme: themeFor(),
-    pasteHandler: onPaste,
+    pasteHandler: clipboard.onPaste,
   });
   wrapToCenter(mind);
   wrapMove(mind);
   if (props.fenceLine === undefined) setDescendantsExpanded(data.nodeData, false);
   mind.init(data);
-  installMenuGroup(host.value, t('mindmap.menuStyleTemplatesGroup'), styleTemplateMenuItems, () => hideContextMenu(host.value));
-  installMenuGroup(host.value, t('mindmap.menuCopyPasteGroup'), copyPasteMenuItems(), () => hideContextMenu(host.value));
-  mind.bus.addListener('showContextMenu', () => keepMenuTopVisible(host.value));
+  menu.installGroups(mind, host.value);
   direction.value = mind.direction;
   chordPan.attach(host.value);
-  stage.value?.addEventListener(FULLSCREEN_CHANGE_EVENT, onFullscreenChange);
+  stage.value?.addEventListener(FULLSCREEN_CHANGE_EVENT, viewport.onFullscreenChange);
   gates.syncLabels();
   rememberLoaded();
   countDuplicates();
   pristineSerialized = props.content === '' ? props.codec.serialize(mind.getData(), displayOverride, snippetsOverride) : null;
-  centerOnceLaidOut();
-  mind.bus.addListener(OPERATION_EVENT, onOperation);
+  viewport.centerOnceLaidOut();
+  mind.bus.addListener(OPERATION_EVENT, history.onOperation);
   mind.bus.addListener(EXPAND_EVENT, scheduleSync);
-  mind.bus.addListener(SELECT_EVENT, emitSelection);
-  mind.bus.addListener(UNSELECT_EVENT, emitSelection);
+  mind.bus.addListener(SELECT_EVENT, history.emitSelection);
+  mind.bus.addListener(UNSELECT_EVENT, history.emitSelection);
   mind.bus.addListener(CHANGE_DIRECTION_EVENT, onDirectionChange);
   mind.bus.addListener(LINK_DIV_EVENT, () => { if (mind) decorateFoldedCounts(mind.nodes); });
-  syncAfterHistoryJumps(mind);
-  sanitizeCopiedNodes(mind);
-  guardRemovedNodes(mind);
-  wrapFocus(mind);
+  history.syncAfterHistoryJumps(mind);
+  history.sanitizeCopiedNodes(mind);
+  history.guardRemovedNodes(mind);
+  focus.wrapFocus(mind);
   reapplyFocus();
   refreshFrameStyle();
   activate();
   emit('ready');
 }
 
-function frameMap(instance: MindElixirInstance): void {
-  const container = instance.container.getBoundingClientRect();
-  if (container.width === 0 || container.height === 0) return;
-  const padding = getComputedStyle(instance.nodes);
-  const content = insetRect(instance.nodes.getBoundingClientRect(), parseFloat(padding.paddingLeft) || 0, parseFloat(padding.paddingTop) || 0);
-  const root = instance.map.querySelector('me-root')?.getBoundingClientRect() ?? content;
-  const { dx, dy } = frameDelta({ container, content, root, layout: instance.direction });
-  const { x, y } = parseTranslate(instance.map.style.transform);
-  instance.map.style.transform = `translate3d(${x + dx}px, ${y + dy}px, 0) scale(${instance.scaleVal})`;
-}
-
-function wrapToCenter(instance: MindElixirInstance): void {
-  const { toCenter } = instance;
-  instance.toCenter = () => {
-    toCenter.call(instance);
-    frameMap(instance);
-  };
-}
-
-function topicsRect(nodes: HTMLElement): FrameRect {
-  let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
-  for (const topic of nodes.querySelectorAll('me-tpc')) {
-    const rect = topic.getBoundingClientRect();
-    if (rect.width === 0) continue;
-    left = Math.min(left, rect.left);
-    top = Math.min(top, rect.top);
-    right = Math.max(right, rect.right);
-    bottom = Math.max(bottom, rect.bottom);
-  }
-  if (left === Infinity) return nodes.getBoundingClientRect();
-  return { left, top, width: right - left, height: bottom - top };
-}
-
-function wrapMove(instance: MindElixirInstance): void {
-  instance.move = (dx, dy, smooth = false) => {
-    const { map, container, nodes, scaleVal, bus } = instance;
-    if (smooth && map.style.transition === SMOOTH_MOVE_TRANSITION) return false;
-    const delta = panDelta({ container: container.getBoundingClientRect(), content: topicsRect(nodes), dx, dy });
-    if (delta.dx === 0 && delta.dy === 0) return false;
-    const { x, y } = parseTranslate(map.style.transform);
-    if (smooth) {
-      map.style.transition = SMOOTH_MOVE_TRANSITION;
-      window.setTimeout(() => { map.style.transition = 'none'; }, SMOOTH_MOVE_MS);
-    }
-    map.style.transform = `translate3d(${x + delta.dx}px, ${y + delta.dy}px, 0) scale(${scaleVal})`;
-    bus.fire('move', delta);
-    return true;
-  };
-}
-
 function onDirectionChange(next: number): void {
   direction.value = next;
   if (!mind?.isFocusMode) scheduleSync();
-}
-
-function zoomBy(step: number): void {
-  if (mind) mind.scale(mind.scaleVal + step * mind.scaleSensitivity);
-}
-
-function toggleFullscreen(): void {
-  if (document.fullscreenElement === stage.value) void document.exitFullscreen();
-  else void stage.value?.requestFullscreen();
-}
-
-function recenter(): void {
-  mind?.toCenter();
-}
-
-function onFullscreenChange(): void {
-  requestAnimationFrame(() => mind?.toCenter());
-}
-
-const chordPan = createChordPan({ getMind: () => mind });
-
-function emitSelection(): void {
-  emit('selection', mind?.currentNodes?.map((tpc) => tpc.nodeObj) ?? []);
-}
-
-function onOperation(info: { name: string }): void {
-  if (info.name === BEGIN_EDIT_OPERATION) return;
-  gates.syncLabels();
-  scheduleSync();
-  scheduleDuplicateCount();
-  const root = mind ? fullRoot(mind) : null;
-  if (focusId.value !== null && root && !pathTo(root, focusId.value)) focusById(null);
-  else refreshStrip(root);
-  emitSelection();
-}
-
-function syncAfterHistoryJumps(instance: MindElixirInstance): void {
-  const { undo, redo } = instance;
-  instance.undo = () => {
-    if (props.locked) return;
-    leaveFocusQuietly();
-    undo.call(instance);
-    reapplyFocus();
-    gates.syncLabels();
-    scheduleSync();
-    scheduleDuplicateCount();
-    emitSelection();
-    refreshStrip();
-  };
-  instance.redo = () => {
-    if (props.locked) return;
-    leaveFocusQuietly();
-    redo.call(instance);
-    reapplyFocus();
-    gates.syncLabels();
-    scheduleSync();
-    scheduleDuplicateCount();
-    emitSelection();
-    refreshStrip();
-  };
-}
-
-function fullRoot(instance: MindElixirInstance): NodeObj {
-  return instance.getData().nodeData;
-}
-
-function rememberFocus(id: string | null): void {
-  focusId.value = id;
-  if (props.focusKey) setTabFocus(props.focusKey, id);
-}
-
-function refreshFrameStyle(): void {
-  if (!mind) return;
-  const computed = getComputedStyle(mind.container);
-  frameStyle.value = { vars: readFrameVars((name) => computed.getPropertyValue(name)), palette: [...mind.theme.palette] };
-}
-
-function rememberStripRoot(id: string | null): void {
-  stripRootId.value = id;
-  if (props.focusKey) setTabStripRoot(props.focusKey, id);
-}
-
-function setStripRoot(id: string | null): void {
-  if (!mind) return;
-  const root = fullRoot(mind);
-  if (id !== null && !canAnchor(root, id)) return;
-  rememberStripRoot(id === root.id ? null : id);
-  refreshStrip(root);
-}
-
-function pinCurrentAsStripRoot(): void {
-  const id = mind?.currentNode?.nodeObj.id;
-  if (id) setStripRoot(id);
-}
-
-function refreshStrip(knownRoot?: NodeObj | null): void {
-  if (!mind || !props.focusKey) {
-    strip.value = null;
-    return;
-  }
-  const root = knownRoot ?? fullRoot(mind);
-  if (stripRootId.value !== null && !canAnchor(root, stripRootId.value)) rememberStripRoot(null);
-  strip.value = buildFreezeStrip(root, focusId.value, stripRootId.value);
-}
-
-function wrapFocus(instance: MindElixirInstance): void {
-  const { focusNode, cancelFocus } = instance;
-  instance.focusNode = (tpc) => {
-    const isRoot = !tpc.nodeObj.parent;
-    focusNode.call(instance, tpc);
-    if (!isApplyingFocus && !isRoot) rememberFocus(tpc.nodeObj.id);
-    refreshStrip();
-  };
-  instance.cancelFocus = () => {
-    cancelFocus.call(instance);
-    if (!isApplyingFocus) rememberFocus(null);
-    refreshStrip();
-  };
-}
-
-function findLiveTopic(instance: MindElixirInstance, id: string): Topic | null {
-  try {
-    return instance.findEle(id) ?? null;
-  } catch {
-    return null;
-  }
-}
-
-function focusById(id: string | null): void {
-  if (!mind) return;
-  if (mind.isFocusMode) mind.cancelFocus();
-  if (id === null || id === mind.nodeData.id) {
-    rememberFocus(null);
-    refreshStrip();
-    return;
-  }
-  const el = findLiveTopic(mind, id);
-  if (el) mind.focusNode(el);
-}
-
-function reapplyFocus(): void {
-  if (!mind) return;
-  const id = focusId.value;
-  if (id === null || !pathTo(fullRoot(mind), id)) {
-    rememberFocus(null);
-    refreshStrip();
-    return;
-  }
-  isApplyingFocus = true;
-  const el = findLiveTopic(mind, id);
-  if (el) mind.focusNode(el);
-  else rememberFocus(null);
-  isApplyingFocus = false;
-  refreshStrip();
-}
-
-function leaveFocusQuietly(): void {
-  if (!mind?.isFocusMode) return;
-  isApplyingFocus = true;
-  mind.cancelFocus();
-  isApplyingFocus = false;
-}
-
-function sanitizedTopic(tpc: Topic): Topic | null {
-  const nodeObj: NodeObj | null = sanitizeNodeObj(tpc.nodeObj);
-  return nodeObj ? ({ nodeObj } as Topic) : null;
-}
-
-function sanitizeCopiedNodes(instance: MindElixirInstance): void {
-  const { copyNodes } = instance;
-  instance.copyNodes = (tpcs, to) => {
-    if (isEditBlocked()) return Promise.resolve();
-    const safe = tpcs.map(sanitizedTopic).filter((tpc): tpc is Topic => tpc !== null);
-    return copyNodes.call(instance, safe, to);
-  };
-}
-
-function guardRemovedNodes(instance: MindElixirInstance): void {
-  const { removeNodes } = instance;
-  instance.removeNodes = (tpcs) => {
-    if (isEditBlocked()) return Promise.resolve();
-    return removeNodes.call(instance, tpcs);
-  };
 }
 
 function flushPendingSync(): void {
@@ -479,13 +207,10 @@ function flushPendingSync(): void {
 function teardown(): void {
   clearActiveMindmap(handle);
   chordPan.detach();
-  stage.value?.removeEventListener(FULLSCREEN_CHANGE_EVENT, onFullscreenChange);
-  stopCentering();
-  if (syncTimer !== null) window.clearTimeout(syncTimer);
-  syncTimer = null;
-  if (duplicateTimer !== null) window.clearTimeout(duplicateTimer);
-  duplicateTimer = null;
-  duplicateCount.value = 0;
+  stage.value?.removeEventListener(FULLSCREEN_CHANGE_EVENT, viewport.onFullscreenChange);
+  viewport.stopCentering();
+  clearPendingSync();
+  dupes.resetDuplicateCount();
   strip.value = null;
   mind?.destroy();
   mind = null;
@@ -513,36 +238,6 @@ async function applyExternalContent(): Promise<void> {
   mount();
 }
 
-function toggleSelectedNodes(instance: MindElixirInstance): boolean {
-  const selected = instance.currentNodes ?? [];
-  const steps = planSelectionToggle(selected.map((tpc) => tpc.nodeObj), instance.nodeData.id);
-  if (steps.length === 0) return false;
-  for (const step of steps) instance.expandNode(instance.findEle(step.id), step.expanded);
-  const detached = selected.filter((tpc) => !tpc.isConnected);
-  if (detached.length === 0) return true;
-  instance.unselectNodes(detached);
-  const restored = detached.map((tpc) => instance.findEle(tpc.nodeObj.id)).filter((tpc) => tpc?.isConnected);
-  if (restored.length > 0) instance.selectNodes(restored);
-  return true;
-}
-
-function toggleWholeMap(instance: MindElixirInstance): void {
-  setDescendantsExpanded(instance.nodeData, !hasOpenBranch(instance.nodeData));
-  instance.refresh();
-  instance.toCenter();
-  scheduleSync();
-}
-
-function toggleCollapse(): void {
-  if (mind && !toggleSelectedNodes(mind)) toggleWholeMap(mind);
-}
-
-function selectRoot(): void {
-  if (!mind) return;
-  mind.selectNode(mind.findEle(mind.nodeData.id));
-  mind.toCenter();
-}
-
 function currentSource(): MindmapSource | null {
   const node = mind?.currentNode?.nodeObj;
   if (!mind || !node) return null;
@@ -562,133 +257,6 @@ function jumpToSource(): void {
 }
 
 const canvasActions = useMindmapCanvasActions({ getMind: () => mind, exportName: () => props.exportName, isReadOnly, isLocked: () => props.locked, getSnippets: () => snippetsOverride, sourceFilePath: () => (props.sourcePath && !props.sourcePath.startsWith(TAB_SOURCE_PREFIX) ? props.sourcePath : null) });
-
-const GATE_MENU_LABEL_KEYS: Record<GateMenuAction, string> = {
-  'mindmap.markGateTarget': 'mindmap.gateMarkTarget',
-  'mindmap.insertGate': 'mindmap.gateInsert',
-  'mindmap.followGate': 'mindmap.gateFollow',
-  'mindmap.gateBack': 'mindmap.gateBackMenu',
-  'mindmap.repairGate': 'mindmap.gateRepair',
-  'mindmap.removeGate': 'mindmap.gateRemove',
-};
-
-function gateMenuLabels(): Record<GateMenuAction, string> {
-  const labels: Record<GateMenuAction, string> = { ...GATE_MENU_LABEL_KEYS };
-  for (const id of Object.keys(GATE_MENU_LABEL_KEYS) as GateMenuAction[]) labels[id] = t(GATE_MENU_LABEL_KEYS[id]);
-  return labels;
-}
-
-function gateMenuKeys(): Partial<Record<GateMenuAction, string>> {
-  const ids = Object.keys(GATE_MENU_LABEL_KEYS) as GateMenuAction[];
-  return Object.fromEntries(ids.map((id) => [id, shortcutLabel(id, settings.keybindings, isMacOS())]));
-}
-
-const gates = createGateController({
-  getMind: () => mind,
-  isReadOnly: () => isEditBlocked(),
-  brokenLabel: () => t('mindmap.gateBroken'),
-  notify: (key: GateNotice) => toasts.info(t(`mindmap.${key}`)),
-  onChange: scheduleSync,
-}, gateMenuLabels(), gateMenuKeys());
-
-const duplicateGroups = ref<DuplicateGroup[] | null>(null);
-
-function findDuplicates(): void {
-  if (mind) duplicateGroups.value = findDuplicateGroups(fullRoot(mind));
-}
-
-function topicOf(id: string): string {
-  return (mind && findNode(fullRoot(mind), id)?.topic) ?? '';
-}
-
-function mergeDuplicate(keepId: string, dupId: string): void {
-  if (!mind || isEditBlocked()) return;
-  const merged = mergeIntoGate(mind.getData(), keepId, dupId);
-  if (!merged) return;
-  leaveFocusQuietly();
-  mind.refresh(merged);
-  mind.clearHistory?.();
-  gates.syncLabels();
-  reapplyFocus();
-  scheduleSync();
-  findDuplicates();
-  countDuplicates();
-}
-
-const SORT_TOAST_KEYS: Readonly<Record<SortOrder, string>> = { asc: 'mindmap.sortedAsc', desc: 'mindmap.sortedDesc' };
-
-const TREE_EDIT_OPERATION = 'moveNodeBefore';
-
-function commitTreeEdit(instance: MindElixirInstance, anchor: NodeObj, mutate: () => NodeObj[]): boolean {
-  const event: Record<string, unknown> = { name: TREE_EDIT_OPERATION, obj: anchor, objs: [anchor] };
-  let isChanged = false;
-  runAsOneOperation(instance.bus as unknown as OperationBus, () => {
-    isChanged = mutate().length > 0;
-    if (isChanged) instance.refresh();
-    return isChanged;
-  }, event);
-  if (isChanged) instance.selectNode(instance.findEle(anchor.id));
-  return isChanged;
-}
-
-function canEditTree(): boolean {
-  return !!mind && !isEditBlocked();
-}
-
-function remapSortedSummaries(instance: MindElixirInstance, target: NodeObj, before: readonly NodeObj[]): number {
-  const { kept, droppedCount } = remapChildSummaries(instance.summaries, target.id, before, target.children ?? []);
-  instance.summaries = kept;
-  return droppedCount;
-}
-
-function sortSelectedChildren(): void {
-  const target = mind?.currentNode?.nodeObj;
-  const instance = mind;
-  if (!instance || !target || !canEditTree()) return;
-  const result: { order: SortOrder | null; droppedCount: number } = { order: null, droppedCount: 0 };
-  commitTreeEdit(instance, target, () => {
-    const before = [...(target.children ?? [])];
-    result.order = sortChildrenByTopic(target);
-    if (result.order) result.droppedCount = remapSortedSummaries(instance, target, before);
-    return result.order ? target.children ?? [] : [];
-  });
-  toasts.info(t(result.order ? SORT_TOAST_KEYS[result.order] : 'mindmap.sortNothing'));
-  if (result.droppedCount > 0) toasts.info(t('mindmap.sortDroppedSummaries', { count: result.droppedCount }));
-}
-
-const pendingNumbering = ref<{ isNumbered: boolean; count: number } | null>(null);
-
-function selectedNodes(): NodeObj[] {
-  return (mind?.currentNodes ?? []).map((tpc) => tpc.nodeObj);
-}
-
-function reselect(instance: MindElixirInstance, nodes: readonly NodeObj[]): void {
-  if (nodes.length > 1) instance.selectNodes(nodes.map((n) => instance.findEle(n.id)));
-}
-
-function runNumbering(scope: NumberingScope, isNumbered: boolean): void {
-  const selected = selectedNodes();
-  if (!mind || selected.length === 0 || !canEditTree()) return;
-  const isChanged = commitTreeEdit(mind, selected[0], () => applyNumbers(numberingGroups(selected, scope), isNumbered, isGate));
-  if (!isChanged) toasts.info(t('mindmap.numberingNothing'));
-  reselect(mind, selected);
-}
-
-function requestNumbering(isNumbered: boolean): void {
-  const count = selectedNodes().length;
-  if (count === 0 || !canEditTree()) return;
-  if (count === 1) {
-    runNumbering('children', isNumbered);
-    return;
-  }
-  pendingNumbering.value = { isNumbered, count };
-}
-
-function onNumberingChoice(scope: NumberingScope): void {
-  const pending = pendingNumbering.value;
-  pendingNumbering.value = null;
-  if (pending) runNumbering(scope, pending.isNumbered);
-}
 
 const actions: Record<string, () => void> = {
   'mindmap.sortChildren': sortSelectedChildren,
@@ -725,269 +293,6 @@ function activate(): void {
   if (props.registerActive) setActiveMindmap(handle);
 }
 
-const COPY_NODES_OPERATION = 'copyNodes';
-
-function insertTarget(mode: PasteMapTarget): Topic | null {
-  if (!mind || isEditBlocked()) return null;
-  const id = resolveInsertTargetId(mind.currentNode?.nodeObj.id ?? null, mind.nodeData.id, mode);
-  const target = mind.findEle(id);
-  if (isGate(target.nodeObj)) {
-    toasts.info(t('mindmap.gateCannotHoldChildren'));
-    return null;
-  }
-  return target;
-}
-
-async function graftInto(instance: MindElixirInstance, target: Topic, payload: PastePayload): Promise<NodeObj[]> {
-  const countBefore = target.nodeObj.children?.length ?? 0;
-  await instance.copyNodes(payload.nodes.map((nodeObj) => ({ nodeObj }) as Topic), target);
-  const children = target.nodeObj.children ?? [];
-  if (children.length !== countBefore + payload.nodes.length) return [];
-  const inserted = children.slice(countBefore);
-  const idMap = buildIdMap(payload.nodes, inserted);
-  remapGates(inserted, idMap);
-  for (const arrow of remapArrows(payload.arrows, idMap)) instance.createArrowFrom(arrow);
-  for (const summary of remapSummaries(payload.summaries, idMap)) instance.createSummaryFrom(summary);
-  return inserted;
-}
-
-function selectedNonRootIds(): string[] {
-  if (!mind) return [];
-  return (mind.currentNodes ?? []).map((tpc) => tpc.nodeObj.id).filter((id) => id !== mind!.nodeData.id);
-}
-
-function liveData(instance: MindElixirInstance): MindElixirData {
-  return withoutGateArrows(instance.getData());
-}
-
-function menuDraft(): EntryDraft | null {
-  if (!mind || !props.sourcePath) return null;
-  const ids = selectedNonRootIds();
-  if (ids.length === 0) return props.sourcePath.startsWith(TAB_SOURCE_PREFIX) ? null : fileDraft(props.sourcePath);
-  return nodesDraft(props.sourcePath, liveData(mind), ids, props.sourceLabel ?? props.exportName);
-}
-
-function toggleWorkbench(): void {
-  const draft = menuDraft();
-  if (!draft) {
-    toasts.info(t('mindmap.workbenchSaveFirst'));
-    return;
-  }
-  const key = entryKey(draft);
-  if (workbench.has(key)) {
-    workbench.removeKey(key);
-    toasts.success(t('mindmap.workbenchRemoved'));
-    return;
-  }
-  const outcome = workbench.add(draft);
-  toasts.success(t(outcome === 'updated' ? 'mindmap.workbenchUpdated' : 'mindmap.workbenchAdded'));
-}
-
-function openWorkbenchFromMenu(): void {
-  const draft = menuDraft();
-  openWorkbench(draft && !workbench.has(entryKey(draft)) ? draft : undefined);
-}
-
-async function copyMap(): Promise<void> {
-  if (!mind) return;
-  const ids = selectedNonRootIds();
-  const data = ids.length === 0 ? liveData(mind) : subtreeData(liveData(mind), ids, MENU_GROUP_TOPIC);
-  if (!data) return;
-  await copyPlainText(copyMapText(data));
-  toasts.success(t('mindmap.mapCopied'));
-}
-
-async function pasteMapFromClipboard(): Promise<void> {
-  if (!mind || isEditBlocked()) {
-    toasts.info(t('mindmap.pasteBlocked'));
-    return;
-  }
-  const result = parsePaste(await readPlainText());
-  if (!result.ok) {
-    const key = PASTE_NOTICE_KEYS[result.reason];
-    if (key) toasts.info(t(key));
-    return;
-  }
-  routePaste(result.payload);
-}
-
-async function copyNodePath(): Promise<void> {
-  const nodes = selectedNodes();
-  if (nodes.length === 0) {
-    toasts.info(t('mindmap.selectNodeFirst'));
-    return;
-  }
-  await copyPlainText(nodePathsText(nodes));
-  toasts.success(t('mindmap.pathCopied'));
-}
-
-function liveNode(id: string): NodeObj | null {
-  try {
-    return mind?.findEle(id)?.nodeObj ?? null;
-  } catch {
-    return null;
-  }
-}
-
-function liveSelectedNodes(): NodeObj[] {
-  return selectedNodes().map((node) => liveNode(node.id)).filter((node): node is NodeObj => node !== null);
-}
-
-function renderedLookOf(id: string): RenderedLook | undefined {
-  try {
-    const element = mind?.findEle(id);
-    return element ? getComputedStyle(element) : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-function copyNodeStyle(): void {
-  const node = liveSelectedNodes()[0];
-  if (!node) {
-    toasts.info(t('mindmap.selectNodeFirst'));
-    return;
-  }
-  styleClipboard.value = copyStyle(node, renderedLookOf(node.id));
-  toasts.success(t('mindmap.styleCopied'));
-}
-
-function applyStyleToSelection(style: NodeStyle): void {
-  const targets = liveSelectedNodes();
-  if (!mind || targets.length === 0) {
-    toasts.info(t('mindmap.selectNodeFirst'));
-    return;
-  }
-  if (!canEditTree()) {
-    toasts.info(t('mindmap.pasteBlocked'));
-    return;
-  }
-  let count = 0;
-  commitTreeEdit(mind, targets[0], () => {
-    const changed = pasteStyle(targets, style);
-    count = changed.length;
-    return changed;
-  });
-  reselect(mind, targets);
-  if (count === 0) toasts.info(t('mindmap.styleUnchanged'));
-  else toasts.success(t('mindmap.stylePasted', { count }));
-}
-
-function pasteNodeStyle(): void {
-  const style = styleClipboard.value;
-  if (!style) {
-    toasts.info(t('mindmap.styleClipboardEmpty'));
-    return;
-  }
-  applyStyleToSelection(style);
-}
-
-async function saveStyleTemplate(): Promise<void> {
-  const node = liveSelectedNodes()[0];
-  if (!node) {
-    toasts.info(t('mindmap.selectNodeFirst'));
-    return;
-  }
-  const copied = copyStyle(node, renderedLookOf(node.id));
-  const name = templateName((await promptText({ title: t('mindmap.styleTemplateNamePrompt'), placeholder: node.topic })) ?? '');
-  if (name === '') return;
-  settings.saveMindmapStyleTemplate({ name, ...copied });
-  toasts.success(t('mindmap.styleTemplateSaved', { name }));
-}
-
-function styleTemplateMenuItems(): GroupMenuItem[] {
-  const templates = settings.mindmapStyleTemplates.map((template) => ({
-    name: template.name,
-    onclick: reportingSyncErrors(() => applyStyleToSelection(template)),
-    removeLabel: t('mindmap.styleTemplateRemove'),
-    onremove: () => settings.removeMindmapStyleTemplate(template.name),
-  }));
-  return [{ name: t('mindmap.menuSaveStyleTemplate'), onclick: reportingErrors(saveStyleTemplate) }, ...templates];
-}
-
-function reportingSyncErrors(run: () => void): () => void {
-  return () => {
-    try {
-      run();
-    } catch (e: unknown) {
-      toasts.error(String(e));
-    }
-  };
-}
-
-function reportingErrors(run: () => Promise<void>): () => void {
-  return () => { void run().catch((e: unknown) => toasts.error(String(e))); };
-}
-
-function workbenchMenuItems(): { name: string; onclick: () => void }[] {
-  return [
-    { name: t('mindmap.menuAddToWorkbench'), onclick: toggleWorkbench },
-    { name: t('mindmap.menuOpenWorkbench'), onclick: openWorkbenchFromMenu },
-  ];
-}
-
-function copyPasteMenuItems(): ContextMenuItem[] {
-  return [
-    { name: t('mindmap.menuCopyPath'), onclick: reportingErrors(copyNodePath) },
-    { name: t('mindmap.menuCopyStyle'), onclick: reportingSyncErrors(copyNodeStyle) },
-    { name: t('mindmap.menuPasteStyle'), onclick: reportingSyncErrors(pasteNodeStyle) },
-    { name: t('mindmap.menuCopyMap'), onclick: reportingErrors(copyMap) },
-    { name: t('mindmap.menuPasteMap'), onclick: reportingErrors(pasteMapFromClipboard) },
-  ];
-}
-
-async function insertPayloadAt(payload: PastePayload, mode: PasteMapTarget): Promise<boolean> {
-  const target = insertTarget(mode);
-  if (!mind || !target) return false;
-  const instance = mind;
-  const event: Record<string, unknown> = { name: COPY_NODES_OPERATION };
-  let inserted: NodeObj[] = [];
-  await runAsOneOperationAsync(instance.bus as unknown as OperationBus, async () => {
-    inserted = await graftInto(instance, target, payload);
-    event.obj = inserted[0];
-    event.objs = inserted;
-    return inserted.length > 0;
-  }, event);
-  if (inserted.length > 0) gates.syncLabels();
-  return inserted.length > 0;
-}
-
-const pendingPaste = ref<PastePayload | null>(null);
-
-function insertReportingErrors(payload: PastePayload, mode: PasteMapTarget): void {
-  void insertPayloadAt(payload, mode).catch((e: unknown) => toasts.error(String(e)));
-}
-
-function routePaste(payload: PastePayload): void {
-  const setting = settings.mindmapPasteMapTarget;
-  const hasSelection = selectedNonRootIds().length > 0;
-  if (needsPasteDialog(payload.format, hasSelection, setting)) {
-    pendingPaste.value = payload;
-    return;
-  }
-  insertReportingErrors(payload, pasteMode(payload.format, setting));
-}
-
-function onPasteTargetChosen(target: PasteMapTarget, remember: boolean): void {
-  const payload = pendingPaste.value;
-  pendingPaste.value = null;
-  if (remember) settings.setMindmapPasteMapTarget(target);
-  if (payload) insertReportingErrors(payload, target);
-}
-
-function onPaste(e: ClipboardEvent): void {
-  if (e.target instanceof HTMLElement && e.target.id === TOPIC_EDITOR_ID) return;
-  if (!mind || isEditBlocked()) return;
-  const result = parsePaste(e.clipboardData?.getData('text/plain') ?? '');
-  e.preventDefault();
-  if (!result.ok) {
-    const key = PASTE_NOTICE_KEYS[result.reason];
-    if (key) toasts.info(t(key));
-    return;
-  }
-  routePaste(result.payload);
-}
-
 function isEditingTopic(e: KeyboardEvent): boolean {
   return e.target instanceof HTMLElement && e.target.id === TOPIC_EDITOR_ID;
 }
@@ -1002,12 +307,8 @@ function canRunOn(actionId: string, e: KeyboardEvent): boolean {
   return actionId !== TOGGLE_NODE_ACTION || e.target === mind?.container;
 }
 
-function isIgnoredKey(e: KeyboardEvent): boolean {
-  return isEditingTopic(e) || isOnMapControl(e);
-}
-
 const keyDispatch = createMapKeyDispatch({
-  isIgnored: isIgnoredKey,
+  isIgnored: (e) => isEditingTopic(e) || isOnMapControl(e),
   getBindings: () => resolveBindings(settings.keybindings, 'mindmap'),
   canRunOn,
   getAction: (actionId) => actions[actionId],
@@ -1059,15 +360,10 @@ function setSnippets(next: readonly Snippet[]): void {
   scheduleSync();
 }
 
-function applyStyleTemplate(name: string): void {
-  const template = settings.mindmapStyleTemplates.find((tpl) => tpl.name === name);
-  if (template) reportingSyncErrors(() => applyStyleToSelection(template))();
-}
-
 defineExpose({
   flush: flushPendingSync,
-  applyStyleTemplate,
-  saveStyleTemplate: reportingErrors(saveStyleTemplate),
+  applyStyleTemplate: styles.applyStyleTemplate,
+  saveStyleTemplate: styles.reportingErrors(styles.saveStyleTemplate),
   markChanged: scheduleSync,
   run: (actionId: string) => handle.run(actionId),
   getMind: () => mind,
@@ -1096,10 +392,10 @@ defineExpose({
         <div ref="host" class="mindmap-view__canvas" />
         <slot name="rail" />
         <MindmapDock corner="bottom-end" orientation="row" :label="t('mindmap.dockNavigate')">
-          <MindmapDockButton icon="fullscreen" :label="t('mindmap.canvasFullscreen')" @click="toggleFullscreen" />
-          <MindmapDockButton icon="center" :label="t('mindmap.canvasCenter')" @click="recenter" />
-          <MindmapDockButton icon="zoom-out" :label="t('mindmap.canvasZoomOut')" @click="zoomBy(-1)" />
-          <MindmapDockButton icon="zoom-in" :label="t('mindmap.canvasZoomIn')" @click="zoomBy(1)" />
+          <MindmapDockButton icon="fullscreen" :label="t('mindmap.canvasFullscreen')" @click="viewport.toggleFullscreen" />
+          <MindmapDockButton icon="center" :label="t('mindmap.canvasCenter')" @click="viewport.recenter" />
+          <MindmapDockButton icon="zoom-out" :label="t('mindmap.canvasZoomOut')" @click="viewport.zoomBy(-1)" />
+          <MindmapDockButton icon="zoom-in" :label="t('mindmap.canvasZoomIn')" @click="viewport.zoomBy(1)" />
           <MindmapDockButton icon="fit" :label="t('mindmap.canvasFit')" @click="actions['mindmap.fit']" />
           <MindmapDockButton icon="root" :label="t('mindmap.canvasRoot')" @click="selectRoot" />
           <MindmapDockButton icon="collapse" :label="t('mindmap.canvasCollapse')" @click="toggleCollapse" />
@@ -1119,65 +415,4 @@ defineExpose({
   </div>
 </template>
 
-<style scoped>
-.mindmap-view__canvas :deep(.mm-menu-group__list li) { display: flex; align-items: center; gap: 8px; }
-.mindmap-view__canvas :deep(.mm-menu-group__list li > span) { flex: 1; }
-.mindmap-view__canvas :deep(.mm-menu-group__remove) { border: 0; background: none; color: inherit; opacity: 0.5; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 2px; }
-.mindmap-view__canvas :deep(.mm-menu-group__remove:hover) { opacity: 1; }
-.mindmap-view__canvas :deep(.context-menu .menu-list) { overflow: visible; }
-.mindmap-view__canvas :deep(.context-menu .menu-list li.mm-menu-group) { position: relative; overflow: visible; }
-.mindmap-view__canvas :deep(.mm-menu-group__chevron) { opacity: 0.6; }
-.mindmap-view__canvas :deep(.mm-menu-group__chevron:dir(rtl)) { transform: scaleX(-1); }
-.mindmap-view__canvas :deep(.mm-menu-group__list) {
-  display: none;
-  position: absolute;
-  top: 0;
-  inset-inline-start: 100%;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  border-radius: 5px;
-  overflow: hidden;
-  box-shadow: 0 12px 15px #0003;
-}
-.mindmap-view__canvas :deep(.mm-menu-group:is(:hover, .is-open) > .mm-menu-group__list) { display: block; }
-.mindmap-view__canvas :deep(.mm-menu-group.is-flipped > .mm-menu-group__list) { inset-inline-start: auto; inset-inline-end: 100%; }
-.mindmap-view__canvas :deep(.context-menu .menu-list .mm-menu-group__list li span:last-child) { float: none; }
-.mindmap-view { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
-.mindmap-view__stage { position: relative; flex: 1; min-height: 0; display: flex; background: var(--bg); }
-.mindmap-view__canvas { flex: 1; min-height: 0; width: 100%; }
-.mindmap-view__canvas :deep(:is([data-folded-count='direct'], [data-folded-count='all'], [data-folded-count='both']) me-epd[data-count-all]:not(.minus)) {
-  background-image: none;
-  background-color: var(--main-color);
-  color: var(--main-bgcolor);
-  width: auto;
-  min-width: 18px;
-  padding: 0 5px;
-  border-radius: 9px;
-  font-size: 11px;
-  line-height: 18px;
-  text-align: center;
-  white-space: nowrap;
-  opacity: 1;
-  direction: ltr;
-  unicode-bidi: isolate;
-}
-.mindmap-view__canvas :deep(:is([data-folded-count='direct'], [data-folded-count='all'], [data-folded-count='both']) .rhs me-epd[data-count-all]:not(.minus)) { left: calc(100% - 8px); right: auto; }
-.mindmap-view__canvas :deep(:is([data-folded-count='direct'], [data-folded-count='all'], [data-folded-count='both']) .lhs me-epd[data-count-all]:not(.minus)) { right: calc(100% - 8px); left: auto; }
-.mindmap-view__canvas :deep(:is([data-folded-count='direct'], [data-folded-count='all'], [data-folded-count='both']) me-nodes.down me-epd[data-count-all]:not(.minus)) { left: calc(50% - 9px); right: auto; transform: translateX(calc(-50% + 9px)); }
-.mindmap-view__canvas :deep([data-folded-count='direct'] me-epd[data-count-direct]:not(.minus)::after) { content: attr(data-count-direct); }
-.mindmap-view__canvas :deep([data-folded-count='all'] me-epd[data-count-all]:not(.minus)::after) { content: attr(data-count-all); }
-.mindmap-view__canvas :deep([data-folded-count='both'] me-epd[data-count-both]:not(.minus)::after) { content: attr(data-count-both); }
-.mindmap-view__canvas.mm-grabbing, .mindmap-view__canvas.mm-grabbing :deep(*) { cursor: grabbing !important; }
-.mindmap-view__status { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; z-index: 5; display: flex; gap: 6px; pointer-events: none; }
-.mindmap-view__badge { padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); opacity: 0.9; }
-.mindmap-view__chip { pointer-events: auto; padding: 2px 10px; border-radius: 999px; font-size: 12px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--accent); cursor: pointer; }
-.mindmap-view__error { padding: 24px; }
-.mindmap-view__error pre { white-space: pre-wrap; opacity: 0.8; }
-.mindmap-view__canvas :deep(me-tpc),
-.mindmap-view__canvas :deep(me-tpc .text),
-.mindmap-view__canvas :deep(#input-box) {
-  unicode-bidi: plaintext;
-  text-align: start;
-}
-</style>
+<style scoped src="./MindmapCanvas.css"></style>

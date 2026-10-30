@@ -15,7 +15,8 @@
  * Hosted by App.vue (parent integration); a "Back to editor" button in the
  * header dispatches `solomd:close-bases` so the parent can swap back.
  */
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useBasesFilters } from './useBasesFilters.ts';
 import { useWorkspaceIndexStore, type IndexEntry } from '../stores/workspaceIndex';
 import { useFiles } from '../composables/useFiles';
 import { useI18n } from '../i18n';
@@ -28,7 +29,6 @@ import {
   loadSavedViews,
   persistSavedViews,
   type ColumnDef,
-  type Filter,
   type SavedView,
   type SortSpec,
 } from '../lib/bases';
@@ -49,7 +49,10 @@ const visibleColumns = computed<ColumnDef[]>(() => {
 });
 
 // ---- filters / sort / saved views ----
-const filters = reactive<Filter[]>([]);
+const {
+  filters, getFilterFor, setFilter, clearFilters, selectedTagsFor, toggleTagFilter,
+  getDateRangeStart, getDateRangeEnd, setDateRangeStart, setDateRangeEnd,
+} = useBasesFilters();
 const sort = ref<SortSpec | null>({ column: 'mtime', dir: 'desc' });
 const savedViews = ref<SavedView[]>([]);
 const activeViewName = ref<string>('All notes');
@@ -94,30 +97,6 @@ function deleteActiveView() {
   if (savedViews.value.length === 0) savedViews.value = defaultViews();
   persistSavedViews(savedViews.value);
   loadViewIntoState(savedViews.value[0]);
-}
-
-// ---- filter row helpers ----
-function getFilterFor(columnId: string): Filter | null {
-  return filters.find((f) => f.column === columnId) ?? null;
-}
-
-function setFilter(columnId: string, op: Filter['op'], value: unknown) {
-  const i = filters.findIndex((f) => f.column === columnId);
-  if (
-    value == null ||
-    value === '' ||
-    (Array.isArray(value) && value.length === 0)
-  ) {
-    if (i >= 0) filters.splice(i, 1);
-    return;
-  }
-  const f: Filter = { column: columnId, op, value };
-  if (i >= 0) filters.splice(i, 1, f);
-  else filters.push(f);
-}
-
-function clearFilters() {
-  filters.splice(0, filters.length);
 }
 
 /** Tag values present across the workspace, for the multi-select dropdown. */
@@ -233,8 +212,6 @@ function isColumnVisible(id: string): boolean {
 // ---- file open ----
 async function openEntry(entry: IndexEntry) {
   await files.openPath(entry.path, { bypassNewWindow: true });
-  // After open, parent can keep the bases view up — don't auto-close.
-  // (User can hit "Back to editor" if they want to leave the table.)
 }
 
 function closeBases() {
@@ -295,59 +272,6 @@ function cellText(entry: IndexEntry, col: ColumnDef): string {
   return String(getCellValue(entry, col) ?? '');
 }
 
-// ---- date range filter helpers ----
-function getDateRangeStart(columnId: string): string {
-  const f = filters.find((x) => x.column === columnId && x.op === '>');
-  if (!f || !f.value) return '';
-  const d = new Date(typeof f.value === 'number' ? f.value : String(f.value));
-  if (isNaN(d.getTime())) return '';
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-function getDateRangeEnd(columnId: string): string {
-  const f = filters.find((x) => x.column === columnId && x.op === '<');
-  if (!f || !f.value) return '';
-  const d = new Date(typeof f.value === 'number' ? f.value : String(f.value));
-  if (isNaN(d.getTime())) return '';
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-function setDateRangeStart(columnId: string, value: string) {
-  const i = filters.findIndex((x) => x.column === columnId && x.op === '>');
-  if (!value) {
-    if (i >= 0) filters.splice(i, 1);
-    return;
-  }
-  const ms = new Date(value).getTime();
-  if (isNaN(ms)) return;
-  const f: Filter = { column: columnId, op: '>', value: ms };
-  if (i >= 0) filters.splice(i, 1, f);
-  else filters.push(f);
-}
-function setDateRangeEnd(columnId: string, value: string) {
-  const i = filters.findIndex((x) => x.column === columnId && x.op === '<');
-  if (!value) {
-    if (i >= 0) filters.splice(i, 1);
-    return;
-  }
-  const ms = new Date(value).getTime();
-  if (isNaN(ms)) return;
-  const f: Filter = { column: columnId, op: '<', value: ms };
-  if (i >= 0) filters.splice(i, 1, f);
-  else filters.push(f);
-}
-
-// ---- multi-select tag filter ----
-function selectedTagsFor(columnId: string): string[] {
-  const f = filters.find((x) => x.column === columnId && x.op === 'has-tag');
-  if (!f) return [];
-  return Array.isArray(f.value) ? (f.value as string[]) : [String(f.value)];
-}
-function toggleTagFilter(columnId: string, tag: string) {
-  const cur = selectedTagsFor(columnId);
-  const next = cur.includes(tag) ? cur.filter((x) => x !== tag) : [...cur, tag];
-  setFilter(columnId, 'has-tag', next);
-}
 </script>
 
 <template>
@@ -572,268 +496,4 @@ function toggleTagFilter(columnId: string, tag: string) {
   </div>
 </template>
 
-<style scoped>
-.bases {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  background: var(--bg);
-  color: var(--text);
-  overflow: hidden;
-}
-.bases__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-soft);
-  flex-wrap: wrap;
-}
-.bases__head-left,
-.bases__head-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.bases__back {
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 4px 10px;
-  font-size: 12px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.bases__back:hover {
-  background: var(--bg-hover);
-}
-.bases__title {
-  font-size: 13px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-.bases__view-select,
-.bases__btn {
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 4px 8px;
-  font-size: 12px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.bases__btn:hover:not(:disabled) {
-  background: var(--bg-hover);
-}
-.bases__btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.bases__col-picker {
-  position: relative;
-}
-.bases__col-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 4px;
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 4px;
-  min-width: 200px;
-  max-height: 320px;
-  overflow-y: auto;
-  z-index: 20;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
-}
-.bases__col-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
-  font-size: 12px;
-  cursor: pointer;
-  border-radius: 4px;
-}
-.bases__col-menu-item:hover {
-  background: var(--bg-hover);
-}
-.bases__kind {
-  margin-left: auto;
-  font-size: 10px;
-  color: var(--text-faint);
-  text-transform: uppercase;
-}
-.bases__count {
-  font-size: 11px;
-  color: var(--text-faint);
-  font-variant-numeric: tabular-nums;
-}
-.bases__empty {
-  padding: 48px 16px;
-  text-align: center;
-  color: var(--text-faint);
-  font-size: 13px;
-}
-.bases__scroll {
-  flex: 1;
-  overflow: auto;
-  min-height: 0;
-}
-.bases__table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  font-size: 12px;
-  table-layout: auto;
-}
-.bases__th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: var(--bg-soft);
-  text-align: left;
-  padding: 6px 10px;
-  font-weight: 600;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--border);
-  cursor: pointer;
-  white-space: nowrap;
-  user-select: none;
-}
-.bases__th:hover {
-  color: var(--text);
-}
-.bases__th--number {
-  text-align: right;
-}
-.bases__sort {
-  font-size: 10px;
-  color: var(--accent);
-  margin-left: 2px;
-}
-.bases__filter-row {
-  position: sticky;
-  top: 28px;
-  z-index: 1;
-}
-.bases__filter-cell {
-  background: var(--bg);
-  padding: 4px 8px;
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
-}
-.bases__filter-input {
-  width: 100%;
-  font-size: 11px;
-  padding: 3px 6px;
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  color: var(--text);
-  box-sizing: border-box;
-}
-.bases__range {
-  display: flex;
-  gap: 4px;
-}
-.bases__range input {
-  flex: 1;
-  min-width: 0;
-  font-size: 11px;
-  padding: 3px 4px;
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  color: var(--text);
-  box-sizing: border-box;
-}
-.bases__multi {
-  font-size: 11px;
-}
-.bases__multi summary {
-  cursor: pointer;
-  padding: 3px 6px;
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  list-style: none;
-}
-.bases__multi summary::-webkit-details-marker {
-  display: none;
-}
-.bases__multi-list {
-  margin-top: 2px;
-  padding: 4px;
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  max-height: 180px;
-  overflow-y: auto;
-}
-.bases__multi-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 4px;
-  cursor: pointer;
-  border-radius: 3px;
-}
-.bases__multi-item:hover {
-  background: var(--bg-hover);
-}
-.bases__multi-empty {
-  padding: 6px;
-  text-align: center;
-  color: var(--text-faint);
-}
-.bases__row:hover .bases__td {
-  background: var(--bg-hover);
-}
-.bases__td {
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 320px;
-  height: 32px;
-  box-sizing: border-box;
-}
-.bases__td--number {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-.bases__td--date {
-  font-variant-numeric: tabular-nums;
-  color: var(--text-muted);
-}
-.bases__link {
-  color: var(--accent);
-  text-decoration: none;
-  cursor: pointer;
-}
-.bases__link:hover {
-  text-decoration: underline;
-}
-.bases__pad td {
-  padding: 0;
-  border: 0;
-}
-.bases__pad {
-  /* Spacer rows for virtual scrolling. Height set inline. */
-}
-.bases__empty-row {
-  padding: 32px 16px;
-  text-align: center;
-  color: var(--text-faint);
-}
-</style>
+<style scoped src="./BasesView.css"></style>
