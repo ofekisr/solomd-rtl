@@ -14,8 +14,7 @@
  */
 
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { aiPort, eventsPort, fsPort, type UnlistenFn } from '../platform/index.ts';
 import {
   OLLAMA_RECOMMENDED_MODEL,
   PROVIDERS,
@@ -178,7 +177,7 @@ async function detectOllama(force = false): Promise<void> {
   }
   detecting.value = true;
   try {
-    const d = await invoke<OllamaDetection>('ollama_detect', { baseUrl: url });
+    const d = await aiPort.ollamaDetect({ baseUrl: url });
     // A slow remote probe can land after the user has typed a new address;
     // drop the stale answer instead of flashing it.
     if (probeUrl.value !== url) return;
@@ -223,7 +222,7 @@ async function probeCompat(): Promise<void> {
   const url = probeUrl.value;
   probing.value = true;
   try {
-    const p = await invoke<ModelProbe>('ai_list_models', {
+    const p = await aiPort.aiListModels({
       provider: props.provider,
       baseUrl: url,
     });
@@ -255,7 +254,7 @@ function scheduleCompatProbe(delay = 700): void {
 
 async function openInstallPage(): Promise<void> {
   try {
-    await invoke('open_ollama_install_page');
+    await aiPort.openOllamaInstallPage();
   } catch (e) {
     status.value = { kind: 'err', msg: String(e) };
   }
@@ -263,7 +262,7 @@ async function openInstallPage(): Promise<void> {
 
 async function ensurePullListener(): Promise<void> {
   if (pullUnlisten) return;
-  pullUnlisten = await listen<OllamaPullEvent>('solomd://ollama-pull', (ev) => {
+  pullUnlisten = await eventsPort.listen<OllamaPullEvent>('solomd://ollama-pull', (ev) => {
     if (ev.payload.request_id !== pullRequestId) return;
     pullStatus.value = ev.payload.status;
     const c = ev.payload.completed ?? null;
@@ -285,7 +284,7 @@ async function pullRecommended(): Promise<void> {
   pullPct.value = null;
   pullRequestId = `pull-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   try {
-    await invoke('ollama_pull', {
+    await aiPort.ollamaPull({
       model: OLLAMA_RECOMMENDED_MODEL,
       requestId: pullRequestId,
       baseUrl: probeUrl.value,
@@ -303,7 +302,7 @@ async function pullRecommended(): Promise<void> {
 async function cancelPull(): Promise<void> {
   if (!pulling.value || !pullRequestId) return;
   try {
-    await invoke('ollama_cancel_pull', { requestId: pullRequestId });
+    await aiPort.ollamaCancelPull({ requestId: pullRequestId });
   } catch {
     /* idempotent — surface nothing */
   }
@@ -322,7 +321,7 @@ const ollamaModelOptions = computed(() => {
 
 async function refreshHasKey(p: ProviderId): Promise<void> {
   try {
-    const v = await invoke<boolean>('ai_has_key', { provider: p });
+    const v = await aiPort.aiHasKey({ provider: p });
     hasKey.value[p] = v;
   } catch {
     hasKey.value[p] = false;
@@ -401,7 +400,7 @@ async function saveKey(): Promise<void> {
     const cfg = currentProviderConfig.value;
     let verifiedMsg: string;
     try {
-      verifiedMsg = await invoke<string>('ai_verify_key', {
+      verifiedMsg = await aiPort.aiVerifyKey({
         provider: props.provider,
         key,
         apiFormat: cfg?.apiFormat || 'openai',
@@ -418,7 +417,7 @@ async function saveKey(): Promise<void> {
       return;
     }
     // Verification passed — now save to keychain.
-    await invoke('ai_set_key', { provider: props.provider, key });
+    await aiPort.aiSetKey({ provider: props.provider, key });
     keyInput.value = '';
     await refreshHasKey(props.provider);
     status.value = { kind: 'ok', msg: t('ai.verified') + ' · ' + verifiedMsg };
@@ -441,7 +440,7 @@ async function verifyExisting(): Promise<void> {
   status.value = { kind: 'ok', msg: t('ai.verifying') };
   try {
     const cfg = currentProviderConfig.value;
-    const ok = await invoke<string>('ai_verify_key', {
+    const ok = await aiPort.aiVerifyKey({
       provider: props.provider,
       key: null,
       apiFormat: cfg?.apiFormat || 'openai',
@@ -503,7 +502,7 @@ async function refreshRuns(): Promise<void> {
   }
   runsLoading.value = true;
   try {
-    recentRuns.value = await invoke<AgentRunMeta[]>('agent_list_runs', {
+    recentRuns.value = await aiPort.agentListRuns({
       workspace: ws,
     });
   } catch (e) {
@@ -554,12 +553,7 @@ async function openRunMd(run: AgentRunMeta): Promise<void> {
   // Open the run.md as a file tab. Mirror the openPath flow used by
   // QuickSwitcher / FileTree — read_file + tabs.openFromDisk.
   try {
-    const result = await invoke<{
-      content: string;
-      encoding: string;
-      language: string;
-      had_bom: boolean;
-    }>('read_file', { path: run._run_md });
+    const result = await fsPort.readFile({ path: run._run_md });
     tabsStore.openFromDisk({
       filePath: run._run_md,
       content: result.content,
@@ -580,7 +574,7 @@ async function clearKey(): Promise<void> {
   saving.value = true;
   status.value = null;
   try {
-    await invoke('ai_clear_key', { provider: props.provider });
+    await aiPort.aiClearKey({ provider: props.provider });
     await refreshHasKey(props.provider);
     status.value = { kind: 'ok', msg: t('ai.keyCleared') };
   } catch (e) {

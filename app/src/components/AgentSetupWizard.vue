@@ -19,8 +19,7 @@
  *   3. Done — closes wizard, marks `agentWizardSeen` so it doesn't re-fire.
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
-import { openUrl } from '@tauri-apps/plugin-opener';
+import { aiPort, openerPort } from '../platform/index.ts';
 import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
 import { PROVIDERS, providerById } from '../lib/ai-providers';
@@ -71,7 +70,7 @@ async function saveCloudKey() {
   verifyMessage.value = '';
   try {
     if (cloudKey.value.trim()) {
-      await invoke('ai_set_key', {
+      await aiPort.aiSetKey({
         provider: cloudProvider.value,
         key: cloudKey.value.trim(),
       });
@@ -86,7 +85,7 @@ async function saveCloudKey() {
     const cfg = cloudConfig.value;
     const baseUrl = cloudBaseUrl.value.trim() || cfg?.defaultBaseUrl || null;
     try {
-      await invoke('ai_verify_key', {
+      await aiPort.aiVerifyKey({
         provider: cloudProvider.value,
         key: cloudKey.value.trim(),
         apiFormat: cfg?.apiFormat || 'openai',
@@ -128,7 +127,7 @@ async function saveCloudKey() {
 //     `request_id`.
 // `baseUrl` is optional and defaults to localhost; we pass the configured
 // one so a user who already pointed SoloMD at a LAN box sees it here too.
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { eventsPort, type UnlistenFn } from '../platform/index.ts';
 
 interface OllamaDetect {
   ok: boolean;
@@ -149,7 +148,7 @@ let pullRequestId: string | null = null;
 async function detectOllama() {
   detecting.value = true;
   try {
-    ollama.value = await invoke<OllamaDetect>('ollama_detect', {
+    ollama.value = await aiPort.ollamaDetect({
       baseUrl: settings.aiBaseUrl || undefined,
     });
   } catch (e) {
@@ -161,9 +160,9 @@ async function detectOllama() {
 
 async function openOllamaInstall() {
   try {
-    await invoke('open_ollama_install_page');
+    await aiPort.openOllamaInstallPage();
   } catch {
-    await openUrl('https://ollama.com/download');
+    await openerPort.openUrl('https://ollama.com/download');
   }
 }
 
@@ -179,7 +178,7 @@ async function pullRecommended() {
     pullUnlisten();
     pullUnlisten = null;
   }
-  pullUnlisten = await listen<{
+  pullUnlisten = await eventsPort.listen<{
     request_id: string;
     status: string;
     completed?: number;
@@ -198,7 +197,7 @@ async function pullRecommended() {
   });
 
   try {
-    await invoke('ollama_pull', {
+    await aiPort.ollamaPull({
       model: 'qwen2.5:1.5b',
       requestId: pullRequestId,
       baseUrl: settings.aiBaseUrl || undefined,
@@ -263,7 +262,7 @@ const ollamaUrl = computed(() => settings.aiBaseUrl || 'http://localhost:11434')
 onMounted(() => {
   // Pre-detect ollama in the background so the choice card can highlight
   // the local option if it's already installed (subtle dot, no claim).
-  invoke<OllamaDetect>('ollama_detect', { baseUrl: settings.aiBaseUrl || undefined })
+  aiPort.ollamaDetect({ baseUrl: settings.aiBaseUrl || undefined })
     .then((s) => {
       ollama.value = s;
     })
@@ -276,7 +275,7 @@ onMounted(() => {
 // disk + bandwidth in the background with no UI to stop it.
 onBeforeUnmount(() => {
   if (pulling.value && pullRequestId) {
-    invoke('ollama_cancel_pull', { requestId: pullRequestId }).catch(() => {});
+    aiPort.ollamaCancelPull({ requestId: pullRequestId }).catch(() => {});
   }
   if (pullUnlisten) {
     pullUnlisten();
