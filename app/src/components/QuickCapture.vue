@@ -14,8 +14,7 @@
  * how it knows the theme and the language without any IPC.
  */
 import { computed, nextTick, onMounted, onBeforeUnmount, ref } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { capturePort, eventsPort, type UnlistenFn } from '../platform/index.ts';
 import { useI18n } from '../i18n';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useThemePaint } from '../composables/useThemePaint';
@@ -48,7 +47,7 @@ async function close() {
   text.value = '';
   error.value = '';
   try {
-    await invoke('quick_capture_close');
+    await capturePort.quickCaptureClose();
   } catch {
     /* the window is going away either way */
   }
@@ -64,7 +63,7 @@ async function save() {
   saving.value = true;
   error.value = '';
   try {
-    await invoke<string>('quick_capture_write', { content });
+    await capturePort.quickCaptureWrite({ content });
     text.value = '';
     await close();
   } catch (e) {
@@ -100,7 +99,7 @@ onMounted(async () => {
   focusBox();
   try {
     // Reopening the box must not present the last capture's leftovers.
-    unlistenReset = await listen('solomd://quick-capture-reset', () => {
+    unlistenReset = await eventsPort.listen('solomd://quick-capture-reset', () => {
       text.value = '';
       error.value = '';
       focusBox();

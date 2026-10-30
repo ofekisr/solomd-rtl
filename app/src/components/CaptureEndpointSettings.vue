@@ -12,7 +12,7 @@
  * panel is always coherent with the actually-running listener.
  */
 import { computed, onMounted, ref } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
+import { capturePort } from '../platform/index.ts';
 import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useI18n } from '../i18n';
@@ -41,7 +41,7 @@ const showToken = ref(false);
 
 async function refresh() {
   try {
-    state.value = await invoke<CaptureState>('capture_get_state');
+    state.value = await capturePort.captureGetState();
   } catch (e) {
     console.warn('capture_get_state failed', e);
   }
@@ -50,13 +50,13 @@ async function refresh() {
 async function onToggleEnabled() {
   const next = !state.value.enabled;
   try {
-    state.value = await invoke<CaptureState>('capture_set_enabled', {
+    state.value = await capturePort.captureSetEnabled({
       enabled: next,
       port: state.value.port,
     });
     if (next) {
       // Push the active workspace folder so the server can write there.
-      await invoke('capture_set_workspace', {
+      await capturePort.captureSetWorkspace({
         folder: workspace.currentFolder ?? null,
       });
       toasts.success(t('inbox.endpointEnabled', { port: String(state.value.port) }));
@@ -70,7 +70,7 @@ async function onToggleEnabled() {
 
 async function onRegenerateToken() {
   try {
-    state.value = await invoke<CaptureState>('capture_regenerate_token');
+    state.value = await capturePort.captureRegenerateToken();
     showToken.value = true;
     toasts.success(t('inbox.tokenRegenerated'));
   } catch (e) {
@@ -80,7 +80,7 @@ async function onRegenerateToken() {
 
 async function onSetInboxFolder(value: string) {
   try {
-    state.value = await invoke<CaptureState>('capture_set_inbox_folder', {
+    state.value = await capturePort.captureSetInboxFolder({
       folder: value,
     });
   } catch (e) {

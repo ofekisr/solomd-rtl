@@ -9,7 +9,7 @@
  * dedicated "Allow write" toggle gating the two writer tools.
  */
 import { computed, onMounted, ref } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
+import { capturePort } from '../platform/index.ts';
 import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useI18n } from '../i18n';
@@ -38,7 +38,7 @@ const showToken = ref(false);
 
 async function refresh() {
   try {
-    state.value = await invoke<RestState>('rest_get_state');
+    state.value = await capturePort.restGetState();
   } catch (e) {
     console.warn('rest_get_state failed', e);
   }
@@ -47,14 +47,14 @@ async function refresh() {
 async function onToggleEnabled() {
   const next = !state.value.enabled;
   try {
-    state.value = await invoke<RestState>('rest_set_enabled', {
+    state.value = await capturePort.restSetEnabled({
       enabled: next,
       port: state.value.port,
     });
     if (next) {
       // Push the active workspace immediately so the first request after
       // enable doesn't hit a 503.
-      await invoke('rest_set_workspace', {
+      await capturePort.restSetWorkspace({
         folder: workspace.currentFolder ?? null,
       });
       toasts.success(t('rest.endpointEnabled', { port: String(state.value.port) }));
@@ -69,7 +69,7 @@ async function onToggleEnabled() {
 async function onToggleAllowWrite() {
   const next = !state.value.allow_write;
   try {
-    state.value = await invoke<RestState>('rest_set_allow_write', { allow: next });
+    state.value = await capturePort.restSetAllowWrite({ allow: next });
     toasts.info(next ? t('rest.allowWriteOn') : t('rest.allowWriteOff'));
   } catch (e) {
     toasts.error(`REST API: ${e}`);
@@ -78,7 +78,7 @@ async function onToggleAllowWrite() {
 
 async function onRegenerateToken() {
   try {
-    state.value = await invoke<RestState>('rest_regenerate_token');
+    state.value = await capturePort.restRegenerateToken();
     showToken.value = true;
     toasts.success(t('rest.tokenRegenerated'));
   } catch (e) {
