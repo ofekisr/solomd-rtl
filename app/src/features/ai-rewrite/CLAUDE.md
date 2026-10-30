@@ -1,6 +1,7 @@
 # features/ai-rewrite/
 
 AI-rewrite chord (`ai-key` slot) and AI edit lock (`ai-lock` slot). Contract: `editor/contracts/editor-feature.port.ts`.
+Consumed by: `shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`), which `editor/ui/Editor.vue` composes.
 
 | Path | Holds |
 |---|---|

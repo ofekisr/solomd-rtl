@@ -1,6 +1,7 @@
 # features/vim/
 
-Vim mode and `:w` `:wq` `:x` `:q` Ex commands (#222). Copied from `Editor.vue`.
+Vim mode and `:w` `:wq` `:x` `:q` Ex commands (#222).
+Consumed by: `shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`), which `editor/ui/Editor.vue` composes.
 
 | Item | Value |
 |---|---|

@@ -1,6 +1,7 @@
 # features/folds/
 
-Heading folding for the CodeMirror engine. Code copied from `Editor.vue` (Wave 2 PR-5).
+Heading folding for the CodeMirror engine.
+Consumed by: `shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`), which `editor/ui/Editor.vue` composes.
 
 | Path | Holds |
 |---|---|
@@ -9,4 +10,5 @@ Heading folding for the CodeMirror engine. Code copied from `Editor.vue` (Wave 2
 | `internal/apply-fold.ts` | `applyFold`, `foldExtensionFor` |
 
 - Fold memory key is `filePath ?? tab id`, held in the factory closure (one instance per pane).
-- The plain engine's fold path stays in `Editor.vue` until PR-8.
+- The plain engine folds inside `editor/internal/plain/usePlainFolds.ts`, not through this feature (LLD E6).
+- Tests: `folds.test.ts`.

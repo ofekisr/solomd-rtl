@@ -1,6 +1,7 @@
 # features/spellcheck/
 
-Spellcheck for the CodeMirror engine. Copied from `Editor.vue`.
+Spellcheck for the CodeMirror engine.
+Consumed by: `shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`), which `editor/ui/Editor.vue` composes.
 
 | Item | Value |
 |---|---|
@@ -11,6 +12,7 @@ Spellcheck for the CodeMirror engine. Copied from `Editor.vue`.
 ## Files
 
 - `contracts/spellcheck.feature.ts` — `createSpellcheckFeature()`
+- `internal/cm-spellcheck.ts`, `internal/cm-spellcheck-theme.ts` — extension and theme (moved from `lib/`)
 
 ## Tests
 

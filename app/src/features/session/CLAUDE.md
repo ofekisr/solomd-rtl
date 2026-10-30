@@ -1,6 +1,7 @@
 # features/session/
 
-Crash-recovery session snapshots for the CodeMirror engine. Code copied from `Editor.vue` (Wave 2 PR-5).
+Crash-recovery session snapshots for the CodeMirror engine.
+Consumed by: `shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`), which `editor/ui/Editor.vue` composes.
 
 | Path | Holds |
 |---|---|

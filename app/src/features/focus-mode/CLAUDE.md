@@ -1,6 +1,7 @@
 # features/focus-mode/
 
-Focus (dim other paragraphs) and typewriter (centered caret) modes. Copied from `Editor.vue`.
+Focus (dim other paragraphs) and typewriter (centered caret) modes.
+Consumed by: `shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`), which `editor/ui/Editor.vue` composes.
 
 | Item | Value |
 |---|---|

@@ -1,6 +1,7 @@
 # features/find/
 
-In-editor find (CodeMirror branch). Copied from `Editor.vue`; Editor keeps its copy until PR-8.
+In-editor find (CodeMirror branch).
+Consumed by: `shell/editor-registry.service.ts` (`EDITOR_FEATURE_FACTORIES`), which `editor/ui/Editor.vue` composes.
 
 | Item | Value |
 |---|---|
@@ -11,6 +12,7 @@ In-editor find (CodeMirror branch). Copied from `Editor.vue`; Editor keeps its c
 ## Files
 
 - `contracts/find.feature.ts` — `createFindFeature()`
+- `internal/cm-find-panel.ts` — `createFindPanel(filePath)` (moved from `lib/`)
 - `internal/incremental-find.ts` — `firstMatch`, `incrementalFindScroll` (scroll to first match while typing)
 
 ## Tests

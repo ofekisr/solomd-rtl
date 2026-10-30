@@ -9,12 +9,12 @@ Vue 3 + CodeMirror 6 + Pinia front end. `src-tauri/` is the Rust desktop shell. 
 | `src/App.vue` | Thin host (≤ 500 lines): services, startup order, root element | Stays |
 | `src/components/shell/` | App chrome split out of `App.vue`: layout, right sidebar, dialogs host | Stays |
 | `src/shell/` | App-wide services (window, file-open, shortcuts, session, updates). Read [shell/CLAUDE.md](src/shell/CLAUDE.md) | Stays |
-| `src/features/` | Editor features (Wave 2): `editor/` host + engines; one folder per feature. Read [features/editor/CLAUDE.md](src/features/editor/CLAUDE.md) | Grows per wave |
-| `src/components/` | ~118 flat Vue components; `git/`, `properties/` subfolders | Empties into `features/<f>/ui/` by Wave 4 |
+| `src/features/` | Editor features (Wave 2), one folder each: `editor` (host, plain engine, core/appearance/live-render), `find`, `vim`, `spellcheck`, `ai-rewrite`, `focus-mode`, `image-upload`, `completion`, `session`, `folds`, `format`, `context-menu`. Registered in `shell/editor-registry.service.ts`. Read [features/editor/CLAUDE.md](src/features/editor/CLAUDE.md) | Grows per wave |
+| `src/components/` | 114 flat Vue components; `git/`, `properties/` subfolders | Empties into `features/<f>/ui/` by Wave 4 |
 | `src/composables/` | `use*` hooks; host state for `App.vue` (`createX`/`useX`, see shell/CLAUDE.md) | Move with their feature; host ones stay |
 | `src/stores/` | Pinia stores; `settings.ts` holds all settings | Per-feature settings slices (Wave 3) |
 | `src/platform/` | Typed ports over Tauri; only importer of `@tauri-apps/*`. Read [platform/CLAUDE.md](src/platform/CLAUDE.md) | Stays |
-| `src/lib/` | Mostly pure TS: CM extensions (`cm-*.ts`), parsers, `theme/`, `git-pane/`, `fixtures/`. Some files still import `vue`/`pinia`/`@tauri-apps/*` | Stays. Fully pure as the PR-2 baseline shrinks |
+| `src/lib/` | Mostly pure TS: CM extensions (`cm-*.ts`), parsers, `theme/`, `git-pane/`, `fixtures/`. 2 files still import `vue`/`pinia`/`@tauri-apps/*` (`libPurity` baseline: `ai-activity.ts`, `quick-capture-status.ts`) | Stays. Fully pure when those two move (Waves 3-4) |
 | `src/ui/` | `Ds*` design-system primitives | Stays |
 | `src/i18n/` | Locale tables. New strings go in `en.ts` | Keys move into features (Wave 2+) |
 | `src/styles/` | Global CSS and tokens | Stays |

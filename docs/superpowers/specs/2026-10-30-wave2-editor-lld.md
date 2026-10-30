@@ -329,12 +329,49 @@ No persisted data changes. `fold-memory`, `cm-session-restore` keys unchanged. R
 - (implicit) `features/editor/internal/cm-probe.ts` — non-test helper with no role suffix, against the same rule. Rationale: shared test helper, precedent `app/arch/fixture-tree.ts`, `shell/fake-ports.ts`.
 </conventions-check>
 
+### As shipped
+
+Commits `edbc7255..HEAD` on `main` (12 commits, 30-10-26).
+
+| Fact | Before | After |
+|---|---|---|
+| `Editor.vue` | 5024 lines in `components/` | 188 lines in `features/editor/ui/` |
+| `cm-live-blocks.ts` | 1620 | 170 (rest in `lib/live-blocks/`) |
+| `libPurity` baseline | 5 | 2 (`ai-activity`, `quick-capture-status`) |
+| `fileSize` baseline | 70 | 68 |
+| Features | none | 12 under `features/` (13 registry entries: core, appearance, live-render + 10) |
+
+Where moved files landed:
+
+| From | To |
+|---|---|
+| `components/Editor.vue` | `features/editor/ui/Editor.vue` |
+| `components/EditorContextMenu.vue` | `features/context-menu/ui/` |
+| `lib/cm-find-panel` | `features/find/internal/` |
+| `lib/cm-spellcheck`, `cm-spellcheck-theme` | `features/spellcheck/internal/` |
+| `lib/cm-image-paste`, `image-upload` | `features/image-upload/internal/` |
+| `lib/table-editor-bus`, `formula-editor-bus` | `features/format/internal/` |
+| Plain engine (was in `Editor.vue`) | `features/editor/ui/PlainEditor.vue` + `internal/plain/` |
+
+Deviations from the plan:
+- `Editor.vue` moved in PR-2 (not PR-8 Task 3): `components/` cannot import `features/editor/internal`.
+- `ctx.reconfigure(slotKey, ext)` added: lazy language loading reconfigures its own compartment.
+- Global Node test loader (`app/scripts/node-test-loader.mjs`) replaced per-feature loaders.
+- Cross-feature users of moved files import through contracts (re-exports in `image-upload`, `format`, `context-menu-component.ts`).
+
 ### Parked for Wave 3+
 
-- `lib/` → `platform/` files not owned by an editor feature (13): `code-copy`, `image-resolve`, `open-google-translate`, `docx-export`, `directive-completion-registry`, `telemetry`, `check-update`, `new-window`, `devtools`, `saf-fs`, `reveal-in-file-manager`, `theme/sources`, `git-pane/serviceFactory` → their Wave 3 owners.
-- `libPurity`: `ai-activity` (Wave 4), `quick-capture-status` (Wave 3).
+- `Editor.vue` imports `createEditorRegistry` from `shell/` (feature -> shell edge). Inject a factory instead.
+- Per-feature settings slices: features declare `settingsKeys`, the store is still one `settings.ts` (E17).
+- i18n keys into features: features declare `i18nKeys`, tables stay in `i18n/` (E16).
+- `libPurity`: `lib/ai-activity.ts` (Wave 4), `lib/quick-capture-status.ts` (Wave 3).
+- `ai-rewrite.legacy.adapter.ts` shim: delete in Wave 4 (E10).
+- `lib/` -> `platform/` files not owned by an editor feature (13): `code-copy`, `image-resolve`, `open-google-translate`, `docx-export`, `directive-completion-registry`, `telemetry`, `check-update`, `new-window`, `devtools`, `saf-fs`, `reveal-in-file-manager`, `theme/sources`, `git-pane/serviceFactory`.
 - Plain engine features (find, folds, autocomplete) pluggable through `EditorFeature` (needs an ADR).
-- `settingsKeys` → per-feature settings-slice schema (Wave 3); i18n tables split per feature.
+- Plain engine and `format` both handle `solomd:transform-case` / `solomd:format-markdown` (format bails on a null view); fold the plain transforms into `format` or guard double-handling.
+- Contract gaps: `bind()` must precede mount (setups use neither `run` nor `reconfigure`); `buildState` does not distinguish ts vs md state in tests.
+- Test gaps: `setup()` hooks, `incrementalFindScroll` listener, `openFind` with a view, `spellcheckEnabled` lazy read, `useCitations` (Vue + Pinia + IPC), live-blocks `arrowIntoBlock` keymap / `liveBlocksTheme` / relayout plugin, plain `buildAcItems` slash/fence branches, plain splitter edge branches.
+- Settings-key check is a regex over feature source; replace with a typed key list.
 - Carried from Wave 1: strict validation (Wave 3), `PlatformUnsupportedError` + `snakeToCamel` out of `command.port.ts`, behavior fixes (`key=null` snippets, `icloud`, never-removed listeners).
 
 ---
