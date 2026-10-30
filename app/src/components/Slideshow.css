@@ -1,0 +1,164 @@
+.solomd-slideshow {
+  position: fixed;
+  inset: 0;
+  background: #1a1a1a;
+  color: #f0f0f0;
+  overflow: hidden;
+}
+/*
+ * Reveal injects its own classes (.reveal, .slides). We override visuals
+ * to match the previous SoloMD slideshow look-and-feel — dark canvas,
+ * larger headings, accent-orange links — instead of pulling in any of
+ * reveal's bundled themes (which would double the CSS payload).
+ */
+.solomd-slideshow :deep(.slides) {
+  text-align: left !important;
+}
+.solomd-slideshow :deep(.slides section) {
+  font-size: clamp(20px, 2.4vw, 32px);
+  line-height: 1.55;
+  padding: 40px 60px;
+  text-align: left;
+}
+.solomd-slideshow :deep(h1) {
+  font-size: 2.4em;
+  margin: 0 0 0.6em;
+  text-align: center;
+  font-weight: 700;
+  text-transform: none;
+}
+.solomd-slideshow :deep(h2) {
+  font-size: 1.8em;
+  margin: 0 0 0.5em;
+  font-weight: 600;
+  text-transform: none;
+}
+.solomd-slideshow :deep(h3) {
+  font-size: 1.4em;
+  margin: 0.4em 0;
+  text-transform: none;
+}
+.solomd-slideshow :deep(p),
+.solomd-slideshow :deep(ul),
+.solomd-slideshow :deep(ol),
+.solomd-slideshow :deep(blockquote) {
+  font-size: 1em;
+  margin: 0.6em 0;
+}
+.solomd-slideshow :deep(li) { margin: 0.25em 0; }
+.solomd-slideshow :deep(code) {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+.solomd-slideshow :deep(pre) {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 16px 20px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.7em;
+  line-height: 1.5;
+}
+.solomd-slideshow :deep(pre code) {
+  background: transparent;
+  padding: 0;
+  font-size: 1em;
+  display: block;
+}
+.solomd-slideshow :deep(blockquote) {
+  border-left: 4px solid #ff9f40;
+  padding-left: 16px;
+  color: #ccc;
+  font-style: italic;
+}
+.solomd-slideshow :deep(table) {
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.85em;
+}
+.solomd-slideshow :deep(th),
+.solomd-slideshow :deep(td) {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 14px;
+}
+.solomd-slideshow :deep(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.solomd-slideshow :deep(a) { color: #ff9f40; }
+.solomd-slideshow :deep(hr) { border-color: rgba(255, 255, 255, 0.2); }
+.slide__hud {
+  position: fixed;
+  bottom: 16px;
+  right: 24px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: ui-monospace, Menlo, monospace;
+  pointer-events: none;
+  z-index: 100;
+}
+.slide__pos {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+.slide__hint {
+  display: inline;
+  font-size: 11px;
+}
+.slide__help {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+.slide__help-card {
+  background: #2a2a2a;
+  padding: 32px 40px;
+  border-radius: 12px;
+  max-width: 560px;
+  font-size: 15px;
+}
+.slide__help-card h2 {
+  margin: 0 0 18px;
+  font-size: 18px;
+  color: #ff9f40;
+}
+.slide__help-card table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.slide__help-card td {
+  padding: 6px 0;
+  vertical-align: top;
+}
+.slide__help-card td:first-child {
+  color: #aaa;
+  width: 50%;
+}
+.slide__help-card td:last-child {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 13px;
+}
+.slide__help-foot {
+  margin: 18px 0 0;
+  font-size: 12px;
+  color: #888;
+  border-top: 1px solid #444;
+  padding-top: 14px;
+  line-height: 1.55;
+}
+.slide__help-foot code {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
