@@ -18,11 +18,7 @@ import { useExport } from '../composables/useExport';
 import { useToastsStore } from '../stores/toasts';
 import { cleanAIArtifacts } from '../lib/clean-ai';
 import { useI18n } from '../i18n';
-import { openPath } from '@tauri-apps/plugin-opener';
-import { open as openFileDialog } from '@tauri-apps/plugin-dialog';
-import { getCurrentWindow } from '@tauri-apps/api/window';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
-import { invoke } from '@tauri-apps/api/core';
+import { dialogPort, eventsPort, openerPort, windowCommandsPort, windowPort, type UnlistenFn } from '../platform/index.ts';
 import { forceWinChromePreview, isIOS, isMacOS, isWindowsDesktop } from '../lib/platform';
 import { IS_APP_STORE_BUILD } from '../lib/app-build';
 import { EditorView } from '@codemirror/view';
@@ -175,13 +171,13 @@ function onTitleBarMouseDown(e: MouseEvent) {
   if (!customTitleBar || e.button !== 0 || e.detail > 1) return;
   if (isInteractiveTitleBarTarget(e.target)) return;
   if (!('__TAURI_INTERNALS__' in window)) return;
-  void getCurrentWindow().startDragging();
+  void windowPort.currentWindow().startDragging();
 }
 function onTitleBarDblClick(e: MouseEvent) {
   if (!customTitleBar) return;
   if (isInteractiveTitleBarTarget(e.target)) return;
   if (!('__TAURI_INTERNALS__' in window)) return;
-  void getCurrentWindow().toggleMaximize();
+  void windowPort.currentWindow().toggleMaximize();
 }
 
 // #134 — when the bar overflows on a narrow window, let a plain mouse wheel
@@ -341,7 +337,7 @@ async function onOpenExternal() {
     return;
   }
   try {
-    await openPath(path);
+    await openerPort.openPath(path);
   } catch (e) {
     toasts.warning(`Failed: ${e}`);
   }
@@ -411,7 +407,7 @@ function dispatchInsert(snippet: string) {
 
 async function pickAndInsertImage() {
   insertOpen.value = false;
-  const sel = await openFileDialog({
+  const sel = await dialogPort.open({
     multiple: false,
     defaultPath: await files.filePickerStartDir(),
     filters: [
@@ -568,23 +564,23 @@ const maxBtnHover = ref(false);
 const maxBtnRef = ref<HTMLElement | null>(null);
 let unlistenWinChrome: UnlistenFn[] = [];
 function winMinimize() {
-  if (hasTauriShell) void getCurrentWindow().minimize();
+  if (hasTauriShell) void windowPort.currentWindow().minimize();
 }
 function winToggleMax() {
   // Fallback path only: on the real Windows main window the Rust subclass
   // claims this button as HTMAXBUTTON, so clicks never reach the DOM (Windows
   // maximizes natively and shows Snap Layouts on hover). This handler covers
   // auxiliary windows and the dev preview.
-  if (hasTauriShell) void getCurrentWindow().toggleMaximize();
+  if (hasTauriShell) void windowPort.currentWindow().toggleMaximize();
 }
 function winClose() {
   // Routes through Tauri's close-requested flow → unsaved-tabs confirm.
-  if (hasTauriShell) void getCurrentWindow().close();
+  if (hasTauriShell) void windowPort.currentWindow().close();
 }
 async function refreshMaximized() {
   if (!hasTauriShell) return;
   try {
-    isMaximized.value = await getCurrentWindow().isMaximized();
+    isMaximized.value = await windowPort.currentWindow().isMaximized();
   } catch {
     /* not fatal */
   }
@@ -595,12 +591,12 @@ async function refreshMaximized() {
 let rectRaf = 0;
 function reportMaxBtnRect() {
   if (!winTitleBar || !hasTauriShell || !isWindowsDesktop()) return;
-  if (getCurrentWindow().label !== 'main') return;
+  if (windowPort.currentWindow().label !== 'main') return;
   cancelAnimationFrame(rectRaf);
   rectRaf = requestAnimationFrame(() => {
     const scale = window.devicePixelRatio || 1;
     const r = maxBtnRef.value?.getBoundingClientRect();
-    void invoke('set_max_button_rect', r && r.width > 0
+    void windowCommandsPort.setMaxButtonRect(r && r.width > 0
       ? { x: r.left, y: r.top, w: r.width, h: r.height, scale }
       : { x: 0, y: 0, w: 0, h: 0, scale });
   });
@@ -612,13 +608,13 @@ onMounted(async () => {
   window.addEventListener('resize', reportMaxBtnRect);
   try {
     unlistenWinChrome.push(
-      await getCurrentWindow().onResized(() => {
+      await windowPort.currentWindow().onResized(() => {
         void refreshMaximized();
         reportMaxBtnRect();
       }),
     );
     unlistenWinChrome.push(
-      await listen<boolean>('solomd://maxbtn-hover', (e) => {
+      await eventsPort.listen<boolean>('solomd://maxbtn-hover', (e) => {
         maxBtnHover.value = !!e.payload;
       }),
     );
@@ -632,7 +628,7 @@ onBeforeUnmount(() => {
   for (const un of unlistenWinChrome) un();
   unlistenWinChrome = [];
   if (hasTauriShell && isWindowsDesktop()) {
-    void invoke('set_max_button_rect', { x: 0, y: 0, w: 0, h: 0, scale: 1 });
+    void windowCommandsPort.setMaxButtonRect({ x: 0, y: 0, w: 0, h: 0, scale: 1 });
   }
 });
 // Exclusive open: opening one dropdown closes others.

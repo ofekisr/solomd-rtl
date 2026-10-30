@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref } from 'vue';
 import { renderMarkdown } from '../lib/markdown';
-import { getCurrentWindow } from '@tauri-apps/api/window';
+import { windowPort } from '../platform/index.ts';
 import Reveal from 'reveal.js';
 import 'reveal.js/reveal.css';
 
@@ -189,7 +189,7 @@ function buildDeck(src: string, host: HTMLElement) {
 async function toggleFullscreen() {
   let usedTauri = false;
   try {
-    const win = getCurrentWindow();
+    const win = windowPort.currentWindow();
     const isFs = await win.isFullscreen();
     await win.setFullscreen(!isFs);
     usedTauri = true;
@@ -212,7 +212,7 @@ async function toggleFullscreen() {
 
 async function exitShow() {
   try {
-    const win = getCurrentWindow();
+    const win = windowPort.currentWindow();
     if (await win.isFullscreen()) {
       await win.setFullscreen(false);
       await new Promise((r) => setTimeout(r, 350));
@@ -288,7 +288,7 @@ onMounted(async () => {
 
   // Try to enter fullscreen on launch via Tauri.
   try {
-    const win = getCurrentWindow();
+    const win = windowPort.currentWindow();
     await new Promise((r) => setTimeout(r, 100));
     await win.setFullscreen(true);
   } catch {}

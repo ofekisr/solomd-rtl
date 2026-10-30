@@ -10,7 +10,7 @@
  * we don't duplicate the markdown / mermaid / image-overlay pipeline.
  */
 import { computed, defineAsyncComponent, ref, onMounted, onBeforeUnmount } from 'vue';
-import { getCurrentWindow } from '@tauri-apps/api/window';
+import { windowPort } from '../platform/index.ts';
 import Preview from './Preview.vue';
 import Icon from './Icons.vue';
 import { useTabsStore } from '../stores/tabs';
@@ -41,11 +41,11 @@ const hasTauriShell = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in 
 const winControls =
   (isWindowsDesktop() && hasTauriShell) || (import.meta.env.DEV && forceWinChromePreview());
 function winMinimize() {
-  if (hasTauriShell) void getCurrentWindow().minimize();
+  if (hasTauriShell) void windowPort.currentWindow().minimize();
 }
 function winClose() {
   // Same close-requested flow (unsaved-tabs confirm) as the title-bar ✕.
-  if (hasTauriShell) void getCurrentWindow().close();
+  if (hasTauriShell) void windowPort.currentWindow().close();
 }
 // #221 follow-up — the set was min / ✕ only; add maximize/restore so reading
 // mode offers the same three caption buttons as the title bar. The toolbar's
@@ -56,19 +56,19 @@ let unlistenResize: (() => void) | null = null;
 async function refreshMaximized() {
   if (!hasTauriShell) return;
   try {
-    isMaximized.value = await getCurrentWindow().isMaximized();
+    isMaximized.value = await windowPort.currentWindow().isMaximized();
   } catch {
     /* not fatal */
   }
 }
 function winToggleMax() {
-  if (hasTauriShell) void getCurrentWindow().toggleMaximize();
+  if (hasTauriShell) void windowPort.currentWindow().toggleMaximize();
 }
 onMounted(async () => {
   if (!winControls || !hasTauriShell) return;
   await refreshMaximized();
   try {
-    unlistenResize = await getCurrentWindow().onResized(() => void refreshMaximized());
+    unlistenResize = await windowPort.currentWindow().onResized(() => void refreshMaximized());
   } catch {
     /* not fatal */
   }

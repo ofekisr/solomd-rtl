@@ -10,7 +10,7 @@ import { usePomodoroStore, getLastPreset } from '../stores/pomodoro';
 import { eventToCombo, resolveBindings } from '../lib/keybindings';
 import { MINDMAP_CONVERT_ACTION_IDS, MINDMAP_CONVERT_FOLDER_ACTION } from './useMindmapConvert';
 import { FORMAT_KINDS, type FormatKind } from '../lib/md-format';
-import { getCurrentWindow } from '@tauri-apps/api/window';
+import { windowPort } from '../platform/index.ts';
 
 interface Hooks {
   openPalette?: () => void;
@@ -92,7 +92,7 @@ export function useShortcuts(hooks: Hooks = {}) {
     },
     'file.openExternal': () => runById('file.openExternal'),
     'window.new': () => runById('window.new'),
-    'file.exit': () => void getCurrentWindow().close(),
+    'file.exit': () => void windowPort.currentWindow().close(),
 
     'editor.caseCycle': () => runById('editor.caseCycle'),
     // #296 — one entry per kind, generated: the ids are `fmt.<kind>` on both
