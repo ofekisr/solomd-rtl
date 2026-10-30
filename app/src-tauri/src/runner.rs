@@ -27,7 +27,7 @@ mod set_default;
 #[path = "convert/mod.rs"]
 mod convert;
 
-#[path = "workspace_index.rs"]
+#[path = "workspace_index/mod.rs"]
 mod workspace_index;
 
 #[path = "spellcheck.rs"]
@@ -50,7 +50,7 @@ mod pandoc;
 mod git_history;
 
 // v2.4 inbound HTTP capture endpoint — production-grade, opt-in via Settings.
-#[path = "capture_endpoint.rs"]
+#[path = "capture_endpoint/mod.rs"]
 mod capture_endpoint;
 
 // Quick capture — global hotkey → mini window → Inbox note. Writes through
@@ -79,7 +79,7 @@ mod themes;
 mod cjk_proofread;
 
 // v2.6 GitHub-backed sync — push/pull a workspace to a user-owned GitHub repo.
-#[path = "github_sync.rs"]
+#[path = "github_sync/mod.rs"]
 mod github_sync;
 
 // v2.6.1 cloud-folder detection + cross-device session restore.
@@ -282,17 +282,17 @@ pub fn run_with(initial_file: Option<String>) {
             language::save_language_preference,
             set_default::set_as_default_markdown_editor,
             convert::convert_file_to_markdown,
-            workspace_index::workspace_index_init,
-            workspace_index::workspace_index_files,
-            workspace_index::workspace_index_backlinks,
-            workspace_index::workspace_index_tags,
-            workspace_index::workspace_index_resolve,
-            workspace_index::workspace_index_rescan,
+            workspace_index::commands::workspace_index_init,
+            workspace_index::commands::workspace_index_files,
+            workspace_index::commands::workspace_index_backlinks,
+            workspace_index::commands::workspace_index_tags,
+            workspace_index::commands::workspace_index_resolve,
+            workspace_index::commands::workspace_index_rescan,
             // v4.6 — these were only registered in the dead-code lib.rs::run();
             // the desktop binary uses runner::run_with(), so the F1 property
             // writes + F3 inverse-relationship lookup 404'd at runtime until
             // registered here too. (Same class as the #94 rag::* omission.)
-            workspace_index::workspace_index_referenced_by,
+            workspace_index::commands::workspace_index_referenced_by,
             commands::frontmatter::update_frontmatter_property,
             commands::frontmatter::delete_frontmatter_property,
             spellcheck::spellcheck_init,
@@ -330,11 +330,11 @@ pub fn run_with(initial_file: Option<String>) {
             crate::git_pane::commands::gitpane_execute,
             crate::git_pane::commands::gitpane_cancel,
             crate::git_pane::commands::gitpane_close,
-            capture_endpoint::capture_get_state,
-            capture_endpoint::capture_set_enabled,
-            capture_endpoint::capture_regenerate_token,
-            capture_endpoint::capture_set_inbox_folder,
-            capture_endpoint::capture_set_workspace,
+            capture_endpoint::commands::capture_get_state,
+            capture_endpoint::commands::capture_set_enabled,
+            capture_endpoint::commands::capture_regenerate_token,
+            capture_endpoint::commands::capture_set_inbox_folder,
+            capture_endpoint::commands::capture_set_workspace,
             quick_capture::quick_capture_open,
             quick_capture::quick_capture_close,
             quick_capture::quick_capture_write,
@@ -354,32 +354,32 @@ pub fn run_with(initial_file: Option<String>) {
             themes::theme_json_list,
             themes::theme_json_remove,
             cjk_proofread::cjk_proofread,
-            github_sync::github_set_token,
-            github_sync::github_clear_token,
-            github_sync::github_has_token,
-            github_sync::github_user,
-            github_sync::github_list_repos,
-            github_sync::github_create_vault_repo,
-            github_sync::github_link_workspace,
-            github_sync::github_set_config,
-            github_sync::github_unlink_workspace,
-            github_sync::github_enable_encryption,
-            github_sync::github_sync_status,
-            github_sync::github_push,
-            github_sync::github_pull,
-            github_sync::github_resolve_conflict,
-            github_sync::proxy_get,
-            github_sync::proxy_set,
+            github_sync::token::github_set_token,
+            github_sync::token::github_clear_token,
+            github_sync::token::github_has_token,
+            github_sync::api::github_user,
+            github_sync::api::github_list_repos,
+            github_sync::api::github_create_vault_repo,
+            github_sync::link::github_link_workspace,
+            github_sync::link::github_set_config,
+            github_sync::link::github_unlink_workspace,
+            github_sync::link::github_enable_encryption,
+            github_sync::status::github_sync_status,
+            github_sync::push::github_push,
+            github_sync::pull::github_pull,
+            github_sync::resolve::github_resolve_conflict,
+            github_sync::proxy::proxy_get,
+            github_sync::proxy::proxy_set,
             // Gitea sync commands (v5.0)
-            github_sync::gitea_set_token,
-            github_sync::gitea_clear_token,
-            github_sync::gitea_has_token,
-            github_sync::gitea_get_url,
-            github_sync::gitea_set_url,
-            github_sync::gitea_validate_url,
-            github_sync::gitea_user,
-            github_sync::gitea_list_repos,
-            github_sync::gitea_create_vault_repo,
+            github_sync::gitea::gitea_set_token,
+            github_sync::gitea::gitea_clear_token,
+            github_sync::gitea::gitea_has_token,
+            github_sync::gitea::gitea_get_url,
+            github_sync::gitea::gitea_set_url,
+            github_sync::gitea::gitea_validate_url,
+            github_sync::gitea::gitea_user,
+            github_sync::gitea::gitea_list_repos,
+            github_sync::gitea::gitea_create_vault_repo,
             cloud_folder::cloud_folder_detect,
             cloud_folder::device_id_get_or_create,
             cloud_folder::session_save,

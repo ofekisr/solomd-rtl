@@ -217,12 +217,12 @@ pub fn run() {
             search::search_in_dir,
             replace::replace_in_dir,
             replace::replace_in_text,
-            workspace_index::workspace_index_init,
-            workspace_index::workspace_index_files,
-            workspace_index::workspace_index_backlinks,
-            workspace_index::workspace_index_tags,
-            workspace_index::workspace_index_resolve,
-            workspace_index::workspace_index_rescan,
+            workspace_index::commands::workspace_index_init,
+            workspace_index::commands::workspace_index_files,
+            workspace_index::commands::workspace_index_backlinks,
+            workspace_index::commands::workspace_index_tags,
+            workspace_index::commands::workspace_index_resolve,
+            workspace_index::commands::workspace_index_rescan,
             spellcheck::spellcheck_init,
             spellcheck::spellcheck_check,
             spellcheck::spellcheck_suggest,
@@ -265,11 +265,11 @@ pub fn run() {
             rag::rag_reindex,
             rag::rag_search,
             rag::rag_reindex_file,
-            capture_endpoint::capture_get_state,
-            capture_endpoint::capture_set_enabled,
-            capture_endpoint::capture_regenerate_token,
-            capture_endpoint::capture_set_inbox_folder,
-            capture_endpoint::capture_set_workspace,
+            capture_endpoint::commands::capture_get_state,
+            capture_endpoint::commands::capture_set_enabled,
+            capture_endpoint::commands::capture_regenerate_token,
+            capture_endpoint::commands::capture_set_inbox_folder,
+            capture_endpoint::commands::capture_set_workspace,
             quick_capture::quick_capture_open,
             quick_capture::quick_capture_close,
             quick_capture::quick_capture_write,
@@ -300,56 +300,56 @@ pub fn run() {
             themes::theme_json_list,
             themes::theme_json_remove,
             #[cfg(not(target_os = "android"))]
-            github_sync::github_set_token,
+            github_sync::token::github_set_token,
             #[cfg(not(target_os = "android"))]
-            github_sync::github_clear_token,
+            github_sync::token::github_clear_token,
             #[cfg(not(target_os = "android"))]
-            github_sync::github_has_token,
+            github_sync::token::github_has_token,
             #[cfg(not(target_os = "android"))]
-            github_sync::github_user,
+            github_sync::api::github_user,
             #[cfg(not(target_os = "android"))]
-            github_sync::github_list_repos,
+            github_sync::api::github_list_repos,
             #[cfg(not(target_os = "android"))]
-            github_sync::github_create_vault_repo,
+            github_sync::api::github_create_vault_repo,
             #[cfg(not(target_os = "android"))]
-            github_sync::github_link_workspace,
+            github_sync::link::github_link_workspace,
             #[cfg(not(target_os = "android"))]
-            github_sync::github_set_config,
+            github_sync::link::github_set_config,
             #[cfg(not(target_os = "android"))]
-            github_sync::github_unlink_workspace,
+            github_sync::link::github_unlink_workspace,
             #[cfg(not(target_os = "android"))]
-            github_sync::github_enable_encryption,
+            github_sync::link::github_enable_encryption,
             #[cfg(not(target_os = "android"))]
-            github_sync::github_sync_status,
+            github_sync::status::github_sync_status,
             #[cfg(not(target_os = "android"))]
-            github_sync::github_push,
+            github_sync::push::github_push,
             #[cfg(not(target_os = "android"))]
-            github_sync::github_pull,
+            github_sync::pull::github_pull,
             #[cfg(not(target_os = "android"))]
-            github_sync::github_resolve_conflict,
+            github_sync::resolve::github_resolve_conflict,
             #[cfg(not(target_os = "android"))]
-            github_sync::proxy_get,
+            github_sync::proxy::proxy_get,
             #[cfg(not(target_os = "android"))]
-            github_sync::proxy_set,
+            github_sync::proxy::proxy_set,
             // Gitea sync commands (v5.0)
             #[cfg(not(target_os = "android"))]
-            github_sync::gitea_set_token,
+            github_sync::gitea::gitea_set_token,
             #[cfg(not(target_os = "android"))]
-            github_sync::gitea_clear_token,
+            github_sync::gitea::gitea_clear_token,
             #[cfg(not(target_os = "android"))]
-            github_sync::gitea_has_token,
+            github_sync::gitea::gitea_has_token,
             #[cfg(not(target_os = "android"))]
-            github_sync::gitea_get_url,
+            github_sync::gitea::gitea_get_url,
             #[cfg(not(target_os = "android"))]
-            github_sync::gitea_set_url,
+            github_sync::gitea::gitea_set_url,
             #[cfg(not(target_os = "android"))]
-            github_sync::gitea_validate_url,
+            github_sync::gitea::gitea_validate_url,
             #[cfg(not(target_os = "android"))]
-            github_sync::gitea_user,
+            github_sync::gitea::gitea_user,
             #[cfg(not(target_os = "android"))]
-            github_sync::gitea_list_repos,
+            github_sync::gitea::gitea_list_repos,
             #[cfg(not(target_os = "android"))]
-            github_sync::gitea_create_vault_repo,
+            github_sync::gitea::gitea_create_vault_repo,
             cloud_folder::cloud_folder_detect,
             cloud_folder::device_id_get_or_create,
             cloud_folder::session_save,
@@ -404,7 +404,7 @@ pub fn run() {
             cookbook::cookbook_list,
             cookbook::cookbook_get,
             cookbook::cookbook_install,
-            workspace_index::workspace_index_referenced_by,
+            workspace_index::commands::workspace_index_referenced_by,
             commands::frontmatter::update_frontmatter_property,
             commands::frontmatter::delete_frontmatter_property,
         ])
