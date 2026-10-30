@@ -17,8 +17,8 @@
  *     usable from non-Vue contexts).
  */
 import { defineStore } from 'pinia';
-import { invoke as tauriInvoke } from '@tauri-apps/api/core';
 import { hasGitBackend } from '../lib/platform';
+import { gitSyncPort } from '../platform/index.ts';
 
 /**
  * #230 — `github_*` and `proxy_*` are registered behind
@@ -31,11 +31,11 @@ const GIT_BACKED_COMMAND = /^(github_|proxy_)/;
 
 export const SYNC_UNSUPPORTED = 'sync-unsupported-platform';
 
-function invoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
+function guarded<T>(cmd: string, run: () => Promise<T>): Promise<T> {
   if (!hasGitBackend() && GIT_BACKED_COMMAND.test(cmd)) {
     return Promise.reject(new Error(SYNC_UNSUPPORTED));
   }
-  return tauriInvoke<T>(cmd, args);
+  return run();
 }
 
 export interface GitHubUser {
@@ -186,7 +186,7 @@ export const useGithubSyncStore = defineStore('githubSync', {
         return;
       }
       try {
-        this.hasToken = await invoke<boolean>('github_has_token');
+        this.hasToken = await guarded('github_has_token', () => gitSyncPort.githubHasToken());
       } catch (e) {
         this.lastError = String(e);
         this.hasToken = false;
@@ -194,7 +194,7 @@ export const useGithubSyncStore = defineStore('githubSync', {
     },
 
     async setToken(token: string, provider = 'github'): Promise<void> {
-      await invoke('github_set_token', { token });
+      await guarded('github_set_token', () => gitSyncPort.githubSetToken({ token }));
       this.hasToken = true;
       // #229 — `github_user` is an api.github.com call. For a Gitea / Forgejo /
       // GitLab token it returns 401, which `refreshUser` classifies as
@@ -207,7 +207,7 @@ export const useGithubSyncStore = defineStore('githubSync', {
     },
 
     async clearToken(): Promise<void> {
-      await invoke('github_clear_token');
+      await guarded('github_clear_token', () => gitSyncPort.githubClearToken());
       this.hasToken = false;
       this.user = null;
       this.repos = [];
@@ -220,7 +220,7 @@ export const useGithubSyncStore = defineStore('githubSync', {
         return;
       }
       try {
-        this.user = await invoke<GitHubUser>('github_user');
+        this.user = await guarded('github_user', () => gitSyncPort.githubUser());
         // A successful /user call proves the token is good again — clear any
         // stale "expired" flag (e.g. after the user reconnects).
         this.tokenInvalid = false;
@@ -234,7 +234,7 @@ export const useGithubSyncStore = defineStore('githubSync', {
     async listRepos(): Promise<GitHubRepo[]> {
       this.loading = true;
       try {
-        this.repos = await invoke<GitHubRepo[]>('github_list_repos');
+        this.repos = await guarded('github_list_repos', () => gitSyncPort.githubListRepos());
         this.tokenInvalid = false;
         return this.repos;
       } catch (e) {
@@ -248,10 +248,10 @@ export const useGithubSyncStore = defineStore('githubSync', {
     },
 
     async createRepo(name: string, isPrivate: boolean): Promise<GitHubRepo> {
-      const repo = await invoke<GitHubRepo>('github_create_vault_repo', {
+      const repo = await guarded('github_create_vault_repo', () => gitSyncPort.githubCreateVaultRepo({
         name,
         private: isPrivate,
-      });
+      }));
       // Insert at the head of the cached list so the picker reflects it.
       this.repos.unshift(repo);
       return repo;
@@ -262,41 +262,41 @@ export const useGithubSyncStore = defineStore('githubSync', {
       remoteUrl: string,
       opts: { encrypted?: boolean; provider?: string } = {},
     ): Promise<void> {
-      await invoke<SyncConfig>('github_link_workspace', {
+      await guarded('github_link_workspace', () => gitSyncPort.githubLinkWorkspace({
         folder,
         remoteUrl,
         encrypted: opts.encrypted ?? false,
         provider: opts.provider ?? 'github',
-      });
+      }));
       await this.refreshStatus(folder);
     },
 
     async cryptoStatus(folder: string): Promise<CryptoStatus> {
-      return await invoke<CryptoStatus>('crypto_status', { folder });
+      return await guarded('crypto_status', () => gitSyncPort.cryptoStatus({ folder }));
     },
 
     async setPassphrase(folder: string, passphrase: string): Promise<void> {
-      await invoke('crypto_set_passphrase', { folder, passphrase });
+      await guarded('crypto_set_passphrase', () => gitSyncPort.cryptoSetPassphrase({ folder, passphrase }));
     },
 
     async clearPassphrase(folder: string): Promise<void> {
-      await invoke('crypto_clear_passphrase', { folder });
+      await guarded('crypto_clear_passphrase', () => gitSyncPort.cryptoClearPassphrase({ folder }));
     },
 
     async decryptNow(folder: string): Promise<void> {
-      await invoke('crypto_decrypt_after_pull', { folder });
+      await guarded('crypto_decrypt_after_pull', () => gitSyncPort.cryptoDecryptAfterPull({ folder }));
     },
 
     async getProxy(): Promise<string> {
-      return await invoke<string>('proxy_get');
+      return await guarded('proxy_get', () => gitSyncPort.proxyGet());
     },
 
     async setProxy(url: string): Promise<void> {
-      await invoke('proxy_set', { url });
+      await guarded('proxy_set', () => gitSyncPort.proxySet({ url }));
     },
 
     async enableEncryption(folder: string, passphrase: string): Promise<void> {
-      await invoke('github_enable_encryption', { folder, passphrase });
+      await guarded('github_enable_encryption', () => gitSyncPort.githubEnableEncryption({ folder, passphrase }));
       await this.refreshStatus(folder);
     },
 
@@ -305,16 +305,16 @@ export const useGithubSyncStore = defineStore('githubSync', {
       autoPush: boolean,
       autoPullMinutes: number,
     ): Promise<void> {
-      await invoke<SyncConfig>('github_set_config', {
+      await guarded('github_set_config', () => gitSyncPort.githubSetConfig({
         folder,
         autoPush,
         autoPullMinutes,
-      });
+      }));
       await this.refreshStatus(folder);
     },
 
     async unlink(folder: string): Promise<void> {
-      await invoke('github_unlink_workspace', { folder });
+      await guarded('github_unlink_workspace', () => gitSyncPort.githubUnlinkWorkspace({ folder }));
       await this.refreshStatus(folder);
     },
 
@@ -331,7 +331,7 @@ export const useGithubSyncStore = defineStore('githubSync', {
       }
       this.folder = folder;
       try {
-        this.status = await invoke<SyncStatus>('github_sync_status', { folder });
+        this.status = await guarded('github_sync_status', () => gitSyncPort.githubSyncStatus({ folder }));
       } catch (e) {
         this.lastError = String(e);
         // Don't null the status on error — keep the last known good so the
@@ -344,7 +344,7 @@ export const useGithubSyncStore = defineStore('githubSync', {
       this.pushing = true;
       this.pushErrorType = 'none';
       try {
-        await invoke('github_push', { folder, commitMessage: commitMessage ?? null });
+        await guarded('github_push', () => gitSyncPort.githubPush({ folder, commitMessage: commitMessage ?? null }));
         await this.refreshStatus(folder);
       } catch (e) {
         this.lastError = String(e);
@@ -359,7 +359,7 @@ export const useGithubSyncStore = defineStore('githubSync', {
       this.pulling = true;
       this.pullErrorType = 'none';
       try {
-        const r = await invoke<PullResult>('github_pull', { folder });
+        const r = await guarded('github_pull', () => gitSyncPort.githubPull({ folder }));
         await this.refreshStatus(folder);
         return r;
       } catch (e) {
@@ -376,7 +376,7 @@ export const useGithubSyncStore = defineStore('githubSync', {
       file: string,
       choice: 'local' | 'remote' | 'both',
     ): Promise<void> {
-      await invoke('github_resolve_conflict', { folder, file, choice });
+      await guarded('github_resolve_conflict', () => gitSyncPort.githubResolveConflict({ folder, file, choice }));
       await this.refreshStatus(folder);
     },
 
@@ -384,7 +384,7 @@ export const useGithubSyncStore = defineStore('githubSync', {
 
     async getGiteaUrl(): Promise<string> {
       try {
-        this.giteaUrl = await invoke<string>('gitea_get_url');
+        this.giteaUrl = await guarded('gitea_get_url', () => gitSyncPort.giteaGetUrl());
         return this.giteaUrl;
       } catch {
         return '';
@@ -392,26 +392,26 @@ export const useGithubSyncStore = defineStore('githubSync', {
     },
 
     async setGiteaUrl(url: string): Promise<void> {
-      await invoke('gitea_set_url', { url });
+      await guarded('gitea_set_url', () => gitSyncPort.giteaSetUrl({ url }));
       this.giteaUrl = url;
     },
 
     async validateGiteaUrl(url: string): Promise<boolean> {
-      const valid = await invoke<boolean>('gitea_validate_url', { url });
+      const valid = await guarded('gitea_validate_url', () => gitSyncPort.giteaValidateUrl({ url }));
       this.giteaUrlValid = valid;
       return valid;
     },
 
     async refreshHasGiteaToken(): Promise<void> {
       try {
-        this.hasGiteaToken = await invoke<boolean>('gitea_has_token');
+        this.hasGiteaToken = await guarded('gitea_has_token', () => gitSyncPort.giteaHasToken());
       } catch {
         this.hasGiteaToken = false;
       }
     },
 
     async setGiteaToken(token: string): Promise<void> {
-      await invoke('gitea_set_token', { token });
+      await guarded('gitea_set_token', () => gitSyncPort.giteaSetToken({ token }));
       this.hasGiteaToken = true;
       if (this.giteaUrl) {
         await this.refreshGiteaUser(this.giteaUrl);
@@ -419,7 +419,7 @@ export const useGithubSyncStore = defineStore('githubSync', {
     },
 
     async clearGiteaToken(): Promise<void> {
-      await invoke('gitea_clear_token');
+      await guarded('gitea_clear_token', () => gitSyncPort.giteaClearToken());
       this.hasGiteaToken = false;
       this.giteaUser = null;
       this.giteaRepos = [];
@@ -428,7 +428,7 @@ export const useGithubSyncStore = defineStore('githubSync', {
 
     async refreshGiteaUser(baseUrl: string): Promise<void> {
       try {
-        this.giteaUser = await invoke<GitHubUser>('gitea_user', { baseUrl });
+        this.giteaUser = await guarded('gitea_user', () => gitSyncPort.giteaUser({ baseUrl }));
         this.giteaTokenInvalid = false;
       } catch (e) {
         this.lastError = String(e);
@@ -440,7 +440,7 @@ export const useGithubSyncStore = defineStore('githubSync', {
     async listGiteaRepos(baseUrl: string): Promise<GitHubRepo[]> {
       this.giteaLoading = true;
       try {
-        this.giteaRepos = await invoke<GitHubRepo[]>('gitea_list_repos', { baseUrl });
+        this.giteaRepos = await guarded('gitea_list_repos', () => gitSyncPort.giteaListRepos({ baseUrl }));
         this.giteaTokenInvalid = false;
         return this.giteaRepos;
       } catch (e) {
@@ -454,11 +454,11 @@ export const useGithubSyncStore = defineStore('githubSync', {
     },
 
     async createGiteaRepo(baseUrl: string, name: string, isPrivate: boolean): Promise<GitHubRepo> {
-      const repo = await invoke<GitHubRepo>('gitea_create_vault_repo', {
+      const repo = await guarded('gitea_create_vault_repo', () => gitSyncPort.giteaCreateVaultRepo({
         baseUrl,
         name,
         private: isPrivate,
-      });
+      }));
       this.giteaRepos.unshift(repo);
       return repo;
     },

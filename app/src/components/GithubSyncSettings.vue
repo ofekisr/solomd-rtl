@@ -12,7 +12,7 @@
  * "version history → GitHub backup" story reads top-down.
  */
 import { ref, computed, onMounted, watch } from 'vue';
-import { openUrl } from '@tauri-apps/plugin-opener';
+import { openerPort } from '../platform/index.ts';
 import { useGithubSyncStore, classifyPushError, classifyPullError } from '../stores/githubSync';
 import { useSettingsStore } from '../stores/settings';
 import { useWorkspaceStore } from '../stores/workspace';
@@ -377,7 +377,7 @@ async function setAutoPullMinutes(v: number) {
 }
 
 function openPATHelp() {
-  void openUrl(PAT_HELP_URL);
+  void openerPort.openUrl(PAT_HELP_URL);
 }
 
 // ─── Gitea helpers ──────────────────────────────────────────

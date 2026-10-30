@@ -10,7 +10,7 @@
  * status" object keeps the UI banner straightforward.
  */
 import { defineStore } from 'pinia';
-import { invoke } from '@tauri-apps/api/core';
+import { cloudPort } from '../platform/index.ts';
 
 export type CloudProvider = 'none' | 'icloud' | 'dropbox' | 'onedrive' | 'google_drive';
 
@@ -79,7 +79,7 @@ export const useCloudSyncStore = defineStore('cloudSync', {
   actions: {
     async ensureDeviceId(): Promise<string> {
       if (this.deviceId) return this.deviceId;
-      this.deviceId = await invoke<string>('device_id_get_or_create');
+      this.deviceId = await cloudPort.deviceIdGetOrCreate();
       return this.deviceId;
     },
 
@@ -89,20 +89,20 @@ export const useCloudSyncStore = defineStore('cloudSync', {
         this.siblings = [];
         return;
       }
-      this.cloud = await invoke<CloudFolderInfo>('cloud_folder_detect', { folder });
+      this.cloud = await cloudPort.cloudFolderDetect({ folder });
       const id = await this.ensureDeviceId();
-      this.siblings = await invoke<SiblingSession[]>('session_list_others', {
+      this.siblings = await cloudPort.sessionListOthers({
         folder,
         ourDeviceId: id,
       });
     },
 
     async saveSession(folder: string, payload: SessionPayload): Promise<void> {
-      await invoke('session_save', { folder, payload });
+      await cloudPort.sessionSave({ folder, payload });
     },
 
     async loadSession(folder: string, deviceId: string): Promise<SessionPayload | null> {
-      return await invoke<SessionPayload | null>('session_load', { folder, deviceId });
+      return await cloudPort.sessionLoad({ folder, deviceId });
     },
 
     markPrompted(folder: string): void {
