@@ -143,7 +143,10 @@ export function useCmView(opts: CmViewOptions): CmViewHost {
     view = null;
   }
 
-  watch(() => ctx.tab().content, (next) => {
+  // A tab switch also changes `content`; useCmTabSwitch owns that swap (it must snapshot the outgoing doc's caret
+  // and scroll before the doc changes), so only same-tab external edits are applied here.
+  watch(() => [ctx.tab().id, ctx.tab().content] as const, ([id, next], [prevId]) => {
+    if (id !== prevId) return;
     if (!view || view.state.doc.toString() === next) return;
     // #186 defense-in-depth: never interrupt an active IME composition (dispatching aborts it and strands the
     // composed text) and keep the caret at its old offset instead of letting the full-doc replace map it to 0.
