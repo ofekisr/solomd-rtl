@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { invoke } from '@tauri-apps/api/core';
+import { fsPort } from '../platform/index.ts';
 import { hadStoredSettings, useSettingsStore } from './settings';
 import { useToastsStore } from './toasts';
 import { parseTheme, type Theme, type ThemeMode, type Variant } from '../lib/theme/schema';
@@ -75,7 +75,7 @@ export const useThemeStore = defineStore('theme', {
     },
     async migrateCss(path: string): Promise<Theme | null> {
       try {
-        const { content } = await invoke<{ content: string }>('read_file', { path });
+        const { content } = await fsPort.readFile({ path });
         const name = fileStem(path);
         return await this.importCss(content, { id: marketplaceIdFor(path), name });
       } catch (e) {

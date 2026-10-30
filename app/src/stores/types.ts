@@ -18,7 +18,7 @@
  * workspace-index store listens to — so the sidebar refreshes for free.
  */
 import { defineStore } from 'pinia';
-import { invoke } from '@tauri-apps/api/core';
+import { fsPort } from '../platform/index.ts';
 import { useWorkspaceIndexStore, type IndexEntry } from './workspaceIndex';
 import {
   buildRegistry,
@@ -49,12 +49,9 @@ async function patchNoteFrontmatter(
   path: string,
   patch: Record<string, unknown>,
 ): Promise<void> {
-  const result = await invoke<{ content: string; encoding?: string }>(
-    'read_file',
-    { path },
-  );
+  const result = await fsPort.readFile({ path });
   const next = patchFrontmatter(result.content, patch);
-  await invoke('write_file', {
+  await fsPort.writeFile({
     path,
     content: next,
     encoding: result.encoding || 'UTF-8',
@@ -140,7 +137,7 @@ export const useTypesStore = defineStore('types', {
         `---\ntype: Type\n---\n\n# ${trimmed}\n\n` +
         `Notes with \`type: ${trimmed}\` in their frontmatter appear in this ` +
         `type's sidebar section.\n`;
-      await invoke('write_file', { path, content: body, encoding: 'UTF-8' });
+      await fsPort.writeFile({ path, content: body, encoding: 'UTF-8' });
       await idx.rescan();
       return path;
     },

@@ -17,7 +17,7 @@
  * cells can suggest values already used elsewhere in the vault.
  */
 import { defineStore } from 'pinia';
-import { invoke } from '@tauri-apps/api/core';
+import { fsPort } from '../platform/index.ts';
 import type { DisplayMode } from '../lib/property-types';
 import { useWorkspaceIndexStore } from './workspaceIndex';
 
@@ -120,7 +120,7 @@ export const usePropertiesStore = defineStore('properties', {
       if (!this.folder) return;
       const path = joinPath(this.folder, CONFIG_REL);
       try {
-        const res = await invoke<{ content: string }>('read_file', { path });
+        const res = await fsPort.readFile({ path });
         const parsed = JSON.parse(res.content) as Partial<PropertiesConfig>;
         this.displayModes =
           parsed.displayModes && typeof parsed.displayModes === 'object'
@@ -144,8 +144,8 @@ export const usePropertiesStore = defineStore('properties', {
       };
       try {
         // Ensure `.solomd/` exists, then write.
-        await invoke('fs_create_dir', { path: dirOf(path) }).catch(() => {});
-        await invoke('write_file', {
+        await fsPort.fsCreateDir({ path: dirOf(path) }).catch(() => {});
+        await fsPort.writeFile({
           path,
           content: JSON.stringify(config, null, 2) + '\n',
           encoding: 'utf-8',
