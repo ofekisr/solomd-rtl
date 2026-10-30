@@ -14,6 +14,18 @@ These hold in every wave. Break one only through a new ADR.
 6. **Doc sync.** If a code change makes the nearest `CLAUDE.md` wrong or incomplete, fix it in the same commit.
 7. **File roles.** New and moved files follow [file roles](docs/conventions/file-roles.md).
 
+## Greenness ladder
+
+The exit code is the only signal. Never commit on red.
+
+| Run | Covers | When |
+|---|---|---|
+| `pnpm --dir app guard` | arch specs → unit tests → `vue-tsc` (~12s) | After every edit |
+| `pnpm --dir app verify` | guard → baseline tight → `vite build` → `cargo check` → mcp-mindmap tests (~1 min) | Before each commit |
+| `pnpm --dir app full` | verify → `cargo test` → Playwright e2e (macOS only) | Before a wave's Integrate gate |
+
+CI (`.github/workflows/ci.yml`) runs guard, the tight check and `vite build` on every PR and push to `main`.
+
 ## Layout
 
 | Dir | What |
@@ -34,6 +46,8 @@ pnpm --dir app install
 pnpm --dir app dev      # web build on :1420
 pnpm --dir app build    # vue-tsc + vite build
 pnpm --dir app test     # node --test
+pnpm --dir app guard    # after every edit (see Greenness ladder)
+pnpm --dir app verify   # before each commit
 pnpm --dir app theme:catalog   # regenerate lib/theme/catalog/*.json (Playwright extraction)
 pnpm --dir app exec playwright test --config e2e/playwright.config.ts   # theme e2e, port 1440; macOS-only baselines
 ```

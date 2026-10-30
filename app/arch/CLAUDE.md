@@ -28,10 +28,10 @@ Never scanned: tests (`*.test.ts`), `i18n/`, `node_modules/`, `dist/`, `target/`
 After you make a baselined file smaller or remove its violation:
 
 ```bash
-node app/arch/rebaseline.ts
+pnpm --dir app arch:rebaseline
 ```
 
-It lowers or drops entries and commits nothing. It exits 1 and changes nothing if any value would go up. `--init` only creates a missing `baseline.json`; it exits 1 if `baseline.json` already exists. Commit the rebaselined file in the same commit as the shrink; a shrink left unrebaselined lets the file grow back. CI checks this from Wave 0 PR-3.
+It lowers or drops entries and commits nothing. It exits 1 and changes nothing if any value would go up. `--init` only creates a missing `baseline.json`; it exits 1 if `baseline.json` already exists. Commit the rebaselined file in the same commit as the shrink; a shrink left unrebaselined lets the file grow back. `pnpm --dir app arch:tight` (`rebaseline.ts --check`) fails on any slack without writing; it runs in `verify` and in CI.
 
 ## Files
 
@@ -47,10 +47,9 @@ It lowers or drops entries and commits nothing. It exits 1 and changes nothing i
 
 ## Run
 
-Commands run from the repo root.
-
 ```bash
-node --test "app/arch/**/*.test.ts"
+pnpm --dir app arch         # all arch tests
+pnpm --dir app arch:tight   # fail if baseline.json has slack
 ```
 
 Adding a rule: write `<rule>.rule.ts` + its unit test with `withFixtureTree`, then a thin `<rule>.arch.test.ts`. If the rule needs a baseline, add its key to `baseline.schema.ts`, to `serializeBaseline` in `baseline-file.ts`, and to `measure` / `rebaseline` in `rebaseline.ts`.

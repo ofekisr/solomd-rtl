@@ -27,7 +27,7 @@ Planned folders, not created yet: `src/platform/` (Wave 1), `src/features/` (Wav
 | Unit | Co-located `src/**/*.test.ts` | `pnpm --dir app test` |
 | Types | All of `src/` | `pnpm --dir app exec vue-tsc --noEmit` |
 | e2e | `e2e/` | `pnpm --dir app exec playwright test --config e2e/playwright.config.ts` (macOS) |
-| Arch | `arch/*.test.ts` | `node --test "arch/**/*.test.ts"` (from `app/`); `pnpm --dir app arch` from PR-3 |
+| Arch | `arch/*.test.ts` | `pnpm --dir app arch` |
 
 Unit tests run on Node type-stripping: import local files with the `.ts` extension.
 
