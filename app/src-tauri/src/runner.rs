@@ -1,7 +1,12 @@
 #[path = "commands/mod.rs"]
 mod commands;
 
-#[path = "image_upload.rs"]
+mod events;
+mod language;
+mod menu;
+mod window;
+
+#[path = "image_upload/mod.rs"]
 mod image_upload;
 
 #[path = "search.rs"]
@@ -19,7 +24,7 @@ mod md_code_spans;
 #[path = "set_default.rs"]
 mod set_default;
 
-#[path = "convert.rs"]
+#[path = "convert/mod.rs"]
 mod convert;
 
 #[path = "workspace_index.rs"]
@@ -57,7 +62,7 @@ mod quick_capture;
 // v4.0 — public REST API mirroring the agent_tools surface for non-MCP
 // clients. Declared in both lib.rs and runner.rs so the binary's compile
 // root resolves `crate::rest_api` the same way the lib does.
-#[path = "rest_api.rs"]
+#[path = "rest_api/mod.rs"]
 mod rest_api;
 // v4.0 — BYOK cost meter. Same dual-declaration as rest_api: agent_run
 // references `crate::cost_meter::record`, which must resolve in both
@@ -82,7 +87,7 @@ mod github_sync;
 mod cloud_folder;
 
 // v2.6.3 workspace-level E2EE.
-#[path = "crypto.rs"]
+#[path = "crypto/mod.rs"]
 mod crypto;
 
 // v2.3 dev WebDriver bridge — debug builds only. Module file itself is
@@ -132,7 +137,7 @@ mod cookbook;
 // point), so the desktop binary's frontend couldn't reach any of the
 // commands. Adding the path here too is the same dual-declaration trick
 // recipe_runner and rest_api use to live in both compilation roots.
-#[path = "integrations.rs"]
+#[path = "integrations/mod.rs"]
 mod integrations;
 
 // v2.3 RAG / semantic search. Same dual-declaration pattern — surfaced
@@ -156,427 +161,8 @@ mod portable;
 #[path = "win_chrome.rs"]
 mod win_chrome;
 
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
-#[cfg(not(target_os = "windows"))]
-use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
-#[cfg(target_os = "macos")]
-use tauri::menu::{AboutMetadata, PredefinedMenuItem};
-use tauri::{Emitter, Manager, RunEvent};
-
-/// Tell macOS AppKit to use the given language for native dialogs
-/// (NSSavePanel/NSOpenPanel). Reads from a small preference file so the
-/// setting survives across launches without needing Tauri state.
-#[cfg(target_os = "macos")]
-fn apply_macos_language(lang: &str) {
-    use objc2::rc::autoreleasepool;
-    use objc2_foundation::{NSArray, NSString, NSUserDefaults};
-
-    let _ = lang;
-    let apple_lang = "en";
-    autoreleasepool(|_| unsafe {
-        let defaults = NSUserDefaults::standardUserDefaults();
-        let code = NSString::from_str(apple_lang);
-        let arr = NSArray::from_vec(vec![code]);
-        defaults.setObject_forKey(Some(&*arr), &*NSString::from_str("AppleLanguages"));
-    });
-}
-
-#[cfg(not(target_os = "macos"))]
-fn apply_macos_language(_lang: &str) {}
-
-fn read_saved_language() -> String {
-    // Frontend writes this file whenever the user changes Settings → Language.
-    // Read at startup so system dialogs can use the right locale.
-    let path = dirs_path();
-    std::fs::read_to_string(&path)
-        .ok()
-        .map(|s| s.trim().to_string())
-        .filter(|s| s == "en")
-        .unwrap_or_else(|| "en".to_string())
-}
-
-fn dirs_path() -> std::path::PathBuf {
-    let mut p = dirs_home().unwrap_or_else(std::env::temp_dir);
-    p.push(".solomd-language");
-    p
-}
-
-fn dirs_home() -> Option<std::path::PathBuf> {
-    std::env::var_os("HOME")
-        .map(std::path::PathBuf::from)
-        .or_else(|| std::env::var_os("USERPROFILE").map(std::path::PathBuf::from))
-}
-
-#[tauri::command]
-fn save_language_preference(lang: String) -> Result<(), String> {
-    let path = dirs_path();
-    std::fs::write(&path, lang.trim()).map_err(|e| e.to_string())
-}
-
-/// Set to true by `force_close_window` command after the frontend confirms close.
-static FORCE_CLOSE: AtomicBool = AtomicBool::new(false);
-
-/// Frontend calls this after user confirms "Discard & Close".
-#[tauri::command]
-fn force_close_window(window: tauri::Window) {
-    FORCE_CLOSE.store(true, Ordering::Relaxed);
-    window.close().ok();
-}
-
-/// Menu strings (English only).
-#[cfg(not(target_os = "windows"))]
-struct MenuStrings {
-    file: &'static str,
-    edit: &'static str,
-    view: &'static str,
-    help: &'static str,
-    new_md: &'static str,
-    new_txt: &'static str,
-    open_file: &'static str,
-    open_folder: &'static str,
-    import_docs: &'static str,
-    save: &'static str,
-    save_as: &'static str,
-    print_item: &'static str,
-    close_tab: &'static str,
-    new_window: &'static str,
-    open_external: &'static str,
-    toggle_theme: &'static str,
-    toggle_sidebar: &'static str,
-    toggle_outline: &'static str,
-    cycle_view: &'static str,
-    // v4.3.0 PR #74 — 3-axis zoom (UI / Editor / Preview).
-    ui_zoom_in: &'static str,
-    ui_zoom_out: &'static str,
-    ui_zoom_reset: &'static str,
-    editor_zoom_in: &'static str,
-    editor_zoom_out: &'static str,
-    editor_zoom_reset: &'static str,
-    preview_zoom_in: &'static str,
-    preview_zoom_out: &'static str,
-    preview_zoom_reset: &'static str,
-    palette: &'static str,
-    global_search: &'static str,
-    settings_menu: &'static str,
-    md_help: &'static str,
-    about: &'static str,
-    /// Only the Linux menu builds an Exit item (#272), so this is dead on
-    /// macOS and Windows — where Quit lives in the app menu / Alt+F4.
-    #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
-    exit: &'static str,
-}
-
-#[cfg(not(target_os = "windows"))]
-fn strings_for(_lang: &str) -> MenuStrings {
-    MenuStrings {
-        file: "File",
-        edit: "Edit",
-        view: "View",
-        help: "Help",
-        new_md: "New Markdown",
-        new_txt: "New Plain Text",
-        open_file: "Open File…",
-        open_folder: "Open Folder…",
-        import_docs: "Import Documents…",
-        save: "Save",
-        save_as: "Save As…",
-        print_item: "Print…",
-        close_tab: "Close Tab",
-        new_window: "New Window",
-        open_external: "Open in External Editor",
-        toggle_theme: "Toggle Theme",
-        toggle_sidebar: "Toggle File Tree",
-        toggle_outline: "Toggle Outline",
-        cycle_view: "Cycle Edit/Split/Preview",
-        ui_zoom_in: "UI: Zoom In",
-        ui_zoom_out: "UI: Zoom Out",
-        ui_zoom_reset: "UI: Reset Zoom",
-        editor_zoom_in: "Editor: Zoom In",
-        editor_zoom_out: "Editor: Zoom Out",
-        editor_zoom_reset: "Editor: Reset Zoom",
-        preview_zoom_in: "Preview: Zoom In",
-        preview_zoom_out: "Preview: Zoom Out",
-        preview_zoom_reset: "Preview: Reset Zoom",
-        palette: "Command Palette",
-        global_search: "Search in Folder…",
-        settings_menu: "Settings…",
-        md_help: "Markdown Cheatsheet",
-        about: "About SoloMD",
-        exit: "Exit",
-    }
-}
-
-#[cfg(not(target_os = "windows"))]
-fn build_app_menu<R: tauri::Runtime>(
-    app: &tauri::AppHandle<R>,
-    lang: &str,
-    // #180 — the user's effective shortcut per menu-item id. A missing entry
-    // keeps the built-in accelerator; an entry holding an empty string means
-    // the action was rebound or unbound, so the item must carry NO
-    // accelerator — otherwise macOS keeps firing the old chord from the menu
-    // and "changing" a shortcut would only ever add a second one.
-    accels: &std::collections::HashMap<String, String>,
-) -> tauri::Result<tauri::menu::Menu<R>> {
-    let s = strings_for(lang);
-    // Resolve an item's accelerator: user override, else the shipped default.
-    macro_rules! accel {
-        ($item:expr, $id:expr, $default:expr) => {{
-            match accels.get($id).map(String::as_str) {
-                Some("") => $item,
-                Some(custom) => $item.accelerator(custom),
-                None => $item.accelerator($default),
-            }
-        }};
-    }
-
-    let new_md = accel!(MenuItemBuilder::with_id("file.new", s.new_md), "file.new", "CmdOrCtrl+N")
-        .build(app)?;
-    let new_txt = accel!(MenuItemBuilder::with_id("file.newText", s.new_txt), "file.newText", "CmdOrCtrl+Alt+N")
-        .build(app)?;
-    let open_file = accel!(MenuItemBuilder::with_id("file.open", s.open_file), "file.open", "CmdOrCtrl+O")
-        .build(app)?;
-    let open_folder = MenuItemBuilder::with_id("file.openFolder", s.open_folder).build(app)?;
-    // Converting a Word/PDF/HTML file has been possible for versions, but only
-    // by opening one — there was no entry point that said "import", which is
-    // the word people look for.
-    let import_docs = accel!(
-        MenuItemBuilder::with_id("file.import", s.import_docs),
-        "file.import",
-        "CmdOrCtrl+Shift+L"
-    )
-    .build(app)?;
-    let save = accel!(MenuItemBuilder::with_id("file.save", s.save), "file.save", "CmdOrCtrl+S")
-        .build(app)?;
-    let save_as = accel!(MenuItemBuilder::with_id("file.saveAs", s.save_as), "file.saveAs", "CmdOrCtrl+Shift+S")
-        .build(app)?;
-    let print_item = accel!(MenuItemBuilder::with_id("file.print", s.print_item), "file.print", "CmdOrCtrl+P")
-        .build(app)?;
-    let close_tab = accel!(MenuItemBuilder::with_id("file.closeTab", s.close_tab), "file.closeTab", "CmdOrCtrl+W")
-        .build(app)?;
-    let new_window = accel!(MenuItemBuilder::with_id("window.new", s.new_window), "window.new", "CmdOrCtrl+Shift+N")
-        .build(app)?;
-    let open_external = accel!(MenuItemBuilder::with_id("file.openExternal", s.open_external), "file.openExternal", "CmdOrCtrl+Shift+E")
-        .build(app)?;
-    // Linux tiling WM has no window X button — needs discoverable Exit in native menu (Ctrl+Q).
-    #[cfg(target_os = "linux")]
-    let exit_item =
-        accel!(MenuItemBuilder::with_id("file.exit", s.exit), "file.exit", "Ctrl+Q").build(app)?;
-
-    #[cfg(target_os = "linux")]
-    let file_submenu = SubmenuBuilder::new(app, s.file)
-        .item(&new_md)
-        .item(&new_txt)
-        .separator()
-        .item(&open_file)
-        .item(&open_folder)
-        .item(&import_docs)
-        .separator()
-        .item(&save)
-        .item(&save_as)
-        .separator()
-        .item(&open_external)
-        .separator()
-        .item(&print_item)
-        .separator()
-        .item(&new_window)
-        .item(&close_tab)
-        .separator()
-        .item(&exit_item)
-        .build()?;
-    #[cfg(not(target_os = "linux"))]
-    let file_submenu = SubmenuBuilder::new(app, s.file)
-        .item(&new_md)
-        .item(&new_txt)
-        .separator()
-        .item(&open_file)
-        .item(&open_folder)
-        .item(&import_docs)
-        .separator()
-        .item(&save)
-        .item(&save_as)
-        .separator()
-        .item(&open_external)
-        .separator()
-        .item(&print_item)
-        .separator()
-        .item(&new_window)
-        .item(&close_tab)
-        .build()?;
-
-    let edit_submenu = SubmenuBuilder::new(app, s.edit)
-        .undo()
-        .redo()
-        .separator()
-        .cut()
-        .copy()
-        .paste()
-        .select_all()
-        .build()?;
-
-    let toggle_theme = MenuItemBuilder::with_id("view.toggleTheme", s.toggle_theme).build(app)?;
-    let toggle_sidebar = accel!(MenuItemBuilder::with_id("view.toggleFileTree", s.toggle_sidebar), "view.toggleFileTree", "CmdOrCtrl+B")
-        .build(app)?;
-    let toggle_outline = accel!(MenuItemBuilder::with_id("view.toggleOutline", s.toggle_outline), "view.toggleOutline", "CmdOrCtrl+Shift+O")
-        .build(app)?;
-    let cycle_view = accel!(MenuItemBuilder::with_id("view.cycleView", s.cycle_view), "view.cycleView", "CmdOrCtrl+Shift+P")
-        .build(app)?;
-    // v4.3.0 PR #74 — three independent zoom axes wired through native
-    // menu accelerators (more reliable than JS keyboard handlers on macOS,
-    // which the WKWebView can sometimes intercept). Action ids are
-    // dispatched in App.vue's `dispatchMenuAction`.
-    let ui_zoom_in = accel!(MenuItemBuilder::with_id("view.zoomUiIn", s.ui_zoom_in), "view.zoomUiIn", "CmdOrCtrl+=")
-        .build(app)?;
-    let ui_zoom_out = accel!(MenuItemBuilder::with_id("view.zoomUiOut", s.ui_zoom_out), "view.zoomUiOut", "CmdOrCtrl+-")
-        .build(app)?;
-    let ui_zoom_reset = accel!(MenuItemBuilder::with_id("view.zoomUiReset", s.ui_zoom_reset), "view.zoomUiReset", "CmdOrCtrl+0")
-        .build(app)?;
-    let editor_zoom_in = accel!(MenuItemBuilder::with_id("view.zoomEditorIn", s.editor_zoom_in), "view.zoomEditorIn", "CmdOrCtrl+Shift+=")
-        .build(app)?;
-    let editor_zoom_out = accel!(MenuItemBuilder::with_id("view.zoomEditorOut", s.editor_zoom_out), "view.zoomEditorOut", "CmdOrCtrl+Shift+-")
-        .build(app)?;
-    let editor_zoom_reset = accel!(MenuItemBuilder::with_id("view.zoomEditorReset", s.editor_zoom_reset), "view.zoomEditorReset", "CmdOrCtrl+Shift+0")
-        .build(app)?;
-    let preview_zoom_in = accel!(MenuItemBuilder::with_id("view.zoomPreviewIn", s.preview_zoom_in), "view.zoomPreviewIn", "CmdOrCtrl+Control+=")
-        .build(app)?;
-    let preview_zoom_out = accel!(MenuItemBuilder::with_id("view.zoomPreviewOut", s.preview_zoom_out), "view.zoomPreviewOut", "CmdOrCtrl+Control+-")
-        .build(app)?;
-    let preview_zoom_reset = accel!(MenuItemBuilder::with_id("view.zoomPreviewReset", s.preview_zoom_reset), "view.zoomPreviewReset", "CmdOrCtrl+Control+0")
-        .build(app)?;
-    let palette = accel!(MenuItemBuilder::with_id("view.cmdPalette", s.palette), "view.cmdPalette", "CmdOrCtrl+Shift+K")
-        .build(app)?;
-    let global_search = accel!(MenuItemBuilder::with_id("search.global", s.global_search), "search.global", "CmdOrCtrl+Shift+F")
-        .build(app)?;
-    let settings_item = accel!(MenuItemBuilder::with_id("view.settings", s.settings_menu), "view.settings", "CmdOrCtrl+,")
-        .build(app)?;
-
-    let view_submenu = SubmenuBuilder::new(app, s.view)
-        .item(&toggle_theme)
-        .separator()
-        .item(&toggle_sidebar)
-        .item(&toggle_outline)
-        .item(&cycle_view)
-        .separator()
-        .item(&ui_zoom_in)
-        .item(&ui_zoom_out)
-        .item(&ui_zoom_reset)
-        .separator()
-        .item(&editor_zoom_in)
-        .item(&editor_zoom_out)
-        .item(&editor_zoom_reset)
-        .separator()
-        .item(&preview_zoom_in)
-        .item(&preview_zoom_out)
-        .item(&preview_zoom_reset)
-        .separator()
-        .item(&palette)
-        .item(&global_search)
-        .separator()
-        .item(&settings_item)
-        .build()?;
-
-    let md_help = accel!(MenuItemBuilder::with_id("help.markdown", s.md_help), "help.markdown", "F1")
-        .build(app)?;
-    let about = MenuItemBuilder::with_id("help.about", s.about).build(app)?;
-
-    let help_submenu = SubmenuBuilder::new(app, s.help)
-        .item(&md_help)
-        .separator()
-        .item(&about)
-        .build()?;
-
-    // macOS: the first submenu becomes the "App menu" (titled with the
-    // app's process name) and is where users go for About / Settings /
-    // Quit by HIG convention. Without this, ⌘Q does nothing and the
-    // last menu item visually becomes "Close Tab" (issue #31).
-    #[cfg(target_os = "macos")]
-    {
-        let app_about_meta = AboutMetadata {
-            name: Some("SoloMD".into()),
-            version: Some(env!("CARGO_PKG_VERSION").into()),
-            credits: Some("Made by Zhitong / xiangdong li".into()),
-            authors: Some(vec!["xiangdong li".into()]),
-            comments: Some("Lightweight, cross-platform Markdown editor.".into()),
-            website: Some("https://solomd.app".into()),
-            website_label: Some("solomd.app".into()),
-            ..Default::default()
-        };
-        let app_submenu = SubmenuBuilder::new(app, "SoloMD")
-            .about(Some(app_about_meta))
-            .separator()
-            .item(&settings_item)
-            .separator()
-            .item(&PredefinedMenuItem::services(app, None)?)
-            .separator()
-            .item(&PredefinedMenuItem::hide(app, None)?)
-            .item(&PredefinedMenuItem::hide_others(app, None)?)
-            .item(&PredefinedMenuItem::show_all(app, None)?)
-            .separator()
-            .item(&PredefinedMenuItem::quit(app, None)?)
-            .build()?;
-
-        let window_submenu = SubmenuBuilder::new(app, "Window")
-            .item(&PredefinedMenuItem::minimize(app, None)?)
-            .item(&PredefinedMenuItem::maximize(app, None)?)
-            .separator()
-            .item(&PredefinedMenuItem::close_window(app, None)?)
-            .build()?;
-
-        return MenuBuilder::new(app)
-            .items(&[
-                &app_submenu,
-                &file_submenu,
-                &edit_submenu,
-                &view_submenu,
-                &window_submenu,
-                &help_submenu,
-            ])
-            .build();
-    }
-
-    #[cfg(not(target_os = "macos"))]
-    MenuBuilder::new(app)
-        .items(&[&file_submenu, &edit_submenu, &view_submenu, &help_submenu])
-        .build()
-}
-
-/// Frontend calls this when user changes language in Settings.
-/// Windows has no native menu bar (frameless unified title bar — the in-app
-/// menu re-renders reactively from the i18n store), so it's a no-op there.
-#[tauri::command]
-fn set_menu_language(app: tauri::AppHandle, lang: String) -> Result<(), String> {
-    set_menu_config(app, lang, std::collections::HashMap::new())
-}
-
-/// #180 — rebuild the native menu with the user's shortcut overrides applied.
-/// `accels` maps a menu item id to a Tauri accelerator string, or to an empty
-/// string to strip the accelerator entirely (the action moved to a chord the
-/// webview owns, or the user unbound it).
-#[tauri::command]
-fn set_menu_config(
-    app: tauri::AppHandle,
-    lang: String,
-    accels: std::collections::HashMap<String, String>,
-) -> Result<(), String> {
-    #[cfg(not(target_os = "windows"))]
-    {
-        let menu = build_app_menu(&app, &lang, &accels).map_err(|e| e.to_string())?;
-        app.set_menu(menu).map_err(|e| e.to_string())?;
-    }
-    #[cfg(target_os = "windows")]
-    let _ = (app, lang, accels);
-    Ok(())
-}
-
-/// Cross-platform wrapper so the frontend can report the maximize-button
-/// rect unconditionally; only Windows does anything with it.
-#[tauri::command]
-fn set_max_button_rect(x: f64, y: f64, w: f64, h: f64, scale: f64) {
-    #[cfg(target_os = "windows")]
-    win_chrome::set_max_button_rect(x, y, w, h, scale);
-    #[cfg(not(target_os = "windows"))]
-    let _ = (x, y, w, h, scale);
-}
+use tauri::{Emitter, Manager};
 
 pub struct PendingOpen(pub Mutex<Vec<String>>);
 
@@ -589,114 +175,14 @@ fn drain_pending_opens(state: tauri::State<PendingOpen>) -> Vec<String> {
     std::mem::take(&mut *guard)
 }
 
-/// One-shot guard so the size/position fit-up only runs once per launch.
-/// After the plugin's restore (or the Ready-event fallback) triggers it,
-/// further user moves/resizes are left alone.
-static MAIN_FIT_DONE: AtomicBool = AtomicBool::new(false);
-
-/// Apply the size + position clamp + show + focus exactly once. Subsequent
-/// calls are cheap no-ops via the `MAIN_FIT_DONE` flag.
-fn fit_main_window_once(win: &tauri::WebviewWindow) {
-    if MAIN_FIT_DONE
-        .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
-        .is_err()
-    {
-        return;
-    }
-    clamp_window_to_monitor(win);
-    let _ = win.show();
-    let _ = win.unminimize();
-    let _ = win.set_focus();
-}
-
-/// Re-fit the main window into its current monitor's work area before show.
-///
-/// Two failure modes from `tauri-plugin-window-state` we have to defend
-/// against on every launch:
-/// 1. **Oversize restore** — a saved 2880×1740 from a 5K display, restored
-///    on a 1440p laptop, leaves the bottom edge off-screen.
-/// 2. **Out-of-bounds position** — saved coordinates from a now-disconnected
-///    secondary monitor, or a saved Y that tucks the title bar behind the
-///    macOS menu bar.
-///
-/// Behavior:
-/// - If size or position is still valid for the current monitor, the user's
-///   chosen layout is preserved (we don't fight intentional positioning).
-/// - If anything was out of bounds, the window is clamped to a sensible
-///   size and **recentered on the current monitor**. Centering > pinning to
-///   an edge: a left-edge-pinned window after a display change reads as
-///   "broken layout," whereas centered reads as "fresh start, sane state."
-///
-/// 40px is reserved at the top of the work area for the macOS menu bar.
-fn clamp_window_to_monitor(win: &tauri::WebviewWindow) {
-    // A maximized or fullscreen window is already sized to the monitor by the
-    // OS — clamping it would call set_size(), which un-maximizes and shrinks
-    // it. That's the Windows "restores maximized, then shrinks" bug (#56): the
-    // window-state plugin restored the maximized state, then this clamp fired
-    // on the restore's Resized event and undid it. Leave such windows alone.
-    if win.is_maximized().unwrap_or(false) || win.is_fullscreen().unwrap_or(false) {
-        return;
-    }
-
-    // The macOS global menu bar overlays the top of the screen, so reserve a
-    // strip for it. Windows / Linux have no such bar — reserving there made a
-    // legitimately near-full-height restored window get shrunk by 40px.
-    #[cfg(target_os = "macos")]
-    const MENU_BAR_RESERVE: i32 = 40;
-    #[cfg(not(target_os = "macos"))]
-    const MENU_BAR_RESERVE: i32 = 0;
-    const MIN_W: i32 = 480;
-    const MIN_H: i32 = 360;
-
-    let Ok(Some(monitor)) = win.current_monitor() else { return; };
-    let scale = monitor.scale_factor();
-    let mon_w = (monitor.size().width as f64 / scale).round() as i32;
-    let mon_h = (monitor.size().height as f64 / scale).round() as i32;
-    let mon_x = (monitor.position().x as f64 / scale).round() as i32;
-    let mon_y = (monitor.position().y as f64 / scale).round() as i32;
-
-    let Ok(outer) = win.outer_size() else { return; };
-    let cur_w = (outer.width as f64 / scale).round() as i32;
-    let cur_h = (outer.height as f64 / scale).round() as i32;
-
-    let max_w = mon_w;
-    let max_h = mon_h - MENU_BAR_RESERVE;
-    let new_w = cur_w.clamp(MIN_W, max_w);
-    let new_h = cur_h.clamp(MIN_H, max_h);
-    let size_clamped = new_w != cur_w || new_h != cur_h;
-
-    let Ok(outer_pos) = win.outer_position() else { return; };
-    let cur_x = (outer_pos.x as f64 / scale).round() as i32;
-    let cur_y = (outer_pos.y as f64 / scale).round() as i32;
-
-    // Position is "off-monitor" if any edge of the window falls outside the
-    // current monitor's work area (top edge above the menu bar reserve, or
-    // any other edge past the monitor bounds for the post-clamp size).
-    let position_invalid = cur_x < mon_x
-        || cur_x + new_w > mon_x + mon_w
-        || cur_y < mon_y + MENU_BAR_RESERVE
-        || cur_y + new_h > mon_y + mon_h;
-
-    if size_clamped {
-        let _ = win.set_size(tauri::LogicalSize::new(new_w as u32, new_h as u32));
-    }
-
-    if size_clamped || position_invalid {
-        let new_x = mon_x + (mon_w - new_w) / 2;
-        let centered_y = mon_y + (mon_h - new_h) / 2;
-        let new_y = centered_y.max(mon_y + MENU_BAR_RESERVE);
-        let _ = win.set_position(tauri::LogicalPosition::new(new_x, new_y));
-    }
-}
-
 pub fn run_with(initial_file: Option<String>) {
     let pending: Vec<String> = initial_file.into_iter().collect();
 
     // IMPORTANT: must be called BEFORE NSApplication loads (i.e. before
     // `tauri::Builder::default()` below) so AppKit picks up the locale
     // for all system panels.
-    let saved_lang = read_saved_language();
-    apply_macos_language(&saved_lang);
+    let saved_lang = language::read_saved_language();
+    language::apply_macos_language(&saved_lang);
 
     // #295 — before any webview exists: with a `data` folder next to
     // SoloMD.exe, WebView2 and our config files live there. No-op elsewhere.
@@ -789,11 +275,11 @@ pub fn run_with(initial_file: Option<String>) {
             replace::replace_in_dir,
             replace::replace_in_text,
             drain_pending_opens,
-            force_close_window,
-            set_menu_language,
-            set_menu_config,
-            set_max_button_rect,
-            save_language_preference,
+            window::force_close_window,
+            menu::set_menu_language,
+            menu::set_menu_config,
+            window::set_max_button_rect,
+            language::save_language_preference,
             set_default::set_as_default_markdown_editor,
             convert::convert_file_to_markdown,
             workspace_index::workspace_index_init,
@@ -973,7 +459,7 @@ pub fn run_with(initial_file: Option<String>) {
             // File/Edit/View/Help menubar inside the unified toolbar row.
             #[cfg(not(target_os = "windows"))]
             {
-                let menu = build_app_menu(app.handle(), "en", &std::collections::HashMap::new())?;
+                let menu = menu::build_app_menu(app.handle(), "en", &std::collections::HashMap::new())?;
                 app.set_menu(menu)?;
             }
 
@@ -991,7 +477,7 @@ pub fn run_with(initial_file: Option<String>) {
                         event,
                         tauri::WindowEvent::Resized(_) | tauri::WindowEvent::Moved(_)
                     ) {
-                        fit_main_window_once(&win_clone);
+                        window::fit_main_window_once(&win_clone);
                     }
                 });
                 // Windows frameless chrome: Snap-Layouts hit-testing subclass.
@@ -1022,108 +508,5 @@ pub fn run_with(initial_file: Option<String>) {
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
 
-    app.run(|app_handle, event| {
-        match &event {
-            // ---- Post-restore window setup ----
-            // `RunEvent::Ready` fires after the run loop has started, which
-            // means after `tauri-plugin-window-state` has had a chance to
-            // process its `run_on_main_thread`-queued restore_state call.
-            // Two things we do here that we can't reliably do in `setup`:
-            //
-            // 1. Clamp the restored window to the current monitor (size +
-            //    position). The plugin happily restores a saved 2556×1320
-            //    @ x=1207 from a previous multi-monitor session onto a
-            //    single 2560-wide monitor, leaving the right edge 1.2k px
-            //    off-screen. Always recenter when the saved layout is
-            //    invalid for the current monitor; preserve when valid.
-            //
-            // 2. macOS-only: re-issue show + set_focus so SoloMD becomes
-            //    frontmost. `set_focus` from `setup` fires before NSApp
-            //    has finished `applicationDidFinishLaunching` and gets
-            //    silently dropped, leaving SoloMD launched behind the
-            //    parent app (Finder / terminal) — the macOS menu bar
-            //    keeps showing the previous app's menus until the user
-            //    drags SoloMD's window.
-            RunEvent::Ready => {
-                // Fallback path: when there's no saved window state for the
-                // plugin to restore (fresh install, deleted state file), no
-                // Resized/Moved event ever fires from the restore — the
-                // setup-time `on_window_event` hook would never trigger and
-                // the window would never get shown / focused. Schedule a
-                // delayed fit on a background thread; the AtomicBool guard
-                // makes it a no-op if the on_window_event hook beat us.
-                let app_handle_clone = app_handle.clone();
-                std::thread::spawn(move || {
-                    std::thread::sleep(std::time::Duration::from_millis(400));
-                    if let Some(win) = app_handle_clone.get_webview_window("main") {
-                        fit_main_window_once(&win);
-                    }
-                });
-            }
-
-            // ---- Window close: intercept and ask frontend ----
-            // Only the main window gets the unsaved-tabs check. Auxiliary
-            // windows (slideshow, "open file in new window" spawns labelled
-            // `solomd-window-N` — #103) close directly: their frontend
-            // (App.vue's onCloseRequested for aux labels) removes them from
-            // the shared windows registry so they don't resurrect next launch.
-            // Routing them through the main window's listener would instead
-            // shut down the editor.
-            RunEvent::WindowEvent {
-                event: tauri::WindowEvent::CloseRequested { api, .. },
-                label,
-                ..
-            } => {
-                if label != "main" {
-                    return; // let the auxiliary window close itself
-                }
-                if FORCE_CLOSE.load(Ordering::Relaxed) {
-                    // Frontend confirmed — let the close proceed.
-                    return;
-                }
-                // Prevent the close and ask the frontend to check unsaved tabs.
-                api.prevent_close();
-                let _ = app_handle.emit("solomd://close-requested", ());
-            }
-
-            // ---- Auxiliary window destroyed ----
-            // #103 — when an auxiliary window is fully torn down, tell any
-            // window still alive so it can reconcile the shared windows
-            // registry. The destroyed window's own `onCloseRequested` handler
-            // already unregisters it in the normal path; this event is the
-            // backstop for teardowns that bypass CloseRequested, keeping the
-            // registry from resurrecting a window the user actually closed.
-            RunEvent::WindowEvent {
-                event: tauri::WindowEvent::Destroyed,
-                label,
-                ..
-            } => {
-                if label != "main" {
-                    let _ = app_handle.emit("solomd://window-destroyed", label.clone());
-                }
-            }
-
-            // ---- macOS file open via double-click / Finder ----
-            #[cfg(target_os = "macos")]
-            RunEvent::Opened { urls } => {
-                for url in urls {
-                    let path = if url.scheme() == "file" {
-                        url.to_file_path()
-                            .ok()
-                            .and_then(|p| p.to_str().map(|s| s.to_string()))
-                    } else {
-                        Some(url.to_string())
-                    };
-                    if let Some(p) = path {
-                        if let Some(state) = app_handle.try_state::<PendingOpen>() {
-                            state.0.lock().unwrap().push(p.clone());
-                        }
-                        let _ = app_handle.emit("solomd://opened-file", p);
-                    }
-                }
-            }
-
-            _ => {}
-        }
-    });
+    app.run(events::handle_run_event);
 }
