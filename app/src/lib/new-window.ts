@@ -1,5 +1,4 @@
-import { windowPort } from '../platform/index.ts';
-import type { PlatformWebviewWindow } from '../platform/window/window.port.ts';
+import { windowPort, type PlatformWebviewWindow } from '../platform/index.ts';
 
 /**
  * #280 — open a second SoloMD window.

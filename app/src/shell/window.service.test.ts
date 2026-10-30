@@ -96,17 +96,18 @@ test('close-requested persists session then force closes', async () => {
   setUa('x');
   const h = harness();
   const svc = createWindowService(h.deps);
-  await svc.start();
+  await svc.listenCloseRequested();
   await h.ports.events.emit('solomd://close-requested', null);
   await new Promise((r) => setImmediate(r));
   assert.deepEqual(h.log.filter((l) => l === 'persist'), ['persist']);
   assert.ok(h.ports.calls.includes('windowCommands.forceCloseWindow'));
 });
 
-test('start cleans aux registry on main window; window-destroyed unregisters aux only', async () => {
+test('cleanAuxRegistry on main window; window-destroyed unregisters aux only', async () => {
   const h = harness();
   const svc = createWindowService(h.deps);
-  await svc.start();
+  svc.cleanAuxRegistry();
+  await svc.listenWindowDestroyed();
   assert.deepEqual(h.log, ['reload', 'unregister:aux-1', 'unregister:aux-2']);
   await h.ports.events.emit('solomd://window-destroyed', 'aux-9');
   await h.ports.events.emit('solomd://window-destroyed', 'main');
@@ -116,7 +117,7 @@ test('start cleans aux registry on main window; window-destroyed unregisters aux
 test('stop runs only the window-destroyed unlisten, once', async () => {
   const h = harness();
   const svc = createWindowService(h.deps);
-  await svc.start();
+  await svc.listenWindowDestroyed();
   svc.stop();
   svc.stop();
   assert.equal(h.ports.calls.filter((c) => c === 'events.unlisten:solomd://window-destroyed').length, 1);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { beforeEach, describe, it } from 'node:test';
-import { createFileOpenService, type FileOpenDeps } from './file-open.service.ts';
+import { createFileOpenService, type FileOpenDeps, type FileOpenService } from './file-open.service.ts';
 
 type DragHandler = (e: { payload: unknown }) => Promise<void> | void;
 
@@ -72,16 +72,26 @@ function makeHarness(search = ''): Harness {
   return { deps, calls, dragHandler: () => drag, openedHandler: () => opened, unlistened: () => unlistened, inserts };
 }
 
+async function runStartup(svc: FileOpenService): Promise<void> {
+  await svc.initAndroid();
+  await svc.listenOpenedFile();
+  svc.listenAndroidEvents();
+  await svc.handleDeepLinks();
+  await svc.drainPendingOpens();
+  await svc.openPathFromQuery();
+  await svc.listenDragDrop();
+}
+
 describe('file-open.service', () => {
   let h: Harness;
   beforeEach(() => { h = makeHarness('?path=%2Finitial.md'); });
 
   it('opens deep link cold start once, then drained pending, then ?path= in order', async () => {
-    await createFileOpenService(h.deps).start();
+    await runStartup(createFileOpenService(h.deps));
     assert.deepEqual(h.calls, ['file:///cold.md|true', '/pending.md|true', '/initial.md|true']);
   });
 
-  it('step methods called in sequence match start() order', async () => {
+  it('step methods in App.vue order open files, then drag-drop opens dropped path', async () => {
     const svc = createFileOpenService(h.deps);
     await svc.initAndroid();
     await svc.listenOpenedFile();
@@ -97,7 +107,7 @@ describe('file-open.service', () => {
 
   it('opened-file event bypasses new-window routing; stop unlistens once', async () => {
     const svc = createFileOpenService(h.deps);
-    await svc.start();
+    await runStartup(svc);
     await h.openedHandler()({ payload: '/os.md' });
     assert.equal(h.calls.at(-1), '/os.md|true');
     svc.stop();
@@ -106,7 +116,7 @@ describe('file-open.service', () => {
   });
 
   it('drag-drop routes images to insert event and others to openPath', async () => {
-    await createFileOpenService(h.deps).start();
+    await runStartup(createFileOpenService(h.deps));
     h.calls.length = 0;
     await h.dragHandler()({ payload: { type: 'drop', paths: ['/a.PNG', '/b.md'], position: { x: 0, y: 0 } } });
     assert.deepEqual(h.inserts, [{ path: '/a.PNG', paneId: 'pane-1' }]);
@@ -114,7 +124,7 @@ describe('file-open.service', () => {
   });
 
   it('ignores non-drop drag events', async () => {
-    await createFileOpenService(h.deps).start();
+    await runStartup(createFileOpenService(h.deps));
     h.calls.length = 0;
     await h.dragHandler()({ payload: { type: 'over', position: { x: 0, y: 0 } } });
     assert.deepEqual(h.calls, []);

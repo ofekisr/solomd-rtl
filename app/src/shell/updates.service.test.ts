@@ -69,3 +69,14 @@ test('swallows a failing (lazy-loading) toast inside the silent try', async () =
   });
   await assert.doesNotReject(createUpdatesService(deps).start());
 });
+
+test('skips the update check on iOS', async () => {
+  let checked = false;
+  const { deps, toasts } = makeDeps({ hasUpdate: true, latest: '1', url: 'u' }, {
+    isIOS: () => true,
+    checkForUpdateOnStartup: async () => { checked = true; return null; },
+  });
+  await createUpdatesService(deps).start();
+  assert.equal(checked, false);
+  assert.equal(toasts.length, 0);
+});

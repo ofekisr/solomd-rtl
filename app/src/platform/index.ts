@@ -53,6 +53,7 @@ import type { SettingsPort } from './settings/settings.port.ts';
 import { createTauriSettingsPort } from './settings/settings.tauri.adapter.ts';
 import { createWebSettingsPort } from './settings/settings.web.adapter.ts';
 import type { WindowPort } from './window/window.port.ts';
+export type { PlatformWebviewWindow } from './window/window.port.ts';
 import { createTauriWindowPort } from './window/window.tauri.adapter.ts';
 import { createWebWindowPort } from './window/window.web.adapter.ts';
 import type { WindowCommandsPort } from './window/window-commands.port.ts';

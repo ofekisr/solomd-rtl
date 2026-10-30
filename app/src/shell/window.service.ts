@@ -33,7 +33,6 @@ export interface WindowDeps {
 }
 
 export interface WindowService {
-  start(): Promise<void>;
   stop(): void;
   onWheelZoom(e: WheelEvent): void;
   onWindowBlur(): void;
@@ -142,13 +141,6 @@ export function createWindowService(deps: WindowDeps): WindowService {
     }
   }
 
-  async function start(): Promise<void> {
-    removeStaleWindowState();
-    cleanAuxRegistry();
-    await listenCloseRequested();
-    await listenWindowDestroyed();
-  }
-
   function stop(): void {
     if (!unlistenWindowDestroyed) return;
     unlistenWindowDestroyed();
@@ -156,7 +148,6 @@ export function createWindowService(deps: WindowDeps): WindowService {
   }
 
   return {
-    start,
     stop,
     onWheelZoom,
     onWindowBlur,

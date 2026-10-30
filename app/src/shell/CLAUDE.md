@@ -16,7 +16,7 @@ App-wide services extracted from `App.vue` (Wave 1 PR-9). Spec: [LLD §PR-9](../
 
 - Shape: `createXService(deps: XDeps): XService`. `App.vue` builds each service once in `<script setup>`.
 - Ports arrive through `deps` as `import type` from `platform/<d>/<d>.port.ts`. Never import `platform/index.ts` here.
-- No `vue`, `pinia`, store or `@tauri-apps/*` imports. Store state reaches a service as getter/setter functions.
+- No `vue`, `pinia`, store or `@tauri-apps/*` imports. Store state reaches a service as getter/setter functions or a narrow actions object.
 - Pure helpers from `lib/` (e.g. `lib/platform.ts`) are allowed.
 
 ## Rules

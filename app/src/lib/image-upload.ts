@@ -3,7 +3,7 @@
  *
  * Translates the flat `imageUploader*` / `s3*` / `ghImage*` settings into the
  * tagged `UploaderConfig` object that the Rust `upload_image` command expects,
- * and wraps the actual invoke. Mirrors Typora / MarkText: a pasted, dropped or
+ * and wraps the port call. Mirrors Typora / MarkText: a pasted, dropped or
  * picked image is uploaded to a host and the returned URL is inserted instead
  * of (or alongside) a local copy.
  *
@@ -138,7 +138,7 @@ export function hasUploader(s: ImageUploadSettings): boolean {
   return s.imageUploader !== 'none';
 }
 
-/** Invoke the Rust uploader. Resolves to the hosted URL; rejects with a
+/** Call `convertPort.uploadImage`. Resolves to the hosted URL; rejects with a
  *  human-readable message on failure. */
 export async function uploadImage(cfg: UploaderConfig, path: string): Promise<string> {
   const url = await convertPort.uploadImage({ config: cfg, path });

@@ -51,7 +51,6 @@ export interface FileOpenDeps {
 }
 
 export interface FileOpenService {
-  start(): Promise<void>;
   stop(): void;
   initAndroid(): Promise<void>;
   listenOpenedFile(): Promise<void>;
@@ -247,16 +246,6 @@ export function createFileOpenService(deps: FileOpenDeps): FileOpenService {
     }
   }
 
-  async function start(): Promise<void> {
-    await initAndroid();
-    await listenOpenedFile();
-    listenAndroidEvents();
-    await handleDeepLinks();
-    await drainPendingOpens();
-    await openPathFromQuery();
-    await listenDragDrop();
-  }
-
   function stop(): void {
     if (!unlistenOpened) return;
     unlistenOpened();
@@ -264,7 +253,6 @@ export function createFileOpenService(deps: FileOpenDeps): FileOpenService {
   }
 
   return {
-    start,
     stop,
     initAndroid,
     listenOpenedFile,

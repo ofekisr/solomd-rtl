@@ -1,4 +1,4 @@
-import { isIOS } from '../lib/platform.ts';
+import { isIOS as detectIOS } from '../lib/platform.ts';
 
 const UPDATE_TOAST_TIMEOUT_MS = 12000;
 const UPDATE_AVAILABLE_KEY = 'settings.updateAvailable';
@@ -15,6 +15,7 @@ export interface UpdatesDeps {
   openReleaseUrl(url: string): Promise<unknown>;
   showToast(message: string, timeoutMs: number, onClick: () => void): void | Promise<void>;
   t(key: string, params?: Record<string, string>): string;
+  isIOS?: () => boolean;
 }
 
 export interface UpdatesService {
@@ -22,6 +23,7 @@ export interface UpdatesService {
 }
 
 export function createUpdatesService(deps: UpdatesDeps): UpdatesService {
+  const isIOS = deps.isIOS ?? detectIOS;
   async function start(): Promise<void> {
     if (isIOS() || !deps.isAutoCheckEnabled()) return;
     try {
