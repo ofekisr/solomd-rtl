@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import CommandPalette from '../CommandPalette.vue';
 import QuickSwitcher from '../QuickSwitcher.vue';
-import SettingsPanel from '../SettingsPanel.vue';
+import SettingsPanel from '../../features/settings/ui/SettingsPanel.vue';
 import MarkdownHelp from '../MarkdownHelp.vue';
 import RagSearch from '../RagSearch.vue';
 import CjkProofread from '../CjkProofread.vue';

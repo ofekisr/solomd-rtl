@@ -48,7 +48,7 @@ import { isIOS, isMobile } from './lib/platform';
 import { useGitErrorToasts } from './composables/useGitErrorToasts';
 import { useViewport } from './composables/useViewport';
 import { useI18n } from './i18n';
-import { quickCaptureError } from './lib/quick-capture-status';
+import { quickCaptureError } from './composables/useQuickCaptureStatus.ts';
 import { track } from './lib/telemetry';
 import { openWelcomeTour } from './lib/welcome-tour';
 import { useWorkspaceStore } from './stores/workspace';

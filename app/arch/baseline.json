@@ -33,7 +33,6 @@
     "app/src/components/PaneTabBar.vue": 724,
     "app/src/components/Preview.vue": 1424,
     "app/src/components/RecipesSettings.vue": 921,
-    "app/src/components/SettingsPanel.vue": 2612,
     "app/src/components/Slideshow.vue": 501,
     "app/src/components/ThemeStudio.vue": 579,
     "app/src/components/TraceView.vue": 647,
@@ -56,8 +55,7 @@
   },
   "rawIpc": [],
   "libPurity": [
-    "app/src/lib/ai-activity.ts",
-    "app/src/lib/quick-capture-status.ts"
+    "app/src/lib/ai-activity.ts"
   ],
   "featurePurity": [
     "app/src/features/find/internal/cm-find-panel.ts",

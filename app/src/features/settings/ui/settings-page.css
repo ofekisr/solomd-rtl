@@ -1,0 +1,199 @@
+/* #180 shortcut editor */
+.kb-clash {
+  border: 1px solid var(--warning-border, rgba(214, 145, 22, 0.45));
+  background: var(--warning-bg, rgba(214, 145, 22, 0.08));
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+/* Same box, no alarm: an offer rather than a warning (#296). */
+.kb-hints-toggle {
+  display: block;
+  margin: 2px 0 10px;
+}
+.kb-search {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+.kb-clash--neutral {
+  border-color: var(--border);
+  background: var(--bg-soft, transparent);
+  margin-bottom: 10px;
+}
+.kb-clash__title {
+  margin: 0;
+  font-weight: 600;
+}
+.kb-clash__body {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.85;
+}
+.kb-clash__list {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+.kb-clash__source {
+  opacity: 0.7;
+}
+.kb-clash__arrow {
+  opacity: 0.6;
+  padding: 0 2px;
+}
+.kb-chip--intercepted {
+  border-color: var(--warning-border, rgba(214, 145, 22, 0.6));
+}
+.kb-chip__warn {
+  margin-left: 3px;
+  font-size: 10px;
+}
+.kb-group { margin-bottom: 14px; }
+.kb-group__title {
+  margin: 12px 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.kb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+}
+.kb-row__label { flex: 1; min-width: 0; font-size: 13px; }
+.kb-row__combos { display: flex; gap: 4px; flex-shrink: 0; }
+.kb-row__unbound { font-size: 11px; color: var(--text-faint); }
+.kb-chip {
+  font: 11px/1.6 var(--font-mono, monospace);
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-soft, var(--bg));
+  white-space: nowrap;
+}
+.kb-chip--recording { border-color: var(--accent); color: var(--accent); }
+.kb-row__actions { display: flex; gap: 4px; flex-shrink: 0; }
+.kb-btn {
+  font-size: 11px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.kb-btn:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
+.kb-btn:disabled { opacity: 0.35; cursor: default; }
+.kb-btn--wide { margin-top: 10px; padding: 5px 12px; }
+.kb-error { color: var(--danger, #e5484d); font-size: 12px; margin: 8px 0 0; }
+section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+section > label {
+  font-size: 13px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+section > label:has(input[type='checkbox']) {
+  display: inline-flex;
+  align-self: flex-start;
+  cursor: pointer;
+}
+section > label:not(:has(input)) {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.dropped-rule {
+  display: block;
+}
+.setting-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-faint, #888);
+  line-height: 1.5;
+}
+.setting-hint a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+/* #282 — "your theme choice is not reaching the screen" is not a footnote;
+   it explains why the control right above it looks broken. */
+.setting-hint--warn {
+  margin-top: 6px;
+  color: var(--text-muted);
+}
+.hint-btn {
+  padding: 0;
+  margin-left: 4px;
+  font-size: 11px;
+  color: var(--accent);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+}
+/* Image-upload text/password fields — match the inline-styled inputs
+   used elsewhere in this panel. */
+.img-field {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 4px;
+  font: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+.row {
+  display: flex;
+  gap: 4px;
+}
+.row button {
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  font-size: 12px;
+}
+.row button.active {
+  background: var(--bg-active);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+select,
+input[type='range'] {
+  width: 100%;
+}
+select {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+  border-radius: 4px;
+  font: inherit;
+}
+input[type='range'] {
+  accent-color: var(--accent);
+}
+input[type='checkbox'] {
+  accent-color: var(--accent);
+}
