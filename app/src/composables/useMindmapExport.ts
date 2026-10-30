@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/core';
+import { fsPort } from '../platform/index.ts';
 import type { MindElixirInstance } from 'mind-elixir';
 import { useExport } from './useExport';
 import { useToastsStore } from '../stores/toasts';
@@ -18,10 +18,10 @@ async function buildPayload(mind: MindElixirInstance, format: MindmapExportForma
 
 async function writePayload(path: string, payload: ExportPayload): Promise<void> {
   if (payload.kind === 'binary') {
-    await invoke('write_binary_file', { path, data: Array.from(payload.bytes) });
+    await fsPort.writeBinaryFile( { path, data: Array.from(payload.bytes) });
     return;
   }
-  await invoke('write_file', { path, content: payload.content, encoding: TEXT_ENCODING });
+  await fsPort.writeFile( { path, content: payload.content, encoding: TEXT_ENCODING });
 }
 
 export function useMindmapExport() {

@@ -1,9 +1,5 @@
-import { save as saveDialog } from '@tauri-apps/plugin-dialog';
 import { EditorView } from '@codemirror/view';
-import { invoke } from '@tauri-apps/api/core';
-import { writeText, writeHtml, writeImage } from '@tauri-apps/plugin-clipboard-manager';
-import { Image } from '@tauri-apps/api/image';
-import { documentDir, join } from '@tauri-apps/api/path';
+import { fsPort, convertPort, clipboardPort, dialogPort, pathPort } from '../platform/index.ts';
 import { isIOS, isWindowsDesktop } from '../lib/platform';
 // Loaded per export rather than at startup. Between them these three pull in
 // `docx`, jsPDF + html2canvas and the mermaid renderer — megabytes that a user
@@ -261,14 +257,14 @@ export function useExport() {
     filters: { name: string; extensions: string[] }[],
   ): Promise<string | null> {
     if (isIOS()) {
-      const dir = await documentDir();
-      return await join(dir, filename);
+      const dir = await pathPort.documentDir();
+      return await pathPort.join(dir, filename);
     }
     // #260 — start in the document's own folder instead of wherever the
     // last save happened. Falls back to a bare filename for unsaved
     // buffers and virtual (SAF) paths, which is the old behaviour.
     const defaultPath = exportDefaultPath(activeOr()?.filePath, filename) ?? filename;
-    return await saveDialog({ defaultPath, filters });
+    return await dialogPort.save({ defaultPath, filters });
   }
 
   function iosSavedToast(filename: string): string {
@@ -301,7 +297,7 @@ export function useExport() {
         plantumlServer: settings.plantumlEnabled ? settings.plantumlServer : null,
       });
       toasts.dismiss(tid);
-      await invoke('write_file', { path, content: html, encoding: 'UTF-8' });
+      await fsPort.writeFile( { path, content: html, encoding: 'UTF-8' });
       toasts.success(isIOS() ? iosSavedToast(filename) : 'Exported to HTML');
     } catch (e) {
       toasts.dismiss(tid);
@@ -326,7 +322,7 @@ export function useExport() {
       );
       const buffer = new Uint8Array(await blob.arrayBuffer());
       // Tauri 2 serializes Uint8Array as a number array which Rust accepts as Vec<u8>.
-      await invoke('write_binary_file', { path, data: Array.from(buffer) });
+      await fsPort.writeBinaryFile( { path, data: Array.from(buffer) });
       toasts.success(isIOS() ? iosSavedToast(filename) : 'Exported to DOCX');
     } catch (e) {
       console.error(e);
@@ -351,7 +347,7 @@ export function useExport() {
       );
       const blob = await markdownToPdfBlob(ctx.content, ctx.baseName, pdfOpts, ctx.filePath);
       const buffer = new Uint8Array(await blob.arrayBuffer());
-      await invoke('write_binary_file', { path, data: Array.from(buffer) });
+      await fsPort.writeBinaryFile( { path, data: Array.from(buffer) });
       toasts.dismiss(tid);
       toasts.success(isIOS() ? iosSavedToast(filename) : 'Exported to PDF');
     } catch (e) {
@@ -506,7 +502,7 @@ export function useExport() {
       }
     }
     try {
-      await invoke('print_webview');
+      await convertPort.printWebview();
       // The native print sheet is modal; by the time invoke resolves,
       // the user has already dismissed it. Safe to tear down shortly after.
       setTimeout(cleanup, 100);
@@ -544,12 +540,12 @@ export function useExport() {
       }
     }
     try {
-      await writeHtml(html);
+      await clipboardPort.writeHtml(html);
       toasts.success(okMsg);
     } catch (e) {
       // Fallback: write plain HTML string as text
       try {
-        await writeText(html);
+        await clipboardPort.writeText(html);
         toasts.success(src.isSelection ? 'Copied selection HTML source' : 'Copied HTML source');
       } catch (e2) {
         toasts.error(`Copy failed: ${e2}`);
@@ -563,7 +559,7 @@ export function useExport() {
     const text = stripMarkdown(src.source);
     const okMsg = src.isSelection ? 'Copied selection as plain text' : 'Copied as plain text';
     try {
-      await writeText(text);
+      await clipboardPort.writeText(text);
       toasts.success(okMsg);
     } catch (e) {
       toasts.error(`Copy failed: ${e}`);
@@ -575,7 +571,7 @@ export function useExport() {
     if (!src) return;
     const okMsg = src.isSelection ? 'Copied selection as Markdown' : 'Copied as Markdown';
     try {
-      await writeText(src.source);
+      await clipboardPort.writeText(src.source);
       toasts.success(okMsg);
     } catch (e) {
       toasts.error(`Copy failed: ${e}`);
@@ -606,7 +602,7 @@ export function useExport() {
         branding: settings.imageExportBranding,
       });
       const buffer = new Uint8Array(await blob.arrayBuffer());
-      await invoke('write_binary_file', { path, data: Array.from(buffer) });
+      await fsPort.writeBinaryFile( { path, data: Array.from(buffer) });
       toasts.dismiss(tid);
       const msg = isIOS()
         ? iosSavedToast(filename)
@@ -650,8 +646,8 @@ export function useExport() {
       }
 
       const bytes = new Uint8Array(await blob.arrayBuffer());
-      const img = await Image.fromBytes(bytes);
-      await writeImage(img);
+      const img = await clipboardPort.imageFromBytes(bytes);
+      await clipboardPort.writeImage(img);
       toasts.dismiss(tid);
       toasts.success(isSelection ? 'Copied selection as image' : 'Copied as image');
     } catch (e) {
@@ -666,7 +662,7 @@ export function useExport() {
             branding: settings.imageExportBranding,
           });
           const buffer = new Uint8Array(await blob2.arrayBuffer());
-          await invoke('write_binary_file', { path, data: Array.from(buffer) });
+          await fsPort.writeBinaryFile( { path, data: Array.from(buffer) });
           toasts.success(isIOS() ? iosSavedToast(filename) : 'Clipboard failed — saved as PNG instead');
         } else {
           toasts.error(`Copy image failed: ${e}`);

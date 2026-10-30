@@ -16,8 +16,7 @@
  * job (see SUMMARY.md). Until they exist, this file references them via a
  * `// @ts-ignore` shim so it still type-checks.
  */
-import { save as saveDialog } from '@tauri-apps/plugin-dialog';
-import { invoke } from '@tauri-apps/api/core';
+import { convertPort, dialogPort, fsPort } from '../platform/index.ts';
 import { useTabsStore } from '../stores/tabs';
 import { useToastsStore } from '../stores/toasts';
 // NOTE: the parent must add `workspaceBibliography: string` and
@@ -126,7 +125,7 @@ export function usePandocExport() {
 
   async function detectPandoc(): Promise<PandocInfo | null> {
     try {
-      const info = await invoke<PandocInfo | null>('pandoc_detect');
+      const info = await convertPort.pandocDetect();
       return info ?? null;
     } catch (e) {
       console.error('[pandoc_detect]', e);
@@ -229,7 +228,7 @@ export function usePandocExport() {
       ext === '*'
         ? [{ name: 'All Files', extensions: ['*'] }]
         : [{ name: filterName, extensions: [ext] }];
-    const outputPath = await saveDialog({
+    const outputPath = await dialogPort.save({
       defaultPath: `${ctx.baseName}.${ext === '*' ? 'out' : ext}`,
       filters,
     });
@@ -240,7 +239,7 @@ export function usePandocExport() {
     track('file_exported', { format: `pandoc_${format}` });
     const tid = toasts.info(`Exporting via Pandoc (${format})…`, 0);
     try {
-      await invoke('pandoc_export', {
+      await convertPort.pandocExport( {
         args: {
           input_markdown: content,
           format,
@@ -277,7 +276,7 @@ export function usePandocExport() {
     }
     try {
       // The Rust `read_file` command returns `{ content, encoding, … }`.
-      const result = await invoke<{ content: string }>('read_file', { path });
+      const result = await fsPort.readFile( { path });
       const content = result?.content ?? '';
       const entries =
         detectCitationFormat(path) === 'csl-json'

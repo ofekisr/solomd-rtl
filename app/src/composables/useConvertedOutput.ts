@@ -1,9 +1,9 @@
-import { invoke } from '@tauri-apps/api/core';
+import { fsPort } from '../platform/index.ts';
 import { useTabsStore } from '../stores/tabs';
 import { useSettingsStore } from '../stores/settings';
 import { askConvertConflict } from './useConvertConflict';
 import { settingAfterAnswer, type ConvertConflictChoice } from '../lib/convert-conflict';
-import type { FileReadResult, Language, Tab } from '../types';
+import type { Language, Tab } from '../types';
 
 export interface ConvertedOutput {
   sourceName: string;
@@ -22,7 +22,7 @@ export function useConvertedOutput() {
 
   async function fileExists(path: string): Promise<boolean> {
     try {
-      return await invoke<boolean>('fs_file_exists', { path });
+      return await fsPort.fsFileExists( { path });
     } catch {
       return false;
     }
@@ -36,7 +36,7 @@ export function useConvertedOutput() {
   }
 
   async function replaceTarget(output: ConvertedOutput, targetPath: string, open: Tab | undefined): Promise<Tab> {
-    await invoke('write_file', { path: targetPath, content: output.content, encoding: open?.encoding || UTF8 });
+    await fsPort.writeFile( { path: targetPath, content: output.content, encoding: open?.encoding || UTF8 });
     if (!open) return tabs.openFromDisk({ filePath: targetPath, content: output.content, encoding: UTF8, language: output.language, hadBom: false });
     tabs.applyExternalSave(open.id, output.content);
     tabs.activate(open.id);
@@ -48,7 +48,7 @@ export function useConvertedOutput() {
       tabs.activate(open.id);
       return open;
     }
-    const read = await invoke<FileReadResult>('read_file', { path: targetPath });
+    const read = await fsPort.readFile( { path: targetPath });
     return tabs.openFromDisk({ filePath: targetPath, content: read.content, encoding: read.encoding, language: read.language, hadBom: read.had_bom });
   }
 
