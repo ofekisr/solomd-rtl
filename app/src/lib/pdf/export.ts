@@ -122,7 +122,7 @@ const FALLBACK_LINE_HEIGHT_PX = 26;
  *
  * The raster is handed back so it can be re-paginated (see `pdf-paginate.ts`)
  * before `finish()` lets jsPDF slice it. Exported for the pagination harness
- * (`app/pdf-harness.html`), which measures exactly what the export measures.
+ * (`app/src/dev/pdf-harness.html`), which measures exactly what the export measures.
  */
 export async function capturePdfRaster(
   source: string,

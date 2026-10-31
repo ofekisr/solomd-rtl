@@ -1,6 +1,6 @@
 /**
  * Dev harness for the text PDF ("Export as PDF (text)") — open
- * `/print-harness.html` from the Vite dev server and print the page (Chromium's
+ * `/src/dev/print-harness.html` from the Vite dev server and print the page (Chromium's
  * print-to-PDF is the engine WebView2 prints with on Windows).
  *
  * It mounts the same overlay `exportPdfPrint` mounts (`mountPrintOverlay`), with

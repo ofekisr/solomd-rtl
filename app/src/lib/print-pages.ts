@@ -14,7 +14,7 @@
  * temporary screen stylesheet and their page breaks turned into column
  * breaks. Column fragmentation is the same engine as page fragmentation, so an
  * element's column index is the page it lands on. Checked against real
- * Chromium print-to-PDF output in `print-harness.html` (`?pages=1`).
+ * Chromium print-to-PDF output in `src/dev/print-harness.html` (`?pages=1`).
  *
  * It needs a known page: without an explicit page size and margins (Settings
  * → PDF, or `pdf:` front matter) the paper is whatever the print dialog picks,

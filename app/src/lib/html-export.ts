@@ -1,6 +1,6 @@
 /**
  * The standalone HTML export: template + pipeline, outside the composable so
- * the dev harness (`/html-harness.html`) runs exactly what the app writes.
+ * the dev harness (`/src/dev/html-harness.html`) runs exactly what the app writes.
  *
  * The file must open anywhere, offline: local images are embedded as `data:`
  * URLs, mermaid/PlantUML fences become inline SVG (#332), and KaTeX's styles

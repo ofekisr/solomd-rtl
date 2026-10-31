@@ -1,5 +1,5 @@
 /**
- * Dev harness for the PDF export's pagination — open `/pdf-harness.html` from
+ * Dev harness for the PDF export's pagination — open `/src/dev/pdf-harness.html` from
  * the Vite dev server (`pnpm --dir app dev`, or `npm --prefix app run dev`).
  *
  * It renders a long, adversarial markdown document through the *real* export

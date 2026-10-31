@@ -27,7 +27,7 @@
  *
  * Everything here is deliberately free of app state so it can be unit tested
  * (see `pdf-paginate.test.ts`) and driven from the browser harness
- * (`pdf-harness.html`).
+ * (`src/dev/pdf-harness.html`).
  */
 
 /** Per-channel slack (0-255) when deciding a row carries no ink. */

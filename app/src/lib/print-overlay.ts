@@ -3,7 +3,7 @@
  *
  * `exportPdfPrint` mounts a print-only overlay next to `#app`, flips the body
  * into print mode and asks the native print sheet to snapshot the page. The
- * mounting lives here, free of Tauri and the stores, so `print-harness.html`
+ * mounting lives here, free of Tauri and the stores, so `src/dev/print-harness.html`
  * can build exactly the same DOM and print it through a real Chromium — the
  * engine WebView2 uses — to count pages (#337).
  */

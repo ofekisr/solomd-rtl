@@ -1,5 +1,5 @@
 /**
- * Dev harness for the HTML export's local images — open `/html-harness.html`
+ * Dev harness for the HTML export's local images — open `/src/dev/html-harness.html`
  * from the Vite dev server (`npm --prefix app run dev`).
  *
  * The reported bug: a note exported to HTML showed its figures as broken

@@ -2,8 +2,8 @@
 <!-- Dev-only QA harness for the #168 phone layout: renders the app in
      device-sized iframes so its CSS evaluates against real phone widths
      (a screenshot at a phone size only downscales the 1920px layout).
-     Lives at the app root, not in public/, so vite serves it in dev but
-     never copies it into dist. Open http://localhost:<port>/dev-phone.html
+     Lives in src/dev/, not in public/, so vite serves it in dev but
+     never copies it into dist. Open http://localhost:<port>/src/dev/dev-phone.html
      while `npx vite` is running. -->
 <html>
   <head>
