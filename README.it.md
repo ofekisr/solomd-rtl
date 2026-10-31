@@ -164,7 +164,7 @@ pnpm tauri build    # artefatti release → src-tauri/target/release/bundle/
 
 Linux necessita inoltre `libdbus-1-dev` per il backend del portachiavi.
 
-Il server MCP è un crate separato in `plugins/solomd-notes/server/`; il dev MCP harness usato per i test end-to-end vive in `dev-mcp/`. Punto di ingresso dei test end-to-end: `scripts/v4-self-test.sh` (esegui con `--with-release --with-ollama --with-ui` per copertura completa).
+Il server MCP è un crate separato in `plugins/solomd-notes/server/`; il dev MCP harness usato per i test end-to-end vive in `plugins/solomd-dev/server/`. Punto di ingresso dei test end-to-end: `scripts/v4-self-test.sh` (esegui con `--with-release --with-ollama --with-ui` per copertura completa).
 
 ## Contribuire
 

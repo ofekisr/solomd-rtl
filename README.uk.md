@@ -164,7 +164,7 @@ pnpm tauri build    # релізні артефакти → src-tauri/target/rel
 
 Linux також потребує `libdbus-1-dev` для keychain-бекенду.
 
-MCP-сервер — окремий crate в `plugins/solomd-notes/server/`; dev-MCP-harness для end-to-end-тестів живе в `dev-mcp/`. Точка входу для end-to-end-тестів: `scripts/v4-self-test.sh` (запустіть з `--with-release --with-ollama --with-ui` для повного покриття).
+MCP-сервер — окремий crate в `plugins/solomd-notes/server/`; dev-MCP-harness для end-to-end-тестів живе в `plugins/solomd-dev/server/`. Точка входу для end-to-end-тестів: `scripts/v4-self-test.sh` (запустіть з `--with-release --with-ollama --with-ui` для повного покриття).
 
 ## Внесок
 

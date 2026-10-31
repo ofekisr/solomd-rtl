@@ -190,7 +190,7 @@ pnpm tauri build    # 打 release 包 → src-tauri/target/release/bundle/
 
 Linux 还需要 `libdbus-1-dev` 用于钥匙串后端。
 
-MCP server 是独立 crate,在 `plugins/solomd-notes/server/` 目录;端到端测试用的 dev MCP harness 在 `dev-mcp/`。端到端测试入口:`scripts/v4-self-test.sh`(用 `--with-release --with-ollama --with-ui` 跑全量)。
+MCP server 是独立 crate,在 `plugins/solomd-notes/server/` 目录;端到端测试用的 dev MCP harness 在 `plugins/solomd-dev/server/`。端到端测试入口:`scripts/v4-self-test.sh`(用 `--with-release --with-ollama --with-ui` 跑全量)。
 
 ## 贡献
 

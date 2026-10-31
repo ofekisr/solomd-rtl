@@ -166,7 +166,7 @@ pnpm tauri build    # artefacts release → src-tauri/target/release/bundle/
 
 Linux nécessite en plus `libdbus-1-dev` pour le backend du trousseau.
 
-Le serveur MCP est une crate séparée à `plugins/solomd-notes/server/` ; le harness MCP dev utilisé pour les tests end-to-end vit à `dev-mcp/`. Point d'entrée des tests end-to-end : `scripts/v4-self-test.sh` (lancer avec `--with-release --with-ollama --with-ui` pour couverture complète).
+Le serveur MCP est une crate séparée à `plugins/solomd-notes/server/` ; le harness MCP dev utilisé pour les tests end-to-end vit à `plugins/solomd-dev/server/`. Point d'entrée des tests end-to-end : `scripts/v4-self-test.sh` (lancer avec `--with-release --with-ollama --with-ui` pour couverture complète).
 
 ## Contribuer
 

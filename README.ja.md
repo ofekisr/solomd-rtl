@@ -164,7 +164,7 @@ pnpm tauri build    # リリース成果物 → src-tauri/target/release/bundle/
 
 Linux ではキーチェーンバックエンド用に `libdbus-1-dev` も必要。
 
-MCP サーバーは `plugins/solomd-notes/server/` の別 crate; エンドツーエンドテスト用の dev MCP harness は `dev-mcp/` に。エンドツーエンドテストエントリポイント: `scripts/v4-self-test.sh`（`--with-release --with-ollama --with-ui` で完全カバレッジ）。
+MCP サーバーは `plugins/solomd-notes/server/` の別 crate; エンドツーエンドテスト用の dev MCP harness は `plugins/solomd-dev/server/` に。エンドツーエンドテストエントリポイント: `scripts/v4-self-test.sh`（`--with-release --with-ollama --with-ui` で完全カバレッジ）。
 
 ## コントリビュート
 

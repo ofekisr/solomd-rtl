@@ -6,6 +6,7 @@ Claude Code plugins this repo exposes. Each plugin owns its skill, hooks and ser
 |---|---|---|
 | `solomd-mindmap/` | `server/` — TS, imports `app/src/lib/mindmap/` | Yes |
 | `solomd-notes/` | `server/` — Rust `solomd-mcp`; runs the binary from SoloMD.app via `bin/solomd-mcp` | Yes |
+| `solomd-dev/` | `server/` — Rust self-test server that drives the running app; wired by root `.mcp.json` | No (contributors only) |
 
 ## Rules
 

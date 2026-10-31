@@ -39,7 +39,7 @@ LocalStorage writes (`solomd_set_setting` / `solomd_set_workspace` / `solomd_set
 ## Build + run
 
 ```bash
-cd dev-mcp
+cd plugins/solomd-dev/server
 cargo build                # debug
 cargo build --release      # 1.5 MB single binary
 ./target/debug/solomd-dev-mcp -v
@@ -51,7 +51,7 @@ Speaks JSON-RPC over stdio. Logs to stderr.
 
 ```bash
 claude mcp add --scope user solomd-dev -- \
-  /Volumes/Dev/code/notebook/dev-mcp/target/debug/solomd-dev-mcp
+  /Volumes/Dev/code/notebook/plugins/solomd-dev/server/target/debug/solomd-dev-mcp
 ```
 
 After restarting Claude Code, the tools show up as `mcp__solomd-dev__solomd_*`.

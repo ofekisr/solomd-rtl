@@ -165,7 +165,7 @@ pnpm tauri build    # release-artefacten → src-tauri/target/release/bundle/
 
 Linux heeft daarnaast `libdbus-1-dev` nodig voor de keychain-backend.
 
-De MCP-server is een aparte crate onder `plugins/solomd-notes/server/`; het dev-MCP-harnas voor end-to-end-tests staat onder `dev-mcp/`. Entry point voor end-to-end-tests: `scripts/v4-self-test.sh` (draai met `--with-release --with-ollama --with-ui` voor volledige dekking).
+De MCP-server is een aparte crate onder `plugins/solomd-notes/server/`; het dev-MCP-harnas voor end-to-end-tests staat onder `plugins/solomd-dev/server/`. Entry point voor end-to-end-tests: `scripts/v4-self-test.sh` (draai met `--with-release --with-ollama --with-ui` voor volledige dekking).
 
 ## Bijdragen
 
