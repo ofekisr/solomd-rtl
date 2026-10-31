@@ -163,21 +163,17 @@ The bundled `solomd-mcp` server runs against any folder of Markdown files — yo
 
 | Client | Config snippet |
 |---|---|
-| **Claude Desktop** | [`marketplace/client-docs/claude-desktop.md`](marketplace/client-docs/claude-desktop.md) |
-| **Claude Code** | [`marketplace/client-docs/claude-code.md`](marketplace/client-docs/claude-code.md) |
-| **Cursor** | [`marketplace/client-docs/cursor.md`](marketplace/client-docs/cursor.md) |
-| **Cline** (VS Code) | [`marketplace/client-docs/cline.md`](marketplace/client-docs/cline.md) |
-| **Continue.dev** | [`marketplace/client-docs/continue.md`](marketplace/client-docs/continue.md) |
-| **Zed** | [`marketplace/client-docs/zed.md`](marketplace/client-docs/zed.md) |
+| **Claude Desktop** | [`plugins/solomd-notes/docs/clients/claude-desktop.md`](plugins/solomd-notes/docs/clients/claude-desktop.md) |
+| **Claude Code** | [`plugins/solomd-notes/docs/clients/claude-code.md`](plugins/solomd-notes/docs/clients/claude-code.md) |
+| **Cursor** | [`plugins/solomd-notes/docs/clients/cursor.md`](plugins/solomd-notes/docs/clients/cursor.md) |
+| **Cline** (VS Code) | [`plugins/solomd-notes/docs/clients/cline.md`](plugins/solomd-notes/docs/clients/cline.md) |
+| **Continue.dev** | [`plugins/solomd-notes/docs/clients/continue.md`](plugins/solomd-notes/docs/clients/continue.md) |
+| **Zed** | [`plugins/solomd-notes/docs/clients/zed.md`](plugins/solomd-notes/docs/clients/zed.md) |
 
 Available as:
 
 - **[Skill Pack](https://github.com/zhitongblog/solomd/releases/latest/download/solomd-skills-v4.4.1.zip)** — 11 reference Agent Recipes (weekly review, todo extract, link suggester, …) you can drop into `<vault>/.solomd/agents/`. Ships with every release.
-- **[Claude Code Skill](marketplace/claude-code-skill/)** — `SKILL.md` + `install.sh` that registers `solomd-mcp` as a user-scope MCP server and exposes the 13 tools to Claude Code with patterns and starter recipes.
-- **Smithery** — `smithery.yaml` + Dockerfile at [`marketplace/smithery/`](marketplace/smithery/) (submission pending).
-- **Awesome MCP Servers** — PR entries for the three biggest community indices (`punkpeye/`, `appcypher/`, `wong2/awesome-mcp-servers`, ~14k forks combined) at [`marketplace/awesome-mcp/`](marketplace/awesome-mcp/).
-
-Full overview + submission status: [`marketplace/README.md`](marketplace/README.md).
+- **Claude Code plugins** — `/plugin marketplace add ofekisr/solomd-rtl`, then install `solomd-mindmap` and/or `solomd-notes`. See [plugins/](plugins/CLAUDE.md).
 
 ## Compared
 

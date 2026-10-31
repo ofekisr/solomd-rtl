@@ -1,0 +1,16 @@
+{
+  "name": "solomd-rtl",
+  "owner": { "name": "ofekisr" },
+  "plugins": [
+    {
+      "name": "solomd-mindmap",
+      "source": "./plugins/solomd-mindmap",
+      "description": "Read and edit SoloMD .mmap mind maps; bind sessions to nodes"
+    },
+    {
+      "name": "solomd-notes",
+      "source": "./plugins/solomd-notes",
+      "description": "Search, read and version a SoloMD Markdown notes folder via solomd-mcp"
+    }
+  ]
+}
