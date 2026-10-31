@@ -3,7 +3,7 @@
 # Build the MCPB bundle of solomd-mcp for a published release, and a variant
 # for Smithery.
 #
-#   scripts/build-mcpb.sh <X.Y.Z>
+#   scripts/release/build-mcpb.sh <X.Y.Z>
 #
 # Produces dist/solomd-mcp-<ver>.mcpb (upload to the GitHub release; it is what
 # server.json registers in the official MCP Registry) and
@@ -27,7 +27,7 @@
 # the Apple signing/notary credentials used by build-mac.sh (.env.local).
 
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 VER="${1:?usage: $0 <X.Y.Z>}"
 TAG="v$VER"

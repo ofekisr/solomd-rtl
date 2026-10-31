@@ -4,7 +4,7 @@ This directory holds per-target builds of the `solomd-mcp` binary that
 Tauri's bundler embeds as a sidecar (see `bundle.externalBin` in
 `tauri.conf.json`).
 
-Files here are produced by `scripts/build-mcp-sidecar.sh`, which is wired
+Files here are produced by `scripts/build/build-mcp-sidecar.sh`, which is wired
 to run automatically as `beforeBundleCommand` for `pnpm tauri build`.
 
 You do **not** need to manually populate this folder. CI calls the same

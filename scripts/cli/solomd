@@ -213,7 +213,7 @@ cmd_export() {
     # Locate the script + the app dir (it must run with cwd = app/ so node
     # can resolve docx + markdown-it from app/node_modules without hassle).
     local repo_root script_dir app_dir
-    repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+    repo_root="$(cd "$(dirname "$0")/../.." && pwd)"
     app_dir="$repo_root/app"
     local script="$app_dir/scripts/solomd-export.mjs"
     if [[ ! -f "$script" ]]; then
@@ -597,7 +597,7 @@ cmd_agent() {
     if ! mcp_bin="$(detect_mcp_bin)"; then
         printf "${YELLOW}solomd-mcp not found.${NC}\n" >&2
         printf "  SoloMD bundles solomd-mcp inside the app (Mac/Linux). Make sure SoloMD is installed,\n" >&2
-        printf "  or run scripts/install-mcp.sh from this repo to drop it on PATH.\n" >&2
+        printf "  or run scripts/cli/install-mcp.sh from this repo to drop it on PATH.\n" >&2
         exit 1
     fi
     local workspace="${SOLOMD_NOTES:-$HOME/Documents/SoloMD}"

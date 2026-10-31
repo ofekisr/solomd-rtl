@@ -85,7 +85,7 @@ jobs:
           set -euo pipefail
           TRIPLE="$(rustc -vV | sed -n 's/^host: //p')"
           echo "host triple: $TRIPLE"
-          bash scripts/build-mcp-sidecar.sh "$TRIPLE"
+          bash scripts/build/build-mcp-sidecar.sh "$TRIPLE"
 
       - name: Build bundles
         run: cd app && pnpm tauri build --bundles appimage,deb
@@ -99,7 +99,7 @@ jobs:
           shopt -s nullglob
           IMAGES=(app/src-tauri/target/release/bundle/appimage/*.AppImage)
           [ ${#IMAGES[@]} -gt 0 ] || { echo "::error::no AppImage produced"; exit 1; }
-          bash scripts/fix-appimage-diricon.sh "${IMAGES[@]}"
+          bash scripts/build/fix-appimage-diricon.sh "${IMAGES[@]}"
 
       - name: Show what got bundled
         run: |

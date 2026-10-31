@@ -44,7 +44,7 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 if [ -f .env.local ]; then
   set -a
@@ -197,4 +197,4 @@ case "$SDK_NAME" in
 esac
 
 echo "==> Done: $IPA ($(du -h "$IPA" | cut -f1))"
-echo "    Submit: ./scripts/submit-ios.sh"
+echo "    Submit: ./scripts/store/submit-ios.sh"

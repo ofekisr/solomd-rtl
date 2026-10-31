@@ -22,7 +22,7 @@ const { t } = useI18n();
 const toasts = useToastsStore();
 const workspace = useWorkspaceStore();
 
-// One-liner the user pastes in their terminal. Mirrors scripts/install-cli.sh.
+// One-liner the user pastes in their terminal. Mirrors scripts/cli/install-cli.sh.
 const CLI_INSTALL_CMD =
   'curl -fsSL https://raw.githubusercontent.com/zhitongblog/solomd/main/scripts/install-cli.sh | bash';
 

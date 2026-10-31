@@ -15,7 +15,7 @@
       grants (file access, network, etc.) at spawn time
   …and explicitly NO application-identifier.
 
-  Used by `scripts/build-mas.sh` when signing `Contents/MacOS/solomd-mcp`.
+  Used by `scripts/build/build-mas.sh` when signing `Contents/MacOS/solomd-mcp`.
 -->
 <plist version="1.0">
 <dict>

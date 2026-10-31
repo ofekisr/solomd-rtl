@@ -11,7 +11,7 @@
 #   6. Build dmg via hdiutil from the patched .app
 #   7. Sign dmg
 #
-# Run from repo root: ./scripts/build-mac.sh
+# Run from repo root: ./scripts/build/build-mac.sh
 #
 # Required environment variables (export them or put in .env.local):
 #   APPLE_SIGNING_IDENTITY  e.g. "Developer ID Application: xiangdong li (6NQM3XP5RF)"
@@ -23,7 +23,7 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 if [ -f .env.local ]; then
   set -a
@@ -35,7 +35,7 @@ fi
 : "${APPLE_SIGNING_IDENTITY:?Set APPLE_SIGNING_IDENTITY}"
 
 # shellcheck source=lib/asc-auth.sh
-source "$(dirname "$0")/lib/asc-auth.sh"
+source "$(dirname "$0")/../lib/asc-auth.sh"
 asc_resolve_auth
 
 cd app

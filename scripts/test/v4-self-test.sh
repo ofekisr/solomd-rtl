@@ -10,27 +10,27 @@
 # Exit 0 = every pillar green; exit 1 = at least one failed.
 #
 # Usage:
-#   scripts/v4-self-test.sh                # run all pillars
-#   scripts/v4-self-test.sh --with-ollama  # also run live-Ollama smoke test
+#   scripts/test/v4-self-test.sh                # run all pillars
+#   scripts/test/v4-self-test.sh --with-ollama  # also run live-Ollama smoke test
 #                                          # (requires localhost:11434 +
 #                                          # qwen2.5:1.5b pulled)
-#   scripts/v4-self-test.sh --with-release # also build --release for SoloMD,
+#   scripts/test/v4-self-test.sh --with-release # also build --release for SoloMD,
 #                                          # solomd-mcp, and the frontend
 #                                          # (catches debug-only-cfg slips
 #                                          # before macOS signing trips)
-#   scripts/v4-self-test.sh --with-ui      # also drive `pnpm tauri dev`
+#   scripts/test/v4-self-test.sh --with-ui      # also drive `pnpm tauri dev`
 #                                          # through the dev-bridge and verify
 #                                          # all v4 UI surfaces mount.
 #                                          # Requires `pnpm tauri dev` to
 #                                          # already be running.
-#   scripts/v4-self-test.sh --with-dmg     # also verify the signed macOS dmg
-#                                          # produced by scripts/build-mac.sh
+#   scripts/test/v4-self-test.sh --with-dmg     # also verify the signed macOS dmg
+#                                          # produced by scripts/build/build-mac.sh
 #                                          # (codesign / staple / spctl /
 #                                          # universal slices / mount check).
 
 set -uo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 APP="$REPO_ROOT/app/src-tauri"
 MCP="$REPO_ROOT/plugins/solomd-notes/server"
 
@@ -144,7 +144,7 @@ run_pillar "Cross · mcp-server unit tests" \
 # Optional: release-build smoke test. Catches debug-only assumptions
 # (`#[cfg(debug_assertions)]` guards, `if cfg!(test)` slips, …) before
 # the macOS signing pipeline trips on them. The full Tauri bundle
-# (signing + notarize + dmg) is user-side — see scripts/build-mac.sh.
+# (signing + notarize + dmg) is user-side — see scripts/build/build-mac.sh.
 # ------------------------------------------------------------------
 if [[ $WITH_RELEASE -eq 1 ]]; then
     run_pillar "Release · cargo build --release (SoloMD)" \
@@ -163,16 +163,16 @@ fi
 # ------------------------------------------------------------------
 if [[ $WITH_UI -eq 1 ]]; then
     run_pillar "UI · live v4-ui-smoke.mjs" \
-        node "$REPO_ROOT/scripts/v4-ui-smoke.mjs"
+        node "$REPO_ROOT/scripts/test/v4-ui-smoke.mjs"
 fi
 
 # ------------------------------------------------------------------
 # Optional: signed dmg verifier. Runs the full release-channel check
-# matrix on the dmg + .app produced by scripts/build-mac.sh.
+# matrix on the dmg + .app produced by scripts/build/build-mac.sh.
 # ------------------------------------------------------------------
 if [[ $WITH_DMG -eq 1 ]]; then
     run_pillar "Release · signed dmg verifier" \
-        bash "$REPO_ROOT/scripts/v4-verify-dmg.sh"
+        bash "$REPO_ROOT/scripts/test/v4-verify-dmg.sh"
 fi
 
 # ------------------------------------------------------------------
@@ -206,7 +206,7 @@ if [[ ${#FAILED[@]} -eq 0 ]]; then
         echo "  · Live UI smoke against pnpm tauri dev (re-run with --with-ui)"
     fi
     if [[ $WITH_DMG -ne 1 ]]; then
-        echo "  · macOS signed dmg — scripts/build-mac.sh + --with-dmg (Apple creds in .env.local)"
+        echo "  · macOS signed dmg — scripts/build/build-mac.sh + --with-dmg (Apple creds in .env.local)"
     fi
     echo "  · 2-week beta channel — v4.0-rc.1 → rc.2 → tag"
     exit 0

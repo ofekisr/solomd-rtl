@@ -27,7 +27,7 @@
 #   are only reachable through the releases list. Resolving the id by tag first
 #   is what makes this work before publication, which is exactly when it runs.
 #
-# Usage: scripts/upload-release-assets.sh <tag> <file> [file ...]
+# Usage: scripts/release/upload-release-assets.sh <tag> <file> [file ...]
 
 set -euo pipefail
 

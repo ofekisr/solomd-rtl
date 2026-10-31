@@ -15,7 +15,7 @@
 # Requires: magick (ImageMagick 7), sips, iconutil, python3
 set -euo pipefail
 
-ICONS_DIR="$(cd "$(dirname "$0")/.." && pwd)/app/src-tauri/icons"
+ICONS_DIR="$(cd "$(dirname "$0")/../.." && pwd)/app/src-tauri/icons"
 SRC="$ICONS_DIR/icon.png"            # full-bleed square design source
 CANVAS=1024
 BODY=824                             # icon body size (≈80.5% of canvas)

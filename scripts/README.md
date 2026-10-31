@@ -4,50 +4,61 @@ Build, release and dev scripts. Run from the repo root.
 
 ## Index
 
+| Folder | Holds |
+|---|---|
+| `build/` | Platform builds and packaging |
+| `release/` | Tag, checksum, upload and publish a release |
+| `store/` | App Store Connect upload and review |
+| `cli/` | The `solomd` CLI and its installers |
+| `test/` | Self-tests and smoke checks |
+| `dev/` | Local dev helpers |
+| `lib/` | Shared helpers (App Store Connect API, nupkg, iOS overlay); called by other scripts |
+| `_upstream/` | Upstream SoloMD only: Gitee sync, sponsors, package managers, skill pack, settings CLI, v2.5 self-test. Not maintained here |
+
 | Script | Does | Run by |
 |---|---|---|
-| `build-mac.sh` | Signed + notarized macOS `.dmg` | Manual |
-| `build-mas.sh` | Mac App Store `.pkg` | Manual |
-| `build-ios.sh` | iOS `.ipa` | Manual |
-| `build-android.sh` | Android build | `store-submit` skill |
-| `ubuntu-build.sh` | Linux build / clean | Manual |
-| `build-mcp-sidecar.sh` | `solomd-mcp` sidecar binary | CI (`release.yml`, `linux-2404-test.yml`), Tauri build |
-| `fix-appimage-diricon.sh` | Patch AppImage `.DirIcon` | CI |
-| `pack_msix.py` | Windows `.msix` | `store-submit` skill |
-| `gen-mac-icon.sh` | Regenerate macOS icon | Manual |
-| `release.sh` | Bump version, tag, push (triggers CI) | Manual |
-| `checksums.sh` | Release `SHA256SUMS` | CI (`release.yml`) |
-| `upload-release-assets.sh` | Upload files to a GitHub release | Manual |
-| `build-mcpb.sh` | MCPB bundle of `solomd-mcp` | Manual |
-| `publish-mcp-crate.sh` | Publish `solomd-mcp` to crates.io | Manual |
-| `submit-for-review.sh` | Submit an App Store build for review | `store-submit` skill |
-| `submit-ios.sh` / `submit-mas.sh` | Upload a build to App Store Connect | `submit-for-review.sh`, manual |
-| `solomd` | SoloMD CLI | Installed by `install-cli.sh` |
-| `install-cli.sh` | Install the `solomd` CLI | Manual (linked from app help) |
-| `install-mcp.sh` | Install the `solomd-mcp` server | CI (`release.yml`), manual |
-| `v4-self-test.sh` | Desktop self-test; runs `v4-ui-smoke.mjs`, `v4-verify-dmg.sh` | Manual |
-| `dev-seed.sh` | Seed a dev workspace | `pnpm --dir app dev:seed` |
-| `batch-rename.mjs` | Batch-rename notes (+ `.test.mjs`) | Manual |
-| `dev/editor-smoke.ps1` | Windows editor smoke test | Manual |
-| `lib/` | Shared helpers (App Store Connect API, nupkg, iOS overlay) | Other scripts |
-| `_upstream/` | Upstream SoloMD only: Gitee sync, sponsors, package managers, skill pack, settings CLI, v2.5 self-test. Not maintained here. | Manual |
+| `build/build-mac.sh` | Signed + notarized macOS `.dmg` | Manual |
+| `build/build-mas.sh` | Mac App Store `.pkg` | Manual |
+| `build/build-ios.sh` | iOS `.ipa` | Manual |
+| `build/build-android.sh` | Android build | `store-submit` skill |
+| `build/ubuntu-build.sh` | Linux build / clean | Manual |
+| `build/build-mcp-sidecar.sh` | `solomd-mcp` sidecar binary | CI (`release.yml`, `linux-2404-test.yml`), Tauri build |
+| `build/fix-appimage-diricon.sh` | Patch AppImage `.DirIcon` | CI |
+| `build/pack_msix.py` | Windows `.msix` | `store-submit` skill |
+| `build/gen-mac-icon.sh` | Regenerate macOS icon | Manual |
+| `release/release.sh` | Bump version, tag, push (triggers CI) | Manual |
+| `release/checksums.sh` | Release `SHA256SUMS` | CI (`release.yml`) |
+| `release/upload-release-assets.sh` | Upload files to a GitHub release | Manual |
+| `release/build-mcpb.sh` | MCPB bundle of `solomd-mcp` | Manual |
+| `release/publish-mcp-crate.sh` | Publish `solomd-mcp` to crates.io | Manual |
+| `store/submit-for-review.sh` | Submit an App Store build for review | `store-submit` skill |
+| `store/submit-ios.sh` / `store/submit-mas.sh` | Upload a build to App Store Connect | `submit-for-review.sh`, manual |
+| `cli/solomd` | SoloMD CLI | Installed by `install-cli.sh` |
+| `cli/install-cli.sh` | Install the `solomd` CLI | Manual (linked from app help) |
+| `cli/install-mcp.sh` | Install the `solomd-mcp` server | CI (`release.yml`), manual |
+| `test/v4-self-test.sh` | Desktop self-test; runs `v4-ui-smoke.mjs`, `v4-verify-dmg.sh` | Manual |
+| `test/editor-smoke.ps1` | Windows editor smoke test | Manual |
+| `dev/dev-seed.sh` | Seed a dev workspace | `pnpm --dir app dev:seed` |
+| `dev/batch-rename.mjs` | Batch-rename notes (+ `.test.mjs`) | Manual |
+
+The app help and website link to `install-cli.sh` / `install-mcp.sh` on upstream (`zhitongblog/solomd`), where they still sit at `scripts/`. Those URLs are left unchanged.
 
 ## TL;DR
 
 ```bash
 # 1. Cut a release (bumps version, tags, pushes — triggers CI)
-./scripts/release.sh 0.2.0
+./scripts/release/release.sh 0.2.0
 
 # 2. (Optional) Build a signed mac .dmg locally for testing
 #    Credentials come from .env.local — see "Apple credentials" below.
-./scripts/build-mac.sh
+./scripts/build/build-mac.sh
 
 # 3. Upload a build to App Store Connect
-./scripts/submit-mas.sh          # newest dist-mas/*.pkg
-./scripts/submit-ios.sh          # gen/apple/build/arm64/SoloMD.ipa
+./scripts/store/submit-mas.sh          # newest dist-mas/*.pkg
+./scripts/store/submit-ios.sh          # gen/apple/build/arm64/SoloMD.ipa
 
 # 4. Submit an uploaded build for review (needs an API key)
-./scripts/submit-for-review.sh --platform ios --version 4.12.0 --notes-file notes.txt
+./scripts/store/submit-for-review.sh --platform ios --version 4.12.0 --notes-file notes.txt
 ```
 
 ## Apple credentials
@@ -134,8 +145,8 @@ processing it, creates the version if it does not exist, writes the release
 notes, attaches the build, and submits.
 
 ```bash
-./scripts/submit-for-review.sh --platform ios   --version 4.12.0 --notes-file notes.txt
-./scripts/submit-for-review.sh --platform macos --version 4.12.0 --dry-run
+./scripts/store/submit-for-review.sh --platform ios   --version 4.12.0 --notes-file notes.txt
+./scripts/store/submit-for-review.sh --platform macos --version 4.12.0 --dry-run
 ```
 
 | Flag | Meaning |

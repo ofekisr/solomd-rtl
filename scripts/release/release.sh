@@ -3,7 +3,7 @@
 # Cut a new release: bumps version in tauri.conf.json + package.json,
 # commits, tags, and pushes. GitHub Actions takes over from there.
 #
-# Usage: ./scripts/release.sh 0.2.0
+# Usage: ./scripts/release/release.sh 0.2.0
 
 set -euo pipefail
 
@@ -19,7 +19,7 @@ if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
   exit 1
 fi
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 if [ -n "$(git status --porcelain)" ]; then
   echo "ERROR: working tree not clean. Commit or stash first." >&2

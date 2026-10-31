@@ -9,7 +9,7 @@ description: |
   whole sessions before. Use when asked to "submit to Play", "上架 Play",
   "update the Microsoft Store", "提交商店", "发到应用商店", or when a release
   has shipped on GitHub and the store channels are still owed.
-  Apple is NOT here: the App Store has a real API — see scripts/submit-for-review.sh.
+  Apple is NOT here: the App Store has a real API — see scripts/store/submit-for-review.sh.
 triggers:
   - submit to play store
   - 提交 play
@@ -34,7 +34,7 @@ skill is the accumulated way to do that without losing an afternoon.
 API with no browser at all:
 
 ```bash
-./scripts/submit-for-review.sh --platform ios   --version X.Y.Z \
+./scripts/store/submit-for-review.sh --platform ios   --version X.Y.Z \
     --notes-dir distribution/app-store/release-notes/X.Y.Z --dry-run
 ```
 

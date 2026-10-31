@@ -14,7 +14,7 @@
   %APPDATA%\app.solomd\dev-bridge.{port,token}). viewMode is forced to liveEdit.
 
 .EXAMPLE
-  pwsh -File scripts/dev/editor-smoke.ps1
+  pwsh -File scripts/test/editor-smoke.ps1
 #>
 
 $ErrorActionPreference = 'Stop'

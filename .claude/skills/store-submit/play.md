@@ -52,7 +52,7 @@ so *after* the whole 39 MB is uploaded, attached to the file row as a small
 `error` icon that is easy to read as a network failure. Gradle produces an
 unsigned release artifact **silently** when the `ANDROID_KEYSTORE_*` env vars
 are missing, which is what happens if you run `./gradlew bundleUniversalRelease`
-directly instead of `scripts/build-android.sh`. Both ends now refuse
+directly instead of `scripts/build/build-android.sh`. Both ends now refuse
 (the gradle config throws, the script asserts), but verify anyway:
 
 ```bash

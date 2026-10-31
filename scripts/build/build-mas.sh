@@ -26,12 +26,12 @@
 #   MAS_BUILD_NUMBER  monotonic build counter (default 1.0.1, bump on each
 #                     resubmission of the same version)
 #
-# Usage: ./scripts/build-mas.sh
+# Usage: ./scripts/build/build-mas.sh
 # Output: dist-mas/SoloMD_<MAS_VERSION>_<MAS_BUILD_NUMBER>.pkg
 
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 if [ -f .env.local ]; then
   set -a
@@ -196,4 +196,4 @@ echo "    Inspect:  pkgutil --payload-files \"$PKG\""
 echo "    Upload:   xcrun altool --upload-app -f \"$PKG\" -t osx \\"
 echo "                  -u \"\$APPLE_ID\" -p \"\$APPLE_PASSWORD\""
 echo ""
-echo "Next: run ./scripts/submit-mas.sh \"$PKG\" — uploads to App Store Connect."
+echo "Next: run ./scripts/store/submit-mas.sh \"$PKG\" — uploads to App Store Connect."

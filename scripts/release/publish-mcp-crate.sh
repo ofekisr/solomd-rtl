@@ -8,11 +8,11 @@
 # existing version; bump plugins/solomd-notes/server/Cargo.toml first).
 #
 # Usage:
-#   ./scripts/publish-mcp-crate.sh              # dry-run + interactive confirm
-#   ./scripts/publish-mcp-crate.sh --yes        # non-interactive
-#   ./scripts/publish-mcp-crate.sh --dry-run    # dry-run only
+#   ./scripts/release/publish-mcp-crate.sh              # dry-run + interactive confirm
+#   ./scripts/release/publish-mcp-crate.sh --yes        # non-interactive
+#   ./scripts/release/publish-mcp-crate.sh --dry-run    # dry-run only
 set -euo pipefail
-cd "$(dirname "$0")/../plugins/solomd-notes/server"
+cd "$(dirname "$0")/../../plugins/solomd-notes/server"
 
 CRATE=$(grep '^name\s*=' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
 VERSION=$(grep '^version\s*=' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
@@ -42,7 +42,7 @@ case "${1:-}" in
     cargo publish --dry-run --allow-dirty
     echo ""
     echo "Dry-run completed. To actually publish:"
-    echo "  ./scripts/publish-mcp-crate.sh --yes"
+    echo "  ./scripts/release/publish-mcp-crate.sh --yes"
     exit 0
     ;;
   --yes)

@@ -18,7 +18,7 @@ Per-client setup: [docs/clients/](docs/clients/) (Claude Desktop, Cursor, Cline,
 |---|---|
 | `bin/solomd-mcp` | Launcher: finds the binary, checks env, starts it |
 | `skills/solomd/` | The `solomd` skill |
-| `server/` | `solomd-mcp` Rust crate (also bundled into SoloMD.app by `scripts/build-mcp-sidecar.sh`) |
+| `server/` | `solomd-mcp` Rust crate (also bundled into SoloMD.app by `scripts/build/build-mcp-sidecar.sh`) |
 
 ## Test
 

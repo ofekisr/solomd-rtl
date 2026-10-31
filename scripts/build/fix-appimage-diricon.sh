@@ -21,7 +21,7 @@
 # `appimagetool` does for a type-2 image, minus the FUSE requirement — which
 # matters, because it makes this runnable (and testable) off Linux too.
 #
-# Usage: scripts/fix-appimage-diricon.sh <file.AppImage> [more.AppImage ...]
+# Usage: scripts/build/fix-appimage-diricon.sh <file.AppImage> [more.AppImage ...]
 #
 # Idempotent: an image whose .DirIcon is already relative is left untouched
 # and reported as such, so the day tauri-bundler fixes this upstream the

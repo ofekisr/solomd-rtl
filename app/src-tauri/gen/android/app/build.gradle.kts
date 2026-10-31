@@ -26,7 +26,7 @@ android {
     }
 
     // Release signing — credentials sourced from env vars set by
-    // scripts/build-android.sh (which sources .env.local). If any of them
+    // scripts/build/build-android.sh (which sources .env.local). If any of them
     // are missing we fall back to debug signing so `tauri android build`
     // without env still works (debug APKs only — not for Play upload).
     signingConfigs {
@@ -104,14 +104,14 @@ android {
                 // Gradle does not treat "release build with no signing config" as
                 // an error: it just emits an unsigned APK/AAB and says nothing.
                 // That cost us a day on 4.13.0 — the 16 KB rebuild ran gradle
-                // directly instead of scripts/build-android.sh, so none of the
+                // directly instead of scripts/build/build-android.sh, so none of the
                 // ANDROID_KEYSTORE_* vars were exported, and the only symptom was
                 // Play rejecting the upload with 「所有上传的软件包都必须签名」
                 // after a 39 MB upload. Refuse to build instead.
                 throw GradleException(
                     "Release build requested but no signing credentials. Export " +
                     "ANDROID_KEYSTORE_PATH / ANDROID_KEYSTORE_PASS / ANDROID_KEY_ALIAS / " +
-                    "ANDROID_KEY_PASS (scripts/build-android.sh sources .env.local and " +
+                    "ANDROID_KEY_PASS (scripts/build/build-android.sh sources .env.local and " +
                     "does this for you), or set ANDROID_ALLOW_UNSIGNED_RELEASE=1 if you " +
                     "really want an unsigned artifact."
                 )

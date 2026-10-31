@@ -9,7 +9,7 @@
 # and the Android .apk are uploaded by hand afterwards. Re-run it locally once
 # those land so the manifest covers every asset:
 #
-#   ./scripts/checksums.sh v4.11.20
+#   ./scripts/release/checksums.sh v4.11.20
 #
 # Requires: gh, authenticated. Works against draft releases.
 set -euo pipefail

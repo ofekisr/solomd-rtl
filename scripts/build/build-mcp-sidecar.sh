@@ -15,8 +15,8 @@
 # every desktop release.
 #
 # Usage:
-#     scripts/build-mcp-sidecar.sh              # current host target
-#     scripts/build-mcp-sidecar.sh aarch64-apple-darwin
+#     scripts/build/build-mcp-sidecar.sh              # current host target
+#     scripts/build/build-mcp-sidecar.sh aarch64-apple-darwin
 #
 # Called automatically by `pnpm tauri build` via `beforeBundleCommand` in
 # tauri.conf.json. Also called per-target in .github/workflows/release.yml
@@ -28,7 +28,7 @@ set -euo pipefail
 # Resolve repo paths regardless of CWD (CI runs from app/, devs run from .)
 # ---------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 MCP_CRATE="$REPO_ROOT/plugins/solomd-notes/server"
 OUT_DIR="$REPO_ROOT/app/src-tauri/binaries"

@@ -7,8 +7,8 @@
 # review. It replaces the browser login that used to end every Apple release.
 #
 # Usage:
-#   ./scripts/submit-for-review.sh --platform ios   --version 4.12.0 --notes-file notes.txt
-#   ./scripts/submit-for-review.sh --platform macos --version 4.12.0 --dry-run
+#   ./scripts/store/submit-for-review.sh --platform ios   --version 4.12.0 --notes-file notes.txt
+#   ./scripts/store/submit-for-review.sh --platform macos --version 4.12.0 --dry-run
 #
 # Requires an App Store Connect API key — there is no Apple ID fallback,
 # because this part of the API accepts nothing else:
@@ -16,7 +16,7 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 if [ -f .env.local ]; then
   set -a
@@ -34,7 +34,7 @@ for arg in "$@"; do
 done
 
 # shellcheck source=lib/asc-auth.sh
-source "$(dirname "$0")/lib/asc-auth.sh"
+source "$(dirname "$0")/../lib/asc-auth.sh"
 
 if [ -z "${ASC_KEY_ID:-}" ] || [ -z "${ASC_ISSUER_ID:-}" ]; then
   echo "ERROR: submitting for review needs an App Store Connect API key." >&2

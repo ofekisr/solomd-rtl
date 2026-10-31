@@ -20,7 +20,7 @@ magick "$BRAND_DIR/solomd_icon_fullbleed.png" -alpha off -depth 8 -strip \
   cd "$REPO_DIR/app"
   pnpm tauri icon ../brand/solomd_icon_fullbleed.png --output src-tauri/icons
 )
-"$REPO_DIR/scripts/gen-mac-icon.sh"
+"$REPO_DIR/scripts/build/gen-mac-icon.sh"
 
 # Tauri's mobile generators can skip pre-existing native project assets. Make
 # the checked-in iOS and Android matrices deterministic as a final pass.

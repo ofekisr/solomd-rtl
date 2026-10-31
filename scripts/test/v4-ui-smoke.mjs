@@ -5,7 +5,7 @@
  * v4.0 live UI self-test — drives a running `pnpm tauri dev` instance via
  * the dev-bridge `/eval` endpoint and verifies every v4 surface mounts
  * with the expected DOM shape. This is the UI half of the v4.0
- * Definition-of-Done; the Rust half is `scripts/v4-self-test.sh`.
+ * Definition-of-Done; the Rust half is `scripts/test/v4-self-test.sh`.
  *
  * Coverage:
  *   · Pillar 1 — Agent Panel mount + textarea + send button
@@ -22,7 +22,7 @@
  * Usage:
  *   1. Start `pnpm tauri dev` in another terminal.
  *   2. Open SoloMD, point the workspace at any folder.
- *   3. node scripts/v4-ui-smoke.mjs
+ *   3. node scripts/test/v4-ui-smoke.mjs
  *
  * Exit 0 = every check green; exit 1 = at least one failed.
  */

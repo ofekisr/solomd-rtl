@@ -2,12 +2,12 @@
 #
 # v4-verify-dmg.sh — post-build verification for the macOS signed dmg.
 #
-# Run after `./scripts/build-mac.sh`. Confirms the .app + dmg pass every
+# Run after `./scripts/build/build-mac.sh`. Confirms the .app + dmg pass every
 # release-channel check we'd hit in CI: codesign authority, notarization
 # stapled, spctl/Gatekeeper accept, universal slices present, file-icon
 # patched, sidecar signed, dmg mounts cleanly. Exit 0 = ready to publish.
 #
-# Lives at $REPO/scripts/v4-verify-dmg.sh — invoked from v4-self-test.sh
+# Lives at $REPO/scripts/test/v4-verify-dmg.sh — invoked from v4-self-test.sh
 # when --with-dmg is passed.
 
 set -uo pipefail

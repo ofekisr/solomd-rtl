@@ -43,7 +43,7 @@ jobs:
             args: '--bundles appimage,deb,rpm'
             rust_targets: ''
           # NOTE: macOS removed from CI matrix.
-          # Build locally with `./scripts/build-mac.sh` (full sign + notarize)
+          # Build locally with `./scripts/build/build-mac.sh` (full sign + notarize)
           # then upload the resulting .dmg manually to the GitHub release.
           # Reason: notarytool can hang indefinitely on GitHub-hosted runners
           # without producing a clear error, burning hours of CI time.
@@ -106,7 +106,7 @@ jobs:
           set -euo pipefail
           TRIPLE="$(rustc -vV | sed -n 's/^host: //p')"
           echo "host triple: $TRIPLE"
-          bash scripts/build-mcp-sidecar.sh "$TRIPLE"
+          bash scripts/build/build-mcp-sidecar.sh "$TRIPLE"
 
       - name: Build & release with tauri-action
         uses: tauri-apps/tauri-action@v0
@@ -114,7 +114,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # macOS signing/notarization secrets are no longer wired here —
           # the macOS build is done locally on the maintainer's machine via
-          # scripts/build-mac.sh. See scripts/README.md.
+          # scripts/build/build-mac.sh. See scripts/README.md.
         with:
           projectPath: app
           tagName: ${{ github.ref_name }}
@@ -217,7 +217,7 @@ jobs:
       # ----------------------------------------------------------------------
       # v2.4: solomd-mcp standalone tarballs.
       #
-      # `tauri-action` already ran `scripts/build-mcp-sidecar.sh` (via
+      # `tauri-action` already ran `scripts/build/build-mcp-sidecar.sh` (via
       # `beforeBundleCommand` in tauri.conf.json) and embedded the binary
       # into the .app / .msi / .deb. We now repackage *that exact same
       # binary* into a standalone tarball so users who don't want the
@@ -227,7 +227,7 @@ jobs:
       # Linux x64:    solomd-mcp-linux-x64.tar.gz
       # Linux arm64:  solomd-mcp-linux-arm64.tar.gz
       # Windows x64:  solomd-mcp-win-x64.zip
-      # macOS:        produced locally via scripts/build-mac.sh, since
+      # macOS:        produced locally via scripts/build/build-mac.sh, since
       #               macOS isn't in this matrix anymore.
       # ----------------------------------------------------------------------
       # ----------------------------------------------------------------------
@@ -260,7 +260,7 @@ jobs:
             ls -la app/src-tauri/target/release/bundle || true
             exit 1
           fi
-          bash scripts/fix-appimage-diricon.sh "${IMAGES[@]}"
+          bash scripts/build/fix-appimage-diricon.sh "${IMAGES[@]}"
           for img in "${IMAGES[@]}"; do
             gh release upload "${{ github.ref_name }}" "$img" --clobber
           done
@@ -380,7 +380,7 @@ jobs:
           fi
           export VERSION="${{ github.ref_name }}"
           export INSTALL_DIR="$RUNNER_TEMP/mcp-self-test/bin"
-          bash scripts/install-mcp.sh
+          bash scripts/cli/install-mcp.sh
           "$INSTALL_DIR/solomd-mcp" --version
           echo "self-test ok"
 
@@ -452,7 +452,7 @@ jobs:
   #
   # Runs last so it covers the desktop matrix and the web-clipper zips. The
   # macOS .dmg and the Android .apk are uploaded by hand afterwards — re-run
-  # `./scripts/checksums.sh <tag>` locally once those land to refresh the
+  # `./scripts/release/checksums.sh <tag>` locally once those land to refresh the
   # manifest.
   # ---------------------------------------------------------------------------
   checksums:
@@ -467,4 +467,4 @@ jobs:
       - name: Generate and upload SHA256SUMS.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bash scripts/checksums.sh "${{ github.ref_name }}"
+        run: bash scripts/release/checksums.sh "${{ github.ref_name }}"

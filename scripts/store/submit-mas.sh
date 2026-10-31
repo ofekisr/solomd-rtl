@@ -2,7 +2,7 @@
 #
 # Upload a built MAS .pkg to App Store Connect via altool.
 #
-# Usage: ./scripts/submit-mas.sh [path/to/SoloMD_X.Y.Z.pkg]
+# Usage: ./scripts/store/submit-mas.sh [path/to/SoloMD_X.Y.Z.pkg]
 #
 # Defaults to the newest .pkg in dist-mas/ when no arg is given.
 #
@@ -18,7 +18,7 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 if [ -f .env.local ]; then
   set -a
@@ -28,7 +28,7 @@ if [ -f .env.local ]; then
 fi
 
 # shellcheck source=lib/asc-auth.sh
-source "$(dirname "$0")/lib/asc-auth.sh"
+source "$(dirname "$0")/../lib/asc-auth.sh"
 asc_resolve_auth
 
 PKG="${1:-}"
@@ -36,7 +36,7 @@ if [ -z "$PKG" ]; then
   PKG=$(ls -t dist-mas/*.pkg 2>/dev/null | head -1)
 fi
 if [ -z "$PKG" ] || [ ! -f "$PKG" ]; then
-  echo "ERROR: no .pkg given and dist-mas/ is empty. Run scripts/build-mas.sh first." >&2
+  echo "ERROR: no .pkg given and dist-mas/ is empty. Run scripts/build/build-mas.sh first." >&2
   exit 1
 fi
 

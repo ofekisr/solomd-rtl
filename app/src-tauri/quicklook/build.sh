@@ -8,7 +8,7 @@
 # With a signing identity it is signed (hardened runtime, timestamp, sandbox
 # entitlements by default). The caller copies it into
 # SoloMD.app/Contents/PlugIns/ BEFORE signing the app itself, so the app's
-# signature seals it; see scripts/build-mac.sh and scripts/build-mas.sh.
+# signature seals it; see scripts/build/build-mac.sh and scripts/build/build-mas.sh.
 #
 # Plain swiftc, no Xcode project: an app extension is an ordinary bundle whose
 # executable enters through NSExtensionMain.

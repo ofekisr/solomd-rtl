@@ -2,10 +2,10 @@
 # SoloMD 构建/清理脚本（Linux/macOS）
 #
 # 用法:
-#   bash scripts/ubuntu-build.sh                     # 完整构建
-#   bash scripts/ubuntu-build.sh clean               # 清理中间产物，保留最终二进制
-#   bash scripts/ubuntu-build.sh clean all           # 清理所有中间产物（含二进制）
-#   bash scripts/ubuntu-build.sh help | -h | --help  # 查看用法
+#   bash scripts/build/ubuntu-build.sh                     # 完整构建
+#   bash scripts/build/ubuntu-build.sh clean               # 清理中间产物，保留最终二进制
+#   bash scripts/build/ubuntu-build.sh clean all           # 清理所有中间产物（含二进制）
+#   bash scripts/build/ubuntu-build.sh help | -h | --help  # 查看用法
 #
 # 前置: 已安装 pnpm、Rust；Linux 需先装系统依赖（脚本会检测并给出命令）
 #
@@ -14,7 +14,7 @@
 #   FAST=1     用 thin LTO + 16 codegen-units 加速首次构建（产物略大，不改源码）
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 APP="$ROOT/app"
 MCP="$ROOT/plugins/solomd-notes/server"
 BUNDLE="$APP/src-tauri/target/release/bundle"
@@ -28,11 +28,11 @@ show_help() {
 SoloMD 构建/清理脚本
 
 用法:
-  bash scripts/ubuntu-build.sh                    完整构建（vue-tsc → vite → MCP sidecar → tauri）
-  bash scripts/ubuntu-build.sh clean              清理中间产物，保留最终二进制
+  bash scripts/build/ubuntu-build.sh                    完整构建（vue-tsc → vite → MCP sidecar → tauri）
+  bash scripts/build/ubuntu-build.sh clean              清理中间产物，保留最终二进制
                                           （bundle/ 安装包、release/SoloMD、sidecar）
-  bash scripts/ubuntu-build.sh clean all          清理所有中间产物，含二进制与 node_modules
-  bash scripts/ubuntu-build.sh help | -h | --help 显示本帮助
+  bash scripts/build/ubuntu-build.sh clean all          清理所有中间产物，含二进制与 node_modules
+  bash scripts/build/ubuntu-build.sh help | -h | --help 显示本帮助
 
 环境变量:
   JOBS=N       cargo 并行度，默认 = 逻辑核数（本机 $cores）
@@ -150,7 +150,7 @@ echo "[3/5] 前端 build（vue-tsc --noEmit && vite build）..."
 
 # ---------- 4. MCP sidecar（solomd-mcp，编译期被 build.rs 校验，必须先于 tauri build）----------
 echo "[4/5] 构建 MCP sidecar（solomd-mcp）..."
-bash "$ROOT/scripts/build-mcp-sidecar.sh"
+bash "$ROOT/scripts/build/build-mcp-sidecar.sh"
 
 # ---------- 5. Tauri release 构建 ----------
 echo "[5/5] tauri build（cargo $JOBS 并行，首次约 5-15 分钟）..."
@@ -161,4 +161,4 @@ echo
 echo "=== 构建完成 ==="
 ls -lh "$BUNDLE" 2>/dev/null || ls -lh "$APP/src-tauri/target/release/" | grep -iE "SoloMD|solomd" || true
 echo
-echo "提示: 清理产物请执行 bash scripts/ubuntu-build.sh clean（全部清理加 all）"
+echo "提示: 清理产物请执行 bash scripts/build/ubuntu-build.sh clean（全部清理加 all）"

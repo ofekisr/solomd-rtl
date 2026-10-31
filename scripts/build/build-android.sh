@@ -24,12 +24,12 @@
 #                 i686-linux-android x86_64-linux-android
 # (rsproxy.cn mirror works around CN-network TLS issues for x86_64-linux-android.)
 #
-# Usage: ./scripts/build-android.sh [--debug]
+# Usage: ./scripts/build/build-android.sh [--debug]
 # `--debug` skips ProGuard / signing and produces a fast iteration APK.
 
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 if [ -f .env.local ]; then
   set -a

@@ -2,7 +2,7 @@
 #
 # Upload a built iOS .ipa to App Store Connect via altool.
 #
-# Usage: ./scripts/submit-ios.sh [path/to/SoloMD.ipa]
+# Usage: ./scripts/store/submit-ios.sh [path/to/SoloMD.ipa]
 #
 # Defaults to app/src-tauri/gen/apple/build/arm64/SoloMD.ipa when no arg.
 #
@@ -13,7 +13,7 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 if [ -f .env.local ]; then
   set -a
@@ -23,11 +23,11 @@ if [ -f .env.local ]; then
 fi
 
 # shellcheck source=lib/asc-auth.sh
-source "$(dirname "$0")/lib/asc-auth.sh"
+source "$(dirname "$0")/../lib/asc-auth.sh"
 asc_resolve_auth
 
 IPA="${1:-app/src-tauri/gen/apple/build/arm64/SoloMD.ipa}"
-[ -f "$IPA" ] || { echo "ERROR: $IPA not found. Run ./scripts/build-ios.sh first." >&2; exit 1; }
+[ -f "$IPA" ] || { echo "ERROR: $IPA not found. Run ./scripts/build/build-ios.sh first." >&2; exit 1; }
 
 echo "==> Validating $IPA against App Store Connect"
 xcrun altool --validate-app \

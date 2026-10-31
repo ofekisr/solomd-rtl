@@ -7,7 +7,7 @@
 # Re-run any time to re-sync; the dev app applies each new seed once.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PROD_DATA="$HOME/Library/Application Support/app.solomd"
 DEV_DATA="$HOME/Library/Application Support/app.solomd.dev"
 PROD_WEBKIT="$HOME/Library/WebKit/app.solomd"

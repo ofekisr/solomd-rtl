@@ -10,11 +10,11 @@ export UNZOO_TAB=$($S/unzoo.sh find-tab partner.microsoft.com)
 
 ## Packaging
 
-`scripts/pack_msix.py` does the whole thing:
+`scripts/build/pack_msix.py` does the whole thing:
 
 ```bash
 gh release download vX.Y.Z -p "SoloMD_X.Y.Z_x64_en-US.msi" -D /tmp/msix
-python3 scripts/pack_msix.py --msi /tmp/msix/SoloMD_X.Y.Z_x64_en-US.msi \
+python3 scripts/build/pack_msix.py --msi /tmp/msix/SoloMD_X.Y.Z_x64_en-US.msi \
         --version X.Y.Z --arch x64 --out /tmp/msix/SoloMD_X.Y.Z_x64.msix
 ```
 
@@ -50,7 +50,7 @@ Earlier notes claimed MSIX needs `makeappx` on Windows. It does not.
   `StoreLogo.png`.
 
 `pack_msix.py` went missing twice, both times because it lived in a temp
-directory. It is now `scripts/pack_msix.py`, in the repository.
+directory. It is now `scripts/build/pack_msix.py`, in the repository.
 
 Manifest traps:
 
@@ -69,7 +69,7 @@ in one submission; nothing else differs.
 
 ```bash
 for arch in x64 arm64; do
-  python3 scripts/pack_msix.py --msi /tmp/msix/SoloMD_X.Y.Z_${arch}_en-US.msi \
+  python3 scripts/build/pack_msix.py --msi /tmp/msix/SoloMD_X.Y.Z_${arch}_en-US.msi \
           --version X.Y.Z --arch $arch --out /tmp/msix/SoloMD_X.Y.Z_${arch}.msix
 done
 ```

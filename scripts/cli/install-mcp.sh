@@ -9,7 +9,7 @@
 #
 # Override the version with: VERSION=v2.2.0 curl ... | bash
 #
-# Mirrors the layout of `scripts/install-cli.sh`. Binaries are released as
+# Mirrors the layout of `scripts/cli/install-cli.sh`. Binaries are released as
 # tarballs alongside the desktop app under
 #   solomd-mcp-<platform>-<arch>.tar.gz
 # at https://github.com/zhitongblog/solomd/releases.

@@ -9,7 +9,7 @@ the Store's validator expects. The parts it checks are the manifest, the
 content-types map, and a block map of SHA-256 hashes over 64 KB blocks of every
 payload file.
 
-    python3 scripts/pack_msix.py --msi dist/SoloMD_4.12.0_x64_en-US.msi \\
+    python3 scripts/build/pack_msix.py --msi dist/SoloMD_4.12.0_x64_en-US.msi \\
                                  --version 4.12.0 --arch x64 --out /tmp/SoloMD.msix
 
 This script has now been written twice, because the first copy lived in a temp
