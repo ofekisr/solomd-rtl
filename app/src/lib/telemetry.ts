@@ -12,7 +12,7 @@
  *     anything else.
  *   - Properties are filtered server-side: only short, low-cardinality
  *     strings/numbers/booleans pass the validator (see
- *     web/functions/api/track.ts). Anything PII-shaped is dropped.
+ *     marketing/web/functions/api/track.ts). Anything PII-shaped is dropped.
  *   - The user can opt out at any time via Settings → Send anonymous usage data.
  *
  * Network model:

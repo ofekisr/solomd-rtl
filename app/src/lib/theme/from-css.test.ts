@@ -6,7 +6,7 @@ import { parseBackdrop, parseRules } from './css-vars.ts';
 
 const aurora = readFileSync(new URL('./__fixtures__/aurora.css', import.meta.url), 'utf8');
 const AURORA_META = { id: 'mk-aurora', name: 'Aurora' };
-const MARKET_DIR = new URL('../../../../web/public/themes/', import.meta.url);
+const MARKET_DIR = new URL('../../../../marketing/web/public/themes/', import.meta.url);
 
 test('parses top-level rules and strips comments', () => {
   const rules = parseRules('/* x */ :root { --bg: #000; } .a, .b { color: red; }');

@@ -2,7 +2,7 @@ name: IndexNow ping
 
 # Notify Bing / Yandex / Naver / Seznam (and any other IndexNow-compatible
 # search engine) whenever the website content changes. Run after every push
-# to main that touches the web/ directory or sitemap-relevant files.
+# to main that touches the marketing/web/ directory or sitemap-relevant files.
 #
 # Google does not currently consume IndexNow but does pick up sitemap.xml
 # changes via Search Console; Cloudflare's "Crawler Hints" feature also
@@ -12,7 +12,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'web/**'
+      - 'marketing/web/**'
       - '.github/workflows/indexnow.yml'
   workflow_dispatch:
 

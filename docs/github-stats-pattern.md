@@ -69,7 +69,7 @@ Each layer covers what the others miss:
 
 ### 1. Edge proxy — Cloudflare Pages Function
 
-`web/functions/api/stats.ts`:
+`marketing/web/functions/api/stats.ts`:
 
 ```ts
 const REPO = 'USER/REPO';
@@ -139,7 +139,7 @@ export const onRequest: PagesFunction = async ({ request }) => {
 
 ### 2. Build-time SSR — Astro example
 
-`web/src/components/Hero.astro` (frontmatter — runs at build time):
+`marketing/web/src/components/Hero.astro` (frontmatter — runs at build time):
 
 ```astro
 ---
@@ -316,8 +316,8 @@ come from the same `/releases` data you're already fetching.)
 
 ## Reference implementation
 
-- **Edge proxy:** [`web/functions/api/stats.ts`](../web/functions/api/stats.ts)
-- **Build-time SSR + client refresh:** [`web/src/components/Hero.astro`](../web/src/components/Hero.astro)
+- **Edge proxy:** [`marketing/web/functions/api/stats.ts`](../marketing/web/functions/api/stats.ts)
+- **Build-time SSR + client refresh:** [`marketing/web/src/components/Hero.astro`](../marketing/web/src/components/Hero.astro)
 - **Live in production:** [solomd.app](https://solomd.app) — view source, look for `#hero-stars` / `#hero-dl-count` and `/api/stats`.
 
 MIT-licensed alongside the rest of the project — use, fork, copy, adapt.

@@ -17,7 +17,7 @@ SoloMD:
 
 ## Privacy Policy URL
 
-`https://solomd.app/privacy` (add page to web/ before submission — template below)
+`https://solomd.app/privacy` (add page to marketing/web/ before submission — template below)
 
 ## Privacy Policy Template (publish at solomd.app/privacy)
 

@@ -7,11 +7,9 @@
 [![Downloads](https://img.shields.io/github/downloads/zhitongblog/solomd/total)](https://github.com/zhitongblog/solomd/releases)
 [![Website](https://img.shields.io/badge/website-solomd.app-ff9f40.svg)](https://solomd.app)
 
-🌐 **[中文](README.zh.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português](README.pt.md) · [Italiano](README.it.md) · [Polski](README.pl.md) · [Nederlands](README.nl.md) · [Türkçe](README.tr.md) · [Svenska](README.sv.md) · [Українська](README.uk.md)** · 🪞 **[Gitee mirror →](https://gitee.com/zhitong45/solomd)** (faster downloads from China)
-
 [**Download the latest release**](https://github.com/zhitongblog/solomd/releases/latest) · [**Launch post**](https://solomd.app/blog/v4-0-0-agent-native-author/) · [**How we built it**](https://solomd.app/blog/v4-0-0-how-we-built-it/) · [**Website**](https://solomd.app) · [**Security**](https://solomd.app/security)
 
-![SoloMD editor](web/public/demo/solomd-demo.svg)
+![SoloMD editor](marketing/web/public/demo/solomd-demo.svg)
 
 > ### 🤖 Built and maintained by Claude
 >
@@ -236,9 +234,9 @@ One maintainer, two front doors. Async on [GitHub Discussions](https://github.co
 - **Telegram (international):** [@SOLOMDAPP](https://t.me/SOLOMDAPP) — release announcements + chat
 - **WeChat (中文):** scan to add me — note "SoloMD" 注明 SoloMD 直接通过
 
-<a href="https://solomd.app/#contact"><img src="web/public/contact/wechat.jpg" alt="WeChat — 智通" width="180" /></a>
+<a href="https://solomd.app/#contact"><img src="marketing/web/public/contact/wechat.jpg" alt="WeChat — 智通" width="180" /></a>
 &nbsp;&nbsp;
-<a href="https://t.me/SOLOMDAPP"><img src="web/public/contact/telegram.jpg" alt="Telegram @SOLOMDAPP" width="180" /></a>
+<a href="https://t.me/SOLOMDAPP"><img src="marketing/web/public/contact/telegram.jpg" alt="Telegram @SOLOMDAPP" width="180" /></a>
 
 <!-- sponsors:start -->
 ## Sponsors

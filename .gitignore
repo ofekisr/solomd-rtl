@@ -24,8 +24,8 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Brand experimental output
-brand/test_response.json
-brand/*_error.json
+marketing/brand/test_response.json
+marketing/brand/*_error.json
 
 # Local secrets — never commit
 .env.local

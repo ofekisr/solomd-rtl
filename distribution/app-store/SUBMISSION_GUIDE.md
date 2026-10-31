@@ -85,8 +85,8 @@ Apple requires a **public Privacy Policy URL** before the app is approved. Our p
 
 ```bash
 # Copy the policy into the website source and deploy
-cp app-store/ios/PRIVACY.md web/src/content/privacy.md   # adjust path to your Astro/content layout
-cd web && pnpm build && pnpm deploy                        # your usual Cloudflare Pages flow
+cp distribution/app-store/ios/PRIVACY.md marketing/web/src/content/privacy.md   # adjust path to your Astro/content layout
+cd marketing/web && pnpm build && pnpm deploy                        # your usual Cloudflare Pages flow
 ```
 
 Verify it's live: `curl -sSI https://solomd.app/privacy | head -n 1` should return `200`.
