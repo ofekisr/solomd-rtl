@@ -1,18 +1,18 @@
 # Comprehensive Test of Block-Level Real-Time Preview
 
-This document is designed to verify block-level real-time preview within a native Windows input field. The block currently being edited should remain in its raw Markdown source format, while all other blocks should be rendered in a preview state.
+This document verifies block-level real-time preview, including in the native Windows text area. The block currently being edited should remain in its raw Markdown source format, while all other blocks should be rendered in a preview state.
 
 ## 1. Plain Text
 
 This paragraph is used to test continuous English text, numbers, and common punctuation: English text, number 12345, and symbols like ! ? : ; ( ) [ ].
 
-The following paragraph contains no complex syntax; the focus here is on whether real-time input remains smooth, the cursor stays stable, and punctuation marks can be entered without needing to press the key twice. You may continue typing using input methods like Sogou Pinyin or Microsoft Pinyin at the end of this paragraph.
+The following paragraph contains no complex syntax; the focus here is on whether real-time input remains smooth, the cursor stays stable, and punctuation marks can be entered without needing to press the key twice.
 
 ## 2. Emphasis and Inline Code
 
 This is a standard paragraph containing **bold text**, *italic text*, ~~strikethrough~~, `inline code`, and a [link](https://example.com).
 
-Testing mixed inline content: Chinese **bold** Chinese `code()` Chinese *italic* Chinese.
+Testing mixed inline content: text **bold** text `code()` text *italic* text.
 
 ## 3. Lists
 
@@ -28,17 +28,18 @@ Testing mixed inline content: Chinese **bold** Chinese `code()` Chinese *italic*
 
 - [x] Completed task
 - [ ] Incomplete task
-- [ ] Input method test task: Type Chinese characters and punctuation here
+- [ ] Typing test task: type text and punctuation here
 
 ## 5. Blockquotes
 
 > This is a blockquote.
 > The second line of the quote should remain within the same blockquote.
-> You can click near the blockquote to switch the active block for editing. ## 6. Tables
+> You can click near the blockquote to switch the active block for editing.
+
+## 6. Tables
 
 | Feature | Expected Result | Status |
 | --- | --- | --- |
-| Chinese Input | Candidate suggestions and submission work as expected | Pending |
 | Punctuation Input | No need to press keys twice | Pending |
 | Image Display | Renders stably | Pending |
 | Code Blocks | Renders as a code block | Pending |
@@ -47,20 +48,19 @@ Testing mixed inline content: Chinese **bold** Chinese `code()` Chinese *italic*
 
 ```ts
 type PreviewCase = {
-title: string;
-inputMethod: 'sogou' | 'microsoft' | 'english';
-ok: boolean;
+  title: string;
+  ok: boolean;
 };
 
 function updatePreview(caseItem: PreviewCase) {
-return `${caseItem.title}: ${caseItem.ok ? 'ok' : 'fail'}`;
+  return `${caseItem.title}: ${caseItem.ok ? 'ok' : 'fail'}`;
 }
 ```
 
 ```python
 def render_block(markdown: str) -> str:
-"""Test fenced code blocks in live preview."""
-return markdown.strip()
+    """Test fenced code blocks in live preview."""
+    return markdown.strip()
 ```
 
 ## 8. Local Images
@@ -82,11 +82,9 @@ This is the content within an HTML `<details>` element.
 
 ## 10. Symbol-Dense Area
 
-Chinese Punctuation: ，。、；：“”‘’（）【】《》！？ ——……￥
-
 English punctuation: , . ; : " ' ( ) [ ] { } < > ! ? - -- ... $ % & @ # ^
 
-Paired symbol test: () [] {} <> "" '' “ ” ‘ ’ ` ` ** ** __ __ ~~ ~~
+Paired symbol test: () [] {} <> "" '' ` ` ** ** __ __ ~~ ~~
 
 Markdown escape test: \*not italics\* \#not a heading \[not a link\]\(url\) \`not code\`
 
@@ -102,7 +100,7 @@ Symbols that easily trigger Markdown:
 
 Mathematical and unit symbols: + - × ÷ = ≠ ≈ ≤ ≥ ± ∞ √ π ℃ ° % ‰
 
-Continuous input test: ，，，，。。。。！！！！？？？？；；；；::::----____****~~~~
+Continuous input test: ,,,,....!!!!????;;;;::::----____****~~~~
 
 ## 11. Mathematical and Chemical Formulas
 
@@ -139,9 +137,7 @@ y
 =
 \begin{bmatrix}
 1x + 2y \\
-3x
-\end{bmatrix}
-$$ + 4y
+3x + 4y
 \end{bmatrix}
 $$
 
@@ -174,4 +170,4 @@ This line of text follows the heading directly; it is used to test whether block
 
 ## 13. Final Input Area
 
-Please type a mix of Chinese, English, and punctuation here. Observe whether the current block remains in edit mode while other blocks remain in preview mode.
+Please type a mix of text and punctuation here. Observe whether the current block remains in edit mode while other blocks remain in preview mode.
