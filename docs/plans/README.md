@@ -4,10 +4,7 @@ Task-by-task plans, one per PR or phase. **Plans are records of how work was car
 
 | Folder / file | Covers | Design |
 |---|---|---|
-| [`wave0/`](wave0/) | PR 1–3: docs, arch specs, greenness ladder and CI | [Wave 0 LLD](../design/wave-refactor/2026-10-30-wave0-guardrails-lld.md) |
-| [`wave1/`](wave1/) | PR 1–10: platform ports, shell services | [Wave 1 LLD](../design/wave-refactor/2026-10-30-wave1-platform-lld.md) |
-| [`wave2/`](wave2/) | PR 1–8: editor feature registry | [Wave 2 LLD](../design/wave-refactor/2026-10-30-wave2-editor-lld.md) |
-| [`wave3/`](wave3/) | PR 1–12: settings, file tree, toolbar, size budgets | [Wave 3 LLD](../design/wave-refactor/2026-10-31-wave3-settings-shell-lld.md) |
+| [`wave-refactor/`](wave-refactor/) | Wave refactor PR plans: `wave0/` (PR 1–3 docs, arch specs, ladder/CI) · `wave1/` (PR 1–10 platform ports, shell services) · `wave2/` (PR 1–8 editor registry) · `wave3/` (PR 1–12 settings, file tree, toolbar, budgets) | [Wave refactor HLD + LLDs](../design/wave-refactor/) |
 | [`mindmap/`](mindmap/) | Phases 1–9, desktop checklist, Claude MCP, workbench | [Mind map designs](../design/mindmap/) |
 | [`2026-10-01-full-md-block-badges.md`](2026-10-01-full-md-block-badges.md) (+ `-report`) | `.full.md` block badges | — |
 | [`2026-10-08-directive-completion-manifests.md`](2026-10-08-directive-completion-manifests.md) | Directive completion | [design](../design/2026-10-08-directive-completion-manifests-design.md) |

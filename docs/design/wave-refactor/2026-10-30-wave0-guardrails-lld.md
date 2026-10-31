@@ -161,7 +161,7 @@ Root `CLAUDE.md` §Greenness ladder gets the table above in 5 lines.
 **Carried from the PR-2 final review**
 - CI step after `guard`: `pnpm --dir app arch:tight` (`rebaseline.ts --check`). This fails a shrink that was never rebaselined, which would otherwise leave slack for the file to grow back.
 
-**As shipped** (plan `docs/plans/wave0/2026-10-30-wave0-pr3-ladder-ci.md`): R1 `--check` replaces `rebaseline && git diff --exit-code`, which failed a correct but uncommitted rebaseline. R2 `arch:tight` runs in `verify` and CI, not `guard`. R3 CI runs `exec vite build`, not `build` (no second `vue-tsc`).
+**As shipped** (plan `docs/plans/wave-refactor/wave0/2026-10-30-wave0-pr3-ladder-ci.md`): R1 `--check` replaces `rebaseline && git diff --exit-code`, which failed a correct but uncommitted rebaseline. R2 `arch:tight` runs in `verify` and CI, not `guard`. R3 CI runs `exec vite build`, not `build` (no second `vue-tsc`).
 - CI pins Node with `actions/setup-node` `node-version: 22.19`. The arch specs rely on built-in type stripping (Node ≥ 22.18), and the repo has no `.nvmrc`.
 - The arch suite takes ~1s, because importing `typescript` for `ts.preProcessFile` costs ~0.4s. This is still well inside the `guard` ≤ 15s budget.
 

@@ -75,7 +75,7 @@ prs:
 execution_order: [pr-1, [pr-2, pr-3, pr-4, pr-5, pr-6, pr-7, pr-8, pr-9], pr-10]
 ```
 
-Plans: `docs/plans/wave1/2026-10-30-wave1-pr<N>-<slug>.md`, one per PR.
+Plans: `docs/plans/wave-refactor/wave1/2026-10-30-wave1-pr<N>-<slug>.md`, one per PR.
 
 ---
 

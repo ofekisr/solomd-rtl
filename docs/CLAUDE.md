@@ -6,7 +6,7 @@ These paths override any skill's default output path (e.g. `docs/superpowers/spe
 |---|---|---|
 | Design / spec / HLD / LLD | `design/` (or `design/<topic>/` once a topic has 3+ docs) | `YYYY-MM-DD-<topic>-design.md` |
 | Architecture decision | `design/adr/` — follow its README | `NNNN-kebab-title.md` |
-| Implementation plan | `plans/` (or `plans/<topic>/`, e.g. `plans/wave4/`) | `YYYY-MM-DD-<topic>.md` |
+| Implementation plan | `plans/` (or `plans/<topic>/`, e.g. `plans/wave-refactor/wave4/`) | `YYYY-MM-DD-<topic>.md` |
 | How-to guide | `guides/` | `<topic>.md` |
 | Audit, investigation, bug report | `reports/` | `<topic>.md` or `<topic>/` |
 | Manual test document | `fixtures/` | `<what-it-tests>-test.md` |
