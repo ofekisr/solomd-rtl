@@ -40,3 +40,4 @@ What gets easier, what gets harder, what we now must do.
 | [0005](0005-settings-slices.md) | Settings: typed slices over one flat blob, a versioned loader, and a page registry | accepted |
 | [0006](0006-strict-ipc-validation-in-dev.md) | IPC validation: strict in dev, off in production | accepted |
 | [0007](0007-settings-registry-as-shipped.md) | Settings registry as shipped | accepted |
+| [0008](0008-plugins-folder.md) | One plugins/ folder and a Claude Code marketplace | accepted |
