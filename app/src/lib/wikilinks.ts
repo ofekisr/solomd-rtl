@@ -1,7 +1,7 @@
 /**
  * v4.0 pillar 1 — wikilink parsing for the Inline Agent Panel.
  *
- * Mirrors the Rust regex in `mcp-server/src/workspace.rs::extract_wikilinks`
+ * Mirrors the Rust regex in `plugins/solomd-notes/server/src/workspace.rs::extract_wikilinks`
  * + `app/src-tauri/src/workspace_index.rs::extract_wikilinks` so that the
  * agent's text-rendering treats `[[X]]` / `[[X#heading]]` / `[[X|alias]]`
  * the same way the indexer does.

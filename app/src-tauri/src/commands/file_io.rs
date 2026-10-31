@@ -164,7 +164,7 @@ pub async fn write_file(
 }
 
 /// Quick-and-dirty tag extraction used by the on-tag-add trigger. We
-/// reuse the same scanner shape as `mcp-server/src/workspace.rs` —
+/// reuse the same scanner shape as `plugins/solomd-notes/server/src/workspace.rs` —
 /// duplicated here because P4 (Federation) hasn't merged yet and we
 /// don't want to depend on the mcp-server crate from inside the Tauri
 /// app. After P4 lands, swap this for the canonical helper.

@@ -32,7 +32,7 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP="$REPO_ROOT/app/src-tauri"
-MCP="$REPO_ROOT/mcp-server"
+MCP="$REPO_ROOT/plugins/solomd-notes/server"
 
 WITH_OLLAMA=0
 WITH_RELEASE=0

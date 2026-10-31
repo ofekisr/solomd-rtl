@@ -13,7 +13,7 @@
 //! `ai_chat` tool-call loop in `ai_proxy.rs`.
 //!
 //! Helpers in this file mirror — and in some cases duplicate — code from
-//! `mcp-server/src/workspace.rs` (per the contracts: copy is fine, no path
+//! `plugins/solomd-notes/server/src/workspace.rs` (per the contracts: copy is fine, no path
 //! deps). When `workspace_index` already has live state for the same
 //! workspace we reuse it; otherwise we walk the disk lazily.
 
@@ -278,7 +278,7 @@ pub fn tool_descriptor(name: &str) -> Option<(&'static str, Value)> {
 
 /// Resolve a *workspace-relative* arg path against the workspace root,
 /// blocking traversal outside the workspace at the filesystem level (not just
-/// lexically). The canonical pattern lives in `mcp-server/src/safety.rs` —
+/// lexically). The canonical pattern lives in `plugins/solomd-notes/server/src/safety.rs` —
 /// keep this in sync with it.
 ///
 /// The previous implementation had a HIGH-severity bug (v4.0 P1): when the
@@ -410,7 +410,7 @@ fn validate_run_id(run_id: &str) -> Result<&str, String> {
 }
 
 // ---------------------------------------------------------------------------
-// Markdown parsing helpers (mirror of mcp-server/src/workspace.rs +
+// Markdown parsing helpers (mirror of plugins/solomd-notes/server/src/workspace.rs +
 // workspace_index.rs — copied per contract C3.1's "either works" allowance).
 // ---------------------------------------------------------------------------
 

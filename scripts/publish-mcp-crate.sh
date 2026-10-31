@@ -5,14 +5,14 @@
 # https://crates.io/me — "API Tokens" tab) or a prior `cargo login`.
 #
 # Idempotent for the same version (crates.io rejects republish of an
-# existing version; bump mcp-server/Cargo.toml first).
+# existing version; bump plugins/solomd-notes/server/Cargo.toml first).
 #
 # Usage:
 #   ./scripts/publish-mcp-crate.sh              # dry-run + interactive confirm
 #   ./scripts/publish-mcp-crate.sh --yes        # non-interactive
 #   ./scripts/publish-mcp-crate.sh --dry-run    # dry-run only
 set -euo pipefail
-cd "$(dirname "$0")/../mcp-server"
+cd "$(dirname "$0")/../plugins/solomd-notes/server"
 
 CRATE=$(grep '^name\s*=' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
 VERSION=$(grep '^version\s*=' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
@@ -23,7 +23,7 @@ echo ""
 
 # Verify the README the package will ship.
 if [ ! -f README.md ]; then
-  echo "Missing mcp-server/README.md — Cargo.toml references it." >&2
+  echo "Missing plugins/solomd-notes/server/README.md — Cargo.toml references it." >&2
   exit 1
 fi
 
@@ -32,7 +32,7 @@ if curl -s -H "User-Agent: solomd-publish" \
     "https://crates.io/api/v1/crates/$CRATE/$VERSION" \
     | grep -q '"version":'; then
   echo "ERROR: $CRATE@$VERSION already published on crates.io." >&2
-  echo "Bump mcp-server/Cargo.toml's [package].version first." >&2
+  echo "Bump plugins/solomd-notes/server/Cargo.toml's [package].version first." >&2
   exit 2
 fi
 

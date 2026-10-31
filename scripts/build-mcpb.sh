@@ -11,7 +11,7 @@
 # `npx @smithery/cli mcp publish <file> -n lixd220/solomd`).
 #
 # Contents:
-#   server/solomd-mcp        macOS universal, built here from mcp-server/,
+#   server/solomd-mcp        macOS universal, built here from plugins/solomd-notes/server/,
 #                            signed with the Developer ID and notarized.
 #                            The sidecar inside SoloMD.app can't be reused:
 #                            it dies with SIGTRAP outside the app bundle.
@@ -49,13 +49,13 @@ source scripts/lib/asc-auth.sh
 asc_resolve_auth
 
 echo "==> Building solomd-mcp (macOS universal)"
-( cd mcp-server
+( cd plugins/solomd-notes/server
   cargo build --release --target aarch64-apple-darwin >/dev/null
   cargo build --release --target x86_64-apple-darwin >/dev/null )
 mkdir -p "$WORK/b/server"
 lipo -create \
-  mcp-server/target/aarch64-apple-darwin/release/solomd-mcp \
-  mcp-server/target/x86_64-apple-darwin/release/solomd-mcp \
+  plugins/solomd-notes/server/target/aarch64-apple-darwin/release/solomd-mcp \
+  plugins/solomd-notes/server/target/x86_64-apple-darwin/release/solomd-mcp \
   -output "$WORK/b/server/solomd-mcp"
 
 echo "==> Signing and notarizing"
@@ -99,11 +99,11 @@ tools = call({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})["result"]["too
 # Keep stdin open until we are done reading: solomd-mcp hangs if several
 # requests arrive and stdin closes immediately.
 p.kill()
-m = json.load(open("mcp-server/mcpb/manifest.json"))
+m = json.load(open("plugins/solomd-notes/server/mcpb/manifest.json"))
 m["version"] = os.environ["VER"]
 m["tools"] = [{"name": t["name"], "description": t.get("description", "")} for t in tools]
-json.dump(m, open("mcp-server/mcpb/manifest.json", "w"), indent=2, ensure_ascii=False)
-open("mcp-server/mcpb/manifest.json", "a").write("\n")
+json.dump(m, open("plugins/solomd-notes/server/mcpb/manifest.json", "w"), indent=2, ensure_ascii=False)
+open("plugins/solomd-notes/server/mcpb/manifest.json", "a").write("\n")
 json.dump(m, open(f"{work}/b/manifest.json", "w"), indent=2, ensure_ascii=False)
 ms = json.loads(json.dumps(m))
 by = {t["name"]: t for t in tools}

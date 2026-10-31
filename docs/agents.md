@@ -236,7 +236,7 @@ By design:
 ## Related docs
 
 - `docs/roadmap.md` — v4.0 plan + the strategic principles behind the safety model.
-- `mcp-server/README.md` — the MCP surface for external clients (Claude Desktop, etc.).
+- `plugins/solomd-notes/server/README.md` — the MCP surface for external clients (Claude Desktop, etc.).
 - `app/src-tauri/src/recipes.rs` — schema definition (Rust types are the source of truth).
 - `app/src-tauri/cookbook/` — every bundled recipe template.
 - `scripts/v4-self-test.sh` — one-shot pass/fail across all 5 pillars.

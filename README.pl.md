@@ -164,7 +164,7 @@ pnpm tauri build    # artefakty release → src-tauri/target/release/bundle/
 
 Linux dodatkowo wymaga `libdbus-1-dev` dla backendu pęku kluczy.
 
-Serwer MCP to oddzielny crate pod `mcp-server/`; harness MCP dev dla testów end-to-end żyje pod `dev-mcp/`. Punkt wejścia testu end-to-end: `scripts/v4-self-test.sh` (uruchom z `--with-release --with-ollama --with-ui` dla pełnego pokrycia).
+Serwer MCP to oddzielny crate pod `plugins/solomd-notes/server/`; harness MCP dev dla testów end-to-end żyje pod `dev-mcp/`. Punkt wejścia testu end-to-end: `scripts/v4-self-test.sh` (uruchom z `--with-release --with-ollama --with-ui` dla pełnego pokrycia).
 
 ## Wkład
 

@@ -16,7 +16,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP="$ROOT/app"
-MCP="$ROOT/mcp-server"
+MCP="$ROOT/plugins/solomd-notes/server"
 BUNDLE="$APP/src-tauri/target/release/bundle"
 BINARIES="$APP/src-tauri/binaries"
 DIST="$APP/dist"

@@ -164,7 +164,7 @@ pnpm tauri build    # release artefaktları → src-tauri/target/release/bundle/
 
 Linux ek olarak keychain backend'i için `libdbus-1-dev`'e ihtiyaç duyar.
 
-MCP sunucusu `mcp-server/` altında ayrı bir crate'tir; uçtan uca testler için dev-MCP harness'ı `dev-mcp/` altında yaşar. Uçtan uca test giriş noktası: `scripts/v4-self-test.sh` (tam kapsama için `--with-release --with-ollama --with-ui` ile çalıştırın).
+MCP sunucusu `plugins/solomd-notes/server/` altında ayrı bir crate'tir; uçtan uca testler için dev-MCP harness'ı `dev-mcp/` altında yaşar. Uçtan uca test giriş noktası: `scripts/v4-self-test.sh` (tam kapsama için `--with-release --with-ollama --with-ui` ile çalıştırın).
 
 ## Katkıda bulunma
 

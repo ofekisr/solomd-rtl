@@ -2,7 +2,7 @@
 #
 # build-mcp-sidecar.sh — v2.4
 #
-# Builds the `solomd-mcp` crate (./mcp-server) for the current Rust target
+# Builds the `solomd-mcp` crate (./plugins/solomd-notes/server) for the current Rust target
 # and copies the resulting binary into `app/src-tauri/binaries/` under the
 # Tauri "externalBin" naming convention:
 #
@@ -30,7 +30,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-MCP_CRATE="$REPO_ROOT/mcp-server"
+MCP_CRATE="$REPO_ROOT/plugins/solomd-notes/server"
 OUT_DIR="$REPO_ROOT/app/src-tauri/binaries"
 
 # ---------------------------------------------------------------------------
@@ -47,7 +47,7 @@ if [[ -z "$TARGET" ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Build (release profile from mcp-server/Cargo.toml — opt-level z + LTO).
+# Build (release profile from plugins/solomd-notes/server/Cargo.toml — opt-level z + LTO).
 # ---------------------------------------------------------------------------
 echo "build-mcp-sidecar: building solomd-mcp for $TARGET"
 (

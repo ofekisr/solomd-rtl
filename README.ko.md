@@ -165,7 +165,7 @@ pnpm tauri build    # 릴리스 산출물 → src-tauri/target/release/bundle/
 
 Linux는 키체인 백엔드용으로 `libdbus-1-dev`도 필요.
 
-MCP 서버는 `mcp-server/`의 별도 crate; 엔드투엔드 테스트용 dev MCP harness는 `dev-mcp/`에. 엔드투엔드 테스트 진입점: `scripts/v4-self-test.sh` (`--with-release --with-ollama --with-ui`로 전체 커버리지).
+MCP 서버는 `plugins/solomd-notes/server/`의 별도 crate; 엔드투엔드 테스트용 dev MCP harness는 `dev-mcp/`에. 엔드투엔드 테스트 진입점: `scripts/v4-self-test.sh` (`--with-release --with-ollama --with-ui`로 전체 커버리지).
 
 ## 기여
 
