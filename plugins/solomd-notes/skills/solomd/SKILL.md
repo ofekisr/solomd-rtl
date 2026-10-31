@@ -1,6 +1,6 @@
 ---
 name: solomd
-description: Read, search, edit and version-control a folder of Markdown notes through the solomd-mcp server: 14 tools including per-note AutoGit history, backlinks, tags and share links. Use when the user works with their notes vault, asks to summarise, find TODOs, suggest links or restore an old version of a note.
+description: Read, search, edit and version-control a folder of Markdown notes through the solomd-mcp server: 16 tools including per-note AutoGit history, backlinks, tags and share links. Use when the user works with their notes vault, asks to summarise, find TODOs, suggest links or restore an old version of a note.
 ---
 
 # SoloMD — Markdown vault skill
@@ -31,12 +31,12 @@ The plugin starts `solomd-mcp` from SoloMD.app (`/Applications` or `~/Applicatio
 | Env var | Meaning |
 |---|---|
 | `SOLOMD_WORKSPACE` | Notes folder (required) |
-| `SOLOMD_ALLOW_WRITE=1` | Enable the 3 write tools (read-only otherwise) |
+| `SOLOMD_ALLOW_WRITE=1` | Enable `write_note`, `append_to_note`, `autogit_rollback`, and `export_note` output inside the workspace (read-only otherwise) |
 | `SOLOMD_MCP_BIN` | Explicit path to a `solomd-mcp` binary |
 
 ## Tools available
 
-All exposed via the `` prefix.
+Tool names are bare (no prefix).
 
 ### Read tools (always available)
 
@@ -47,6 +47,8 @@ All exposed via the `` prefix.
 - `get_backlinks(workspace?, note_name)` — every note that
   references `[[<name>]]`.
 - `list_tags(workspace?)` — `#tag` aggregation with counts.
+- `list_tasks(workspace?, done?)` — every `- [ ]` / `- [x]` checkbox with file,
+  1-based line number, done state and text; skips code fences and front matter.
 - `get_outline(workspace?, path)` — H1/H2/H3 structure.
 - `autogit_log(workspace?, path, limit=20)` — per-note commit
   history. Each save in SoloMD is a commit.
@@ -59,8 +61,12 @@ All exposed via the `` prefix.
   public GitHub repo).
 - `read_agent_trace(workspace?, run_id)` — replay a past agent
   recipe run from its `.solomd/agent-runs/<run-id>/trace.jsonl`.
+- `export_note(workspace?, path, format="html"|"md"|"txt"|"docx", output_path?, number_headings?)` —
+  export a note; returns the output path. Needs Node.js. Writing outside the
+  workspace works read-only; an `output_path` (or the default sibling file)
+  inside the workspace needs `SOLOMD_ALLOW_WRITE=1`.
 
-### Write tools (need `--allow-write` on the server)
+### Write tools (need `SOLOMD_ALLOW_WRITE=1`)
 
 - `write_note(workspace?, path, content)` — create or overwrite.
   Returns the diff against any prior version.
@@ -120,7 +126,7 @@ SoloMD's 11 reference agent recipes live in [`app/src-tauri/cookbook/`](https://
   `Edit` is more efficient than going through `read_note` / `write_note`.
 - The vault isn't actually a SoloMD vault and the user doesn't care about
   wikilinks / tags / AutoGit — the 6 SoloMD-only tools become no-ops
-  (still useful for the other 8).
+  (still useful for the other 10).
 
 ## About SoloMD
 

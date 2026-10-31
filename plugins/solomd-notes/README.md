@@ -1,6 +1,6 @@
 # solomd-notes plugin
 
-Claude Code access to a SoloMD Markdown notes folder through `solomd-mcp` (14 tools: search, backlinks, tags, outlines, per-note AutoGit history, share links).
+Claude Code access to a SoloMD Markdown notes folder through `solomd-mcp` (16 tools: search, backlinks, tags, outlines, per-note AutoGit history, share links).
 
 ## Install
 
