@@ -32,6 +32,7 @@ Planned folder, not created yet: `src/ai/` (Wave 4).
 | Types | All of `src/` | `pnpm --dir app exec vue-tsc --noEmit` |
 | e2e | `e2e/` | `pnpm --dir app exec playwright test --config e2e/playwright.config.ts` (macOS) |
 | Arch | `arch/*.test.ts` | `pnpm --dir app arch` |
+| Repo scripts | `../scripts/*/*.test.mjs` | `pnpm --dir app test:scripts` |
 
 Unit tests run with `--experimental-transform-types` and `scripts/node-test-loader.mjs` (extensionless imports resolve to `.ts`; `.vue`/`.css` are stubbed), so `lib/` files no longer need `.ts` added just for tests.
 

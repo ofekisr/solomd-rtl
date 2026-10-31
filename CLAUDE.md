@@ -20,7 +20,7 @@ The exit code is the only signal. Never commit on red.
 
 | Run | Covers | When |
 |---|---|---|
-| `pnpm --dir app guard` | arch specs → unit tests → `vue-tsc` (~12s) | After every edit |
+| `pnpm --dir app guard` | arch specs → unit tests → `scripts/` tests → `vue-tsc` (~12s) | After every edit |
 | `pnpm --dir app verify` | guard → baseline tight → `vite build` → `cargo check` → plugin tests (~1 min) | Before each commit |
 | `pnpm --dir app full` | verify → `cargo test` → Playwright e2e (macOS only) | Before a wave's Integrate gate |
 

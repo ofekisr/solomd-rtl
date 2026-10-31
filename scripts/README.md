@@ -17,16 +17,16 @@ Build, release and dev scripts. Run from the repo root.
 
 | Script | Does | Run by |
 |---|---|---|
-| `build/build-mac.sh` | Signed + notarized macOS `.dmg` | Manual |
-| `build/build-mas.sh` | Mac App Store `.pkg` | Manual |
-| `build/build-ios.sh` | iOS `.ipa` | Manual |
-| `build/build-android.sh` | Android build | `store-submit` skill |
+| `build/build-mac.sh` | Signed + notarized macOS `.dmg` | `pnpm --dir app build:mac` |
+| `build/build-mas.sh` | Mac App Store `.pkg` | `pnpm --dir app build:mas` |
+| `build/build-ios.sh` | iOS `.ipa` | `pnpm --dir app build:ios` |
+| `build/build-android.sh` | Android build | `pnpm --dir app build:android`, `store-submit` skill |
 | `build/ubuntu-build.sh` | Linux build / clean | Manual |
 | `build/build-mcp-sidecar.sh` | `solomd-mcp` sidecar binary | CI (`release.yml`, `linux-2404-test.yml`), Tauri build |
 | `build/fix-appimage-diricon.sh` | Patch AppImage `.DirIcon` | CI |
 | `build/pack_msix.py` | Windows `.msix` | `store-submit` skill |
 | `build/gen-mac-icon.sh` | Regenerate macOS icon | Manual |
-| `release/release.sh` | Bump version, tag, push (triggers CI) | Manual |
+| `release/release.sh` | Bump version, tag, push (triggers CI) | `pnpm --dir app release <version>` |
 | `release/checksums.sh` | Release `SHA256SUMS` | CI (`release.yml`) |
 | `release/upload-release-assets.sh` | Upload files to a GitHub release | Manual |
 | `release/build-mcpb.sh` | MCPB bundle of `solomd-mcp` | Manual |
@@ -36,10 +36,10 @@ Build, release and dev scripts. Run from the repo root.
 | `cli/solomd` | SoloMD CLI | Installed by `install-cli.sh` |
 | `cli/install-cli.sh` | Install the `solomd` CLI | Manual (linked from app help) |
 | `cli/install-mcp.sh` | Install the `solomd-mcp` server | CI (`release.yml`), manual |
-| `test/v4-self-test.sh` | Desktop self-test; runs `v4-ui-smoke.mjs`, `v4-verify-dmg.sh` | Manual |
+| `test/v4-self-test.sh` | Desktop self-test; runs `v4-ui-smoke.mjs`, `v4-verify-dmg.sh` | `pnpm --dir app selftest` |
 | `test/editor-smoke.ps1` | Windows editor smoke test | Manual |
 | `dev/dev-seed.sh` | Seed a dev workspace | `pnpm --dir app dev:seed` |
-| `dev/batch-rename.mjs` | Batch-rename notes (+ `.test.mjs`) | Manual |
+| `dev/batch-rename.mjs` | Batch-rename notes | Manual; its `.test.mjs` runs in `pnpm --dir app guard` |
 
 The app help and website link to `install-cli.sh` / `install-mcp.sh` on upstream (`zhitongblog/solomd`), where they still sit at `scripts/`. Those URLs are left unchanged.
 
