@@ -77,3 +77,6 @@ app/dev-seed/
 app/test-results/
 
 !plugins/solomd-mindmap/server/dist/
+
+# solomd-mindmap edit-lock sidecars (plugins/solomd-mindmap/hooks/ai-lock.mjs)
+.*.ai-lock-*

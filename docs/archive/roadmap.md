@@ -28,13 +28,13 @@ We do **not** ship features piecemeal. Every minor version lands with: bilingual
 
 ### v4.0 quiet phase rules (current)
 
-The project is in **"憋大招" mode** through v4.0 release. Operating rules:
+The project is in **"saving up for a big release" mode** through v4.0 release. Operating rules:
 
 1. `main` is **patch-only** — bug fixes / security / docs / CI only. **No new features merged to main.**
 2. v3.7 / v3.8 are **skipped entirely**. Next minor tag is **v4.0**. Patches continue as v3.6.3 / v3.6.4 / etc. on demand.
 3. v4.0 has **no hard deadline**. Soft target Q3 2026 (Sep). Done = all 5 v4.0 pillars self-tested + bilingual + Tauri release build verified. **Quality gate before timeline.**
-4. **Patches still ship fast** for real bugs — data loss / crash → same-day patch. 憋大招 ≠ ignore bugs.
-5. Public visibility during quiet phase: **monthly dev log** to Telegram / V2EX / WeChat / 小报童; GitHub Discussions tracker for the 5 pillars; visible v3.6.x patches when warranted.
+4. **Patches still ship fast** for real bugs — data loss / crash → same-day patch. Saving up ≠ ignoring bugs.
+5. Public visibility during quiet phase: **monthly dev log** to Telegram / V2EX / WeChat / Xiaobaotong; GitHub Discussions tracker for the 5 pillars; visible v3.6.x patches when warranted.
 
 **Why this phase exists:** the v3.x cadence (5 minor releases in ~2 months: 3.5 / 3.5.5 / 3.6 / 3.6.1 / 3.6.2) over-trained "rapid release" muscle. The user-perceived signal flipped from "new feature" to "instability." v4.0 is the natural pause point — feature surface is already strong; time to bake the next capability wave properly.
 
@@ -126,12 +126,12 @@ UI: collapsible step cards (Panel inline + Settings → Recipes history), step-d
 - **Public REST API** (localhost only, token auth) — same surface as MCP for Alfred / Raycast / n8n / clients that don't speak MCP. ~4 days.
 - **BYOK cost meter** — per-provider running tokens-spent counter, opt-in. ~2 days.
 
-### Quality bar (using freed 憋大招 budget)
+### Quality bar (using the budget freed by the quiet phase)
 
 The "save the announce" arc. New users meet v4.0 through these surfaces, not the pillars directly:
 
 - **First-run wizard** — new install sees Panel within 60s; guides BYOK or Ollama setup. ~3 days.
-- **Recipe Cookbook** — vault ships with 10+ ready-to-edit recipes (weekly review / 日志整理 / TODO 抽取 / 翻译 / 引用清理 / CJK proofread agent / …). ~3 days.
+- **Recipe Cookbook** — vault ships with 10+ ready-to-edit recipes (weekly review / journal tidy-up / TODO extraction / translation / citation cleanup / CJK proofread agent / …). ~3 days.
 - **`docs/guides/agents.md`** — write-your-own-recipe guide + prompt template cheatsheet. ~2 days.
 - **Website rewrite** — `solomd.app` homepage shifts to agent-first narrative + embedded demo video. ~1 week.
 - **2-week beta channel** — v4.0-rc.1 → rc.2 → tag. Telegram + WeChat groups notified. (Process, not engineering time.)
@@ -196,7 +196,7 @@ The "save the announce" arc. New users meet v4.0 through these surfaces, not the
 - App Store presence — MAS resubmission tracking, iPad app metadata localizations (en/zh shipped; **ja/ko slated for v4.0 quality bar**; fr/de queued).
 - Community surfaces — closing 80% of issues within 7 days, PR contributors named in release notes.
 - Comparative `/compare/vs-X` pages on solomd.app — currently: Typora, Obsidian, MarkText, Tolaria. Queued: SiYuan, Moraya, Heynote, AFFiNE.
-- **In quiet phase:** monthly dev log to Telegram / V2EX / 小报童 / WeChat instead of release-driven posts. v3.6.x patches still get short notes.
+- **In quiet phase:** monthly dev log to Telegram / V2EX / Xiaobaotong / WeChat instead of release-driven posts. v3.6.x patches still get short notes.
 - Issue triage: P0 (data loss / crash) within 4h; P1 (broken feature) within 48h; P2 within next minor (= v4.0 in current phase).
 
 ---
@@ -212,7 +212,7 @@ The "save the announce" arc. New users meet v4.0 through these surfaces, not the
 | **Spaced repetition / Anki-style flashcards** | SiYuan + Logseq cover it. Niche. |
 | **Native scripting in Lua / Python** | See v4.x scripting API direction; defer until v3 ⇒ v4 ⇒ v4.x. |
 | **Mobile (Android)** | iPad covers iOS. Android takes a quarter of work for marginal mindshare gain. Reconsider when iPad MAU > 5k. |
-| **Chinese cloud-vendor sync adapters** (阿里云盘, 百度网盘, …) | Folder integration works for any synced folder; no per-vendor adapters. |
+| **Chinese cloud-vendor sync adapters** (Aliyun Drive, Baidu Netdisk, …) | Folder integration works for any synced folder; no per-vendor adapters. |
 | **Bundled local LLM runtime** | Re-implements Ollama. Already supported as BYOK provider. Violates principle #7. |
 | **Multi-user / team agents** | Violates "one window, one writer." |
 | **Online recipe marketplace** | Server ops + moderation = off-mission. |
@@ -231,7 +231,7 @@ The "save the announce" arc. New users meet v4.0 through these surfaces, not the
 - **2026-04-25** — Local RAG promoted to v2.3 hero feature. Largest field-wide gap.
 - **2026-04-25** — v3.0 scoped as "sync optional, paid tier candidate." Decision deferred.
 - **2026-04-26** — v2.4 retitled "Bridge to anywhere"; CLI/MCP first-class added.
-- **2026-04-29** — **v3.x cadence retrospective.** 5 minor releases in ~2 months (3.5 / 3.5.5 / 3.6 / 3.6.1 / 3.6.2) over-trained "rapid release" muscle. User-perceived signal flipped from "new feature" to "instability." Conclusion: project is feature-stable; time to 憋大招.
+- **2026-04-29** — **v3.x cadence retrospective.** 5 minor releases in ~2 months (3.5 / 3.5.5 / 3.6 / 3.6.1 / 3.6.2) over-trained "rapid release" muscle. User-perceived signal flipped from "new feature" to "instability." Conclusion: project is feature-stable; time to save up for a big release.
 - **2026-04-29** — **v4.0 theme: "Agent-native author."** 5 pillars (Panel + Recipes + Trace + Federation + Ollama polish) + REST + cost meter + quality bar. Soft target Q3 2026. ~12 weeks.
 - **2026-04-29** — **Bundled local LLM runtime rejected.** Ollama already in 14-provider list; re-implementing violates principle #7. Pillar 5 reframed as "Ollama first-class polish" (~0.5 weeks instead of 3).
 - **2026-04-29** — **Trace View promoted to its own pillar.** Originally a 2-day "audit log" line item; expanded to ~1 week because without trace visibility, Recipes (pillar 2) become scary writes that users disable. Trace is what makes Recipes safe to ship.
