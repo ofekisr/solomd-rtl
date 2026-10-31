@@ -1,128 +1,126 @@
-# 块级实时预览完整测试
+# Comprehensive Test of Block-Level Real-Time Preview
 
-这份文档专门用来检查 Windows 原生输入框下的块级实时预览。当前正在编辑的块应该保持 Markdown 源码，其他块应该显示为预览效果。
+This document is designed to verify block-level real-time preview within a native Windows input field. The block currently being edited should remain in its raw Markdown source format, while all other blocks should be rendered in a preview state.
 
-## 1. 普通文字和中文输入
+## 1. Plain Text
 
-这一段用于测试连续中文输入、英文输入、数字输入和常见标点：中文，英文, number 12345, symbols ! ? : ; ( ) [ ]。
+This paragraph is used to test continuous English text, numbers, and common punctuation: English text, number 12345, and symbols like ! ? : ; ( ) [ ].
 
-下一段没有复杂语法，主要看实时输入是否顺畅，光标是否稳定，标点是否需要按两次。你可以在这一段末尾继续输入搜狗拼音和微软拼音。
+The following paragraph contains no complex syntax; the focus here is on whether real-time input remains smooth, the cursor stays stable, and punctuation marks can be entered without needing to press the key twice. You may continue typing using input methods like Sogou Pinyin or Microsoft Pinyin at the end of this paragraph.
 
-## 2. 强调和行内代码
+## 2. Emphasis and Inline Code
 
-这是一段包含 **粗体文字**、*斜体文字*、~~删除线~~、`inline code`、[链接](https://example.com) 的普通段落。
+This is a standard paragraph containing **bold text**, *italic text*, ~~strikethrough~~, `inline code`, and a [link](https://example.com).
 
-行内混排测试：中文 **bold** 中文 `code()` 中文 *italic* 中文。
+Testing mixed inline content: Chinese **bold** Chinese `code()` Chinese *italic* Chinese.
 
-## 3. 列表
+## 3. Lists
 
-- 第一项
-- 第二项，包含 **粗体**
-- 第三项，包含 `inline code`
+- First item
+- Second item, including **bold text**
+- Third item, including `inline code`
 
-1. 有序列表第一项
-2. 有序列表第二项
-3. 有序列表第三项
+1. First item in an ordered list
+2. Second item in an ordered list
+3. Third item in an ordered list
 
-## 4. 任务列表
+## 4. Task Lists
 
-- [x] 已完成任务
-- [ ] 未完成任务
-- [ ] 输入法测试任务：在这里输入中文和标点
+- [x] Completed task
+- [ ] Incomplete task
+- [ ] Input method test task: Type Chinese characters and punctuation here
 
-## 5. 引用块
+## 5. Blockquotes
 
-> 这是一段引用内容。
-> 第二行引用应该保持在同一个引用块中。
-> 可以在引用块附近点击切换编辑块。
+> This is a blockquote.
+> The second line of the quote should remain within the same blockquote.
+> You can click near the blockquote to switch the active block for editing. ## 6. Tables
 
-## 6. 表格
-
-| 功能 | 预期结果 | 状态 |
+| Feature | Expected Result | Status |
 | --- | --- | --- |
-| 中文输入 | 候选词正常，提交正常 | 待测 |
-| 标点输入 | 不需要按两次 | 待测 |
-| 图片显示 | 稳定显示 | 待测 |
-| 代码块 | 渲染为代码块 | 待测 |
+| Chinese Input | Candidate suggestions and submission work as expected | Pending |
+| Punctuation Input | No need to press keys twice | Pending |
+| Image Display | Renders stably | Pending |
+| Code Blocks | Renders as a code block | Pending |
 
-## 7. 代码块
+## 7. Code Blocks
 
 ```ts
 type PreviewCase = {
-  title: string;
-  inputMethod: 'sogou' | 'microsoft' | 'english';
-  ok: boolean;
+title: string;
+inputMethod: 'sogou' | 'microsoft' | 'english';
+ok: boolean;
 };
 
 function updatePreview(caseItem: PreviewCase) {
-  return `${caseItem.title}: ${caseItem.ok ? 'ok' : 'fail'}`;
+return `${caseItem.title}: ${caseItem.ok ? 'ok' : 'fail'}`;
 }
 ```
 
 ```python
 def render_block(markdown: str) -> str:
-    """Test fenced code blocks in live preview."""
-    return markdown.strip()
+"""Test fenced code blocks in live preview."""
+return markdown.strip()
 ```
 
-## 8. 本地图片
+## 8. Local Images
 
-下面是一张普通英文文件名的本地 SVG 图片：
+Below is a local SVG image with an English filename:
 
 ![Markdown support test](assets/markdown-support-test.svg)
 
-下面是一张中文文件名的本地 SVG 图片，用来测试路径编码和稳定显示：
+Below is a local SVG image with a Chinese filename, used to test path encoding and stable rendering:
 
-![中文图片](<assets/中文 图片.svg>)
+![Chinese Image](<assets/中文 图片.svg>)
 
-## 9. HTML 和分隔线
+## 9. HTML and Horizontal Rules
 
 <details>
-<summary>展开测试</summary>
+<summary>Expand Test</summary>
 
-这里是 HTML details 内容。
+This is the content within an HTML `<details>` element.
 
 </details>
 
 ---
 
-## 10. 符号密集区
+## 10. Symbol-Dense Area
 
-中文标点：，。、；：“”‘’（）【】《》！？——……￥
+Chinese Punctuation: ，。、；：“”‘’（）【】《》！？ ——……￥
 
-英文标点：, . ; : " ' ( ) [ ] { } < > ! ? - -- ... $ % & @ # ^
+English punctuation: , . ; : " ' ( ) [ ] { } < > ! ? - -- ... $ % & @ # ^
 
-成对符号测试：() [] {} <> "" '' “ ” ‘ ’ ` ` ** ** __ __ ~~ ~~
+Paired symbol test: () [] {} <> "" '' “ ” ‘ ’ ` ` ** ** __ __ ~~ ~~
 
-Markdown 转义测试：\*不是斜体\* \#不是标题 \[不是链接\]\(url\) \`不是代码\`
+Markdown escape test: \*not italics\* \#not a heading \[not a link\]\(url\) \`not code\`
 
-容易误触发 Markdown 的符号：
+Symbols that easily trigger Markdown:
 
-- 星号：* ** ***
-- 下划线：_ __ ___
-- 反引号：` `` ```
-- 波浪线：~ ~~ ~~~
-- 井号：# ## ###
-- 大于号：> >> >>>
-- 竖线：| || |||
+- Asterisks: * ** ***
+- Underscores: _ __ ___
+- Backticks: ` `` ```
+- Tildes: ~ ~~ ~~~
+- Hashes: # ## ###
+- Greater-than signs: > >> >>>
+- Vertical bars: | || |||
 
-数学和单位符号：+ - × ÷ = ≠ ≈ ≤ ≥ ± ∞ √ π ℃ ° % ‰
+Mathematical and unit symbols: + - × ÷ = ≠ ≈ ≤ ≥ ± ∞ √ π ℃ ° % ‰
 
-连续输入测试：，，，，。。。。！！！！？？？？；；；；::::----____****~~~~
+Continuous input test: ，，，，。。。。！！！！？？？？；；；；::::----____****~~~~
 
-## 11. 数学和化学公式
+## 11. Mathematical and Chemical Formulas
 
-行内数学公式：$E = mc^2$，$a^2 + b^2 = c^2$，$\alpha + \beta = \gamma$。
+Inline mathematical formulas: $E = mc^2$, $a^2 + b^2 = c^2$, $\alpha + \beta = \gamma$.
 
-上下标和分数：$x_i^2 = \frac{a+b}{c+d}$，$\sum_{i=1}^{n} i = \frac{n(n+1)}{2}$。
+Subscripts, superscripts, and fractions: $x_i^2 = \frac{a+b}{c+d}$, $\sum_{i=1}^{n} i = \frac{n(n+1)}{2}$.
 
-块级公式：
+Block-level formulas:
 
 $$
 \int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}
 $$
 
-多行对齐公式：
+Multi-line aligned formulas:
 
 $$
 \begin{aligned}
@@ -131,7 +129,7 @@ f'(x) &= 2ax + b
 \end{aligned}
 $$
 
-矩阵公式：
+Matrix formulas:
 
 $$
 \begin{bmatrix}
@@ -145,17 +143,19 @@ y
 =
 \begin{bmatrix}
 1x + 2y \\
-3x + 4y
+3x
+\end{bmatrix}
+$$ + 4y
 \end{bmatrix}
 $$
 
-化学式普通文本：H2O、CO2、NaCl、C6H12O6、Fe2O3。
+Chemical formulas in plain text: H2O, CO2, NaCl, C6H12O6, Fe2O3.
 
-化学式上下标写法：H~2~O、CO~2~、C~6~H~12~O~6~。
+Chemical formulas with subscripts: H~2~O, CO~2~, C~6~H~12~O~6~.
 
-mhchem 风格行内公式：$\ce{H2O}$，$\ce{CO2}$，$\ce{Na+ + Cl- -> NaCl}$。
+Inline formulas using `mhchem` syntax: $\ce{H2O}$, $\ce{CO2}$, $\ce{Na+ + Cl- -> NaCl}$.
 
-mhchem 风格块级反应式：
+Block-level reaction equations using `mhchem` syntax:
 
 $$
 \ce{2H2 + O2 -> 2H2O}
@@ -169,13 +169,13 @@ $$
 \ce{Fe^{3+} + SCN^- <=> FeSCN^{2+}}
 $$
 
-## 12. 连续无空行块测试
-### 这个标题下一行紧接列表
-- 无空行列表第一项
-- 无空行列表第二项
-#### 紧接另一个标题
-这行文字紧接标题，用来测试没有空行时是否还能拆块预览。
+## 12. Test of Consecutive Blocks Without Empty Lines
+### A list follows immediately after this heading
+- First item in a list with no empty lines
+- Second item in a list with no empty lines
+#### Followed immediately by another heading
+This line of text follows the heading directly; it is used to test whether blocks can still be parsed for preview even when there are no empty lines between them.
 
-## 13. 最后输入区
+## 13. Final Input Area
 
-请在这里连续输入中文、英文和标点，观察当前块是否保持编辑状态，其他块是否保持预览状态。
+Please type a mix of Chinese, English, and punctuation here. Observe whether the current block remains in edit mode while other blocks remain in preview mode.
