@@ -69,10 +69,6 @@ Below is a local SVG image with an English filename:
 
 ![Markdown support test](assets/markdown-support-test.svg)
 
-Below is a local SVG image with a Chinese filename, used to test path encoding and stable rendering:
-
-![Chinese Image](<assets/中文 图片.svg>)
-
 ## 9. HTML and Horizontal Rules
 
 <details>

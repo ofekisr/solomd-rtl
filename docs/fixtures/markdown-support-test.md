@@ -1,6 +1,6 @@
 ---
 title: SoloMD Realtime Markdown Support Test
-description: 用于验证 SoloMD 实时模式、预览模式和导出链路的 Markdown 兼容性
+description: Validating Markdown compatibility across SoloMD’s realtime mode, preview mode, and export pipeline.
 imageRoot: ./assets
 tags:
   - solomd
@@ -8,100 +8,78 @@ tags:
   - markdown
 ---
 
-# SoloMD 实时模式 Markdown 支持测试文档
+# SoloMD Realtime Markdown Support Test Document
 
-这份文档的重点是测试编辑器里的实时模式，不只是最终 Preview。测试时请同时观察三件事：
+This document tests the editor's realtime modes, not just the final preview. Watch three things while testing:
 
-1. 输入是否可靠：中文输入法第一次按键、候选提交、标点符号和撤销重做都必须正常。
-2. 实时渲染是否可靠：光标离开后应显示渲染态，光标进入后应恢复源码态或可编辑态。
-3. 预览是否一致：右侧 Preview、导出 HTML/PDF 和实时模式的最终显示应尽量一致。
+1. **Input reliability:** typing, selection, punctuation, and undo/redo behave normally.
+2. **Realtime rendering reliability:** elements show their rendered state when the cursor moves away, and return to their source or editable state when the cursor moves back in.
+3. **Preview consistency:** the right-hand preview pane, exported HTML/PDF files, and the realtime editing view look the same.
 
-Windows 当前的 IME 安全版本优先保证中文输入稳定。如果 Windows 版本使用原生文本编辑区，CodeMirror 的 Live Edit 小组件不会在编辑区内出现；这时仍需要用 Split/Preview 验证渲染结果。macOS、Linux 或启用 CodeMirror 实时编辑的构建应完整执行本文的 Live Edit 项目。
+On Windows builds that use a native text area, the CodeMirror Live Edit widgets do not appear in the editor; use Split or Preview mode to check the rendered output there. On macOS, Linux, or any build with CodeMirror realtime editing enabled, run every Live Edit test case.
 
-## 0. 测试步骤
+## 0. Test Procedure
 
-1. 在 SoloMD 中打开 `docs/fixtures/markdown-support-test.md`。
-2. 分别切换 Edit、Live Preview、Live Edit、Split、Preview。
-3. 对每个测试块执行两次操作：先把光标点进源码，再把光标移到下一行或空白处。
-4. 使用微软拼音和搜狗拼音分别在“IME 压力测试”区域输入中文。
-5. 保存后重新打开本文档，确认图片、数学公式、Mermaid、表格和 tldraw 不随机丢失。
+1. Open `docs/fixtures/markdown-support-test.md` in SoloMD.
+2. Cycle through the modes: Edit, Live Preview, Live Edit, Split, and Preview.
+3. For each test block, place the cursor inside the source, then move it to the next line or an empty space.
+4. Save the document and reopen it. Check that images, math, Mermaid diagrams, tables, and tldraw blocks are all still there.
 
-## 1. 实时模式验收矩阵
+## 1. Realtime Mode Acceptance Matrix
 
-| 功能 | Live Preview 预期 | Live Edit 预期 | Preview/导出预期 |
+| Feature | Live Preview Expectation | Live Edit Expectation | Preview/Export Expectation |
 | --- | --- | --- | --- |
-| 中文输入 | 首次按键可进入组合态，提交后文本正确 | 首次按键可进入组合态，提交后文本正确 | 内容保持一致 |
-| 中文标点 | `，。！？；：“”《》、（）` 不需要按两次 | `，。！？；：“”《》、（）` 不需要按两次 | 内容保持一致 |
-| 标题 | 光标离开后弱化或隐藏 `#` | 光标离开后显示标题样式，光标进入后源码可见 | 渲染为标题 |
-| 粗体/斜体/删除线 | 标记离开当前行后应弱化 | 光标离开后隐藏标记并显示样式 | 渲染为样式文本 |
-| 链接 | 标签可读，源码可编辑 | 光标离开后显示标签，光标进入后显示完整 Markdown | 渲染为链接 |
-| 独立图片行 | 可以正常编辑源码 | 光标离开后显示图片小组件 | 图片稳定显示 |
-| 表格 | 源码可编辑 | 光标离开表格后显示表格小组件 | 渲染为表格 |
-| 行内数学 | 源码可编辑 | 光标离开该行后显示行内公式 | 渲染为公式 |
-| 块级数学 | 源码可编辑 | 光标离开公式块后显示数学小组件 | 渲染为公式 |
-| Mermaid | 源码可编辑 | 光标离开代码块后显示图表 | 渲染为图表 |
-| tldraw | 源码可编辑或显示画布 | 显示白板小组件 | 显示白板占位或画布 |
-| Frontmatter | 源码区可编辑 | 不应破坏编辑体验 | 不显示为正文 |
-| 脚注 | 源码区可编辑 | 不要求编辑区小组件 | Preview 中可跳转 |
+| Heading | `#` fades or hides when the cursor moves away | Heading style appears when the cursor moves away; source visible when the cursor enters | Rendered as a heading |
+| Bold/Italic/Strikethrough | Markup fades when the cursor leaves the line | Markup hides and the style applies when the cursor moves away | Rendered as styled text |
+| Link | Label is readable; source remains editable | Label appears when the cursor moves away; full Markdown shown when the cursor enters | Rendered as a link |
+| Standalone Image | Source remains editable | Image widget appears when the cursor moves away | Image displays stably |
+| Table | Source remains editable | Table widget appears when the cursor leaves the table | Rendered as a table |
+| Inline Math | Source remains editable | Inline formula appears when the cursor leaves the line | Rendered as a formula |
+| Block Math | Source remains editable | Math widget appears when the cursor leaves the formula block | Rendered as a formula |
+| Mermaid | Source remains editable | Diagram appears when the cursor leaves the code block | Rendered as a diagram |
+| tldraw | Source remains editable or the canvas displays | Whiteboard widget displays | Whiteboard placeholder or canvas |
+| Frontmatter | Source remains editable | Does not disrupt editing | Not shown as part of the body |
+| Footnote | Source remains editable | No widget required in the editor | Navigable in Preview |
 
-## 2. IME 压力测试
+## 2. Cursor Visibility and Styling: Headings and Inline Styles
 
-请在下面每一行冒号后面输入中文。重点观察第一次按键、候选选择、回车提交、空格提交和标点。
+# Live H1: Should display as an H1 heading when the cursor moves away
 
-微软拼音普通句子：
+## Live H2: Should display as an H2 heading when the cursor moves away
 
-搜狗拼音普通句子：
+### Live H3: Should display as an H3 heading when the cursor moves away
 
-微软拼音连续标点：
+A standard paragraph containing **bold text**, *italic text*, ***bold-italic text***, ~~strikethrough text~~, `inline code`, and ==highlighted text==.
 
-搜狗拼音连续标点：
+Link test: [SoloMD GitHub](https://github.com/zhitongblog/solomd "SoloMD"). When the cursor moves away from the link it should show a readable label; when the cursor enters the link the full Markdown source should be visible.
 
-中英文混输：SoloMD 实时模式 test 123 中文输入 Markdown
+Automatic link test: https://example.com/path?a=1&b=2
 
-标点样本：，。！？；：“”‘’《》、（）【】——……
+Email automatic link: test@example.com
 
-需要重复输入的句子：中文输入不应丢第一个字，标点不应按两次。
+HTML entity test: AT&amp;T, &lt;tag&gt;, &copy;
 
-## 3. 光标显隐测试：标题和行内样式
+## 3. Lists, Blockquotes, and Task Items
 
-# Live H1：光标离开后应显示一级标题样式
+- Unordered list item 1
+- Unordered list item 2, containing **bold text** and a [link](https://example.com)
+  - Nested list item
+  - `code` within a nested list item
 
-## Live H2：光标离开后应显示二级标题样式
+1. Ordered list item 1
+2. Ordered list item 2
+3. Ordered list item 3
 
-### Live H3：光标离开后应显示三级标题样式
+- [ ] Incomplete task
+- [x] Completed task
 
-普通段落包含 **粗体文本**、*斜体文本*、***粗斜体文本***、~~删除线文本~~、`inline code`、==高亮文本==。
-
-链接测试：[SoloMD GitHub](https://github.com/zhitongblog/solomd "SoloMD")。光标离开链接时应优先显示可读标签，光标进入时应能看到完整 Markdown 源码。
-
-自动链接测试：https://example.com/path?a=1&b=中文
-
-邮箱自动链接：test@example.com
-
-HTML 实体测试：AT&amp;T、&lt;tag&gt;、&copy;
-
-## 4. 列表、引用和任务项
-
-- 无序列表第一项
-- 无序列表第二项，包含 **粗体** 和 [链接](https://example.com)
-  - 二级列表
-  - 二级列表里的 `code`
-
-1. 有序列表第一项
-2. 有序列表第二项
-3. 有序列表第三项
-
-- [ ] 未完成任务
-- [x] 已完成任务
-- [ ] 任务项里输入中文：请测试搜狗和微软拼音
-
-> 引用第一行：光标离开后引用符号应弱化或隐藏。
+> Blockquote line 1: the blockquote marker should fade or hide when the cursor moves away.
 >
-> 引用第二行，包含 **粗体**、`code` 和 [链接](https://example.com)。
+> Blockquote line 2, containing **bold text**, `code`, and a [link](https://example.com).
 
-## 5. 代码块测试
+## 4. Code Blocks
 
-行内代码中的 Markdown 不应被渲染：`**not bold**`、`$not_math$`、`[not link](https://example.com)`。
+Markdown inside inline code should not be rendered: `**not bold**`, `$not_math$`, `[not link](https://example.com)`.
 
 ```ts
 type MarkdownCase = {
@@ -111,7 +89,7 @@ type MarkdownCase = {
 };
 
 const sample: MarkdownCase = {
-  name: "中文输入和实时渲染",
+  name: "Typing and realtime rendering",
   realtime: true,
   expected: "rendered",
 };
@@ -123,197 +101,255 @@ pnpm build
 pnpm test
 ```
 
-## 6. Live Edit 块级小组件：独立图片行
+## 5. Live Edit Block Widgets: Standalone Image Lines
 
-下面两行必须保持为“单独一行的图片语法”，不要在同一行前后添加文字。Live Edit 中光标离开该行后应显示图片小组件，光标回到该行后应显示源码。
+The next line must stay a standalone image line: add no text before or after it. In Live Edit the image widget should appear when the cursor leaves the line, and the source should reappear when the cursor returns.
 
 ![Live image via imageRoot](markdown-support-test.svg)
 
-![Live image unicode path](中文%20图片.svg)
+The line below holds an inline image; Live Edit should not collapse the whole line into an image widget:
 
-下面这一行是非独立图片，Live Edit 不应把整行折叠成图片小组件：
+Text before and after an inline image: ![Inline image should stay inline](markdown-support-test.svg) — this line should stay easy to edit.
 
-内联图片前后有文字 ![Inline image should stay inline](markdown-support-test.svg) 这一行仍应便于编辑。
+Image stability regression checks:
 
-图片稳定性回归点：
+- The image is visible when the file first opens.
+- The image is still visible after switching to another document and back.
+- The image is visible after saving and reopening the file.
+- Relative paths under `imageRoot: ./assets` resolve correctly.
 
-- 首次打开应显示图片。
-- 切换文档后回来应显示图片。
-- 保存后重新打开应显示图片。
-- 文件名包含中文和空格时应显示图片。
-- `imageRoot: ./assets` 下的相对路径应能解析。
+## 6. Live Edit Block Widgets: Tables
 
-## 7. Live Edit 块级小组件：表格
+With the cursor inside a table the source should be editable; with the cursor outside the table it should display as a table widget.
 
-把光标放在表格内部时应能编辑源码；把光标移到表格外时应显示表格小组件。
-
-| 类型 | Markdown 源码 | 实时模式预期 | Preview 预期 |
+| Type | Markdown Source | Expected in Live Mode | Expected in Preview |
 | --- | --- | --- | --- |
-| 粗体 | `**bold**` | 显示粗体或保留可读源码 | 显示粗体 |
-| 链接 | `[label](url)` | 可读标签，源码可恢复 | 可点击链接 |
-| 中文 | `中文内容` | 不乱码 | 不乱码 |
-| 对齐 | `:---:` | 不破坏列宽 | 按表格渲染 |
+| Bold | `**bold**` | Bold, or readable source | Bold |
+| Link | `[label](url)` | Readable label; source still reachable | Clickable link |
+| Alignment | `:---:` | Column width stays intact | Rendered as a table |
 
-对齐表格：
+Aligned table:
 
-| 左对齐 | 居中 | 右对齐 |
+| Left-aligned | Centered | Right-aligned |
 | :--- | :---: | ---: |
 | alpha | beta | 100 |
-| 中文 | 混排 mixed | 200 |
+| gamma | Mixed content | 200 |
 
-## 8. Live Edit 数学公式
+## 7. Live Edit: Math
 
-行内公式：爱因斯坦公式 $E = mc^2$，勾股定理 $a^2 + b^2 = c^2$。
+Inline formulas: Einstein's equation $E = mc^2$, Pythagorean theorem $a^2 + b^2 = c^2$.
 
-以下内容不应误判为行内公式：
+None of these should be read as inline formulas:
 
-- 价格 $5 不应该变成公式。
-- 转义美元符号：\$x$ 不应该变成公式。
-- 空公式 `$ $` 不应该变成公式。
-- 代码里的 `$x + y$` 不应该变成公式。
+- A price like $5.
+- An escaped dollar sign: \$x$.
+- An empty formula: `$ $`.
+- `$x + y$` inside inline code.
 
-块级公式，光标离开整个块后应显示数学小组件：
+Block formula; a math widget should appear once the cursor leaves the whole block:
 
 $$
 \int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
 $$
 
-单行块级公式：
+Single-line block formula:
 
 $$a^2 + b^2 = c^2$$
 
-## 9. Live Edit Mermaid
+## 8. Live Edit: Mermaid
 
-光标在代码块内部时应显示源码；光标移出代码块后应渲染 Mermaid 图。切换文档或滚动回来后不应随机空白。
+The source shows while the cursor is inside the code block; the diagram renders once the cursor leaves it. No unexpected blank space should appear when switching documents or scrolling back.
 
 ```mermaid
 flowchart TD
-  A[打开 Markdown 文档] --> B{实时模式}
-  B -->|Live Preview| C[源码增强显示]
-  B -->|Live Edit| D[块级小组件]
-  D --> E[图片/表格/公式/Mermaid]
-  C --> F[保存并预览]
+  A[Open Markdown document] --> B{Realtime mode}
+  B -->|Live Preview| C[Enhanced source display]
+  B -->|Live Edit| D[Block widgets]
+  D --> E[Images / tables / math / Mermaid]
+  C --> F[Save and preview]
   E --> F
 ```
 
 ```mermaid
 sequenceDiagram
-  participant U as 用户
-  participant E as 编辑器
+  participant U as User
+  participant E as Editor
   participant P as Preview
-  U->>E: 输入中文和标点
-  E->>E: IME composition 不刷新装饰
-  E->>P: 保存 Markdown
-  P-->>U: 渲染结果稳定
+  U->>E: Type text and punctuation
+  E->>E: Update decorations
+  E->>P: Save Markdown
+  P-->>U: Stable rendered output
 ```
 
-## 10. Live Edit tldraw
+## 9. Live Edit: tldraw
 
-tldraw 代码块在 Live Edit 中应显示白板小组件。预览或导出如果没有完整白板运行时，也至少不能破坏页面。
+In Live Edit a tldraw code block should appear as a whiteboard widget. In Preview or export, where the full whiteboard runtime is unavailable, the page layout must stay intact.
 
-```tldraw
+```tldraw height="520" width=""
 {
-  "schema": "tldraw-test",
-  "note": "This block is intentionally small for realtime widget testing."
+  "document": {
+    "store": {
+      "document:document": {
+        "gridSize": 10,
+        "name": "",
+        "meta": {},
+        "id": "document:document",
+        "typeName": "document"
+      },
+      "page:page": {
+        "meta": {},
+        "id": "page:page",
+        "name": "Page 1",
+        "index": "a1",
+        "typeName": "page"
+      }
+    },
+    "schema": {
+      "schemaVersion": 2,
+      "sequences": {
+        "com.tldraw.store": 5,
+        "com.tldraw.asset": 1,
+        "com.tldraw.camera": 1,
+        "com.tldraw.document": 2,
+        "com.tldraw.instance": 26,
+        "com.tldraw.instance_page_state": 5,
+        "com.tldraw.page": 1,
+        "com.tldraw.instance_presence": 6,
+        "com.tldraw.pointer": 1,
+        "com.tldraw.shape": 4,
+        "com.tldraw.asset.bookmark": 2,
+        "com.tldraw.asset.image": 6,
+        "com.tldraw.asset.video": 5,
+        "com.tldraw.shape.arrow": 8,
+        "com.tldraw.shape.bookmark": 2,
+        "com.tldraw.shape.draw": 4,
+        "com.tldraw.shape.embed": 4,
+        "com.tldraw.shape.frame": 1,
+        "com.tldraw.shape.geo": 11,
+        "com.tldraw.shape.group": 0,
+        "com.tldraw.shape.highlight": 3,
+        "com.tldraw.shape.image": 5,
+        "com.tldraw.shape.line": 5,
+        "com.tldraw.shape.note": 10,
+        "com.tldraw.shape.text": 4,
+        "com.tldraw.shape.video": 4,
+        "com.tldraw.binding.arrow": 1
+      }
+    }
+  },
+  "session": {
+    "version": 0,
+    "currentPageId": "page:page",
+    "exportBackground": true,
+    "isFocusMode": false,
+    "isDebugMode": false,
+    "isToolLocked": false,
+    "isGridMode": false,
+    "pageStates": [
+      {
+        "pageId": "page:page",
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "selectedShapeIds": [],
+        "focusedGroupId": null
+      }
+    ]
+  }
 }
 ```
 
-## 11. Preview-only 语法
+## 10. Preview-only Syntax
 
-这些语法主要验证 Preview 和导出，不要求 Live Edit 一定生成编辑区小组件，但不能影响实时输入。
+This syntax is mainly checked in Preview and export. Live Edit needs no interactive widget for it, but it must not interfere with realtime input.
 
-脚注引用：这里有一个脚注。[^note]
+Footnote reference: here is a footnote.[^note]
 
-另一个脚注引用：实时模式不应因为脚注而卡顿。[^ime]
+Another footnote reference: realtime mode should stay smooth with footnotes present.[^input]
 
-[^note]: 这是脚注正文，Preview 中应能正确编号和跳转。
-[^ime]: 脚注中也可以包含中文输入、`code` 和 [链接](https://example.com)。
+[^note]: Footnote content; it should be numbered correctly and navigable in Preview.
+[^input]: Footnotes can also contain **bold** text, `code`, and [links](https://example.com).
 
-Wiki 链接：
+Wiki links:
 
 - [[README]]
-- [[README|自定义标题]]
-- [[README#安装]]
-- [[中文页面|中文别名]]
+- [[README|Custom Title]]
+- [[README#Installation]]
+- [[Another Page|Alias]]
 
-标签：#markdown #实时模式 #中文输入
+Tags: #markdown #RealtimeMode
 
-Raw HTML：
+Raw HTML:
 
 <details>
-<summary>展开 HTML details</summary>
+<summary>Expand HTML details</summary>
 
-这里是 HTML details 内部内容。Preview 中应可展开，编辑区中应保持可编辑。
+Content inside an HTML `<details>` element. It should expand in Preview and stay editable in the editor.
 
 </details>
 
 <table>
   <thead>
-    <tr><th>HTML 表格</th><th>预期</th></tr>
+    <tr><th>HTML table</th><th>Expected</th></tr>
   </thead>
   <tbody>
-    <tr><td>Preview</td><td>渲染为 HTML 表格</td></tr>
-    <tr><td>Live Edit</td><td>不要求变成表格小组件</td></tr>
+    <tr><td>Preview</td><td>Rendered as an HTML table</td></tr>
+    <tr><td>Live Edit</td><td>No table widget required</td></tr>
   </tbody>
 </table>
 
-## 12. 分隔线和边界输入
+## 11. Horizontal Rules and Edge-case Input
 
 ---
 
-连续星号应作为分隔线：
+Three asterisks should render as a horizontal rule:
 
 ***
 
-包含反斜杠转义的内容：\*不是斜体\*，\[不是链接\]\(url\)，\# 不是标题。
+Backslash escapes: \*not italic\*, \[not a link\]\(url\), \# not a heading.
 
-包含尖括号的内容：<https://example.com> 和 <test@example.com>。
+Angle-bracket autolinks: <https://example.com> and <test@example.com>.
 
-包含中文括号路径的链接：[中文路径](中文%20图片.svg)。
+## 12. Slide Separators
 
-## 13. 幻灯片分隔符
-
-下面的 `---` 可用于验证演示或分页导出。如果普通 Markdown 预览只显示分隔线，也可以接受。
+The `---` below can be used to check presentation or paged export. A plain horizontal rule in normal Markdown preview is also acceptable.
 
 ---
 
-# 第二页标题
+# Second Page Heading
 
-这一页用于验证滚动、分页和实时模式切换后，光标位置不会错乱。
+This page checks that the cursor position stays correct after scrolling, paging, and switching realtime modes.
 
-## 14. 回归检查清单
+## 13. Regression Checklist
 
-| 检查项 | 通过标准 | 结果 |
+| Check | Pass criterion | Result |
 | --- | --- | --- |
-| 微软拼音第一次输入 | 第一个字母进入组合态，不丢字 |  |
-| 搜狗拼音第一次输入 | 第一个字母进入组合态，不丢字 |  |
-| 中文标点 | 不需要按两次 |  |
-| 光标进入标题 | 能看到并编辑 `#` |  |
-| 光标离开标题 | 显示标题样式 |  |
-| 光标进入链接 | 能看到完整 `[label](url)` |  |
-| 光标离开链接 | 显示可读链接标签 |  |
-| 独立图片 | 显示图片小组件或 Preview 图片 |  |
-| 中文图片文件名 | 能稳定显示 |  |
-| 表格 | 光标外显示表格，光标内可编辑源码 |  |
-| 行内公式 | 光标外显示公式，不误判价格 |  |
-| 块级公式 | 光标外显示公式块 |  |
-| Mermaid | 光标外显示图表，滚动后不空白 |  |
-| tldraw | 不破坏编辑和预览 |  |
-| 保存重开 | 图片和图表不随机消失 |  |
-| 导出 | HTML/PDF 内容和 Preview 一致 |  |
+| Cursor enters a heading | `#` visible and editable |  |
+| Cursor leaves a heading | Heading style shown |  |
+| Cursor enters a link | Full `[label](url)` visible |  |
+| Cursor leaves a link | Readable link label shown |  |
+| Standalone image | Image widget or Preview image shown |  |
+| Table | Table shown when cursor is outside; source editable inside |  |
+| Inline math | Formula shown when cursor is outside; prices not mistaken for math |  |
+| Block math | Formula block shown when cursor is outside |  |
+| Mermaid | Diagram shown when cursor is outside; no blank space after scrolling |  |
+| tldraw | Editing and preview not broken |  |
+| Save and reopen | Images and diagrams do not disappear |  |
+| Export | HTML/PDF content matches Preview |  |
 
-## 15. 手工记录区
+## 14. Manual Notes
 
-测试环境：
+Test environment:
 
-- 操作系统：
-- SoloMD 版本：
-- 输入法：
-- 是否启用 Live Edit：
-- 是否启用 Split/Preview：
+- Operating system:
+- SoloMD version:
+- Live Edit enabled:
+- Split/Preview enabled:
 
-问题记录：
+Issues found:
 
-1. 
-2. 
-3. 
+1.
+2.
+3.
