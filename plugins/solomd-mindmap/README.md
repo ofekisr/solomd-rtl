@@ -4,13 +4,24 @@ Claude Code tools for SoloMD `.mmap` mind maps. Read and edit maps, bind session
 
 ## Install
 
+Marketplace (needs Node ≥ 20 only):
+
+```
+/plugin marketplace add ofekisr/solomd-rtl
+/plugin install solomd-mindmap@solomd-rtl
+```
+
+Dev install from a checkout:
+
 ```bash
 pnpm --dir app install
 pnpm --dir plugins/solomd-mindmap/server install
 claude --plugin-dir ./plugins/solomd-mindmap
 ```
 
-Requires Node ≥ 22.18. The workspace is the folder you start `claude` in, like opening a folder in VS Code.
+After editing `server/src` or `app/src/lib/mindmap/`, run `pnpm --dir plugins/solomd-mindmap/server build` — `verify` fails on a stale bundle.
+
+The workspace is the folder you start `claude` in, like opening a folder in VS Code.
 
 ## Configuration
 

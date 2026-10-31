@@ -8,7 +8,9 @@
   "scripts": {
     "start": "node src/index.ts",
     "test": "node --test --experimental-strip-types test/*.test.ts ../hooks/*.test.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build": "node build.mjs",
+    "check": "node build.mjs --check"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.3.1",

@@ -75,3 +75,5 @@ app/dev-seed/
 
 # Playwright run output
 app/test-results/
+
+!plugins/solomd-mindmap/server/dist/
