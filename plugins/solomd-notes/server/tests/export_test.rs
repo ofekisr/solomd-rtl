@@ -22,13 +22,12 @@ fn binary_path() -> PathBuf {
 }
 
 /// Locate `app/scripts/solomd-export.mjs` from the test process's cwd
-/// (which cargo sets to the crate dir, i.e. `mcp-server/`). Walk up to
-/// the repo root.
+/// (which cargo sets to the crate dir, i.e.
+/// `plugins/solomd-notes/server/`). Walk up to the repo root.
 fn find_export_script() -> Option<PathBuf> {
     let crate_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let candidates = [
-        crate_dir.join("../app/scripts/solomd-export.mjs"),
-        crate_dir.join("../../app/scripts/solomd-export.mjs"),
+        crate_dir.join("../../../app/scripts/solomd-export.mjs"),
     ];
     for c in &candidates {
         if c.is_file() {

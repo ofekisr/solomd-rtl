@@ -1432,7 +1432,7 @@ fn urlencode(s: &str) -> String {
 /// Search order:
 ///   1. `$SOLOMD_EXPORT_SCRIPT` env var (explicit override).
 ///   2. `<exe-dir>/../app/scripts/solomd-export.mjs` (running from the
-///      SoloMD repo's release build, e.g. `mcp-server/target/release/`).
+///      SoloMD repo's release build, e.g. `plugins/solomd-notes/server/target/release/`).
 ///   3. `<exe-dir>/../../app/scripts/solomd-export.mjs` (running from a
 ///      monorepo dev build).
 ///   4. `<cwd>/app/scripts/solomd-export.mjs` (running from repo root).
@@ -1450,11 +1450,13 @@ fn find_export_script() -> Result<PathBuf, String> {
         if let Some(parent) = exe.parent() {
             candidates.push(parent.join("../app/scripts/solomd-export.mjs"));
             candidates.push(parent.join("../../app/scripts/solomd-export.mjs"));
+            candidates.push(parent.join("../../../../../app/scripts/solomd-export.mjs"));
         }
     }
     if let Ok(cwd) = std::env::current_dir() {
         candidates.push(cwd.join("app/scripts/solomd-export.mjs"));
         candidates.push(cwd.join("../app/scripts/solomd-export.mjs"));
+        candidates.push(cwd.join("../../../app/scripts/solomd-export.mjs"));
     }
     if let Some(home) = std::env::var_os("HOME") {
         candidates.push(PathBuf::from(home).join(".solomd/solomd-export.mjs"));
