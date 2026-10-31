@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "solomd": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/bin/solomd-mcp"
+    }
+  }
+}

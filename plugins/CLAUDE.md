@@ -5,6 +5,7 @@ Claude Code plugins this repo exposes. Each plugin owns its skill, hooks and ser
 | Plugin | Server | Listed in marketplace |
 |---|---|---|
 | `solomd-mindmap/` | `server/` — TS, imports `app/src/lib/mindmap/` | Yes |
+| `solomd-notes/` | `server/` — Rust `solomd-mcp`; runs the binary from SoloMD.app via `bin/solomd-mcp` | Yes |
 
 ## Rules
 
@@ -19,3 +20,5 @@ Claude Code plugins this repo exposes. Each plugin owns its skill, hooks and ser
 | `pnpm --dir plugins/solomd-mindmap/server test` | server unit tests + hook tests + bundle smoke test |
 | `pnpm --dir plugins/solomd-mindmap/server build` | regenerate `dist/index.mjs` |
 | `pnpm --dir plugins/solomd-mindmap/server check` | exit 1 if the bundle is stale (gated in `verify`) |
+| `node --test plugins/solomd-notes/test/*.test.mjs` | launcher tests (gated in `verify`) |
+| `cargo test --manifest-path plugins/solomd-notes/server/Cargo.toml` | `solomd-mcp` crate tests |

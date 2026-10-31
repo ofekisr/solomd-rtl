@@ -1,0 +1,5 @@
+{
+  "name": "solomd-notes",
+  "version": "0.1.0",
+  "description": "Search, read and version a SoloMD Markdown notes folder via solomd-mcp"
+}
