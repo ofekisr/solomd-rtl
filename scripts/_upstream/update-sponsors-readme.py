@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Regenerate the sponsor section of README.md.
 
-    python3 scripts/update-sponsors-readme.py
+    python3 scripts/_upstream/update-sponsors-readme.py
 
 The list lives in marketing/web/public/sponsors.json (nicknames, added with consent).
 The website builds from it and the app's About dialog fetches it from
@@ -10,7 +10,7 @@ solomd.app, so after editing the JSON the only other step is this script.
 import json
 import pathlib
 
-root = pathlib.Path(__file__).resolve().parent.parent
+root = pathlib.Path(__file__).resolve().parents[2]
 names = [s["name"] for s in json.loads((root / "marketing/web/public/sponsors.json").read_text())["sponsors"]]
 
 TEXT = {

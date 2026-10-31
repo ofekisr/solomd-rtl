@@ -5,10 +5,10 @@
 # into a single zip that any solomd-mcp client can drop straight into
 # `<workspace>/.solomd/agents/` to get the cookbook live.
 #
-# Run from repo root:  ./scripts/build-skill-pack.sh
+# Run from repo root:  ./scripts/_upstream/build-skill-pack.sh
 # Output:              dist/solomd-skills-v<version>.zip
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 VERSION=$(node -p "require('./app/package.json').version")
 SRC=app/src-tauri/cookbook

@@ -1,4 +1,36 @@
-# Release scripts
+# Scripts
+
+Build, release and dev scripts. Run from the repo root.
+
+## Index
+
+| Script | Does | Run by |
+|---|---|---|
+| `build-mac.sh` | Signed + notarized macOS `.dmg` | Manual |
+| `build-mas.sh` | Mac App Store `.pkg` | Manual |
+| `build-ios.sh` | iOS `.ipa` | Manual |
+| `build-android.sh` | Android build | `store-submit` skill |
+| `ubuntu-build.sh` | Linux build / clean | Manual |
+| `build-mcp-sidecar.sh` | `solomd-mcp` sidecar binary | CI (`release.yml`, `linux-2404-test.yml`), Tauri build |
+| `fix-appimage-diricon.sh` | Patch AppImage `.DirIcon` | CI |
+| `pack_msix.py` | Windows `.msix` | `store-submit` skill |
+| `gen-mac-icon.sh` | Regenerate macOS icon | Manual |
+| `release.sh` | Bump version, tag, push (triggers CI) | Manual |
+| `checksums.sh` | Release `SHA256SUMS` | CI (`release.yml`) |
+| `upload-release-assets.sh` | Upload files to a GitHub release | Manual |
+| `build-mcpb.sh` | MCPB bundle of `solomd-mcp` | Manual |
+| `publish-mcp-crate.sh` | Publish `solomd-mcp` to crates.io | Manual |
+| `submit-for-review.sh` | Submit an App Store build for review | `store-submit` skill |
+| `submit-ios.sh` / `submit-mas.sh` | Upload a build to App Store Connect | `submit-for-review.sh`, manual |
+| `solomd` | SoloMD CLI | Installed by `install-cli.sh` |
+| `install-cli.sh` | Install the `solomd` CLI | Manual (linked from app help) |
+| `install-mcp.sh` | Install the `solomd-mcp` server | CI (`release.yml`), manual |
+| `v4-self-test.sh` | Desktop self-test; runs `v4-ui-smoke.mjs`, `v4-verify-dmg.sh` | Manual |
+| `dev-seed.sh` | Seed a dev workspace | `pnpm --dir app dev:seed` |
+| `batch-rename.mjs` | Batch-rename notes (+ `.test.mjs`) | Manual |
+| `dev/editor-smoke.ps1` | Windows editor smoke test | Manual |
+| `lib/` | Shared helpers (App Store Connect API, nupkg, iOS overlay) | Other scripts |
+| `_upstream/` | Upstream SoloMD only: Gitee sync, sponsors, package managers, skill pack, settings CLI, v2.5 self-test. Not maintained here. | Manual |
 
 ## TL;DR
 

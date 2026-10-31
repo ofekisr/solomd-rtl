@@ -12,7 +12,7 @@
 #     - Local Mac: pushes a copy to Gitee for CN download speed
 #
 # Usage:
-#   ./scripts/release-to-gitee.sh v3.6.2
+#   ./scripts/_upstream/release-to-gitee.sh v3.6.2
 #
 # Requires:
 #   - `gh` CLI authenticated to the GitHub repo
@@ -30,7 +30,7 @@ fi
 TAG="$1"
 
 # Load secrets from .env.local if present.
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 if [ -f "$ROOT/.env.local" ]; then
   set -a
   # shellcheck disable=SC1091

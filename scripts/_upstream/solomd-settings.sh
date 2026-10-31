@@ -4,8 +4,8 @@
 #   solomd-settings.sh [--bundle dev|prod] get
 #   solomd-settings.sh [--bundle dev|prod] set <key> <jsonValue>
 # Examples:
-#   ./scripts/solomd-settings.sh get
-#   ./scripts/solomd-settings.sh --bundle dev set autoGitEnabled true
+#   ./scripts/_upstream/solomd-settings.sh get
+#   ./scripts/_upstream/solomd-settings.sh --bundle dev set autoGitEnabled true
 #
 # Tauri uses two distinct WKWebView data stores keyed by bundle id:
 #   - prod  → ~/Library/WebKit/app.solomd/  (the installed dmg)

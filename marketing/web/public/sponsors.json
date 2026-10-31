@@ -1,5 +1,5 @@
 {
-  "note": "Nicknames only, added with the sponsor's consent. The website, the README (scripts/update-sponsors-readme.py) and the app's About dialog all read this file.",
+  "note": "Nicknames only, added with the sponsor's consent. The website, the README (scripts/_upstream/update-sponsors-readme.py) and the app's About dialog all read this file.",
   "sponsors": [
     {
       "name": "tyysoft(太阳雨)",

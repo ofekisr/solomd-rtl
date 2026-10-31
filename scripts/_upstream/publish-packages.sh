@@ -2,9 +2,9 @@
 # Publish SoloMD to all package managers in one command.
 #
 # Usage:
-#   ./scripts/publish-packages.sh 0.1.9                 # all platforms
-#   ./scripts/publish-packages.sh 0.1.9 brew            # just Homebrew
-#   ./scripts/publish-packages.sh 0.1.9 brew winget     # multiple
+#   ./scripts/_upstream/publish-packages.sh 0.1.9                 # all platforms
+#   ./scripts/_upstream/publish-packages.sh 0.1.9 brew            # just Homebrew
+#   ./scripts/_upstream/publish-packages.sh 0.1.9 brew winget     # multiple
 #
 # Supported platforms: brew, winget, choco
 # (AUR is NOT supported here — requires SSH access to aur.archlinux.org,
@@ -445,7 +445,7 @@ PS1
 # ==================================================================
 # Run selected targets
 # ==================================================================
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$PROJECT_ROOT"
 
 for target in "${TARGETS[@]}"; do

@@ -2,7 +2,7 @@
 #
 # Point the package managers at a published SoloMD release.
 #
-#   scripts/bump-package-managers.sh <X.Y.Z> [brew|choco|winget|scoop ...]
+#   scripts/_upstream/bump-package-managers.sh <X.Y.Z> [brew|choco|winget|scoop ...]
 #
 # With no channel names, all four run. Run it after the GitHub release is
 # published — every channel downloads from the release's public URLs.
@@ -31,7 +31,7 @@
 # choco or nuget needed); winget needs komac.
 
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 VER="${1:?usage: $0 <X.Y.Z> [brew|choco|winget|scoop ...]}"
 shift
