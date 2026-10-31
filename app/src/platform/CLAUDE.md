@@ -1,7 +1,7 @@
 # platform/
 
 Typed ports over Tauri. The only place that imports `@tauri-apps/*`.
-Decision: [ADR 0003](../../../docs/adr/0003-platform-ports.md). Design: [Wave 1 platform LLD](../../../docs/superpowers/specs/2026-10-30-wave1-platform-lld.md).
+Decision: [ADR 0003](../../../docs/design/adr/0003-platform-ports.md). Design: [Wave 1 platform LLD](../../../docs/design/wave-refactor/2026-10-30-wave1-platform-lld.md).
 
 ## Ports
 
@@ -45,7 +45,7 @@ Rust paths are under `src-tauri/src/` (files holding the port's `#[tauri::comman
 
 | Mode | Where | Behavior |
 |---|---|---|
-| `strict` | dev (`import.meta.env.DEV`), unit tests | Throw on schema mismatch ([ADR 0006](../../../docs/adr/0006-strict-ipc-validation-in-dev.md)) |
+| `strict` | dev (`import.meta.env.DEV`), unit tests | Throw on schema mismatch ([ADR 0006](../../../docs/design/adr/0006-strict-ipc-validation-in-dev.md)) |
 | `off` | prod | No parsing |
 | `report` | only callers passing it to `createValidation` | Warn `[platform:drift]` once, return raw value |
 

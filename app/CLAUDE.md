@@ -46,7 +46,7 @@ Unit tests run with `--experimental-transform-types` and `scripts/node-test-load
 | `arch/` | [arch/CLAUDE.md](arch/CLAUDE.md) |
 | `src/platform/` | [src/platform/CLAUDE.md](src/platform/CLAUDE.md) |
 | `src/shell/`, `src/App.vue`, `src/components/shell/` | [src/shell/CLAUDE.md](src/shell/CLAUDE.md) |
-| `src/lib/theme/` | `docs/superpowers/specs/2026-10-29-theme-layer-design.md` |
+| `src/lib/theme/` | `docs/design/2026-10-29-theme-layer-design.md` |
 | `../demos/` | [demos/CLAUDE.md](../demos/CLAUDE.md) |
 
 Changed code makes an area's `CLAUDE.md` wrong? Fix it in the same commit.

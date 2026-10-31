@@ -1225,7 +1225,7 @@ export const nl: I18n = {
     doneSub: 'Het agentpaneel staat nu in de rechterzijbalk.',
     doneNext1: 'Open het agentpaneel vanuit de rechterzijbalk (of ⌘⇧A).',
     doneNext2: 'Probeer een recept via Instellingen → Recepten — er zijn 10 voorbeelden klaar om te bewerken.',
-    doneNext3: 'Lees docs/agents.md voor tips om je eigen recept te schrijven.',
+    doneNext3: 'Lees docs/guides/agents.md voor tips om je eigen recept te schrijven.',
     doneClose: 'Begrepen',
     ollamaPullDone: 'Model opgehaald — Ollama is gereed.',
     reopenBtn: 'Setup-wizard opnieuw uitvoeren',

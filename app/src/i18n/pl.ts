@@ -1225,7 +1225,7 @@ export const pl: I18n = {
     doneSub: 'Panel agenta jest teraz aktywny w prawym pasku bocznym.',
     doneNext1: 'Otwórz panel agenta z prawego paska bocznego (lub ⌘⇧A).',
     doneNext2: 'Wypróbuj przepis z Ustawienia → Przepisy — czeka 10 gotowych do edycji przykładów.',
-    doneNext3: 'Przeczytaj docs/agents.md, aby dowiedzieć się jak pisać własne przepisy.',
+    doneNext3: 'Przeczytaj docs/guides/agents.md, aby dowiedzieć się jak pisać własne przepisy.',
     doneClose: 'OK',
     ollamaPullDone: 'Model pobrany — Ollama gotowa.',
     reopenBtn: 'Uruchom kreatora konfiguracji ponownie',

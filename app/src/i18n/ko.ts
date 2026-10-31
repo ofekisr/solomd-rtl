@@ -1222,7 +1222,7 @@ export const ko: I18n = {
     doneSub: '오른쪽 사이드의 Agent 패널이 활성화되었습니다.',
     doneNext1: '오른쪽 사이드바(또는 ⌘⇧A)에서 Agent 패널을 엽니다.',
     doneNext2: '설정 → Recipes에서 예시 Recipe를 시도해 보세요 — 10개의 템플릿이 준비되어 있습니다.',
-    doneNext3: 'docs/agents.md를 읽고 자신만의 Recipe를 작성하세요.',
+    doneNext3: 'docs/guides/agents.md를 읽고 자신만의 Recipe를 작성하세요.',
     doneClose: '확인',
     ollamaPullDone: '모델 다운로드 완료 — Ollama 사용 가능.',
     reopenBtn: '설정 마법사 다시 실행',

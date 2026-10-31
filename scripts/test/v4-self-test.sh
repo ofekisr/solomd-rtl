@@ -2,7 +2,7 @@
 #
 # v4-self-test.sh — one-shot end-to-end self-test for the v4.0 release gate.
 #
-# Per the v4.0 Definition-of-Done (docs/roadmap.md): all 5 pillars must be
+# Per the v4.0 Definition-of-Done (docs/archive/roadmap.md): all 5 pillars must be
 # self-tested before tagging. This script runs every Rust integration test
 # that proves a pillar works end-to-end and prints a per-pillar pass/fail
 # summary.

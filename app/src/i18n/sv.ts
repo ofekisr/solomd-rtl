@@ -1225,7 +1225,7 @@ export const sv: I18n = {
     doneSub: 'Agentpanelen är nu live i höger sidofält.',
     doneNext1: 'Öppna agentpanelen från höger sidofält (eller ⌘⇧A).',
     doneNext2: 'Prova ett recept från Inställningar → Recept — det finns 10 färdiga exempel att redigera.',
-    doneNext3: 'Läs docs/agents.md för tips om hur du skriver dina egna recept.',
+    doneNext3: 'Läs docs/guides/agents.md för tips om hur du skriver dina egna recept.',
     doneClose: 'Uppfattat',
     ollamaPullDone: 'Modell hämtad — Ollama är redo.',
     reopenBtn: 'Kör konfigurationsguiden igen',

@@ -1,6 +1,6 @@
 # features/settings
 
-Settings contract: typed slices over one flat blob, a versioned loader, golden fixtures. Decision: [ADR 0005](../../../../docs/adr/0005-settings-slices.md). Design: [Wave 3 LLD](../../../../docs/superpowers/specs/2026-10-31-wave3-settings-shell-lld.md).
+Settings contract: typed slices over one flat blob, a versioned loader, golden fixtures. Decision: [ADR 0005](../../../../docs/design/adr/0005-settings-slices.md). Design: [Wave 3 LLD](../../../../docs/design/wave-refactor/2026-10-31-wave3-settings-shell-lld.md).
 
 ## Status
 

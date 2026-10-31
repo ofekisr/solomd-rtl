@@ -1,6 +1,6 @@
 # shell/
 
-App-wide services extracted from `App.vue` (Wave 1 PR-9). Spec: [LLD §PR-9](../../../docs/superpowers/specs/2026-10-30-wave1-platform-lld.md#pr-9--appvue--five-shell-services).
+App-wide services extracted from `App.vue` (Wave 1 PR-9). Spec: [LLD §PR-9](../../../docs/design/wave-refactor/2026-10-30-wave1-platform-lld.md#pr-9--appvue--five-shell-services).
 
 ## Services
 
@@ -17,7 +17,7 @@ App-wide services extracted from `App.vue` (Wave 1 PR-9). Spec: [LLD §PR-9](../
 
 ## Host composables and components (Wave 1b)
 
-Spec: [Wave 1b LLD](../../../docs/superpowers/specs/2026-10-30-wave1b-app-host-lld.md). Vue state that `App.vue` used to hold lives in `composables/`; its template lives in `components/shell/`.
+Spec: [Wave 1b LLD](../../../docs/design/wave-refactor/2026-10-30-wave1b-app-host-lld.md). Vue state that `App.vue` used to hold lives in `composables/`; its template lives in `components/shell/`.
 
 | File | Owns |
 |---|---|

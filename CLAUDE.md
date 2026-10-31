@@ -6,7 +6,7 @@ Fork of SoloMD (Vue + CodeMirror + Tauri Markdown editor) with Hebrew/Arabic RTL
 
 These hold in every wave. Break one only through a new ADR.
 
-1. **Spec wins.** If code disagrees with an accepted spec or ADR, fix the code or write a superseding ADR. Accepted ADRs in [docs/adr/](docs/adr/README.md) are settled.
+1. **Spec wins.** If code disagrees with an accepted spec or ADR, fix the code or write a superseding ADR. Accepted ADRs in [docs/adr/](docs/design/adr/README.md) are settled.
 2. **Ratchets only shrink.** Arch baselines ([app/arch/baseline.json](app/arch/baseline.json)) may lose entries or lower values, never gain or raise (renaming a key when its file moves is not a gain).
 3. **IPC through ports.** From the end of Wave 1, only `app/src/platform/` imports `@tauri-apps/*`. Until then, add no new `@tauri-apps/*` imports outside it.
 4. **`lib/` stays pure.** New code in `app/src/lib/` imports no `vue`, `pinia` or `@tauri-apps/*`. Some existing files still do; they are listed in `app/arch/baseline.json` and may only shrink. Never add such an import to `lib/`.
@@ -31,10 +31,11 @@ CI (`.github/workflows/ci.yml`) runs guard, the tight check and `vite build` on 
 | Dir | What |
 | --- | --- |
 | `app/` | The editor (Vue/Vite web build + `src-tauri/` desktop shell) — see [app/CLAUDE.md](app/CLAUDE.md) |
-| `docs/adr/` | Architecture decisions. Accepted = settled — see [README](docs/adr/README.md) |
+| `docs/` | Designs, plans, guides, reports — start at [docs/README.md](docs/README.md) |
+| `docs/design/adr/` | Architecture decisions. Accepted = settled — see [README](docs/design/adr/README.md) |
 | `docs/conventions/` | Naming rules — see [file roles](docs/conventions/file-roles.md) |
 | `demos/` | Playwright story-driven demo videos — see `demos/CLAUDE.md` |
-| `app/src/lib/theme/` | Unified theme layer (v4.39): Zod schema, resolve → `<style id="solomd-theme">`, builtin/catalog JSON, migration. Store: `app/src/stores/theme.ts`. Spec: `docs/superpowers/specs/2026-10-29-theme-layer-design.md` |
+| `app/src/lib/theme/` | Unified theme layer (v4.39): Zod schema, resolve → `<style id="solomd-theme">`, builtin/catalog JSON, migration. Store: `app/src/stores/theme.ts`. Spec: `docs/design/2026-10-29-theme-layer-design.md` |
 | `plugins/` | Claude Code plugins + their MCP servers; `solomd-dev` is opt-in (see its README) — see [plugins/CLAUDE.md](plugins/CLAUDE.md) |
 | `.claude-plugin/` | `marketplace.json` — lists the plugins in `plugins/` |
 | `.claude/launch.json` | Dev servers: `solomd-web` (1420), `solomd-web-alt` (1430) |

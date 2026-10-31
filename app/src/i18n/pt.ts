@@ -1224,7 +1224,7 @@ export const pt: I18n = {
     doneSub: 'O painel de agente está agora ativo na barra lateral direita.',
     doneNext1: 'Abra o painel de agente da barra lateral direita (ou ⌘⇧A).',
     doneNext2: 'Tente um recipe de Configurações → Recipes — há 10 exemplos prontos para editar.',
-    doneNext3: 'Leia docs/agents.md para dicas de como escrever seus próprios recipes.',
+    doneNext3: 'Leia docs/guides/agents.md para dicas de como escrever seus próprios recipes.',
     doneClose: 'Entendi',
     ollamaPullDone: 'Modelo baixado — Ollama está pronto.',
     reopenBtn: 'Executar assistente de configuração novamente',

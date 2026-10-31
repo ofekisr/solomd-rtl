@@ -1222,7 +1222,7 @@ export const de: I18n = {
     doneSub: 'Das Agent-Panel ist jetzt in der rechten Seitenleiste aktiv.',
     doneNext1: 'Agent-Panel aus der rechten Seitenleiste öffnen (oder ⌘⇧A).',
     doneNext2: 'Ein Recipe aus Einstellungen → Recipes ausprobieren — 10 Beispiele bereit zum Bearbeiten.',
-    doneNext3: 'docs/agents.md für Tipps zum Schreiben eigener Recipes lesen.',
+    doneNext3: 'docs/guides/agents.md für Tipps zum Schreiben eigener Recipes lesen.',
     doneClose: 'Verstanden',
     ollamaPullDone: 'Modell geladen — Ollama ist bereit.',
     reopenBtn: 'Setup-Assistent erneut ausführen',

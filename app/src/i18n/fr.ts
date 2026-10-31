@@ -1222,7 +1222,7 @@ export const fr: I18n = {
     doneSub: 'Le panneau agent est maintenant actif dans la barre latérale droite.',
     doneNext1: 'Ouvrir le panneau agent depuis la barre latérale droite (ou ⌘⇧A).',
     doneNext2: 'Essayer une recipe depuis Paramètres → Recipes — 10 exemples prêts à éditer.',
-    doneNext3: 'Lire docs/agents.md pour des conseils sur l\'écriture de vos propres recipes.',
+    doneNext3: 'Lire docs/guides/agents.md pour des conseils sur l\'écriture de vos propres recipes.',
     doneClose: 'Compris',
     ollamaPullDone: 'Modèle téléchargé — Ollama est prêt.',
     reopenBtn: 'Relancer l\'assistant de configuration',

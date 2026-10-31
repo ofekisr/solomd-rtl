@@ -1270,7 +1270,7 @@ export const en = {
     doneSub: 'The agent panel is now live in the right sidebar.',
     doneNext1: 'Open the agent panel from the right sidebar (or ⌘⇧A).',
     doneNext2: 'Try a recipe from Settings → Recipes — there are 10 examples ready to edit.',
-    doneNext3: 'Read docs/agents.md for write-your-own-recipe tips.',
+    doneNext3: 'Read docs/guides/agents.md for write-your-own-recipe tips.',
     doneClose: 'Got it',
     ollamaPullDone: 'Model pulled — Ollama is ready.',
     reopenBtn: 'Run setup wizard again',

@@ -1,6 +1,6 @@
 # features/file-tree/
 
-Sidebar file tree: expand/load, sort, extension filter, refresh, inline new/rename, delete with undo, move and drag, reveal and follow-active, workspace switcher, context menu, width resize. Wave 3 PR-4 split of the old `components/FileTree.vue`. LLD: [S11/S12/PR-4](../../../../docs/superpowers/specs/2026-10-31-wave3-settings-shell-lld.md).
+Sidebar file tree: expand/load, sort, extension filter, refresh, inline new/rename, delete with undo, move and drag, reveal and follow-active, workspace switcher, context menu, width resize. Wave 3 PR-4 split of the old `components/FileTree.vue`. LLD: [S11/S12/PR-4](../../../../docs/design/wave-refactor/2026-10-31-wave3-settings-shell-lld.md).
 
 | Path | Holds |
 |---|---|

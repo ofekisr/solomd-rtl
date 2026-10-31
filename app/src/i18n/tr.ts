@@ -1225,7 +1225,7 @@ export const tr: I18n = {
     doneSub: 'Aracı paneli artık sağ kenar çubuğunda etkin.',
     doneNext1: 'Aracı panelini sağ kenar çubuğundan (veya ⌘⇧A ile) açın.',
     doneNext2: 'Ayarlar → Tarifler\'den bir tarif deneyin — düzenlenmeye hazır 10 örnek var.',
-    doneNext3: 'Kendi tarifinizi yazma ipuçları için docs/agents.md\'yi okuyun.',
+    doneNext3: 'Kendi tarifinizi yazma ipuçları için docs/guides/agents.md\'yi okuyun.',
     doneClose: 'Anladım',
     ollamaPullDone: 'Model indirildi — Ollama hazır.',
     reopenBtn: 'Kurulum sihirbazını yeniden çalıştır',

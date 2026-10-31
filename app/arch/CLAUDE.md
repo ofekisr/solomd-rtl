@@ -1,6 +1,6 @@
 # app/arch/
 
-Architecture specs. They run with `node --test` and fail with `[arch:<rule>]` messages. Decision: [ADR 0002](../../docs/adr/0002-arch-specs-not-eslint.md).
+Architecture specs. They run with `node --test` and fail with `[arch:<rule>]` messages. Decision: [ADR 0002](../../docs/design/adr/0002-arch-specs-not-eslint.md).
 
 ## Rules
 

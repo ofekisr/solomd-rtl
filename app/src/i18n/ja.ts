@@ -1222,7 +1222,7 @@ export const ja: I18n = {
     doneSub: '右サイドの Agent パネルが利用可能になりました。',
     doneNext1: '右サイドバー（または ⌘⇧A）から Agent パネルを開きます。',
     doneNext2: '設定 → Recipes でサンプル Recipe を試してください — 10 個用意されています。',
-    doneNext3: 'docs/agents.md を読んで自分の Recipe の作り方を学びましょう。',
+    doneNext3: 'docs/guides/agents.md を読んで自分の Recipe の作り方を学びましょう。',
     doneClose: 'わかりました',
     ollamaPullDone: 'モデル取得完了 — Ollama 利用可能。',
     reopenBtn: 'セットアップウィザードを再実行',

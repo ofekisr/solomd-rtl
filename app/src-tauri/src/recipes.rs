@@ -19,7 +19,7 @@
 //!     `.solomd/agents/` re-load without an app restart
 //!   - the variable-interpolation routine `Recipe::variables_resolve`
 //!
-//! Spec lives in `/tmp/solomd-v4-contracts.md` §C4 (and `docs/roadmap.md`
+//! Spec lives in `/tmp/solomd-v4-contracts.md` §C4 (and `docs/archive/roadmap.md`
 //! Pillar 2). Re-read C4 before changing the schema — the recipe runner
 //! and the Settings UI both rely on the exact field names below.
 

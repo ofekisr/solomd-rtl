@@ -75,7 +75,7 @@ cookies). Use it via the bundled `unzoo.sh` wrapper, not MCP calls.
    "plugin breakage"). For each theme note which competitors it hits and rough volume
    (top-voted issue = strong signal).
 
-4. **Cross-reference against SoloMD.** Read `docs/roadmap.md` and recent SoloMD
+4. **Cross-reference against SoloMD.** Read `docs/archive/roadmap.md` and recent SoloMD
    issues (`gh issue list --repo zhitongblog/solomd --state open`). Then output two
    ranked lists:
    - **Win-on:** pains competitors' users repeatedly hit that SoloMD already does
@@ -84,7 +84,7 @@ cookies). Use it via the bundled `unzoo.sh` wrapper, not MCP calls.
      (candidate roadmap items). Be honest about effort.
    - Flag any theme that overlaps SoloMD's *own* recent complaints (shared weak spot).
 
-5. **Write the report** to `docs/competitor-feedback/YYYY-MM-DD.md` (create the dir).
+5. **Write the report** to `docs/reports/competitor-feedback/YYYY-MM-DD.md` (create the dir).
    Structure: TL;DR (3-5 bullets) → themes table → Win-on → Gaps → raw per-competitor
    appendix (the scan.sh output + web findings, for traceability). Keep the synthesis
    tight and opinionated; the founder reads the TL;DR first.

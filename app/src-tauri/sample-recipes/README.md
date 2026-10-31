@@ -14,4 +14,4 @@ auto-fire.
 | `_sample-weekly-review.yml.example` | `schedule` (Sundays 18:00) | Summarises the week's `daily/` notes into `weekly/YYYY-WW.md`. |
 
 The full schema lives in `/tmp/solomd-v4-contracts.md` §C4 and
-`docs/roadmap.md`'s Pillar 2 section.
+`docs/archive/roadmap.md`'s Pillar 2 section.

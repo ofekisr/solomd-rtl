@@ -1,6 +1,6 @@
 # features/editor/
 
-Editor features (Wave 2). ADR: [0004](../../../../docs/adr/0004-editor-feature-registry.md). Spec: `docs/superpowers/specs/2026-10-30-wave2-editor-lld.md`.
+Editor features (Wave 2). ADR: [0004](../../../../docs/design/adr/0004-editor-feature-registry.md). Spec: `docs/design/wave-refactor/2026-10-30-wave2-editor-lld.md`.
 
 ## Layout
 
