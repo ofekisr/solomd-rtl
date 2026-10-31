@@ -1,148 +1,147 @@
-# SoloMD 推广计划
+# SoloMD Promotion Plan
 
-## 目标用户画像
+## Target User Profiles
 
-### Tier 1：最容易转化（痛点明确）
+### Tier 1: Easiest to Convert (Clear Pain Points)
 
-| 人群 | 为什么选 SoloMD | 去哪找他们 |
+| Audience | Why Choose SoloMD | Where to Find Them |
 |---|---|---|
-| **MarkText 难民** | MarkText 停更，找替代 | GitHub MarkText issues、Reddit r/markdown |
-| **Typora 免费版怀念者** | Typora 2021 收费后大批流失 | 知乎"Typora 替代品"、V2EX |
-| **AI 内容工作者** | 每天从 ChatGPT/Claude 复制，被 `[cite_start]` 折磨 | 即刻、Twitter AI 圈、小红书 AI 博主 |
-| **中文技术博客作者** | Hugo/Hexo/Jekyll 写博客，需要本地 MD 编辑器 | V2EX、掘金、CSDN |
+| **"MarkText Refugees"** | Seeking alternatives after MarkText development ceased | GitHub (MarkText issues), Reddit (r/markdown) |
+| **Former Typora Free-Tier Users** | Users who left after Typora introduced paid pricing in 2021 | Zhihu ("Typora alternatives"), V2EX |
+| **AI-Assisted Content Creators** | Tired of copying from ChatGPT/Claude and dealing with messy artifacts like `[cite_start]` | Jike, AI communities on Twitter, AI influencers on Xiaohongshu |
+| **Chinese-Language Tech Bloggers** | Users of Hugo/Hexo/Jekyll who need a local Markdown editor | V2EX, Juejin, CSDN |
 
-### Tier 2：需要教育但体量大
+### Tier 2: Larger Audience (Requires Education)
 
-| 人群 | 卖点 | 渠道 |
+| Audience | Key Selling Point | Channels |
 |---|---|---|
-| **隐私敏感用户** | 零网络、零遥测、文件不出本机 | Reddit r/privacy、少数派 |
-| **轻量工具爱好者** | 15 MB vs 110 MB Obsidian | Hacker News、Reddit r/linux |
-| **Tauri/Rust 开发者** | 想看 Tauri 2 真实项目 | Tauri Discord、Rust 社区 |
-| **学生** | 免费 + KaTeX 数学 + 导出 PDF/DOCX 交作业 | 大学论坛、知乎 |
+| **Privacy-Conscious Users** | Zero network access, zero telemetry; files never leave the local machine | Reddit (r/privacy), Sspai (少数派) |
+| **Lightweight Tool Enthusiasts** | 15 MB footprint (vs. 110 MB for Obsidian) | Hacker News, Reddit (r/linux) |
+| **Tauri/Rust Developers** | Interested in seeing real-world Tauri 2 projects | Tauri Discord, Rust communities |
+| **Students** | Free, supports KaTeX (math), and exports to PDF/DOCX for assignments | University forums, Zhihu |
 
-### 不要追的人
+### Audiences to Avoid
 
-| 人群 | 为什么不追 |
+| Audience | Why Avoid? |
 |---|---|
-| Obsidian 重度用户 | 他们要的是知识图谱不是编辑器 |
-| Notion 用户 | 他们要的是云协作 |
-| VS Code 用户 | 已经有 Markdown 扩展 |
-| 企业采购 | 我们没有 admin/compliance 功能 |
+| **Heavy Obsidian Users** | They prioritize knowledge graphs over a simple editor |
+| **Notion Users** | They require cloud-based collaboration features |
+| **VS Code Users** | They already have Markdown extensions |
+| **Enterprise/Corporate Buyers** | We lack administrative and compliance features |
 
 ---
 
-## 推广路线图
+## Promotion Roadmap
 
-### 第 1 周（零成本，立刻做）
+### Week 1 (Zero-Cost, Immediate Actions)
 
-| # | 行动 | 预计时间 | 预期效果 |
+| # | Action | Estimated Time | Expected Outcome |
 |---|---|---|---|
-| 1 | **Hacker News "Show HN"** | 30 分钟写帖 | 如果上首页：500-2000 stars + 数千下载 |
-| 2 | **V2EX 发帖** | 20 分钟 | 中文开发者圈第一波用户 |
-| 3 | **Reddit r/markdown + r/opensource** | 15 分钟 | 国际用户 |
-| 4 | **Product Hunt 提交** | 1 小时准备素材 | 产品圈曝光 |
-| 5 | **GitHub Awesome 列表 PR** | 30 分钟 | 长期 SEO + 引流 |
+| 1 | **Hacker News "Show HN"** | 30 minutes to draft a post | If it hits the front page: 500–2,000 stars + thousands of downloads |
+| 2 | **V2EX Post** | 20 minutes | Initial user base from the Chinese developer community |
+| 3 | **Reddit (r/markdown + r/opensource)** | 15 minutes | International users |
+| 4 | **Product Hunt Submission** | 1 hour to prepare assets | Exposure within the product/tech community |
+| 5 | **GitHub "Awesome" List PR** | 30 minutes | Long-term SEO + traffic generation |
 
-### 第 1-2 周
+### Weeks 1–2
 
-| # | 行动 | 说明 |
+| # | Action | Notes |
 |---|---|---|
-| 6 | **写一篇"为什么我做了 SoloMD"** | 少数派 (sspai.com) / 掘金 / 微信公众号，讲故事比讲功能有效 10x |
-| 7 | **小众软件 (appinn.com) 投稿** | 中国最大的软件发现平台之一 |
-| 8 | **知乎回答** | "最好的免费 Markdown 编辑器" / "Typora 有什么替代品" 长尾 SEO |
-| 9 | **Twitter/X 发布推文** | 英文 + #markdown #tauri #opensource |
-| 10 | **即刻发帖** | 中文科技社区 |
+| 6 | **Write "Why I Built SoloMD"** | Publish on platforms like sspai.com, Juejin, or a WeChat Official Account; storytelling is 10x more effective than just listing features |
+| 7 | **Submit to Appinn (appinn.com)** | One of the largest software discovery platforms in China |
+| 8 | **Answer Questions on Zhihu** | Target long-tail SEO queries like "Best free Markdown editor" or "Alternatives to Typora" |
+| 9 | **Post on Twitter/X** | Use English + hashtags like #markdown, #tauri, and #opensource |
+| 10 | **Post on Jike (即刻)** | Reach the Chinese tech community |
 
-### 第 1-3 月
+### Months 1–3
 
-| # | 行动 | 说明 |
+| # | Action | Notes |
 |---|---|---|
-| 11 | **录一个 2 分钟 demo 视频** | YouTube + Bilibili，视觉冲击力强 |
-| 12 | **写对比文章** | "SoloMD vs Typora" / "SoloMD vs MarkText" / "SoloMD vs Obsidian" |
-| 13 | **提交到包管理器** | Homebrew formula / AUR / winget / Scoop |
-| 14 | **GitHub Discussions 开放** | 让用户交流 + 收集反馈 |
+| 11 | **Record a 2-minute demo video** | Post on YouTube and Bilibili; highly effective for visual impact |
+| 12 | **Write comparison articles** | e.g., "SoloMD vs. Typora," "SoloMD vs. MarkText," or "SoloMD vs. Obsidian" |
+| 13 | **Submit to package managers** | Homebrew, AUR, winget, Scoop, etc. |
+| 14 | **GitHub Discussions Enabled** | Facilitating user interaction + gathering feedback |
 
 ---
 
-## 三个核心传播话术
+## Three Core Promotional Messages
 
-### 话术 1：中文圈（V2EX / 知乎 / 少数派）
+### Message 1: For the Chinese-speaking community (V2EX / Zhihu / Sspai)
 
-> **SoloMD：一个为中文用户设计的轻量 Markdown 编辑器**
+> **SoloMD: A lightweight Markdown editor designed for Chinese-speaking users**
 >
-> 安装包只有 15 MB（Typora 的 1/5），免费开源，MIT 协议。
+> The installation package is only 15 MB (1/5 the size of Typora); it is free, open-source, and licensed under the MIT License. >
+> Three unique features you won't find elsewhere:
+> 1. **Automatic GBK/Big5 Encoding Detection** — Open 20-year-old `.txt` files without garbled text.
+> 2. **CJK Character Counting & Simplified/Traditional Conversion** — See your exact character count right in the status bar.
+> 3. **One-Click AI Cleanup** — Strip away unwanted artifacts (like `[cite_start]` tags) when pasting content from ChatGPT.
 >
-> 三个别人没有的东西：
-> 1. **GBK/Big5 自动识别** — 打开 20 年前的 .txt 不乱码
-> 2. **CJK 字数统计 + 简繁转换** — 状态栏直接显示"字"数
-> 3. **一键清除 AI 对话垃圾** — 粘贴 ChatGPT 内容不再有 `[cite_start]`
->
-> 🍎 macOS 已 notarize | 🪟 Windows | 🐧 Linux
-> 下载: https://solomd.app
+> 🍎 macOS (Notarized) | 🪟 Windows | 🐧 Linux
+> Download: https://solomd.app
 
-### 话术 2：国际圈（Hacker News / Reddit）
+### Pitch 2: For the International Community (Hacker News / Reddit)
 
 > **Show HN: SoloMD — A 15 MB Markdown editor built with Tauri 2 + Rust**
 >
 > I wanted a Markdown editor that starts instantly, doesn't bundle Chromium, and doesn't require an account. SoloMD is what I ended up building.
 >
 > - Live preview (markers hide when you leave a line)
-> - KaTeX, Mermaid, image paste, focus mode
-> - Multi-encoding (auto-detects GBK/Big5/Shift_JIS)
-> - "Clean AI Artifacts" — strips junk from ChatGPT/Gemini copy-paste
-> - ~15 MB installed (vs Typora 70 MB / Obsidian 110 MB)
+> - KaTeX, Mermaid, image pasting, and focus mode
+> - Multi-encoding support (auto-detects GBK/Big5/Shift_JIS)
+> - "Clean AI Artifacts" — strips junk from ChatGPT/Gemini copy-pastes
+> - ~15 MB installed (vs. 70 MB for Typora / 110 MB for Obsidian)
 > - MIT licensed, no telemetry, fully offline
 >
 > https://solomd.app | https://github.com/zhitongblog/solomd
 
-### 话术 3：AI 内容圈（即刻 / 小红书 / Twitter）
+### Pitch 3: For the AI-User Community (Jike / Xiaohongshu / Twitter)
 
-> **每天从 AI 对话框里复制内容？受够了 `[cite_start]` 和弯引号？**
+> **Tired of copying content from AI chatbots and dealing with `[cite_start]` tags or curly quotes?**
 >
-> SoloMD 有个"一键清除 AI 格式"按钮——把 Gemini/ChatGPT/Perplexity 的引用标记、零宽空格、弯引号全部干掉，只留干净的文字。
+> SoloMD features a "Clean AI Formatting" button—it strips away citation markers, zero-width spaces, and curly quotes from Gemini, ChatGPT, or Perplexity, leaving you with nothing but clean, plain text.
 >
-> 免费的，15 MB，三平台。 https://solomd.app
+> Free, 15 MB, and available on all three major platforms. https://solomd.app
 
 ---
 
-## Awesome 列表投稿目标
+## Targets for "Awesome" List Submissions
 
-提交 PR 到这些 GitHub Awesome 列表：
+Submit PRs to the following GitHub "Awesome" lists:
 
-- [awesome-markdown](https://github.com/BubuAnab662/awesome-markdown) — Markdown 工具集合
-- [awesome-tauri](https://github.com/nicehash/awesome-tauri) — Tauri 项目集合
-- [awesome-rust](https://github.com/rust-unofficial/awesome-rust) — Rust 项目（Applications → Text editors）
-- [awesome-vue](https://github.com/vuejs/awesome-vue) — Vue 项目（Desktop → Tauri）
+- [awesome-markdown](https://github.com/BubuAnab662/awesome-markdown) — A collection of Markdown tools
+- [awesome-tauri](https://github.com/nicehash/awesome-tauri) — A collection of Tauri projects
+- [awesome-rust](https://github.com/rust-unofficial/awesome-rust) — Rust projects (under "Applications" → "Text editors")
+- [awesome-vue](https://github.com/vuejs/awesome-vue) — Vue projects (under "Desktop" → "Tauri")
 - [awesome-opensource-apps](https://github.com/unicodeveloper/awesome-opensource-apps)
-- [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted) — 如果加上 WebDAV 同步的话
+- [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted) — (If WebDAV synchronization is added)
 
-## 包管理器提交
+## Package Manager Submissions
 
-| 包管理器 | 平台 | 提交方式 |
+| Package Manager | Platform | Submission Method |
 |---|---|---|
-| **Homebrew Cask** | macOS | PR to homebrew-cask 仓库 |
-| **AUR** | Arch Linux | 创建 PKGBUILD |
-| **winget** | Windows | PR to winget-pkgs 仓库 |
-| **Scoop** | Windows | 创建 bucket manifest |
-| **Flatpak** | Linux 通用 | 创建 Flatpak manifest |
-| **Snap** | Ubuntu | 创建 snapcraft.yaml |
+| **Homebrew Cask** | macOS | PR to the `homebrew-cask` repository |
+| **AUR** | Arch Linux | Create a `PKGBUILD` |
+| **winget** | Windows | PR to the `winget-pkgs` repository |
+| **Scoop** | Windows | Create a bucket manifest |
+| **Flatpak** | Linux (General) | Create a Flatpak manifest |
+| **Snap** | Ubuntu | Create a `snapcraft.yaml` |
 
 ---
 
-## KPI 追踪
+## KPI Tracking
 
-| 指标 | 第 1 周目标 | 第 1 月目标 | 第 3 月目标 |
+| Metric | Week 1 Target | Month 1 Target | Month 3 Target |
 |---|---|---|---|
-| GitHub Stars | 100 | 500 | 2000 |
-| 总下载量 | 500 | 2000 | 10000 |
-| 日活用户 | 50 | 200 | 1000 |
-| 赞助者数 | 0 | 5 | 20 |
-| Hacker News 排名 | 首页 | — | — |
-| Product Hunt 排名 | Top 10 当日 | — | — |
+| GitHub Stars | 100 | 500 | 2,000 |
+| Total Downloads | 500 | 2,000 | 10,000 |
+| Daily Active Users (DAU) | 50 | 200 | 1,000 |
+| Number of Sponsors | 0 | 5 | 20 |
+| Hacker News Ranking | Front Page | — | — |
+| Product Hunt Ranking | Top 10 of the Day | — | — |
 
-## 工具
+## Tools
 
-- **下载量追踪**: GitHub Releases 自带统计（`gh api repos/zhitongblog/solomd/releases -q '.[].assets[].download_count'`）
-- **网站分析**: Cloudflare Web Analytics（免费，已内置）
-- **Star 历史**: https://star-history.com/#zhitongblog/solomd
-- **社交监控**: 搜 "SoloMD" 在 Twitter / Reddit / HN / V2EX
+- **Download Tracking**: Built-in GitHub Releases statistics (`gh api repos/zhitongblog/solomd/releases -q '.[].assets[].download_count'`)
+- **Website Analytics**: Cloudflare Web Analytics (free, integrated)
+- **Star History**: https://star-history.com/#zhitongblog/solomd
+- **Social Monitoring**: Search for "SoloMD" on Twitter / Reddit / HN / V2EX

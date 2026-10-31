@@ -10,7 +10,7 @@ Everything written about solomd-rtl that is not code. Each folder holds one kind
 | [`plans/`](plans/README.md) | Step-by-step implementation plans, one per PR or phase | No — history, not kept up to date |
 | [`reports/`](reports/) | Findings at a point in time: [tree-folding audit](reports/tree-folding-audit.md), [WebView2 IME bug report](reports/webview2-ime/REPORT.md) | Dated snapshot |
 | [`fixtures/`](fixtures/) | Markdown files you open in the app to test rendering by hand | Yes |
-| [`archive/`](archive/README.md) | Upstream SoloMD plans and marketing (Chinese, pre-fork) | No — do not follow |
+| [`archive/`](archive/README.md) | Upstream SoloMD plans and marketing (pre-fork) | No — do not follow |
 
 `solomd-rtl.mmap` is the repo mind map. It is untracked on purpose.
 
