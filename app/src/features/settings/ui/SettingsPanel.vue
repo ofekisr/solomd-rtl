@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { inject, ref } from 'vue';
 import { useI18n } from '../../../i18n';
-import { useThemeStudio } from '../../../composables/useThemeStudio';
+import { useThemeStudio } from '../../../composables/theme/useThemeStudio';
 import { ALL_PAGE_KEYS, crumbsOf, defaultPage, isMultiPage, SETTINGS_NAV } from '../../../lib/settings-nav';
-import ThemeMarketplace from '../../../components/ThemeMarketplace.vue';
+import ThemeMarketplace from '../../../components/theme/ThemeMarketplace.vue';
 import { DsModal } from '../../../ui';
 import type { SettingsPanelProps } from '../internal/settings-panel-props.ts';
 import { provideSettingsPanelContext } from '../internal/useSettingsPanelContext.ts';

@@ -2,7 +2,7 @@
 import { computed, nextTick, ref } from 'vue';
 import { useGitPaneStore } from '../../stores/gitPane';
 import { useI18n } from '../../i18n';
-import { promptText } from '../../composables/useGitPrompt';
+import { promptText } from '../../composables/git/useGitPrompt';
 
 const RECENT_LIMIT = 5;
 

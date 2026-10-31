@@ -1,5 +1,5 @@
 import type { Tab } from '../../types';
-import { useThemeStudio } from '../useThemeStudio';
+import { useThemeStudio } from '../theme/useThemeStudio';
 import type { FilesCtx } from './files-ctx.ts';
 
 export type UnsavedDialog = (mode: 'tab' | 'window', fileName: string, count: number) => Promise<'save' | 'discard' | 'cancel'>;

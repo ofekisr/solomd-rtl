@@ -7,12 +7,12 @@ import { useRagStore } from '../../../../stores/rag';
 import { useWorkspaceStore } from '../../../../stores/workspace';
 import { useRagToggles } from '../../internal/useRagToggles.ts';
 import { useSettingsEnv } from '../../internal/settings-env.ts';
-import AISettings from '../../../../components/AISettings.vue';
-import CaptureEndpointSettings from '../../../../components/CaptureEndpointSettings.vue';
-import CostMeterSettings from '../../../../components/CostMeterSettings.vue';
-import IntegrationsSettings from '../../../../components/IntegrationsSettings.vue';
-import RecipesSettings from '../../../../components/RecipesSettings.vue';
-import RestApiSettings from '../../../../components/RestApiSettings.vue';
+import AISettings from '../../../../components/settings/AISettings.vue';
+import CaptureEndpointSettings from '../../../../components/settings/CaptureEndpointSettings.vue';
+import CostMeterSettings from '../../../../components/settings/CostMeterSettings.vue';
+import IntegrationsSettings from '../../../../components/settings/IntegrationsSettings.vue';
+import RecipesSettings from '../../../../components/settings/RecipesSettings.vue';
+import RestApiSettings from '../../../../components/settings/RestApiSettings.vue';
 
 const { t } = useI18n();
 const settings = useSettingsStore();

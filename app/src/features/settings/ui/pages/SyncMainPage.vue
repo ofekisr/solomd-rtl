@@ -4,8 +4,8 @@ import { useSettingsStore } from '../../../../stores/settings';
 import { useChordHint } from '../../internal/useChordHint.ts';
 import { useSettingsEnv } from '../../internal/settings-env.ts';
 import CloudFolderBanner from '../../../../components/CloudFolderBanner.vue';
-import GithubSyncSettings from '../../../../components/GithubSyncSettings.vue';
-import ProxySettings from '../../../../components/ProxySettings.vue';
+import GithubSyncSettings from '../../../../components/github-sync/GithubSyncSettings.vue';
+import ProxySettings from '../../../../components/settings/ProxySettings.vue';
 
 const { t } = useI18n();
 const settings = useSettingsStore();

@@ -4,7 +4,7 @@ import { useVirtualizer } from '@tanstack/vue-virtual';
 import { useI18n } from '../../i18n';
 import { useGitPaneStore } from '../../stores/gitPane';
 import { computeGraphLayout } from '../../lib/git-pane/graph/computeGraphLayout';
-import { useGitBranchCreate } from '../../composables/useGitBranchCreate';
+import { useGitBranchCreate } from '../../composables/git/useGitBranchCreate';
 import GitGraphRow from './GitGraphRow.vue';
 
 const ROW_HEIGHT = 24;

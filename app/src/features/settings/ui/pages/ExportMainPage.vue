@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from '../../../../i18n';
 import { useSettingsStore } from '../../../../stores/settings';
-import CitationPickerSettings from '../../../../components/CitationPickerSettings.vue';
+import CitationPickerSettings from '../../../../components/settings/CitationPickerSettings.vue';
 import { usePdfDefaultsForm } from '../../internal/usePdfDefaultsForm.ts';
 import { FONT_FAMILIES } from '../../internal/font-presets.ts';
 

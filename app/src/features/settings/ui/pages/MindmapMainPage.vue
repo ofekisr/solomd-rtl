@@ -3,7 +3,7 @@ import { useI18n } from '../../../../i18n';
 import { useSettingsStore } from '../../../../stores/settings';
 import { MINDMAP_CONTROL_STYLES, type MindmapControlStyle } from '../../../../lib/mindmap/icon-names';
 import { PASTE_MAP_SETTINGS, type PasteMapSetting } from '../../../../lib/mindmap/insert';
-import MindmapMapFields from '../../../../components/MindmapMapFields.vue';
+import MindmapMapFields from '../../../../components/mindmap/MindmapMapFields.vue';
 
 const { t } = useI18n();
 const settings = useSettingsStore();

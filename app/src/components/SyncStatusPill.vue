@@ -20,7 +20,7 @@ import { isMacOS } from '../lib/platform';
 import { useSettingsStore } from '../stores/settings';
 import { shortcutLabel } from '../lib/keybindings';
 import { useGithubSyncStore } from '../stores/githubSync';
-import { useGithubSync } from '../composables/useGithubSync';
+import { useGithubSync } from '../composables/git/useGithubSync';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';

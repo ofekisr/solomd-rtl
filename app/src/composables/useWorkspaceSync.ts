@@ -12,7 +12,7 @@ import { usePropertiesStore } from '../stores/properties';
 import { useRagStore } from '../stores/rag';
 import { useGitPaneStore } from '../stores/gitPane';
 import { isGitMockActive } from '../lib/git-pane/serviceFactory';
-import { useGitPaneAvailable } from './useGitPaneAvailable';
+import { useGitPaneAvailable } from './git/useGitPaneAvailable';
 
 const MOCK_REPO_FOLDER = '/repo';
 const DEFAULT_SPELLCHECK_LANG = 'en_US';

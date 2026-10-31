@@ -9,13 +9,13 @@
     "app/src-tauri/src/recipe_runner.rs": 1618,
     "app/src-tauri/src/recipes.rs": 999,
     "app/src-tauri/src/trace.rs": 778,
-    "app/src/components/AIRewriteOverlay.vue": 711,
-    "app/src/components/AISettings.vue": 1370,
-    "app/src/components/AgentPanel.vue": 1014,
-    "app/src/components/AgentSetupWizard.vue": 699,
-    "app/src/components/McpProfilesSettings.vue": 520,
-    "app/src/components/RecipesSettings.vue": 921,
-    "app/src/components/TraceView.vue": 647
+    "app/src/components/ai/AIRewriteOverlay.vue": 711,
+    "app/src/components/settings/AISettings.vue": 1370,
+    "app/src/components/ai/AgentPanel.vue": 1014,
+    "app/src/components/ai/AgentSetupWizard.vue": 699,
+    "app/src/components/settings/McpProfilesSettings.vue": 520,
+    "app/src/components/settings/RecipesSettings.vue": 921,
+    "app/src/components/ai/TraceView.vue": 647
   },
   "rawIpc": [],
   "libPurity": [

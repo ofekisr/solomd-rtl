@@ -8,7 +8,7 @@ import { useCommands } from './useCommands';
 import { useInbox } from './useInbox';
 import { usePomodoroStore, getLastPreset } from '../stores/pomodoro';
 import { eventToCombo, resolveBindings } from '../lib/keybindings';
-import { MINDMAP_CONVERT_ACTION_IDS, MINDMAP_CONVERT_FOLDER_ACTION } from './useMindmapConvert';
+import { MINDMAP_CONVERT_ACTION_IDS, MINDMAP_CONVERT_FOLDER_ACTION } from './mindmap/useMindmapConvert';
 import { FORMAT_KINDS, type FormatKind } from '../lib/md-format';
 import { windowPort } from '../platform/index.ts';
 

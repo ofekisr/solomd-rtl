@@ -7,7 +7,7 @@ import type { useInboxView } from '../useInboxView';
 import type { useInbox } from '../useInbox';
 import type { useSavedViews } from '../useSavedViews';
 import type { useAutoCommit } from '../useAutoCommit';
-import type { useGithubSync } from '../useGithubSync';
+import type { useGithubSync } from '../git/useGithubSync';
 import type { useSettingsStore } from '../../stores/settings';
 import type { useTabsStore } from '../../stores/tabs';
 import type { useTilesStore } from '../../stores/tiles';

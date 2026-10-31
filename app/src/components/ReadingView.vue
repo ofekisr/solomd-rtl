@@ -11,7 +11,7 @@
  */
 import { computed, defineAsyncComponent, ref, onMounted, onBeforeUnmount } from 'vue';
 import { windowPort } from '../platform/index.ts';
-import Preview from './Preview.vue';
+import Preview from './preview/Preview.vue';
 import Icon from './Icons.vue';
 import { useTabsStore } from '../stores/tabs';
 import { useSettingsStore } from '../stores/settings';
@@ -22,7 +22,7 @@ const tabs = useTabsStore();
 const settings = useSettingsStore();
 const { t } = useI18n();
 
-const MindmapReading = defineAsyncComponent(() => import('./MindmapReading.vue'));
+const MindmapReading = defineAsyncComponent(() => import('./mindmap/MindmapReading.vue'));
 const MINDMAP_LANGUAGE = 'mindmap';
 
 const tab = computed(() => tabs.activeTab);

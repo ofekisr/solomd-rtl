@@ -8,7 +8,7 @@ import { useWritingSessionStore } from '../stores/writingSession';
 import { cjkWordCount } from '../lib/chinese';
 import { useInbox } from '../composables/useInbox';
 import { useI18n } from '../i18n';
-import { useGitPaneAvailable } from '../composables/useGitPaneAvailable';
+import { useGitPaneAvailable } from '../composables/git/useGitPaneAvailable';
 import GitBranchWidget from './git/GitBranchWidget.vue';
 import WritingGoals from './WritingGoals.vue';
 import PomodoroPill from './PomodoroPill.vue';

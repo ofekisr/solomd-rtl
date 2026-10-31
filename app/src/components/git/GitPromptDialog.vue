@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from '../../i18n';
-import { useGitPrompt } from '../../composables/useGitPrompt';
+import { useGitPrompt } from '../../composables/git/useGitPrompt';
 
 const { request, settlePrompt } = useGitPrompt();
 const { t } = useI18n();

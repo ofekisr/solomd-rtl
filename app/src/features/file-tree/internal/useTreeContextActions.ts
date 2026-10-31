@@ -8,7 +8,7 @@ import { useGithubSyncStore } from '../../../stores/githubSync';
 import { isMindmapPath, isXmindPath } from '../../../lib/mindmap/format';
 import { entryKey } from '../../../lib/mindmap/workbench';
 import { useMindmapWorkbenchStore } from '../../../stores/mindmapWorkbench';
-import { fileDraft, openWorkbench, useMindmapWorkbench } from '../../../composables/useMindmapWorkbench';
+import { fileDraft, openWorkbench, useMindmapWorkbench } from '../../../composables/mindmap/useMindmapWorkbench';
 import { copyMapText } from '../../../lib/mindmap/payload';
 import { useTabsStore } from '../../../stores/tabs';
 import { useTilesStore } from '../../../stores/tiles';

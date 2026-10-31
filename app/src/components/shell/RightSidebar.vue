@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import Outline from '../Outline.vue';
-import BacklinksPanel from '../BacklinksPanel.vue';
-import NeighborhoodPanel from '../NeighborhoodPanel.vue';
-import RelationshipsPanel from '../RelationshipsPanel.vue';
-import TagsPanel from '../TagsPanel.vue';
-import TasksPanel from '../TasksPanel.vue';
-import TypesPanel from '../TypesPanel.vue';
-import HistoryPanel from '../HistoryPanel.vue';
+import Outline from '../panels/Outline.vue';
+import BacklinksPanel from '../panels/BacklinksPanel.vue';
+import NeighborhoodPanel from '../panels/NeighborhoodPanel.vue';
+import RelationshipsPanel from '../panels/RelationshipsPanel.vue';
+import TagsPanel from '../panels/TagsPanel.vue';
+import TasksPanel from '../panels/TasksPanel.vue';
+import TypesPanel from '../panels/TypesPanel.vue';
+import HistoryPanel from '../panels/HistoryPanel.vue';
 import PropertiesInspector from '../PropertiesInspector.vue';
-import AgentPanel from '../AgentPanel.vue';
+import AgentPanel from '../ai/AgentPanel.vue';
 import GlobalSearch from '../GlobalSearch.vue';
 import RsSplitter from '../RsSplitter.vue';
 import { useRightSidebar } from '../../composables/useRightSidebar';

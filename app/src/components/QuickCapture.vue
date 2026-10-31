@@ -17,7 +17,7 @@ import { computed, nextTick, onMounted, onBeforeUnmount, ref } from 'vue';
 import { capturePort, eventsPort, type UnlistenFn } from '../platform/index.ts';
 import { useI18n } from '../i18n';
 import { useWorkspaceStore } from '../stores/workspace';
-import { useThemePaint } from '../composables/useThemePaint';
+import { useThemePaint } from '../composables/theme/useThemePaint';
 
 const { t } = useI18n();
 const workspace = useWorkspaceStore();

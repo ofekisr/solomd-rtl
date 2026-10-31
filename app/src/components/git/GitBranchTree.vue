@@ -3,7 +3,7 @@ import { computed, ref } from 'vue';
 import { useGitPaneStore } from '../../stores/gitPane';
 import { useI18n } from '../../i18n';
 import { buildBranchTree, type BranchTreeNode } from '../../lib/git-pane/branchTree';
-import { useGitBranchCreate } from '../../composables/useGitBranchCreate';
+import { useGitBranchCreate } from '../../composables/git/useGitBranchCreate';
 import GitBranchNode from './GitBranchNode.vue';
 import GitMenu, { type GitMenuItem } from './GitMenu.vue';
 

@@ -1,7 +1,7 @@
 import { fsPort, pathPort, dialogPort } from '../../platform/index.ts';
 import { isIOS } from '../../lib/platform';
 import { useGitPaneStore } from '../../stores/gitPane';
-import { useThemeStudio } from '../useThemeStudio';
+import { useThemeStudio } from '../theme/useThemeStudio';
 import type { Tab } from '../../types';
 import { isSafPath, fromSafPath, safWrite } from '../../lib/saf-fs';
 import { joinInFolder } from '../../lib/import-plan';
