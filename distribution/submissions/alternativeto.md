@@ -1,6 +1,6 @@
-# AlternativeTo 提交信息
+# AlternativeTo Submission Information
 
-## 软件信息
+## Software Information
 
 **Name**: SoloMD
 
@@ -16,13 +16,13 @@ A lightweight Markdown editor with live preview, only 15MB
 SoloMD is a lightweight, cross-platform Markdown editor designed for focused writing.
 
 Key Features:
-- Live preview editing (Markdown syntax hides when cursor leaves)
-- KaTeX math and Mermaid diagrams
+- Live preview editing (Markdown syntax hides when the cursor moves away)
+- Support for KaTeX math and Mermaid diagrams
 - Multi-encoding support (UTF-8, GBK, Big5)
-- Export to PDF, DOCX, HTML
+- Export to PDF, DOCX, and HTML
 - Light/Dark themes
-- Clean AI artifacts from ChatGPT/Claude
-- Only 15MB installer
+- Clean up AI-generated artifacts (from ChatGPT/Claude)
+- Installer size of only 15MB
 
 Free and open source (MIT License).
 ```
@@ -38,9 +38,9 @@ Free and open source (MIT License).
 
 **Tags**: markdown, wysiwyg, writing, notes, tauri
 
-## Alternatives To (关联竞品)
+## Alternatives To (Related Competitors)
 
-添加为以下软件的替代品：
+Add as an alternative to the following software:
 - Typora
 - Obsidian
 - MarkText
@@ -49,9 +49,9 @@ Free and open source (MIT License).
 - Bear
 - Joplin
 
-## 提交步骤
+## Submission Steps
 
-1. 访问 https://alternativeto.net/software/add/
-2. 填写软件信息
-3. 选择竞品关联
-4. 提交审核
+1. Visit https://alternativeto.net/software/add/
+2. Fill in the software information
+3. Select related competitors
+4. Submit for review

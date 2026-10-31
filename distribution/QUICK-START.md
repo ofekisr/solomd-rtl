@@ -1,28 +1,27 @@
-# 快速上架指南
+# Quick Release Guide
 
-> 按照以下步骤，快速完成软件上架
-
+> Follow the steps below to quickly publish your software.
 ---
 
-## 1. Homebrew Cask (macOS) - 最推荐
+## 1. Homebrew Cask (macOS) - Highly Recommended
 
 ```bash
-# 进入 solomd 目录
+# Navigate to the solomd directory
 cd D:/code/solomd/solomd
 
-# Fork 并 clone homebrew-cask
+# Fork and clone homebrew-cask
 gh repo fork homebrew/homebrew-cask --clone
 cd homebrew-cask
 
-# 复制 manifest 文件
+# Copy the manifest file
 cp ../distribution/manifests/homebrew/solomd.rb Casks/s/solomd.rb
 
-# 创建分支并提交
+# Create a branch and commit
 git checkout -b add-solomd
 git add Casks/s/solomd.rb
 git commit -m "Add SoloMD v0.1.8"
 
-# 创建 PR
+# Create a PR
 gh pr create --title "Add SoloMD v0.1.8" --body "Add SoloMD - A lightweight Markdown editor with live preview.
 
 **Homepage:** https://solomd.app
@@ -38,28 +37,28 @@ SoloMD is a lightweight (~15MB) cross-platform Markdown editor built with Tauri 
 
 ---
 
-## 2. Winget (Windows) - 最推荐
+## 2. Winget (Windows) - Highly Recommended
 
 ```bash
-# 进入 solomd 目录
+# Navigate to the solomd directory
 cd D:/code/solomd/solomd
 
-# Fork 并 clone winget-pkgs
+# Fork and clone winget-pkgs
 gh repo fork microsoft/winget-pkgs --clone
 cd winget-pkgs
 
-# 创建目录结构
+# Create the directory structure
 mkdir -p manifests/z/zhitongblog/SoloMD/0.1.8
 
-# 复制 manifest 文件
+# Copy the manifest file
 cp ../distribution/manifests/winget/*.yaml manifests/z/zhitongblog/SoloMD/0.1.8/
 
-# 创建分支并提交
+# Create a branch and commit
 git checkout -b add-solomd-0.1.8
 git add manifests/z/zhitongblog/SoloMD/
 git commit -m "Add SoloMD version 0.1.8"
 
-# 创建 PR
+# Create a PR
 gh pr create --title "New package: zhitongblog.SoloMD version 0.1.8" --body "## Package Information
 - Package: zhitongblog.SoloMD
 - Version: 0.1.8
@@ -77,22 +76,22 @@ SoloMD is a lightweight Markdown editor with live preview. Built with Tauri 2.
 ## 3. Scoop (Windows)
 
 ```bash
-# 进入 solomd 目录
+# Navigate to the solomd directory
 cd D:/code/solomd/solomd
 
-# Fork 并 clone Scoop Extras
+# Fork and clone Scoop Extras
 gh repo fork ScoopInstaller/Extras --clone
 cd Extras
 
-# 复制 manifest 文件
+# Copy the manifest file
 cp ../distribution/manifests/scoop/solomd.json bucket/solomd.json
 
-# 创建分支并提交
+# Create a branch and commit
 git checkout -b add-solomd
 git add bucket/solomd.json
 git commit -m "solomd: Add version 0.1.8"
 
-# 创建 PR
+# Create a PR
 gh pr create --title "solomd: Add version 0.1.8" --body "**Homepage:** https://solomd.app
 
 A lightweight Markdown editor with live preview."
@@ -103,21 +102,21 @@ A lightweight Markdown editor with live preview."
 ## 4. Chocolatey (Windows)
 
 ```bash
-# 安装 Chocolatey (如果没有)
-# 以管理员身份运行 PowerShell:
+# Install Chocolatey (if not already installed)
+# Run PowerShell as an administrator:
 # Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
-# 进入 chocolatey 目录
+# Navigate to the chocolatey directory
 cd D:/code/solomd/solomd/distribution/manifests/chocolatey
 
-# 打包
+# Packaging
 choco pack
 
-# 测试安装（可选）
+# Test installation (optional)
 choco install solomd -s . --force
 
-# 获取 API Key: https://community.chocolatey.org/account
-# 然后推送
+# Get your API Key: https://community.chocolatey.org/account
+# Then push
 choco push solomd.0.1.8.nupkg --source https://push.chocolatey.org/ --api-key YOUR_API_KEY
 ```
 
@@ -125,50 +124,50 @@ choco push solomd.0.1.8.nupkg --source https://push.chocolatey.org/ --api-key YO
 
 ## 5. SourceForge
 
-1. 访问 https://sourceforge.net/create/
-2. 登录/注册
-3. 按 `submissions/sourceforge.md` 中的信息填写
-4. 上传 `distribution/windows/`, `distribution/macos/`, `distribution/linux/` 中的文件
+1. Visit https://sourceforge.net/create/
+2. Log in/Sign up
+3. Fill in the details as per `submissions/sourceforge.md`
+4. Upload the files from `distribution/windows/`, `distribution/macos/`, and `distribution/linux/`
 
 ---
 
 ## 6. AlternativeTo
 
-1. 访问 https://alternativeto.net/software/add/
-2. 按 `submissions/alternativeto.md` 中的信息填写
-3. 提交
+1. Visit https://alternativeto.net/software/add/
+2. Fill in the details as per `submissions/alternativeto.md`
+3. Submit
 
 ---
 
-## 7. 小众软件
+## 7. Appinn
 
-1. 访问 https://meta.appinn.net/c/faxian/10
-2. 复制 `submissions/appinn.md` 中的内容发帖
-3. 或发邮件到 hi@appinn.com
-
----
-
-## 版本更新检查清单
-
-每次发布新版本时：
-
-- [ ] 更新 `manifests/homebrew/solomd.rb` 中的 version 和 sha256
-- [ ] 更新 `manifests/winget/*.yaml` 中的版本号和哈希
-- [ ] 更新 `manifests/scoop/solomd.json` 中的版本号和哈希
-- [ ] 更新 `manifests/chocolatey/` 中的版本号和哈希
-- [ ] 提交更新 PR 到各仓库
-- [ ] 更新 SourceForge 文件
+1. Visit https://meta.appinn.net/c/faxian/10
+2. Copy the content from `submissions/appinn.md` and create a post
+3. Alternatively, send an email to hi@appinn.com
 
 ---
 
-## 进度追踪
+## Version Update Checklist
 
-| 平台 | 状态 | PR/链接 | 备注 |
-|------|------|---------|------|
-| Homebrew | ⏳ 待提交 | | |
-| Winget | ⏳ 待提交 | | |
-| Scoop | ⏳ 待提交 | | |
-| Chocolatey | ⏳ 待提交 | | |
-| SourceForge | ⏳ 待提交 | | |
-| AlternativeTo | ⏳ 待提交 | | |
-| 小众软件 | ⏳ 待提交 | | |
+For every new release:
+
+- [ ] Update the version and sha256 in `manifests/homebrew/solomd.rb`
+- [ ] Update the version number and hash in `manifests/winget/*.yaml`
+- [ ] Update the version number and hash in `manifests/scoop/solomd.json`
+- [ ] Update the version number and hash in `manifests/chocolatey/`
+- [ ] Submit update PRs to the respective repositories
+- [ ] Update files on SourceForge
+
+---
+
+## Progress Tracking
+
+| Platform | Status | PR/Link | Notes |
+|----------|--------|---------|-------|
+| Homebrew | ⏳ Pending Submission | | |
+| Winget | ⏳ Pending Submission | | | |
+| Scoop | ⏳ Pending Submission | | |
+| Chocolatey | ⏳ Pending Submission | | |
+| SourceForge | ⏳ Pending Submission | | |
+| AlternativeTo | ⏳ Pending Submission | | |
+| Appinn | ⏳ Pending Submission | | |

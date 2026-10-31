@@ -1,6 +1,6 @@
-# SourceForge 提交信息
+# SourceForge Submission Information
 
-## 项目信息
+## Project Information
 
 **Project Name**: solomd
 
@@ -45,28 +45,28 @@ LICENSE: MIT (Free & Open Source)
 
 **Tags**: markdown, editor, tauri, wysiwyg, text-editor, writing
 
-## 文件上传
+## File upload
 
-上传以下文件到对应目录：
+Upload the following files to the corresponding directory:
 
 ```
-/Windows/
-  - SoloMD_0.1.8_x64-setup.exe
-  - SoloMD_0.1.8_x64_en-US.msi
+/Windows/ 
+- SoloMD_0.1.8_x64-setup.exe 
+- SoloMD_0.1.8_x64_en-US.msi
 
-/macOS/
-  - SoloMD_0.1.8_universal.dmg
+/macOS/ 
+- SoloMD_0.1.8_universal.dmg
 
-/Linux/
-  - SoloMD_0.1.8_amd64.deb
-  - SoloMD_0.1.8_amd64.AppImage
-  - SoloMD-0.1.8-1.x86_64.rpm
+/Linux/ 
+- SoloMD_0.1.8_amd64.deb 
+- SoloMD_0.1.8_amd64.AppImage 
+- SoloMD-0.1.8-1.x86_64.rpm
 ```
 
-## 提交步骤
+## Submit steps
 
-1. 访问 https://sourceforge.net/create/
-2. 登录或注册账号
-3. 创建新项目，填写上述信息
-4. 上传安装包
-5. 设置默认下载文件
+1. Visit https://sourceforge.net/create/
+2. Log in or register an account
+3. Create a new project and fill in the above information
+4. Upload the installation package
+5. Set default download files

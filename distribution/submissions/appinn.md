@@ -1,81 +1,79 @@
-# 小众软件 (Appinn) 投稿
+# Submission to Appinn (小众软件)
 
-## 投稿方式
+## How to Submit
 
-**论坛发帖**：https://meta.appinn.net/c/faxian/10
+**Post on the Forum**: https://meta.appinn.net/c/faxian/10
 
-**邮箱投稿**：hi@appinn.com
-
----
-
-## 帖子标题
-
-```
-SoloMD - 只有 15MB 的所见即所得 Markdown 编辑器 [Win/Mac/Linux]
-```
+**Submit via Email**: hi@appinn.com
 
 ---
 
-## 帖子内容
+## Post Title
+
+```
+SoloMD – A 15MB WYSIWYG Markdown Editor [Win/Mac/Linux]
+```
+
+---
+
+## Post Content
 
 ```markdown
-## 简介
+## Introduction
 
-SoloMD 是一款轻量级的 Markdown 编辑器，安装包只有 15MB（作为对比，Obsidian 是 250MB）。
+SoloMD is a lightweight Markdown editor with an installation size of just 15MB (for comparison, Obsidian is 250MB).
 
-主打一个「小而美」：一个文件，一个窗口，专心写作。
+It embraces a "small yet beautiful" philosophy: one file, one window—focus entirely on your writing.
 
-## 主要特点
+## Key Features
 
-**所见即所得**
-- 光标离开当前行后，Markdown 标记自动隐藏
-- 不需要分屏预览，写的时候就能看到效果
+**WYSIWYG (What You See Is What You Get)**
+- Markdown syntax markers are automatically hidden once the cursor moves away from the current line.
+- No need for split-screen previews; you see the formatted result as you type.
 
-**对中文友好**
-- 自动识别 GBK/Big5 编码，打开老文件不乱码
-- 支持简繁转换
-- 字数统计是「字」不是「词」
+**Chinese-Language Friendly**
+- Automatically detects GBK/Big5 encodings, ensuring no garbled text when opening legacy files.
+- Supports conversion between Simplified and Traditional Chinese.
+- Character count is based on individual characters (字), not words (词).
 
-**AI 用户福音**
-- 一键清除 ChatGPT/Claude 复制过来的引用标记
-- 弯引号转直引号
-- 清除零宽字符
+**Great for AI Users**
+- One-click removal of citation markers copied from ChatGPT/Claude.
+- Converts curly quotes to straight quotes.
+- Cleans up zero-width characters.
 
-**其他功能**
-- KaTeX 数学公式
-- Mermaid 流程图
-- 导出 PDF/Word/HTML
-- 亮色/暗色主题
+**Other Features**
+- KaTeX support for mathematical formulas.
+- Mermaid support for flowcharts.
+- Export options: PDF, Word, and HTML.
+- Light and dark themes.
 
-## 技术栈
+## Tech Stack
 
 Tauri 2 + Vue 3 + CodeMirror 6
 
-用 Rust 做后端，用系统 WebView 代替 Chromium，所以体积才这么小。
+Built with a Rust backend and utilizing the system's native WebView (instead of Chromium), which keeps the file size exceptionally small.
 
-## 下载
+## Download
 
-- 官网：https://solomd.app
-- GitHub：https://github.com/zhitongblog/solomd
+- Official Website: https://solomd.app
+- GitHub: https://github.com/zhitongblog/solomd
 
-完全免费，MIT 开源。
+Completely free and open-source under the MIT License.
 
-## 截图
+## Screenshots
 
-[附上产品截图]
-
----
-
-作为一个 Typora 老用户，收费后一直在找替代品。MarkText 停更了，Obsidian 太重了，于是自己做了这个。
-
-希望对有同样需求的朋友有帮助！
-```
+[Attach product screenshots here]
 
 ---
 
-## 注意事项
+As a long-time Typora user, I’ve been searching for an alternative ever since it switched to a paid model. With MarkText no longer being updated and Obsidian feeling too heavy, I decided to build this myself.
 
-1. 小众软件用户偏好简洁实用的软件
-2. 强调「小」「轻量」「免费」「开源」
-3. 配图很重要，准备 2-3 张产品截图
-4. 回复评论，保持互动
+I hope this proves useful to others with similar needs!
+``` ---
+
+## Important Notes
+
+1. Users of "niche software" (小众软件) prefer applications that are simple and practical.
+2. Emphasize qualities such as "compact," "lightweight," "free," and "open-source."
+3. Visuals are crucial; prepare 2–3 screenshots of the product.
+4. Respond to comments to maintain engagement.

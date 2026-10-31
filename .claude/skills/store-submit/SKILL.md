@@ -35,7 +35,7 @@ API with no browser at all:
 
 ```bash
 ./scripts/submit-for-review.sh --platform ios   --version X.Y.Z \
-    --notes-dir app-store/release-notes/X.Y.Z --dry-run
+    --notes-dir distribution/app-store/release-notes/X.Y.Z --dry-run
 ```
 
 Reach for the browser on Apple only if that script has failed for a reason you

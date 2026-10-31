@@ -8,7 +8,7 @@
 #
 # Supported platforms: brew, winget, choco
 # (AUR is NOT supported here — requires SSH access to aur.archlinux.org,
-#  see aur-solomd-bin/ for manual submission steps.)
+#  see distribution/aur-solomd-bin/ for manual submission steps.)
 #
 # Scoop is intentionally NOT listed — ScoopInstaller/Extras bucket's
 # checkver+autoupdate config auto-tracks our GitHub releases, so manual
