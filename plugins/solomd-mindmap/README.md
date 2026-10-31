@@ -19,6 +19,8 @@ pnpm --dir plugins/solomd-mindmap/server install
 claude --plugin-dir ./plugins/solomd-mindmap
 ```
 
+Running from source (`--plugin-dir`, `pnpm … test`) needs Node ≥ 22.18 for `--experimental-strip-types`.
+
 After editing `server/src` or `app/src/lib/mindmap/`, run `pnpm --dir plugins/solomd-mindmap/server build` — `verify` fails on a stale bundle.
 
 The workspace is the folder you start `claude` in, like opening a folder in VS Code.

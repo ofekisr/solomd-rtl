@@ -6,6 +6,8 @@
 
 Not auto-wired. Contributors who want it run, from the repo root:
 
+Build once first so the first launch doesn't time out: `cargo build --release --manifest-path plugins/solomd-dev/server/Cargo.toml`.
+
 ```bash
 claude mcp add --scope local solomd-dev -- cargo run --quiet --release --manifest-path plugins/solomd-dev/server/Cargo.toml --
 ```
@@ -56,15 +58,6 @@ cargo build --release      # 1.5 MB single binary
 ```
 
 Speaks JSON-RPC over stdio. Logs to stderr.
-
-## Register with Claude Code
-
-```bash
-claude mcp add --scope user solomd-dev -- \
-  /Volumes/Dev/code/notebook/plugins/solomd-dev/server/target/debug/solomd-dev-mcp
-```
-
-After restarting Claude Code, the tools show up as `mcp__solomd-dev__solomd_*`.
 
 ## Bundle id distinction
 

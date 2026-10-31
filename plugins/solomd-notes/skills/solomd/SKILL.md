@@ -36,7 +36,7 @@ The plugin starts `solomd-mcp` from SoloMD.app (`/Applications` or `~/Applicatio
 
 ## Tools available
 
-Tool names are bare (no prefix).
+Tool names below omit the client's MCP prefix (in Claude Code: `mcp__plugin_solomd-notes_solomd__<tool>`).
 
 ### Read tools (always available)
 
