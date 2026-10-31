@@ -15,7 +15,7 @@
 2. `.claude-plugin/marketplace.json` at the root lists `solomd-mindmap` and `solomd-notes`.
 3. `solomd-notes` runs the `solomd-mcp` bundled in SoloMD.app, falling back to `PATH`.
 4. The mindmap server ships as a committed esbuild bundle; `verify` fails when it is stale.
-5. `solomd-dev` is wired by the repo's `.mcp.json` and is not listed in the marketplace.
+5. `solomd-dev` is not listed in the marketplace and not auto-wired; contributors opt in with `claude mcp add --scope local` (it can eval JS in the app and write any file).
 6. Upstream MCP-directory listings are deleted; the recipe copy is dropped in favour of `app/src-tauri/cookbook/`.
 
 ## Consequences

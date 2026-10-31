@@ -2,6 +2,16 @@
 
 **Internal-only MCP server for end-to-end self-testing of SoloMD.** Not shipped to users; sits next to (not inside) the user-facing `solomd-mcp` so the test harness can never accidentally surface in a release build.
 
+## Opt in
+
+Not auto-wired. Contributors who want it run, from the repo root:
+
+```bash
+claude mcp add --scope local solomd-dev -- cargo run --quiet --release --manifest-path plugins/solomd-dev/server/Cargo.toml --
+```
+
+Risk: `solomd_dev_eval` runs JS in a debug build's window; `solomd_read_file`/`solomd_write_file` accept any path. Enable only while actively testing.
+
 ## Why
 
 The end-user `solomd-mcp` exposes a vault to LLM clients. This separate server exposes SoloMD's own internal state (settings, tabs, AutoGit, file system) so Claude can drive the app from the outside and verify that a feature actually works — the rule from `~/.claude/CLAUDE.md` is "every client project ships with CLI + MCP for self-test."

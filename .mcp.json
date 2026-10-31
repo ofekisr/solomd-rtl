@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "solomd-dev": {
-      "command": "cargo",
-      "args": ["run", "--quiet", "--release", "--manifest-path", "plugins/solomd-dev/server/Cargo.toml", "--"]
-    }
-  }
-}

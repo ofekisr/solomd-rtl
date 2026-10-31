@@ -37,7 +37,7 @@ Three defects follow:
 | D3 | `solomd-notes` runs the `solomd-mcp` bundled in SoloMD.app, falling back to `PATH` | Build from source (needs Rust), fork releases (new pipeline) |
 | D4 | Delete upstream listings; keep `client-docs/` as the `solomd-notes` README | Archive (stale links), rebrand (needs fork releases) |
 | D5 | Drop the recipe copy; the skill links to `app/src-tauri/cookbook/` | Build-time copy (no value: recipes run in the app), convert to skills (separate feature) |
-| D6 | `solomd-dev` lives in `plugins/` but is not listed in `marketplace.json`; wired by the repo's `.mcp.json` | Publishing it (evals arbitrary JS in the user's app) |
+| D6 | `solomd-dev` lives in `plugins/` but is not listed in `marketplace.json`; opt-in via `claude mcp add --scope local` | Publishing it (evals arbitrary JS in the user's app) |
 | D7 | Mindmap server ships as a committed esbuild bundle; `verify` fails when it is stale | Point at a repo checkout (no marketplace use), npm package (publishing) |
 
 ### 3. Target layout
@@ -45,7 +45,6 @@ Three defects follow:
 ```
 .claude-plugin/
   marketplace.json                 lists solomd-mindmap, solomd-notes
-.mcp.json                          project scope: solomd-dev
 plugins/
   CLAUDE.md                        what each plugin is, how to build and test
   solomd-mindmap/                  ← plugin/ + mcp-mindmap/
@@ -142,7 +141,7 @@ Invariant 2 holds: `baseline.json` has no keys under the moved folders.
 1. ADR 0008 + this spec.
 2. `solomd-mindmap`: move `plugin/` + `mcp-mindmap/`, bundle, gates.
 3. `solomd-notes`: move `mcp-server/` + skill, launcher, README, script and CI paths.
-4. `solomd-dev`: move `dev-mcp/`, root `.mcp.json`.
+4. `solomd-dev`: move `dev-mcp/` (opt-in, no root `.mcp.json`).
 5. Marketplace manifest; delete `marketplace/`, `server.json`, `smithery.yaml`; README and CLAUDE.md sync.
 
 Each commit passes `pnpm --dir app verify`.
