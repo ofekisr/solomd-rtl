@@ -14,7 +14,7 @@ Vue 3 + CodeMirror 6 + Pinia front end. `src-tauri/` is the Rust desktop shell. 
 | `src/composables/` | `use*` hooks; host state for `App.vue` (`createX`/`useX`, see shell/CLAUDE.md). Subfolders: `mindmap/`, `git/`, `theme/`, `commands/`, `files/` | Move with their feature; host ones stay |
 | `src/stores/` | Pinia stores; `settings.ts` is the store shell over the slices in `features/settings/` (state, `persist`, slice actions). Stores read a stored flag before hydration through `readStoredSetting` | Stays |
 | `src/platform/` | Typed ports over Tauri; only importer of `@tauri-apps/*`. Read [platform/CLAUDE.md](src/platform/CLAUDE.md) | Stays |
-| `src/lib/` | Mostly pure TS: CM extensions (`cm/`), the Markdown renderer (`markdown/`), exporters (`pdf/`, `docx/`), image helpers (`image/`), parsers, `mindmap/` (`.mmap` model; also imported by `mcp-mindmap/`), `theme/`, `git-pane/`, `fixtures/`. 1 file still imports `vue`/`pinia`/`@tauri-apps/*` (`libPurity` baseline: `ai-activity.ts`) | Stays. Fully pure when it moves (Wave 4) |
+| `src/lib/` | Mostly pure TS: CM extensions (`cm/`), the Markdown renderer (`markdown/`), exporters (`pdf/`, `docx/`), image helpers (`image/`), parsers, `mindmap/` (`.mmap` model; also imported by `plugins/solomd-mindmap/server/`), `theme/`, `git-pane/`, `fixtures/`. 1 file still imports `vue`/`pinia`/`@tauri-apps/*` (`libPurity` baseline: `ai-activity.ts`) | Stays. Fully pure when it moves (Wave 4) |
 | `src/ui/` | `Ds*` design-system primitives | Stays |
 | `src/i18n/` | Locale tables. New strings go in `en.ts`. `keys.ts` exports `I18nKey` (dot-paths of `en`) | Tables stay; keys are typed per feature |
 | `src/styles/` | Global CSS and tokens | Stays |

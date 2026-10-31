@@ -12,7 +12,7 @@ export const SIZE_BUDGETS: readonly SizeBudget[] = [
   { root: 'app/src', ext: '.ts', maxLines: 400 },
   { root: 'app/src', ext: '.vue', maxLines: 500 },
   { root: 'app/src-tauri/src', ext: '.rs', maxLines: 600 },
-  { root: 'mcp-mindmap/src', ext: '.ts', maxLines: 400 },
+  { root: 'plugins/solomd-mindmap/server/src', ext: '.ts', maxLines: 400 },
 ];
 
 export function collectFileSize(repoRoot: string): FileSizeSlice {

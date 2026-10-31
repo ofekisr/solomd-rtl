@@ -1,8 +1,8 @@
 import type { NodeObj } from 'mind-elixir';
-import { walkNodes } from '../../../app/src/lib/mindmap/gates.ts';
-import { findDuplicateGroups, normalizeTopic } from '../../../app/src/lib/mindmap/duplicates.ts';
-import { readFields } from '../../../app/src/lib/mindmap/node-fields.ts';
-import { describeNode, outlineOf, pathOf, type NodeSummary } from '../../../app/src/lib/mindmap/address.ts';
+import { walkNodes } from '../../../../../app/src/lib/mindmap/gates.ts';
+import { findDuplicateGroups, normalizeTopic } from '../../../../../app/src/lib/mindmap/duplicates.ts';
+import { readFields } from '../../../../../app/src/lib/mindmap/node-fields.ts';
+import { describeNode, outlineOf, pathOf, type NodeSummary } from '../../../../../app/src/lib/mindmap/address.ts';
 import { requireNode, type MapStore } from '../store.ts';
 
 export type FindBy = 'topic' | 'tag' | 'field' | 'note';

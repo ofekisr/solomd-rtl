@@ -12,7 +12,7 @@
     "arch:rebaseline": "node arch/rebaseline.ts",
     "arch:tight": "node arch/rebaseline.ts --check",
     "guard": "pnpm run arch && pnpm run test && vue-tsc --noEmit",
-    "verify": "pnpm run guard && pnpm run arch:tight && vite build && cargo check --manifest-path src-tauri/Cargo.toml && pnpm --dir ../mcp-mindmap test",
+    "verify": "pnpm run guard && pnpm run arch:tight && vite build && cargo check --manifest-path src-tauri/Cargo.toml && pnpm --dir ../plugins/solomd-mindmap/server test",
     "full": "pnpm run verify && cargo test --manifest-path src-tauri/Cargo.toml && playwright test --config e2e/playwright.config.ts",
     "tauri": "tauri",
     "tauri:dev": "tauri dev --config src-tauri/tauri.dev.conf.json",

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "solomd-mindmap": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/server/src/index.ts", "--allow-write"]
+    }
+  }
+}

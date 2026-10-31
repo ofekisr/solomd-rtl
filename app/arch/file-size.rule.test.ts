@@ -12,14 +12,14 @@ test('collectFileSize reports only files over their budget', () => {
     'app/src/ok.vue': lines(500),
     'app/src/big.vue': lines(501),
     'app/src-tauri/src/big.rs': lines(601),
-    'mcp-mindmap/src/big.ts': lines(401),
+    'plugins/solomd-mindmap/server/src/big.ts': lines(401),
     'app/src/big.test.ts': lines(900),
   }, (root) => {
     assert.deepEqual(collectFileSize(root), {
       'app/src/big.ts': 401,
       'app/src/big.vue': 501,
       'app/src-tauri/src/big.rs': 601,
-      'mcp-mindmap/src/big.ts': 401,
+      'plugins/solomd-mindmap/server/src/big.ts': 401,
     });
   });
 });

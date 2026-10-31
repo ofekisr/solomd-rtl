@@ -21,7 +21,7 @@ The exit code is the only signal. Never commit on red.
 | Run | Covers | When |
 |---|---|---|
 | `pnpm --dir app guard` | arch specs → unit tests → `vue-tsc` (~12s) | After every edit |
-| `pnpm --dir app verify` | guard → baseline tight → `vite build` → `cargo check` → mcp-mindmap tests (~1 min) | Before each commit |
+| `pnpm --dir app verify` | guard → baseline tight → `vite build` → `cargo check` → plugin tests (~1 min) | Before each commit |
 | `pnpm --dir app full` | verify → `cargo test` → Playwright e2e (macOS only) | Before a wave's Integrate gate |
 
 CI (`.github/workflows/ci.yml`) runs guard, the tight check and `vite build` on every PR and push to `main`.
@@ -35,8 +35,7 @@ CI (`.github/workflows/ci.yml`) runs guard, the tight check and `vite build` on 
 | `docs/conventions/` | Naming rules — see [file roles](docs/conventions/file-roles.md) |
 | `demos/` | Playwright story-driven demo videos — see `demos/CLAUDE.md` |
 | `app/src/lib/theme/` | Unified theme layer (v4.39): Zod schema, resolve → `<style id="solomd-theme">`, builtin/catalog JSON, migration. Store: `app/src/stores/theme.ts`. Spec: `docs/superpowers/specs/2026-10-29-theme-layer-design.md` |
-| `mcp-mindmap/` | Stdio MCP server for `.mmap` (TS, imports `app/src/lib`) — `pnpm --dir mcp-mindmap test` |
-| `plugin/` | Claude Code plugin: mindmap MCP + skill + session-id hook |
+| `plugins/` | Claude Code plugins + their MCP servers — see [plugins/CLAUDE.md](plugins/CLAUDE.md) |
 | `.claude/launch.json` | Dev servers: `solomd-web` (1420), `solomd-web-alt` (1430) |
 
 ## Commands

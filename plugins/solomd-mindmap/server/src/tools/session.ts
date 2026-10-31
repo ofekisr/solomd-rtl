@@ -1,8 +1,8 @@
 import type { NodeObj } from 'mind-elixir';
-import { walkNodes } from '../../../app/src/lib/mindmap/gates.ts';
-import { CLAUDE_SESSION_KEY, fieldsPatch, isClaudeSessionId, readFields } from '../../../app/src/lib/mindmap/node-fields.ts';
-import { boundSession, pathOf } from '../../../app/src/lib/mindmap/address.ts';
-import { updateNode } from '../../../app/src/lib/mindmap/edit.ts';
+import { walkNodes } from '../../../../../app/src/lib/mindmap/gates.ts';
+import { CLAUDE_SESSION_KEY, fieldsPatch, isClaudeSessionId, readFields } from '../../../../../app/src/lib/mindmap/node-fields.ts';
+import { boundSession, pathOf } from '../../../../../app/src/lib/mindmap/address.ts';
+import { updateNode } from '../../../../../app/src/lib/mindmap/edit.ts';
 import { requireNode, type MapStore } from '../store.ts';
 import { applyEdit } from './write.ts';
 

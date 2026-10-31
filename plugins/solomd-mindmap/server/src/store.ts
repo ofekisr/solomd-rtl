@@ -1,11 +1,11 @@
 import { readdir, readFile, realpath, rename, unlink, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import type { MindElixirData, NodeObj } from 'mind-elixir';
-import { MMAP_EXTENSION, parseMindmap, rootTopicFromFileName, serializeMindmap } from '../../app/src/lib/mindmap/format.ts';
-import type { MapDisplay } from '../../app/src/lib/mindmap/display.ts';
-import type { Snippet } from '../../app/src/lib/mindmap/snippets.ts';
-import { resolveNode } from '../../app/src/lib/mindmap/address.ts';
-import { withGateLabels } from '../../app/src/lib/mindmap/gates.ts';
+import { MMAP_EXTENSION, parseMindmap, rootTopicFromFileName, serializeMindmap } from '../../../../app/src/lib/mindmap/format.ts';
+import type { MapDisplay } from '../../../../app/src/lib/mindmap/display.ts';
+import type { Snippet } from '../../../../app/src/lib/mindmap/snippets.ts';
+import { resolveNode } from '../../../../app/src/lib/mindmap/address.ts';
+import { withGateLabels } from '../../../../app/src/lib/mindmap/gates.ts';
 import type { ServerConfig } from './config.ts';
 import { AiActivity, NO_ACTIVITY, type ActivityMarker } from './ai-activity.ts';
 

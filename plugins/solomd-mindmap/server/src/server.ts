@@ -6,7 +6,7 @@ import { duplicates, find, node, outline } from './tools/read.ts';
 import { add, edit, gate, move, remove } from './tools/write.ts';
 import { legend, mark } from './tools/meaning.ts';
 import { bindSession, sessionNodes } from './tools/session.ts';
-import { isSafeColor } from '../../app/src/lib/mindmap/display.ts';
+import { isSafeColor } from '../../../../app/src/lib/mindmap/display.ts';
 import { create, exportMap, graft, merge, reveal } from './tools/file.ts';
 
 export const SERVER_NAME = 'solomd-mindmap';

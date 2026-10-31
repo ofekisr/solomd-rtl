@@ -10,7 +10,7 @@
     "lib": ["ES2022", "DOM"],
     "types": ["node"],
     "baseUrl": ".",
-    "paths": { "mind-elixir": ["../app/node_modules/mind-elixir"] }
+    "paths": { "mind-elixir": ["../../../app/node_modules/mind-elixir"] }
   },
   "include": ["src/**/*.ts", "test/**/*.ts"]
 }

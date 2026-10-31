@@ -6,8 +6,8 @@ Claude Code tools for SoloMD `.mmap` mind maps. Read and edit maps, bind session
 
 ```bash
 pnpm --dir app install
-pnpm --dir mcp-mindmap install
-claude --plugin-dir ./plugin
+pnpm --dir plugins/solomd-mindmap/server install
+claude --plugin-dir ./plugins/solomd-mindmap
 ```
 
 Requires Node ≥ 22.18. The workspace is the folder you start `claude` in, like opening a folder in VS Code.
@@ -18,8 +18,6 @@ Requires Node ≥ 22.18. The workspace is the folder you start `claude` in, like
 
 - `--workspace <dir>`: optional; pin the server to one folder instead of the current one
 - `--allow-write`: enables create/edit/remove/mark/legend/bind tools (read-only if omitted)
-
-The plugin works from this repo checkout (`--plugin-dir`), not from a copied marketplace install, because `.mcp.json` references `../mcp-mindmap`.
 
 ## Tools
 
@@ -56,7 +54,7 @@ The plugin works from this repo checkout (`--plugin-dir`), not from a copied mar
 All 18 tools have valid, combinator-free schemas:
 
 ```bash
-pnpm --dir mcp-mindmap test
+pnpm --dir plugins/solomd-mindmap/server test
 ```
 
 `test/schema.test.ts` fails if any tool schema has a top-level `oneOf` / `anyOf` / `allOf`.

@@ -7,7 +7,7 @@
   "engines": { "node": ">=22.18" },
   "scripts": {
     "start": "node src/index.ts",
-    "test": "node --test --experimental-strip-types test/*.test.ts",
+    "test": "node --test --experimental-strip-types test/*.test.ts ../hooks/*.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

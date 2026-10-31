@@ -10,7 +10,7 @@ test('collectRawIpc finds any @tauri-apps/* import in app/src outside platform/'
     'app/src/c.ts': "import { open } from '@tauri-apps/plugin-dialog';",
     'app/src/d.test.ts': "import { invoke } from '@tauri-apps/api/core';",
     'app/src/platform/ipc/x.tauri.adapter.ts': "import { invoke } from '@tauri-apps/api/core';",
-    'mcp-mindmap/src/e.ts': "import { invoke } from '@tauri-apps/api/core';",
+    'plugins/solomd-mindmap/server/src/e.ts': "import { invoke } from '@tauri-apps/api/core';",
   }, (root) => {
     assert.deepEqual(collectRawIpc(root), ['app/src/a.ts', 'app/src/b.vue', 'app/src/c.ts']);
   });

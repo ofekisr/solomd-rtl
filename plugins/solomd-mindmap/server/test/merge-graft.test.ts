@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { workspace } from './fixtures.ts';
 import { merge, graft } from '../src/tools/file.ts';
-import { createEmptyMindmap } from '../../app/src/lib/mindmap/format.ts';
+import { createEmptyMindmap } from '../../../../app/src/lib/mindmap/format.ts';
 import type { MapStore } from '../src/store.ts';
 
 async function withFixtures(): Promise<MapStore> {
